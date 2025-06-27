@@ -402,7 +402,8 @@ void CExchangeWindow::update()
 				if(isMoreSkillsThanSlots)
 				{
 					Rect r(Point(32 + 36 * m + 454 * leftRight, qeLayout ? 83 : 88), Point(34, 28));
-					secSkillsFull[leftRight] = std::make_shared<CMultiLineLabel>(r, EFonts::FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, "...");
+					int extraSkills = static_cast<int>(hero->secSkills.size()) - 7;
+					secSkillsFull[leftRight] = std::make_shared<CMultiLineLabel>(r, EFonts::FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, "+" + std::to_string(extraSkills));
 					secSkillsFullArea[leftRight] = std::make_shared<LRClickableAreaWText>(r, LIBRARY->generaltexth->translate("vcmi.kingdomOverview.secSkillOverflow.hover"), LIBRARY->generaltexth->translate("vcmi.kingdomOverview.secSkillOverflow.help"));
 					secSkills[leftRight][m]->setSkill(SecondarySkill::NONE);
 					continue;
