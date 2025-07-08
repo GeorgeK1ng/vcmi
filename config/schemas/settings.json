@@ -46,7 +46,9 @@
 				"enableOverlay",
 				"lastKindomInterface",
 				"enableSubtitle",
-				"ignoreMuteSwitch"
+				"ignoreMuteSwitch",
+				"highscoreEntriesCap",
+				"highscoreStatisticEntriesCap"
 			],
 			"properties" : {
 				"playerName" : {
@@ -166,6 +168,14 @@
 				"ignoreMuteSwitch" : {
 					"type": "boolean",
 					"default": true
+				},
+				"highscoreEntriesCap" : {
+					"type" : "number",
+					"default" : 100
+				},
+				"highscoreStatisticEntriesCap" : {
+					"type" : "number",
+					"default" : 15
 				}
 			}
 		},
@@ -387,7 +397,7 @@
 			"type" : "object",
 			"additionalProperties" : false,
 			"default" : {},
-			"required" : [ "heroMoveTime", "enemyMoveTime", "scrollSpeedPixels", "heroReminder", "quickCombat", "objectAnimation", "terrainAnimation", "forceQuickCombat", "borderScroll", "leftButtonDrag", "rightButtonDrag", "smoothDragging", "backgroundDimLevel", "hideBackground", "backgroundDimSmallWindows", "tileZoom", "minimapShowHeroes" ],
+			"required" : [ "heroMoveTime", "enemyMoveTime", "scrollSpeedPixels", "heroReminder", "quickCombat", "objectAnimation", "terrainAnimation", "forceQuickCombat", "borderScroll", "leftButtonDrag", "rightButtonDrag", "smoothDragging", "backgroundDimLevel", "hideBackground", "backgroundDimSmallWindows", "tileZoom", "minimapShowHeroes", "showMovePath" ],
 			"properties" : {
 				"heroMoveTime" : {
 					"type" : "number",
@@ -456,10 +466,13 @@
 					"type" : "boolean",
 					"default" : true
 				},
-				
 				"tileZoom" : {
 					"type" : "number",
 					"default" : 32
+				},
+				"showMovePath" : {
+					"type" : "boolean",
+					"default" : true
 				}
 			}
 		},

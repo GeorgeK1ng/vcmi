@@ -16,7 +16,6 @@
 
 #include "../CBonusTypeHandler.h"
 #include "../CCreatureHandler.h"
-#include "../CCreatureSet.h"
 #include "../CSkillHandler.h"
 #include "../TerrainHandler.h"
 #include "../GameLibrary.h"
@@ -234,6 +233,12 @@ Bonus::Bonus(BonusDuration::Type Duration, BonusType Type, BonusSource Src, si32
 	turnsRemain = 0;
 	effectRange = BonusLimitEffect::NO_LIMIT;
 	targetSourceType = BonusSource::OTHER;
+}
+
+Bonus::Bonus(const Bonus & inst, const BonusSourceID & sourceId)
+	: Bonus(inst)
+{
+	sid = sourceId;
 }
 
 std::shared_ptr<Bonus> Bonus::addPropagator(const TPropagatorPtr & Propagator)
