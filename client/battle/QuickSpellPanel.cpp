@@ -102,7 +102,9 @@ void QuickSpellPanel::create()
 		return;
 
 	auto spells = getSpells();
-	for(int i = 0; i < QUICKSPELL_SLOTS; i++)
+	int spellsCount = std::min<int>(spells.size(), QUICKSPELL_SLOTS);
+	
+	for(int i = 0; i < spellsCount; i++)
 	{
 		SpellID id;
 		bool fromSettings;
