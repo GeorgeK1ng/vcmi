@@ -109,6 +109,9 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
         shell: pwsh
 
+      - name: Install vcpkg Dependencies
+        run: bash CI/install_vcpkg_dependencies.sh msvc-${{ matrix.arch }}
+
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
 
