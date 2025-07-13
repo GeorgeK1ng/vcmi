@@ -100,9 +100,9 @@ jobs:
             exit 1
           }
           $content = Get-Content $filePath
-          $major = ($content | Where-Object { $_ -match '^set\(VCMI_VERSION_MAJOR\s+(\d+)\)' } | ForEach-Object { $_ -replace '^set\(VCMI_VERSION_MAJOR\s+(\d+)\).*', '$1' })
-          $minor = ($content | Where-Object { $_ -match '^set\(VCMI_VERSION_MINOR\s+(\d+)\)' } | ForEach-Object { $_ -replace '^set\(VCMI_VERSION_MINOR\s+(\d+)\).*', '$1' })
-          $patch = ($content | Where-Object { $_ -match '^set\(VCMI_VERSION_PATCH\s+(\d+)\)' } | ForEach-Object { $_ -replace '^set\(VCMI_VERSION_PATCH\s+(\d+)\).*', '$1' })
+          $major = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MAJOR\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MAJOR\\s+(\d+)\).*', '$1'
+          $minor = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MINOR\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MINOR\\s+(\d+)\).*', '$1'
+          $patch = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_PATCH\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_PATCH\\s+(\d+)\).*', '$1'
           $version = "$major.$minor.$patch"
           $timestamp = Get-Date -Format "yyyyMMddHHmmss"
           Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version.$timestamp"
@@ -133,13 +133,15 @@ jobs:
         shell: pwsh
 
       - name: Run Installer Script
-        shell: cmd
         run: |
-          call CI\wininstaller\build_installer.cmd ^
-            %VERSION% ^
-            %GITHUB_RUN_ID% ^
-            ${{ matrix.arch }} ^
-            VCMI
+          $buildDir = "$env:GITHUB_WORKSPACE\out\build\${{ matrix.preset }}\bin\RelWithDebInfo"
+          cmd /c CI\wininstaller\build_installer.cmd ^
+            "%VERSION%" ^
+            "%GITHUB_RUN_ID%" ^
+            "${{ matrix.arch }}" ^
+            "VCMI" ^
+            "$buildDir"
+        shell: cmd
 
       - name: Upload Installer to GitHub Release
         uses: softprops/action-gh-release@v2
