@@ -66,11 +66,17 @@ jobs:
         env:
           VCMI_BUILD_PLATFORM: ${{ matrix.arch }}
 
-      - name: Install Inno Setup
+      - name: Ensure Inno Setup 6 is available
         run: |
-          Invoke-WebRequest https://files.jrsoftware.org/ispack/ispack-6.2.2.exe -OutFile isetup.exe
-          Start-Process -FilePath .\isetup.exe -ArgumentList "/VERYSILENT /DIR=C:\\Tools\\InnoSetup" -Wait
-          echo "C:\\Tools\\InnoSetup" | Out-File -Append -FilePath $env:GITHUB_PATH
+          $defaultPath = "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $defaultPath)) {
+            Write-Host "Inno Setup 6 not found in default location: $defaultPath"
+            throw "ISCC.exe not found. Please ensure Inno Setup 6 is installed."
+          } else {
+            Write-Host "Found Inno Setup 6 at: $defaultPath"
+            $innoBin = Split-Path $defaultPath
+            echo $innoBin | Out-File -Append -FilePath $env:GITHUB_PATH
+          }
         shell: pwsh
 
       - name: Extract version info
