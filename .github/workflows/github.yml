@@ -71,7 +71,7 @@ jobs:
           $defaultPath = "$env:ProgramFiles`(x86`)\Inno Setup 6\ISCC.exe"
           if (!(Test-Path $defaultPath)) {
             Write-Host "Inno Setup 6 not found. Downloading and installing..."
-            $installArgs = @("/VERYSILENT", "/NORESTART", "/DIR=C:\Program Files (x86)\Inno Setup 6")
+            $installArgs = @("/VERYSILENT", "/NORESTART", "/DIR=C:\\Program Files (x86)\\Inno Setup 6")
             Invoke-WebRequest -Uri "https://files.innosetup.nl/innosetup-6.4.3.exe" -OutFile "isetup.exe"
             Start-Process -FilePath "isetup.exe" -ArgumentList $installArgs -Wait
           } else {
@@ -109,6 +109,14 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
         shell: pwsh
 
+      - name: Show extracted version and build dir
+        run: |
+          echo "VERSION=$env:VERSION"
+          echo "SHORT_VERSION=$env:SHORT_VERSION"
+          echo "Expected CMake build output folder: out/build/${{ matrix.preset }}"
+          Get-ChildItem -Path "out/build/${{ matrix.preset }}" -Recurse -ErrorAction SilentlyContinue
+        shell: pwsh
+
       - name: Install vcpkg Dependencies
         run: bash CI/install_vcpkg_dependencies.sh msvc-${{ matrix.arch }}
 
@@ -120,12 +128,11 @@ jobs:
 
       - name: Run Installer Script
         run: |
-          CI\wininstaller\build_installer.cmd ^
+          cmd /c CI\wininstaller\build_installer.cmd ^
             "%VERSION%" ^
             "%GITHUB_RUN_ID%" ^
             "${{ matrix.arch }}" ^
             "VCMI"
-        shell: cmd
 
       - name: Upload Installer to GitHub Release
         uses: softprops/action-gh-release@v2
