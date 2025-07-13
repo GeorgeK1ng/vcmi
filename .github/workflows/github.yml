@@ -68,7 +68,7 @@ jobs:
 
       - name: Ensure Inno Setup 6 is available
         run: |
-          $defaultPath = "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          $defaultPath = "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe"
           if (!(Test-Path $defaultPath)) {
             Write-Host "Inno Setup 6 not found in default location: $defaultPath"
             throw "ISCC.exe not found. Please ensure Inno Setup 6 is installed."
