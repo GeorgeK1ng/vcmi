@@ -36,7 +36,12 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v20
         with:
           config: 'CI/example.markdownlint-cli2.jsonc'
-          globs: '**/*.md'
+          globs: |
+            '**/*.md'
+          ignore: |
+            AI/FuzzyLite/**
+            test/googletest/**
+            osx/**
 
   windows-msvc:
     name: Build MSVC Windows ${{ matrix.arch }}
