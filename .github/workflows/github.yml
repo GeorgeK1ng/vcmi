@@ -81,10 +81,20 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value $innoBin
         shell: pwsh
 
+      - name: Show workspace structure
+        run: |
+          Write-Host "Listing root of workspace:"
+          Get-ChildItem -Path $env:GITHUB_WORKSPACE
+          Write-Host "\nListing vcmi subdir if it exists:"
+          if (Test-Path "$env:GITHUB_WORKSPACE\vcmi") {
+            Get-ChildItem -Path "$env:GITHUB_WORKSPACE\vcmi"
+          }
+        shell: pwsh
+
       - name: Extract version info
         id: version
         run: |
-          $filePath = "$env:GITHUB_WORKSPACE\vcmi\cmake_modules\VersionDefinition.cmake"
+          $filePath = "$env:GITHUB_WORKSPACE\cmake_modules\VersionDefinition.cmake"
           if (!(Test-Path $filePath)) {
             Write-Host "File not found: $filePath"
             exit 1
