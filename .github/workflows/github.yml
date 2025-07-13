@@ -72,24 +72,26 @@ jobs:
           if (!(Test-Path $defaultPath)) {
             Write-Host "Inno Setup 6 not found. Downloading and installing..."
             Invoke-WebRequest -Uri "https://files.innosetup.nl/innosetup-6.4.3.exe" -OutFile "isetup.exe"
-            Start-Process -FilePath ".\isetup.exe" -ArgumentList '/VERYSILENT', '/NORESTART', '/DIR="C:\\Program Files (x86)\\Inno Setup 6"' -Wait
+            Start-Process -FilePath "isetup.exe" -ArgumentList @("/VERYSILENT", "/NORESTART", "/DIR=\"C:\\Program Files (x86)\\Inno Setup 6\"") -Wait
           } else {
             Write-Host "Found Inno Setup 6 at: $defaultPath"
           }
           $innoBin = Split-Path "$defaultPath"
-          echo $innoBin | Out-File -Append -FilePath $env:GITHUB_PATH
+          Add-Content -Path $env:GITHUB_PATH -Value $innoBin
         shell: pwsh
 
       - name: Extract version info
         id: version
         run: |
-          MAJOR=$(grep 'VCMI_VERSION_MAJOR' vcmi/cmake_modules/VersionDefinition.cmake | grep -o '[0-9]\+')
-          MINOR=$(grep 'VCMI_VERSION_MINOR' vcmi/cmake_modules/VersionDefinition.cmake | grep -o '[0-9]\+')
-          PATCH=$(grep 'VCMI_VERSION_PATCH' vcmi/cmake_modules/VersionDefinition.cmake | grep -o '[0-9]\+')
-          VERS="$MAJOR.$MINOR.$PATCH"
-          DATE=$(date +"%Y%m%d%H%M%S")
-          echo "VERSION=$VERS.$DATE" >> $GITHUB_ENV
-          echo "SHORT_VERSION=$VERS" >> $GITHUB_ENV
+          $content = Get-Content vcmi/cmake_modules/VersionDefinition.cmake
+          $major = ($content | Select-String 'VCMI_VERSION_MAJOR' | Select-String -Pattern '\d+' -AllMatches).Matches.Value
+          $minor = ($content | Select-String 'VCMI_VERSION_MINOR' | Select-String -Pattern '\d+' -AllMatches).Matches.Value
+          $patch = ($content | Select-String 'VCMI_VERSION_PATCH' | Select-String -Pattern '\d+' -AllMatches).Matches.Value
+          $version = "$major.$minor.$patch"
+          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version.$timestamp"
+          Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
+        shell: pwsh
 
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
