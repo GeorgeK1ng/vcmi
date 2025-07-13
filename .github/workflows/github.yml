@@ -71,12 +71,13 @@ jobs:
           $defaultPath = "$env:ProgramFiles`(x86`)\Inno Setup 6\ISCC.exe"
           if (!(Test-Path $defaultPath)) {
             Write-Host "Inno Setup 6 not found. Downloading and installing..."
+            $installArgs = @("/VERYSILENT", "/NORESTART", "/DIR=C:\Program Files (x86)\Inno Setup 6")
             Invoke-WebRequest -Uri "https://files.innosetup.nl/innosetup-6.4.3.exe" -OutFile "isetup.exe"
-            Start-Process -FilePath "isetup.exe" -ArgumentList @("/VERYSILENT", "/NORESTART", "/DIR=\"C:\\Program Files (x86)\\Inno Setup 6\"") -Wait
+            Start-Process -FilePath "isetup.exe" -ArgumentList $installArgs -Wait
           } else {
             Write-Host "Found Inno Setup 6 at: $defaultPath"
           }
-          $innoBin = Split-Path "$defaultPath"
+          $innoBin = Split-Path $defaultPath
           Add-Content -Path $env:GITHUB_PATH -Value $innoBin
         shell: pwsh
 
