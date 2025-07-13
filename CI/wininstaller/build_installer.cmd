@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 cls
 
 REM Define variables dynamically relative to the normalized base directory
-set "AppVersion=1.6.1"
+set "AppVersion=1.7.0"
 set "AppBuild=1122334455A"
 set "InstallerArch=x64"
 set "VCMIFolder=VCMI"
@@ -14,6 +14,7 @@ if not "%~1"=="" set "AppVersion=%~1"
 if not "%~2"=="" set "AppBuild=%~2"
 if not "%~3"=="" set "InstallerArch=%~3"
 if not "%~4"=="" set "VCMIFolder=%~4"
+if not "%~5"=="" set "SourceFilesPath=%~5"
 
 REM Define Inno Setup version
 set InnoSetupVer=6
@@ -31,7 +32,7 @@ REM Normalize the base directory
 for %%i in ("%BaseDir%") do set "BaseDir=%%~fi"
 
 REM Define specific subdirectories relative to the base directory
-set "SourceFilesPath=%BaseDir%bin\Release"
+if not defined SourceFilesPath set "SourceFilesPath=%BaseDir%bin\Release"
 set "LangPath=%BaseDir%CI\wininstaller\lang"
 set "LicenseFile=%BaseDir%license.txt"
 set "IconFile=%BaseDir%clientapp\icons\vcmi.ico"
