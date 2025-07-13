@@ -100,15 +100,24 @@ jobs:
             exit 1
           }
           $content = Get-Content $filePath
-          $major = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MAJOR\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MAJOR\s+(\d+)\).*', '$1'
-          $minor = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MINOR\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MINOR\s+(\d+)\).*', '$1'
-          $patch = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_PATCH\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_PATCH\s+(\d+)\).*', '$1'
+          $major = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MAJOR\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MAJOR\\s+(\d+)\).*', '$1'
+          $minor = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MINOR\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_MINOR\\s+(\d+)\).*', '$1'
+          $patch = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_PATCH\\s+(\d+)\)' }) -replace '.*set\(VCMI_VERSION_PATCH\\s+(\d+)\).*', '$1'
           $version = "$major.$minor.$patch"
           $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-          Write-Host "Extracted version: $version"
           Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version.$timestamp"
           Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
+          Write-Host "Extracted version: $version"
         shell: pwsh
+
+      - name: Install vcpkg Dependencies
+        run: bash CI/install_vcpkg_dependencies.sh msvc-${{ matrix.arch }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
 
       - name: Show extracted version and build dir
         run: |
@@ -122,15 +131,6 @@ jobs:
             Write-Host "Build output directory not found: $buildDir"
           }
         shell: pwsh
-
-      - name: Install vcpkg Dependencies
-        run: bash CI/install_vcpkg_dependencies.sh msvc-${{ matrix.arch }}
-
-      - name: Configure
-        run: cmake --preset ${{ matrix.preset }}
-
-      - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
 
       - name: Run Installer Script
         run: |
