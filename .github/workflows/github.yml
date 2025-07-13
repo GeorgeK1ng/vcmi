@@ -104,11 +104,11 @@ jobs:
           $minor = $minorMatch.Groups[1].Value
           $patch = $patchMatch.Groups[1].Value
 
-          $version = "$major.$minor.$patch"
+          $shortVersion = "$major.$minor.$patch"
           $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version.$timestamp"
-          Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
-          Write-Host "Extracted version: $version"
+          Add-Content -Path $env:GITHUB_ENV -Value "VERSION_TIMESTAMP=$timestamp"
+          Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$shortVersion"
+          Write-Host "Extracted version: $shortVersion"
         shell: pwsh
 
       - name: Install vcpkg Dependencies
@@ -140,8 +140,8 @@ jobs:
       - name: Run Installer Script
         run: |
           cmd /c CI\wininstaller\build_installer.cmd ^
-            "%VERSION%" ^
-            "%GITHUB_RUN_ID%" ^
+            "%SHORT_VERSION%" ^
+            "%VERSION_TIMESTAMP%" ^
             "${{ matrix.arch }}" ^
             "VCMI" ^
             "${{ steps.locate-bin.outputs.bin_path }}"
