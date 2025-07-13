@@ -68,11 +68,11 @@ jobs:
 
       - name: Ensure Inno Setup 6 is available
         run: |
-          $defaultPath = "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe"
+          $defaultPath = "$env:ProgramFiles`(x86`)\Inno Setup 6\ISCC.exe"
           if (!(Test-Path $defaultPath)) {
             Write-Host "Inno Setup 6 not found. Downloading and installing..."
             Invoke-WebRequest -Uri "https://files.innosetup.nl/innosetup-6.4.3.exe" -OutFile "isetup.exe"
-            Start-Process -FilePath ".\isetup.exe" -ArgumentList "/VERYSILENT /NORESTART /DIR=\"C:\\Program Files (x86)\\Inno Setup 6\"" -Wait
+            Start-Process -FilePath ".\isetup.exe" -ArgumentList '/VERYSILENT', '/NORESTART', '/DIR="C:\\Program Files (x86)\\Inno Setup 6"' -Wait
           } else {
             Write-Host "Found Inno Setup 6 at: $defaultPath"
           }
