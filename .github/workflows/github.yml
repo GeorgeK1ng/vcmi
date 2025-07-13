@@ -83,9 +83,12 @@ jobs:
 
       - name: Extract version info
         id: version
-        shell: pwsh
         run: |
           $filePath = "$env:GITHUB_WORKSPACE\vcmi\cmake_modules\VersionDefinition.cmake"
+          if (!(Test-Path $filePath)) {
+            Write-Host "File not found: $filePath"
+            exit 1
+          }
           $content = Get-Content $filePath
           $major = ($content | Select-String 'VCMI_VERSION_MAJOR' | Select-String -Pattern '\d+' -AllMatches).Matches.Value
           $minor = ($content | Select-String 'VCMI_VERSION_MINOR' | Select-String -Pattern '\d+' -AllMatches).Matches.Value
@@ -94,6 +97,7 @@ jobs:
           $timestamp = Get-Date -Format "yyyyMMddHHmmss"
           Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version.$timestamp"
           Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$version"
+        shell: pwsh
 
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
