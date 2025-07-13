@@ -89,14 +89,20 @@ jobs:
             Write-Host "File not found: $filePath"
             exit 1
           }
-          $content = Get-Content $filePath
-          $majorLine = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MAJOR' })[0]
-          $minorLine = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_MINOR' })[0]
-          $patchLine = ($content | Where-Object { $_ -match 'set\(VCMI_VERSION_PATCH' })[0]
+          $content = Get-Content $filePath -Raw
 
-          $major = ($majorLine -replace '.*set\(VCMI_VERSION_MAJOR\s+(\d+)\).*', '$1')
-          $minor = ($minorLine -replace '.*set\(VCMI_VERSION_MINOR\s+(\d+)\).*', '$1')
-          $patch = ($patchLine -replace '.*set\(VCMI_VERSION_PATCH\s+(\d+)\).*', '$1')
+          $majorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MAJOR\s+(\d+)\)')
+          $minorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MINOR\s+(\d+)\)')
+          $patchMatch = [regex]::Match($content, 'set\(VCMI_VERSION_PATCH\s+(\d+)\)')
+
+          if (!($majorMatch.Success -and $minorMatch.Success -and $patchMatch.Success)) {
+            Write-Host "Failed to extract version numbers"
+            exit 1
+          }
+
+          $major = $majorMatch.Groups[1].Value
+          $minor = $minorMatch.Groups[1].Value
+          $patch = $patchMatch.Groups[1].Value
 
           $version = "$major.$minor.$patch"
           $timestamp = Get-Date -Format "yyyyMMddHHmmss"
