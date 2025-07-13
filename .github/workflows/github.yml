@@ -120,11 +120,12 @@ jobs:
 
       - name: Run Installer Script
         run: |
-          cmd /c CI\wininstaller\build_installer.cmd ^
+          CI\wininstaller\build_installer.cmd ^
             "%VERSION%" ^
             "%GITHUB_RUN_ID%" ^
             "${{ matrix.arch }}" ^
             "VCMI"
+        shell: cmd
 
       - name: Upload Installer to GitHub Release
         uses: softprops/action-gh-release@v2
