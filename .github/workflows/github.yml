@@ -70,13 +70,13 @@ jobs:
         run: |
           $defaultPath = "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe"
           if (!(Test-Path $defaultPath)) {
-            Write-Host "Inno Setup 6 not found in default location: $defaultPath"
-            throw "ISCC.exe not found. Please ensure Inno Setup 6 is installed."
+            Write-Host "Inno Setup 6 not found. Installing via winget..."
+            winget install --id JRSoftware.InnoSetup -e -s winget -i
           } else {
             Write-Host "Found Inno Setup 6 at: $defaultPath"
-            $innoBin = Split-Path $defaultPath
-            echo $innoBin | Out-File -Append -FilePath $env:GITHUB_PATH
           }
+          $innoBin = Split-Path "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe"
+          echo $innoBin | Out-File -Append -FilePath $env:GITHUB_PATH
         shell: pwsh
 
       - name: Extract version info
