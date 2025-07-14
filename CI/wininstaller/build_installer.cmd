@@ -61,7 +61,7 @@ if not defined UCRTFilesPath (
 REM Verify Inno Setup is installed
 if not exist "%ProgFiles%\Inno Setup %InnoSetupVer%\ISCC.exe" (
     echo.
-	echo ERROR: Inno Setup !InnoSetupVer! was not found in !ProgFiles!.
+    echo ERROR: Inno Setup !InnoSetupVer! was not found in !ProgFiles!.
     echo Please install it or specify the correct path.
     echo.
     pause
@@ -85,6 +85,11 @@ if not exist "%UCRTFilesPath%" (
     goto :eof
 )
 
+REM Removing debug/link files from: %SourceFilesPath%
+del /s /q "%SourceFilesPath%\*.pdb"
+del /s /q "%SourceFilesPath%\*.lib"
+del /s /q "%SourceFilesPath%\*.exp"
+
 REM Call Inno Setup Compiler
 "%ProgFiles%\Inno Setup %InnoSetupVer%\ISCC.exe" "%InstallerScript%" ^
     /DAppVersion="%AppVersion%" ^
@@ -99,4 +104,4 @@ REM Call Inno Setup Compiler
     /DSmallLogo="%SmallLogo%" ^
     /DWizardLogo="%WizardLogo%"
 
-pause
+goto :eof
