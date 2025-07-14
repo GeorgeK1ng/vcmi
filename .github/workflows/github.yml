@@ -13,6 +13,42 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  extract-version:
+    name: Extract Version
+    runs-on: ubuntu-24.04
+    outputs:
+      version_timestamp: ${{ steps.extract.outputs.version_timestamp }}
+      short_version: ${{ steps.extract.outputs.short_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version info
+        id: extract
+        shell: pwsh
+        run: |
+          $filePath = "$env:GITHUB_WORKSPACE/cmake_modules/VersionDefinition.cmake"
+          if (!(Test-Path $filePath)) {
+            Write-Host "File not found: $filePath"
+            exit 1
+          }
+
+          $content = Get-Content $filePath -Raw
+
+          $majorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MAJOR\s+(\d+)\)')
+          $minorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MINOR\s+(\d+)\)')
+          $patchMatch = [regex]::Match($content, 'set\(VCMI_VERSION_PATCH\s+(\d+)\)')
+
+          if (!($majorMatch.Success -and $minorMatch.Success -and $patchMatch.Success)) {
+            Write-Host "Failed to extract version numbers"
+            exit 1
+          }
+
+          $shortVersion = "$($majorMatch.Groups[1].Value).$($minorMatch.Groups[1].Value).$($patchMatch.Groups[1].Value)"
+          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+
+          echo "version_timestamp=$timestamp" >> $env:GITHUB_OUTPUT
+          echo "short_version=$shortVersion" >> $env:GITHUB_OUTPUT
+
   validate-code:
     name: Validate Code
     runs-on: ubuntu-24.04
@@ -45,7 +81,7 @@ jobs:
 
   windows-msvc:
     name: Build MSVC Windows ${{ matrix.arch }}
-    needs: validate-code
+    needs: [validate-code, extract-version]
     runs-on: windows-latest
     strategy:
       matrix:
@@ -81,36 +117,6 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value $innoBin
         shell: pwsh
 
-      - name: Extract version info
-        id: version
-        run: |
-          $filePath = "$env:GITHUB_WORKSPACE\cmake_modules\VersionDefinition.cmake"
-          if (!(Test-Path $filePath)) {
-            Write-Host "File not found: $filePath"
-            exit 1
-          }
-          $content = Get-Content $filePath -Raw
-
-          $majorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MAJOR\s+(\d+)\)')
-          $minorMatch = [regex]::Match($content, 'set\(VCMI_VERSION_MINOR\s+(\d+)\)')
-          $patchMatch = [regex]::Match($content, 'set\(VCMI_VERSION_PATCH\s+(\d+)\)')
-
-          if (!($majorMatch.Success -and $minorMatch.Success -and $patchMatch.Success)) {
-            Write-Host "Failed to extract version numbers"
-            exit 1
-          }
-
-          $major = $majorMatch.Groups[1].Value
-          $minor = $minorMatch.Groups[1].Value
-          $patch = $patchMatch.Groups[1].Value
-
-          $shortVersion = "$major.$minor.$patch"
-          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-          Add-Content -Path $env:GITHUB_ENV -Value "VERSION_TIMESTAMP=$timestamp"
-          Add-Content -Path $env:GITHUB_ENV -Value "SHORT_VERSION=$shortVersion"
-          Write-Host "Extracted version: $shortVersion"
-        shell: pwsh
-
       - name: Install vcpkg Dependencies
         run: bash CI/install_vcpkg_dependencies.sh msvc-${{ matrix.arch }}
 
@@ -140,8 +146,8 @@ jobs:
       - name: Run Installer Script
         run: |
           cmd /c CI\wininstaller\build_installer.cmd ^
-            "%SHORT_VERSION%" ^
-            "%VERSION_TIMESTAMP%" ^
+            "${{ needs.extract-version.outputs.short_version }}" ^
+            "${{ needs.extract-version.outputs.version_timestamp }}" ^
             "${{ matrix.arch }}" ^
             "VCMI" ^
             "${{ steps.locate-bin.outputs.bin_path }}"
