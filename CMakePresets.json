@@ -152,8 +152,9 @@
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
-                "FORCE_BUNDLED_MINIZIP": "ON"
-
+                "FORCE_BUNDLED_MINIZIP": "ON",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+                "CMAKE_SYSTEM_VERSION": "6.1"
             }
         },
         {
@@ -166,7 +167,9 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
                 "FORCE_BUNDLED_MINIZIP": "ON",
-                "CMAKE_GENERATOR_PLATFORM": "WIN32"
+                "CMAKE_GENERATOR_PLATFORM": "WIN32",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+                "CMAKE_SYSTEM_VERSION": "6.1"
             }
         },
         {
