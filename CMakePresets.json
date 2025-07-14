@@ -173,6 +173,22 @@
             }
         },
         {
+            "name": "windows-msvc-release-arm64",
+            "displayName": "Windows ARM64 RelWithDebInfo",
+            "description": "VCMI Windows ARM64 build",
+            "inherits": "default-release",
+            "generator": "Visual Studio 17 2022",
+            "architecture": {
+                "value": "ARM64",
+                "strategy": "set"
+            },
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
+                "FORCE_BUNDLED_MINIZIP": "ON"
+            }
+        },
+        {
             "name": "windows-msvc-release-ccache",
             "displayName": "Windows x64 RelWithDebInfo with ccache",
             "description": "VCMI RelWithDebInfo build with ccache",
@@ -424,6 +440,11 @@
         {
             "name": "windows-msvc-release-x86",
             "configurePreset": "windows-msvc-release-x86",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-msvc-release-arm64",
+            "configurePreset": "windows-msvc-release-arm64",
             "inherits": "default-release"
         },
         {
