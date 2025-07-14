@@ -82,15 +82,20 @@ jobs:
   windows-msvc:
     name: Build MSVC Windows ${{ matrix.arch }}
     needs: [validate-code, extract-version]
-    runs-on: windows-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        arch: [x64, x86]
+        arch: [x64, x86, arm64]
         include:
           - arch: x64
             preset: windows-msvc-release
+            runner: windows-latest
           - arch: x86
             preset: windows-msvc-release-x86
+            runner: windows-latest
+          - arch: arm64
+            preset: windows-msvc-release-arm64
+            runner: windows-11-arm
     steps:
       - uses: actions/checkout@v4
         with:
