@@ -1,0 +1,97 @@
+name: Weekly Qt translation refresh
+
+on:
+  schedule:
+    # Runs Sunday 23:30 UTC = Monday 00:30 (CET) / 01:30 (CEST) in Prague
+    - cron: "30 23 * * 0"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Update mode: 'pr' opens a pull request, 'push' commits to the current branch"
+        required: false
+        default: "pr"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # Use PR by default; manual runs can override with 'push'
+  UPDATE_MODE: ${{ github.event.inputs.mode || 'pr' }}
+  CURRENT_BRANCH: ${{ github.ref_name }}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Qt tools (lupdate/lrelease)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qttools5-dev-tools
+
+      - name: Update TS files (Launcher)
+        working-directory: launcher
+        run: |
+          # Update all TS files; remove obsolete entries
+          lupdate -no-obsolete . -ts translation/*.ts
+
+      - name: Update TS files (Map Editor)
+        working-directory: mapeditor
+        run: |
+          lupdate -no-obsolete . -ts translation/*.ts
+
+      - name: Detect changes
+        id: diff
+        run: |
+          CHANGED=$(git status --porcelain | wc -l)
+          echo "changed_files=$CHANGED" >> "$GITHUB_OUTPUT"
+          if [ "$CHANGED" -eq 0 ]; then
+            echo "No changes detected."
+          else
+            echo "Detected $CHANGED changed file(s)."
+          fi
+
+      # -------- PUSH MODE: commit to the exact branch this workflow ran on --------
+      - name: Commit and push changes (push mode)
+        if: ${{ steps.diff.outputs.changed_files != '0' && env.UPDATE_MODE == 'push' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(i18n): refresh Qt .ts files (weekly) [skip ci]"
+          branch: ${{ env.CURRENT_BRANCH }}
+          file_pattern: |
+            launcher/translation/*.ts
+            mapeditor/translation/*.ts
+
+      # -------- PR MODE: open PR into the exact branch this workflow ran on --------
+      - name: Create/Update Pull Request (pr mode)
+        if: ${{ steps.diff.outputs.changed_files != '0' && env.UPDATE_MODE == 'pr' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(i18n): refresh Qt .ts files (lupdate -no-obsolete)"
+          # Create a short-lived branch derived from the current branch
+          branch: chore/qt-ts-refresh-${{ env.CURRENT_BRANCH }}
+          base: ${{ env.CURRENT_BRANCH }} # PR targets the current branch
+          title: "Weekly Qt translations refresh (${ env.CURRENT_BRANCH })"
+          body: |
+            This PR refreshes Qt `.ts` files for **Launcher** and **Map Editor** on branch `${{ env.CURRENT_BRANCH }}`.
+
+            **What this does**
+            - Runs: `lupdate -no-obsolete . -ts translation/*.ts`
+            - Removes obsolete entries
+            - Adds new strings found in source
+
+            To keep obsolete entries, replace `-no-obsolete` with an empty flag in the workflow.
+          delete-branch: true
+          add-paths: |
+            launcher/translation/*.ts
+            mapeditor/translation/*.ts
+
+      - name: No-op summary
+        if: ${{ steps.diff.outputs.changed_files == '0' }}
+        run: echo "No translation changes detected; nothing to commit or PR."
