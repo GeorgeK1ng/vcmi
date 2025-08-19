@@ -165,7 +165,7 @@ Name: "vietnamese"; MessagesFile: "{#LangPath}\Vietnamese.isl"
 [Files]
 Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb"; BeforeInstall: RunPreInstallTasks
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded
-Source: "{#PickerPluginPath}\modernPicker.dll"; DestDir: "{tmp}"; DestName: "modernPicker.dll"; Flags: dontcopy
+Source: "{#PickerPluginPath}\pickerPlugin.dll"; DestDir: "{tmp}"; DestName: "pickerPlugin.dll"; Flags: dontcopy
 
 
 [Icons]
@@ -968,6 +968,7 @@ begin
       Abort;
   end;
 end;
+
 
 
 
