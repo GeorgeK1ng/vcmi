@@ -48,6 +48,7 @@ set "IconFile=%BaseDir%clientapp\icons\vcmi.ico"
 set "SmallLogo=%BaseDir%CI\wininstaller\vcmismalllogo.bmp"
 set "WizardLogo=%BaseDir%CI\wininstaller\vcmilogo.bmp"
 set "InstallerScript=%BaseDir%CI\wininstaller\installer.iss"
+set "PickerPluginPath=%BaseDir%CI\wininstaller\pickerPlugin"
 
 REM Determine Program Files directory based on system architecture
 if exist "%WinDir%\SysWow64" (
@@ -110,6 +111,7 @@ echo AllowedArch:       %AllowedArch%
 echo VCMIFolder:        %VCMIFolder%
 echo InstallerName:     %InstallerName%
 echo SourceFilesPath:   %SourceFilesPath%
+echo PickerPluginPath:  %PickerPluginPath%
 echo UCRTFilesPath:     %UCRTFilesPath%
 echo InstallerScript:   %InstallerScript%
 echo.
@@ -123,6 +125,7 @@ REM Call Inno Setup Compiler
     /DVCMIFolder="%VCMIFolder%" ^
     /DInstallerName="%InstallerName%" ^
     /DSourceFilesPath="%SourceFilesPath%" ^
+    /DPickerPluginPath="%PickerPluginPath%" ^
     /DUCRTFilesPath="%UCRTFilesPath%" ^
     /DLangPath="%LangPath%" ^
     /DLicenseFile="%LicenseFile%" ^
@@ -131,3 +134,4 @@ REM Call Inno Setup Compiler
     /DWizardLogo="%WizardLogo%"
 
 goto :eof
+
