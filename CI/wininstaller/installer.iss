@@ -580,6 +580,9 @@ end;
 
 procedure InitializeWizard();
 begin
+
+  ExtractTemporaryFile('pickerPlugin.dll');
+
   // Check if the application is already installed
   if not IsUpgrade then
   begin
@@ -635,6 +638,10 @@ begin
   // Adjust height to accommodate multiple lines
   FooterLabel.Height := 40; 
 end;
+
+
+function ModernPickFolder(Owner: HWND; Title, Initial: string; OutPath: WideString; OutCch: Integer): Boolean;
+  external 'ModernPickFolder@files:pickerPlugin.dll stdcall setuponly';
 
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -968,6 +975,7 @@ begin
       Abort;
   end;
 end;
+
 
 
 
