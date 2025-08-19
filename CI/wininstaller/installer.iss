@@ -84,7 +84,7 @@
 ; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\vcmismalllogo.bmp"
 ; #define WizardLogo "C:\_VCMI_Source\CI\wininstaller\vcmilogo.bmp"
 
-; #define PickerPluginPath "C:\_VCMI_Source\CI\wininstaller\PickerPlugin"
+; #define PickerPluginPath "C:\_VCMI_Source\CI\wininstaller\pickerPlugin"
 
 #define VCMIFilesFolder "My Games\vcmi"
 
@@ -968,6 +968,7 @@ begin
       Abort;
   end;
 end;
+
 
 
 
