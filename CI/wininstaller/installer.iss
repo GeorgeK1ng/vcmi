@@ -84,6 +84,8 @@
 ; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\vcmismalllogo.bmp"
 ; #define WizardLogo "C:\_VCMI_Source\CI\wininstaller\vcmilogo.bmp"
 
+; #define PickerPlugin "C:\_VCMI_Source\CI\wininstaller\modernPicker.dll"
+
 #define VCMIFilesFolder "My Games\vcmi"
 
 #define AppComment "VCMI is an open-source engine for Heroes III, offering new and extended possibilities."
@@ -163,6 +165,7 @@ Name: "vietnamese"; MessagesFile: "{#LangPath}\Vietnamese.isl"
 [Files]
 Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb"; BeforeInstall: RunPreInstallTasks
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded
+Source: "{#PickerPlugin}\modernPicker.dll"; DestDir: "{tmp}"; DestName: "modernPicker.dll"; Flags: dontcopy
 
 
 [Icons]
@@ -965,4 +968,5 @@ begin
       Abort;
   end;
 end;
+
 
