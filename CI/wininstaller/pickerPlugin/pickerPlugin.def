@@ -1,3 +1,0 @@
-LIBRARY "pickerPlugin"
-EXPORTS
-    ModernPickFolder = _ModernPickFolder@20
