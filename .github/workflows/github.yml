@@ -515,6 +515,22 @@ jobs:
         mkdir artifact/extracted
         unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
 
+    - name: Build modernPicker.dll (Win32)
+      shell: bash
+      run: |
+        cmake -S CI/wininstaller -B CI/wininstaller -A Win32
+        cmake --build CI/wininstaller --config Release
+
+    - name: Place modernPicker.dll next to installer.iss
+      shell: bash
+      run: |
+        cp "CI/wininstaller/bin/Release/modernPicker.dll" "CI/wininstaller/modernPicker.dll"
+
+    - name: Verify modernPicker.dll exists
+      shell: bash
+      run: |
+        test -f "CI/wininstaller/modernPicker.dll" || { echo "modernPicker.dll not built!"; exit 1; }
+        
     - name: Ensure Inno Setup is installed
       shell: bash
       run: |
