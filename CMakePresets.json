@@ -221,7 +221,6 @@
             "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
             "ENABLE_MULTI_PROCESS_BUILDS": "OFF",
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-            "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
             "CMAKE_C_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7",
             "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7"
           }
