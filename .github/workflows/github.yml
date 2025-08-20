@@ -260,8 +260,13 @@ jobs:
           cmake -DENABLE_CCACHE:BOOL=ON -DANDROID_GRADLE_PROPERTIES="applicationIdSuffix=.daily;signingConfig=dailySigning;applicationLabel=VCMI daily;applicationVariant=daily" --preset ${{ matrix.preset }}
         elif ${{ startsWith(matrix.platform, 'msvc') }}; then
           if [[ "${{ matrix.arch }}" == "x86" ]]; then
-            # použij 64bit host nástroje, které generují 32bit binárky (správné pro Ninja+x86)
             CC="$VCToolsInstallDir/bin/Hostx64/x86/cl.exe"
+            cmake \
+              -D CMAKE_C_COMPILER:FILEPATH="$CC" \
+              -D CMAKE_CXX_COMPILER:FILEPATH="$CC" \
+              --preset ${{ matrix.preset }}
+          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            CC="$VCToolsInstallDir/bin/Hostarm64/arm64/cl.exe"
             cmake \
               -D CMAKE_C_COMPILER:FILEPATH="$CC" \
               -D CMAKE_CXX_COMPILER:FILEPATH="$CC" \
