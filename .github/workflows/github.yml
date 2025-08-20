@@ -186,6 +186,9 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       if: ${{ github.event.number != '' && !startsWith(matrix.platform, 'msvc') }}
       with:
+        create-symlink: true
+        job-summary: CCache Statistics
+        append-timestamp: true
         key: ${{ matrix.platform }}-PR-${{ github.event.number }}
         restore-keys: |
           ${{ matrix.platform }}-PR-${{ github.event.number }}
@@ -197,11 +200,26 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       if: ${{ github.event.number == '' && !startsWith(matrix.platform, 'msvc')}}
       with:
+        create-symlink: true
+        job-summary: CCache Statistics
+        append-timestamp: true
         key: ${{ matrix.platform }}-${{ github.ref_name }}
         restore-keys: |
           ${{ matrix.platform }}-branch-${{ github.ref_name }}
         max-size: "5G"
         verbose: 2
+
+    - name: Make ccache wrappers first on PATH (Android)
+      if: ${{ startsWith(matrix.platform, 'android') }}
+      run: echo "/usr/lib/ccache" >> $GITHUB_PATH
+
+    - name: ccache tuning (Android)
+      if: ${{ startsWith(matrix.platform, 'android') }}
+      run: |
+        ccache --set-config=compiler_check=content
+        ccache --set-config=base_dir="${GITHUB_WORKSPACE}"
+        ccache --set-config=hash_dir=true
+        ccache --set-config=sloppiness=time_macros
 
     - name: Install Conan
       if: "${{ matrix.conan_profile != '' }}"
@@ -259,7 +277,11 @@ jobs:
     - name: Configure
       run: |
         if [[ ("${{ matrix.preset }}" == "android-conan-ninja-release") && ("${{ github.ref }}" != 'refs/heads/master') ]]; then
-          cmake -DENABLE_CCACHE:BOOL=ON -DANDROID_GRADLE_PROPERTIES="applicationIdSuffix=.daily;signingConfig=dailySigning;applicationLabel=VCMI daily;applicationVariant=daily" --preset ${{ matrix.preset }}
+          cmake -DENABLE_CCACHE:BOOL=ON \
+                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+                -DANDROID_GRADLE_PROPERTIES="applicationIdSuffix=.daily;signingConfig=dailySigning;applicationLabel=VCMI daily;applicationVariant=daily" \
+                --preset ${{ matrix.preset }}
         elif ${{ startsWith(matrix.platform, 'msvc') }}; then
           if [[ "${{ matrix.arch }}" == "x86" ]]; then
             CC="$VCToolsInstallDir/bin/Hostx64/x86/cl.exe"
