@@ -170,8 +170,10 @@ jobs:
         restore-keys: |
           sccache-${{ matrix.platform }}-${{ github.ref_name }}
           sccache-${{ matrix.platform }}
-        max-size: "10G"
+        max-size: 10G
         verbose: 2
+        job-summary: Sccache Statistics
+        append-timestamp: true
 
     - name: sccache stats (pre-build)
       if: ${{ startsWith(matrix.platform, 'msvc') }}
