@@ -151,9 +151,9 @@ jobs:
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       run: source '${{github.workspace}}/CI/install_vcpkg_dependencies.sh' '${{matrix.platform}}'
 
-    - name: Setup Ninja (Windows)
-      if: ${{ startsWith(matrix.platform, 'msvc') }}
-      uses: seanmiddleditch/gha-setup-ninja@v5
+    #- name: Setup Ninja (Windows)
+    #  if: ${{ startsWith(matrix.platform, 'msvc') }}
+    #  uses: seanmiddleditch/gha-setup-ninja@v5
 
     - name: Setup MSVC Developer Command Prompt
       if: ${{ startsWith(matrix.platform, 'msvc') }}
@@ -209,17 +209,17 @@ jobs:
         max-size: "5G"
         verbose: 2
 
-    - name: Make ccache wrappers first on PATH (Android)
-      if: ${{ startsWith(matrix.platform, 'android') }}
-      run: echo "/usr/lib/ccache" >> $GITHUB_PATH
+    #- name: Make ccache wrappers first on PATH (Android)
+    #  if: ${{ startsWith(matrix.platform, 'android') }}
+    #  run: echo "/usr/lib/ccache" >> $GITHUB_PATH
 
-    - name: ccache tuning (Android)
-      if: ${{ startsWith(matrix.platform, 'android') }}
-      run: |
-        ccache --set-config=compiler_check=content
-        ccache --set-config=base_dir="${GITHUB_WORKSPACE}"
-        ccache --set-config=hash_dir=true
-        ccache --set-config=sloppiness=time_macros
+    #- name: ccache tuning (Android)
+    #  if: ${{ startsWith(matrix.platform, 'android') }}
+    #  run: |
+    #    ccache --set-config=compiler_check=content
+    #    ccache --set-config=base_dir="${GITHUB_WORKSPACE}"
+    #    ccache --set-config=hash_dir=true
+    #    ccache --set-config=sloppiness=time_macros
 
     - name: Install Conan
       if: "${{ matrix.conan_profile != '' }}"
