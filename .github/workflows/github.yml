@@ -256,14 +256,21 @@ jobs:
 
     - name: Configure
       run: |
-        if [[ (${{matrix.preset}} == android-conan-ninja-release) && (${{github.ref}} != 'refs/heads/master') ]]
-        then
-            cmake -DENABLE_CCACHE:BOOL=ON -DANDROID_GRADLE_PROPERTIES="applicationIdSuffix=.daily;signingConfig=dailySigning;applicationLabel=VCMI daily;applicationVariant=daily" --preset ${{ matrix.preset }}
-        elif ${{startsWith(matrix.platform, 'msvc') }}
-        then
+        if [[ ("${{ matrix.preset }}" == "android-conan-ninja-release") && ("${{ github.ref }}" != 'refs/heads/master') ]]; then
+          cmake -DENABLE_CCACHE:BOOL=ON -DANDROID_GRADLE_PROPERTIES="applicationIdSuffix=.daily;signingConfig=dailySigning;applicationLabel=VCMI daily;applicationVariant=daily" --preset ${{ matrix.preset }}
+        elif ${{ startsWith(matrix.platform, 'msvc') }}; then
+          if [[ "${{ matrix.arch }}" == "x86" ]]; then
+            # použij 64bit host nástroje, které generují 32bit binárky (správné pro Ninja+x86)
+            CC="$VCToolsInstallDir/bin/Hostx64/x86/cl.exe"
+            cmake \
+              -D CMAKE_C_COMPILER:FILEPATH="$CC" \
+              -D CMAKE_CXX_COMPILER:FILEPATH="$CC" \
+              --preset ${{ matrix.preset }}
+          else
             cmake --preset ${{ matrix.preset }}
+          fi
         else
-            cmake -DENABLE_CCACHE:BOOL=ON --preset ${{ matrix.preset }}
+          cmake -DENABLE_CCACHE:BOOL=ON --preset ${{ matrix.preset }}
         fi
 
     - name: Build
