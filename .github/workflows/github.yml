@@ -53,6 +53,39 @@ jobs:
             conan_prebuilts: dependencies-ios
             conan_options: --options with_apple_system_libs=True
 
+         # - platform: msvc-x64
+         #   arch: x64
+         #   os: windows-2025
+         #   pack: 1
+         #   upload: 0
+         #   pack_type: RelWithDebInfo
+         #   extension: zip
+         #   before_install: msvc.sh
+         #   preset: windows-msvc-release
+         #   artifact_platform: x64
+		 #
+         # - platform: msvc-x86
+         #   arch: x86
+         #   os: windows-2025
+         #   pack: 1
+         #   upload: 0
+         #   pack_type: RelWithDebInfo
+         #   extension: zip
+         #   before_install: msvc.sh
+         #   preset: windows-msvc-release-x86
+         #   artifact_platform: x86
+		 #
+         # - platform: msvc-arm64
+         #   arch: arm64
+         #   os: windows-11-arm
+         #   pack: 1
+         #   upload: 0
+         #   pack_type: RelWithDebInfo
+         #   extension: zip
+         #   before_install: msvc.sh
+         #   preset: windows-msvc-release-arm64
+         #   artifact_platform: arm64
+          
           - platform: msvc-x64
             arch: x64
             os: windows-2025
@@ -61,9 +94,9 @@ jobs:
             pack_type: RelWithDebInfo
             extension: zip
             before_install: msvc.sh
-            preset: windows-msvc-release
+            preset: windows-msvc-ninja-release
             artifact_platform: x64
-
+          
           - platform: msvc-x86
             arch: x86
             os: windows-2025
@@ -72,9 +105,9 @@ jobs:
             pack_type: RelWithDebInfo
             extension: zip
             before_install: msvc.sh
-            preset: windows-msvc-release-x86
+            preset: windows-msvc-ninja-release-x86
             artifact_platform: x86
-
+          
           - platform: msvc-arm64
             arch: arm64
             os: windows-11-arm
@@ -83,7 +116,7 @@ jobs:
             pack_type: RelWithDebInfo
             extension: zip
             before_install: msvc.sh
-            preset: windows-msvc-release-arm64
+            preset: windows-msvc-ninja-release-arm64
             artifact_platform: arm64
 
           - platform: mingw_x86_64
@@ -150,6 +183,35 @@ jobs:
     - name: Install vcpkg Dependencies
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       run: source '${{github.workspace}}/CI/install_vcpkg_dependencies.sh' '${{matrix.platform}}'
+
+
+    - name: Setup Ninja (Windows)
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      uses: seanmiddleditch/gha-setup-ninja@v5
+    
+    - name: Setup MSVC Developer Command Prompt
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
+    
+    - name: Setup sccache (Windows/MSVC)
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        variant: sccache
+        key: sccache-${{ matrix.platform }}-${{ github.ref_name }}
+        restore-keys: |
+          sccache-${{ matrix.platform }}-${{ github.ref_name }}
+          sccache-${{ matrix.platform }}
+        max-size: "10G"
+        verbose: 2
+    
+    - name: sccache stats (pre-build)
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      run: sccache --show-stats || true
+      shell: bash
+
 
     # ensure the ccache for each PR is separate so they don't interfere with each other
     # fall back to ccache of the vcmi/vcmi repo if no PR-specific ccache is found
@@ -245,6 +307,11 @@ jobs:
       env:
         ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+    - name: sccache stats (post-build)
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      run: sccache --show-stats || true
+      shell: bash
 
     - name: Kill XProtect to work around CPack issue on macOS
       if: ${{ startsWith(matrix.platform, 'mac') }}
