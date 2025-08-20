@@ -203,7 +203,6 @@
             "inherits": "windows-msvc-release",
             "cacheVariables": {
                 "ENABLE_CCACHE": "ON"
-
             }
         },
         {
@@ -218,7 +217,9 @@
             "FORCE_BUNDLED_MINIZIP": "ON",
             "ENABLE_CCACHE": "ON",
             "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-            "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
+            "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+            "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
+            "ENABLE_MULTI_PROCESS_BUILDS": "OFF"
           }
         },
         {
