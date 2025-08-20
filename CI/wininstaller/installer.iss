@@ -77,6 +77,7 @@
 ; #define VCMIFolder "VCMI"
 ; #define InstallerName "VCMI-Windows"
 ; #define SourceFilesPath "C:\_VCMI_source\bin\Release"
+; #define PickerPluginPath "C:\_VCMI_Source\CI\wininstaller\pickerPlugin"
 ; #define UCRTFilesPath "C:\Program Files (x86)\Windows Kits\10\Redist\10.0.22621.0\ucrt\DLLs"
 ; #define LangPath "C:\_VCMI_Source\CI\wininstaller\lang"
 ; #define LicenseFile "C:\_VCMI_Source\license.txt"
@@ -84,7 +85,6 @@
 ; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\vcmismalllogo.bmp"
 ; #define WizardLogo "C:\_VCMI_Source\CI\wininstaller\vcmilogo.bmp"
 
-; #define PickerPluginPath "C:\_VCMI_Source\CI\wininstaller\pickerPlugin"
 
 #define VCMIFilesFolder "My Games\vcmi"
 
@@ -121,7 +121,6 @@ UsePreviousTasks=yes
 UsePreviousGroup=yes
 DisableStartupPrompt=yes
 UsedUserAreasWarning=no
-WindowResizable=no
 CloseApplicationsFilter=*.exe
 CloseApplications=force
 Compression=lzma2/ultra64
@@ -165,8 +164,7 @@ Name: "vietnamese"; MessagesFile: "{#LangPath}\Vietnamese.isl"
 [Files]
 Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb"; BeforeInstall: RunPreInstallTasks
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded
-Source: "{#PickerPluginPath}\pickerPlugin.dll"; DestDir: "{tmp}"; DestName: "pickerPlugin.dll"; Flags: dontcopy
-
+Source: "{#PickerPluginPath}\pickerPlugin.dll"; Flags: dontcopy
 
 [Icons]
 Name: "{group}\{cm:ShortcutLauncher}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}"
@@ -233,7 +231,71 @@ var
 
   VCMIMapsFolder, VCMIDataFolder, VCMIMp3Folder: String;
   Heroes3MapsFolder, Heroes3DataFolder, Heroes3Mp3Folder: String;
+
+
+
+
+  // Our combined page that replaces wpSelectDir
+  DirSelectPage: TWizardPage;
+
+  // Left bitmap (clone of the default page’s image)
+  DirPageBitmap: TBitmapImage;
+
+  // Controls for INSTALLATION folder (program files)
   
+  LabelInstallInfo1: TNewStaticText;
+  LabelInstallInfo2: TNewStaticText;
+  
+  LabelInstall: TNewStaticText;
+  InstallDirEdit: TEdit;
+  InstallDirBrowseBtn: TButton;
+
+  // Controls for DATA folder (user data: mods, maps, saves)
+  LabelData: TNewStaticText;
+  DataDirEdit: TEdit;
+  DataDirBrowseBtn: TButton;
+
+  // Result chosen by user (use later e.g. for JSON write)
+  SelectedDataDir: String;
+
+  // Visibility behavior toggles (adjust to your liking)
+  ShowOurDirPage: Boolean;
+  ShowDataPickerOnOurPage: Boolean;
+
+
+// Standard folder picker
+// procedure BrowseDirClick(Sender: TObject);
+// var
+//   Dir: String;
+// begin
+//   Dir := '';
+//   if BrowseForFolder(SetupMessage(msgSelectDirLabel3), Dir, True) then
+//   begin
+//     if Sender = InstallDirBrowseBtn then
+//       InstallDirEdit.Text := Dir
+//     else if Sender = DataDirBrowseBtn then
+//       DataDirEdit.Text := Dir;
+//   end;
+// end;
+
+
+
+
+
+// Minimal validation; you can tighten as needed
+function EnsureNonEmptyDir(const CaptionText, DirText: String): Boolean;
+begin
+  Result := True;
+  if Trim(DirText) = '' then
+  begin
+    MsgBox(Format('%s'#13#10#13#10'%s', [CaptionText, SetupMessage(msgInvalidPath)]),
+      mbError, MB_OK);
+    Result := False;
+  end;
+end;
+
+
+ 
 function RegistryQueryPath(Key, ValueName: String): String;
 begin
   if RegQueryStringValue(HKLM, Key, ValueName, Result) then
@@ -307,7 +369,7 @@ begin
         begin
           if Overwrite or not FileExists(DestFile) then
           begin
-            if not FileCopy(SourceFile, DestFile, False) then
+            if not CopyFile(SourceFile, DestFile, False) then
               //MsgBox('Failed to copy file: ' + SourceFile + ' to ' + DestFile, mbError, MB_OK);
           end;
         end
@@ -478,8 +540,6 @@ var
 begin
   Result := True; // Default to copy the file
 
-  FileName := ExtractFileName(ExpandConstant(CurrentFileName));
-
   // Only check system if the file name contains "api"
   if Pos('API', UpperCase(FileName)) = 1 then
   begin
@@ -562,7 +622,7 @@ begin
     Heroes3DataFolder := Heroes3Path + '\Data';
     Heroes3Mp3Folder := Heroes3Path + '\Mp3';
   end;
-
+  
   Result := True;
 end;
 
@@ -578,11 +638,116 @@ begin
 end;
 
 
-procedure InitializeWizard();
+// Binary size constants as floating-point to force real division
+const
+  ONE_KIB = 1024.0;
+  ONE_MIB = 1024.0 * 1024.0;
+  ONE_GIB = 1024.0 * 1024.0 * 1024.0;
+  
+// Picks unit (MB/GB) and returns the numeric value for that unit (as Extended)
+procedure PickUnit(const Bytes: Int64; var UseGB: Boolean; var Value: Extended);
 begin
+  if Bytes >= Trunc(ONE_GIB) then
+  begin
+    UseGB := True;
+    Value := Bytes / ONE_GIB;   // GiB, real division
+  end
+  else
+  begin
+    UseGB := False;
+    Value := Bytes / ONE_MIB;   // MiB, real division
+  end;
+end;
 
-  ExtractTemporaryFile('pickerPlugin.dll');
 
+// Formats localized "At least X MB/GB of free disk space is required."
+function BuildDiskSpaceText(const Bytes: Int64): String;
+var
+  useGB: Boolean;
+  val: Extended;
+  txt, num: String;
+begin
+  PickUnit(Bytes, useGB, val);
+  num := Format('%.1f', [val]); // one decimal place
+
+  if useGB then
+  begin
+    // msgDiskSpaceGBLabel expects [gb]
+    txt := SetupMessage(msgDiskSpaceGBLabel);
+    StringChangeEx(txt, '[gb]', num, True);
+  end
+  else
+  begin
+    // msgDiskSpaceMBLabel expects [mb]
+    txt := SetupMessage(msgDiskSpaceMBLabel);
+    StringChangeEx(txt, '[mb]', num, True);
+  end;
+
+  Result := txt;
+end;
+
+
+// BOOL __stdcall ModernPickFolder(HWND, LPCWSTR, LPCWSTR, LPWSTR, DWORD)
+function ModernPickFolder(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): Boolean;
+  external 'ModernPickFolder@files:pickerPlugin.dll stdcall setuponly delayload';
+
+function PickFolderModern(const Title, Initial: string): string;
+var
+  buf: string;
+  ok: Boolean;
+  n: Integer;
+begin
+  // Large buffer (counted in UTF-16 code units)
+  SetLength(buf, 32768);
+  ok := ModernPickFolder(WizardForm.Handle, Title, Initial, buf, Length(buf));
+  if not ok then Exit;
+
+  // Trim at the first NUL (defensive; the DLL already writes a NUL)
+  n := Pos(#0, buf);
+  if n > 0 then
+    SetLength(buf, n - 1);
+
+  Result := buf; // fully Unicode
+end;
+
+
+procedure BrowseDirClick(Sender: TObject);
+var
+  title, startPath, picked: string;
+begin
+  if Sender = InstallDirBrowseBtn then
+  begin
+    startPath := InstallDirEdit.Text;
+    title := ExpandConstant('{cm:InstallFolderTitle}');
+  end
+  else
+  begin
+    startPath := DataDirEdit.Text;
+    title := ExpandConstant('{cm:DataFolderTitle}');
+  end;
+
+  
+  picked := PickFolderModern(title, startPath);
+  if picked <> '' then
+  begin
+    if Sender = InstallDirBrowseBtn then
+      InstallDirEdit.Text := picked
+    else
+      DataDirEdit.Text := picked;
+  end;
+end;
+
+
+procedure InitializeWizard();
+var
+  TitleText, SubTitleText, InfoText: String;
+  LeftCol, TopY, EditWidth, ButtonWidth, RowGap: Integer;
+  
+  // Disk space line (same wording as the original page)
+  DiskSpaceLabel: TNewStaticText;
+  RequiredBytes: Int64;
+  
+begin
   // Check if the application is already installed
   if not IsUpgrade then
   begin
@@ -617,6 +782,160 @@ begin
       InstallModePage.CheckListBox.Invalidate();
     end;
   end;
+
+
+
+  // --- Decide visibility policy for this page --------------------------------
+  // Replace wpSelectDir entirely:
+  // - Hide for upgrades? (example below keeps it visible for full control)
+  ShowOurDirPage := True;
+  if IsUpgrade then
+  begin
+    // Example: hide page on upgrade (flip to False if you want to skip)
+    // ShowOurDirPage := False;
+  end;
+
+  // Example: show/hide the DATA picker per scenario
+  ShowDataPickerOnOurPage := True;
+  if IsPRInstaller then
+  begin
+    // For PR builds you might want to hide the data picker:
+    // ShowDataPickerOnOurPage := False;
+  end;
+
+  // If we don’t want to show our page, just exit (wpSelectDir will still be skipped below)
+  if not ShowOurDirPage then
+    Exit;
+
+  // --- Create custom page after License --------------------------------------
+  //TitleText := ExpandConstant('{cm:SelectSetupInstallModeTitle}'); // SelectDirLabel3
+
+  //SubTitleText := 'Choose where to install VCMI and where to store user data.';  //SelectDirBrowseLabel
+  
+  TitleText := SetupMessage(msgWizardSelectDir);  // same title as wpSelectDir
+  SubTitleText := SetupMessage(msgSelectDirDesc); // same subtitle as wpSelectDir
+  
+  DirSelectPage := CreateCustomPage(
+    wpLicense, // show right after License
+    TitleText,
+    SubTitleText
+  );
+
+  // --- Layout metrics ---------------------------------------------------------
+  LeftCol     := ScaleX(0); // leave space for the left bitmap
+  TopY        := ScaleY(40);
+  EditWidth   := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(90);
+  ButtonWidth := ScaleX(85);
+  RowGap      := ScaleY(12);
+
+  // --- Clone the left bitmap from the default dir page -----------------------
+  DirPageBitmap := TBitmapImage.Create(DirSelectPage);
+  DirPageBitmap.Parent := DirSelectPage.Surface;
+  DirPageBitmap.Left := ScaleX(0);
+  DirPageBitmap.Top  := ScaleY(0);
+  DirPageBitmap.AutoSize := True;
+  // assign the same bitmap used by the original SelectDir page
+  DirPageBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
+
+
+
+  // --- INSTALLATION FOLDER CONTROLS (program files) --------------------------
+  
+  LabelInstallInfo1 := TNewStaticText.Create(DirSelectPage);
+  LabelInstallInfo1.Parent := DirSelectPage.Surface;
+  LabelInstallInfo1.Left := 44;
+  LabelInstallInfo1.Top  := 9;
+  
+  // Make sure this message looks same as SetupMessage(msgSelectDirLabel3) on wpSelectDir
+  InfoText := SetupMessage(msgSelectDirLabel3);
+  StringChangeEx(InfoText, '[name]', '{#VCMIFolder}', True);
+  
+  LabelInstallInfo1.Caption := InfoText;  
+  LabelInstallInfo1.AutoSize := True;
+
+  
+  LabelInstall := TNewStaticText.Create(DirSelectPage);
+  LabelInstall.Parent := DirSelectPage.Surface;
+  LabelInstall.Left := LeftCol;
+  LabelInstall.Top  := TopY;
+  LabelInstall.Caption := ExpandConstant('{cm:InstallFolderTitle}');
+  LabelInstall.AutoSize := True;
+  //LabelInstall.Font.Style := [fsBold];
+
+  TopY := LabelInstall.Top + LabelInstall.Height + ScaleY(6);
+
+  InstallDirEdit := TEdit.Create(DirSelectPage);
+  InstallDirEdit.Parent := DirSelectPage.Surface;
+  InstallDirEdit.Left := LeftCol;
+  InstallDirEdit.Top  := TopY;
+  InstallDirEdit.Width := EditWidth;
+  // default like current logic (admin vs non-admin)
+  InstallDirEdit.Text := GetDefaultDir('');
+
+  InstallDirBrowseBtn := TButton.Create(DirSelectPage);
+  InstallDirBrowseBtn.Parent := DirSelectPage.Surface;
+  InstallDirBrowseBtn.Left := InstallDirEdit.Left + InstallDirEdit.Width + ScaleX(6);
+  InstallDirBrowseBtn.Top  := InstallDirEdit.Top - ScaleY(1);
+  InstallDirBrowseBtn.Width := ButtonWidth;
+  InstallDirBrowseBtn.Height := ScaleY(23);
+  InstallDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
+  InstallDirBrowseBtn.OnClick := @BrowseDirClick;
+
+  TopY := InstallDirEdit.Top + InstallDirEdit.Height + RowGap;
+
+  // --- DATA FOLDER CONTROLS (user files: mods, maps, saves) ------------------
+  LabelData := TNewStaticText.Create(DirSelectPage);
+  LabelData.Parent := DirSelectPage.Surface;
+  LabelData.Left := LeftCol;
+  LabelData.Top  := TopY;
+  LabelData.Caption := ExpandConstant('{cm:DataFolderTitle}');
+  LabelData.AutoSize := True;
+  //LabelData.Font.Style := [fsBold];
+
+  TopY := LabelData.Top + LabelData.Height + ScaleY(6);
+
+  DataDirEdit := TEdit.Create(DirSelectPage);
+  DataDirEdit.Parent := DirSelectPage.Surface;
+  DataDirEdit.Left := LeftCol;
+  DataDirEdit.Top  := TopY;
+  DataDirEdit.Width := EditWidth;
+  // default to the current behavior:
+  DataDirEdit.Text := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+  // or, if you prefer AppData by default:
+  // DataDirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFilesFolder}';
+
+  DataDirBrowseBtn := TButton.Create(DirSelectPage);
+  DataDirBrowseBtn.Parent := DirSelectPage.Surface;
+  DataDirBrowseBtn.Left := DataDirEdit.Left + DataDirEdit.Width + ScaleX(6);
+  DataDirBrowseBtn.Top  := DataDirEdit.Top - ScaleY(1);
+  DataDirBrowseBtn.Width := ButtonWidth;
+  DataDirBrowseBtn.Height := ScaleY(23);
+  DataDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
+  DataDirBrowseBtn.OnClick := @BrowseDirClick;
+
+  // Visibility per scenario
+  LabelData.Visible := ShowDataPickerOnOurPage;
+  DataDirEdit.Visible := ShowDataPickerOnOurPage;
+  DataDirBrowseBtn.Visible := ShowDataPickerOnOurPage;
+  
+  // --- Disk space line (same position as original) ---------------------------
+  // Compute required size based on packaged sources; add other sources if needed.
+  RequiredBytes := FolderSize(ExpandConstant('{#SourceFilesPath}')) + FolderSize(ExpandConstant('{#UCRTFilesPath}\{#InstallerArch}'));
+  
+  //DiskSpaceLabel := TNewStaticText.Create(DirSelectPage);
+  //DiskSpaceLabel.Parent := DirSelectPage.Surface;
+  //DiskSpaceLabel.Left := 0;  // align with original left margin
+  //DiskSpaceLabel.Top := DataDirEdit.Top + DataDirEdit.Height + RowGap;
+  //DiskSpaceLabel.AutoSize := True;
+  //DiskSpaceLabel.Caption := BuildDiskSpaceText(RequiredBytes);
+
+  DiskSpaceLabel := TNewStaticText.Create(DirSelectPage);
+  DiskSpaceLabel.Parent := DirSelectPage.Surface;
+  DiskSpaceLabel.AutoSize := True;
+  DiskSpaceLabel.Caption := BuildDiskSpaceText(RequiredBytes);
+  DiskSpaceLabel.Left := 0; // align with original left margin
+  DiskSpaceLabel.Top := DirSelectPage.SurfaceHeight - DiskSpaceLabel.Height - ScaleY(7);
+  DiskSpaceLabel.Anchors := [akLeft, akBottom];
   
     // Attach an OnClick event handler to the tasks list
   WizardForm.TasksList.OnClickCheck := @OnTaskCheck;
@@ -640,8 +959,7 @@ begin
 end;
 
 
-function ModernPickFolder(Owner: HWND; Title, Initial: string; OutPath: WideString; OutCch: Integer): Boolean;
-  external 'ModernPickFolder@files:pickerPlugin.dll stdcall setuponly';
+
 
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -704,6 +1022,34 @@ begin
       WizardForm.DirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}';
   end;
 
+  
+  
+  if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
+  begin
+    // Validate install dir
+    if not EnsureNonEmptyDir(SetupMessage(msgSelectDirLabel3), InstallDirEdit.Text) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    // Push the chosen install dir into the installer (this is what wpSelectDir would do)
+    WizardForm.DirEdit.Text := InstallDirEdit.Text;
+
+    // Capture data dir (if visible) or fallback to default
+    if ShowDataPickerOnOurPage and DataDirEdit.Visible then
+      SelectedDataDir := DataDirEdit.Text
+    else
+      SelectedDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+
+    if Trim(SelectedDataDir) = '' then
+      SelectedDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+
+    Log('Selected installation dir: ' + InstallDirEdit.Text);
+    Log('Selected data dir: ' + SelectedDataDir);
+  end;
+  
+  
   Result := True;
 end;
 
@@ -975,9 +1321,3 @@ begin
       Abort;
   end;
 end;
-
-
-
-
-
-
