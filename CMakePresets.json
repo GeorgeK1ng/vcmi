@@ -229,7 +229,10 @@
           "name": "windows-msvc-ninja-release-x86",
           "displayName": "Windows x86 RelWithDebInfo (Ninja)",
           "description": "VCMI RelWithDebInfo build using Ninja + sccache (x86)",
-          "inherits": "windows-msvc-ninja-release"
+          "inherits": "windows-msvc-ninja-release",
+          "cacheVariables": {
+            "CMAKE_GENERATOR_PLATFORM": "Win32"
+          }
         },
         {
           "name": "windows-msvc-ninja-release-arm64",
