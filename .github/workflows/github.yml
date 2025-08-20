@@ -268,7 +268,7 @@ jobs:
               -D CMAKE_CXX_COMPILER:FILEPATH="$CC" \
               --preset ${{ matrix.preset }}
           elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            CC="$VCToolsInstallDir/bin/Hostarm64/arm64/cl.exe"
+            CC="$VCToolsInstallDir/bin/HostARM64/ARM64/cl.exe"
             cmake \
               -D CMAKE_C_COMPILER:FILEPATH="$CC" \
               -D CMAKE_CXX_COMPILER:FILEPATH="$CC" \
