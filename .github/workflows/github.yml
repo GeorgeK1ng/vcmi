@@ -75,7 +75,7 @@ jobs:
             preset: windows-msvc-ninja-release-x86
             artifact_platform: x86
 
-          - platform: msvc-rm64
+          - platform: msvc-arm64
             arch: arm64
             os: windows-11-arm
             pack: 1
