@@ -54,10 +54,10 @@ CMD ["bash","-lc","set -euo pipefail; \
   cd /vcmi; \
   ln -sf /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so || true; \
   cmake --preset portmaster-release; \
-  cmake --preset portmaster-release -DBoost_NO_SYSTEM_PATHS=ON -DCMAKE_PREFIX_PATH=/usr/local; \
-  ldd /vcmi/out/build/portmaster-release/bin/vcmiclient | \
+  cmake --build out/build/portmaster-release --parallel --verbose --target vcmiclient; \
+  ldd out/build/portmaster-release/bin/vcmiclient | \
     grep -E 'libboost|libtbb|libicu' | \
-    awk 'NF==4{system(\"cp \"$3\" /vcmi/out/build/portmaster-release/bin/\")}' \
+    awk 'NF==4{system(\"cp \"$3\" out/build/portmaster-release/bin/\")}' \
 "]
 
 
