@@ -4,14 +4,32 @@ WORKDIR /usr/local/app
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential g++ wget ca-certificates \
-    cmake ninja-build \
-    libicu-dev zlib1g-dev \
+    build-essential wget ca-certificates \
+    libicu-dev zlib1g-dev libbz2-dev \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
     qtbase5-dev qttools5-dev libqt5svg5-dev \
-    libavformat-dev libswscale-dev libtbb-dev libluajit-5.1-dev \
-    libminizip-dev libfuzzylite-dev libsqlite3-dev \
+    ninja-build libavformat-dev libswscale-dev \
+    libtbb-dev libluajit-5.1-dev libminizip-dev libfuzzylite-dev libsqlite3-dev \
  && rm -rf /var/lib/apt/lists/*
+
+
+ARG BOOST_VERSION=1.88.0
+ARG BOOST_DIR=boost_1_88_0
+RUN set -eux; \
+  wget -O boost.tar.gz "https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_DIR}.tar.gz"; \
+  tar -xzf boost.tar.gz; cd "${BOOST_DIR}"; \
+  ./bootstrap.sh --prefix=/usr/local; \
+  ./b2 -j"$(nproc)" cxxstd=17 link=shared runtime-link=shared threading=multi \
+      --with-filesystem --with-system --with-thread --with-program_options \
+      --with-locale --with-iostreams --with-date_time --with-regex \
+      --with-chrono --with-atomic \
+      install; \
+  ldconfig; cd ..; rm -rf boost.tar.gz "${BOOST_DIR}"
+
+
+ENV CMAKE_PREFIX_PATH=/usr/local
+ENV BOOST_ROOT=/usr/local
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 
 # CMake >= 3.31 (presets support)
@@ -22,18 +40,6 @@ RUN set -eux; \
   ln -s /opt/cmake-${CMAKE_VER}-linux-aarch64/bin/* /usr/local/bin/; \
   rm -f cmake-${CMAKE_VER}-linux-aarch64.tar.gz; \
   cmake --version
-
-
-# Boost 1.88 to /usr/local
-ARG BOOST_VERSION=1.88.0
-ARG BOOST_DIR=boost_1_88_0
-RUN set -eux; \
-  wget -O boost.tar.gz "https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_DIR}.tar.gz"; \
-  tar -xzf boost.tar.gz; cd ${BOOST_DIR}; \
-  ./bootstrap.sh --with-libraries=filesystem,system,thread,program_options,locale,iostreams --prefix=/usr/local; \
-  ./b2 -j"$(nproc)" cxxstd=17 link=shared runtime-link=shared threading=multi install; \
-  ldconfig; cd ..; rm -rf boost.tar.gz ${BOOST_DIR}
-ENV BOOST_ROOT=/usr/local CMAKE_PREFIX_PATH=/usr/local LD_LIBRARY_PATH=/usr/local/lib
 
 
 # CMake /usr/local 
@@ -48,12 +54,11 @@ CMD ["bash","-lc","set -euo pipefail; \
   cd /vcmi; \
   ln -sf /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so || true; \
   cmake --preset portmaster-release; \
-  cmake --build --preset portmaster-release; \
+  cmake --preset portmaster-release -DBoost_NO_SYSTEM_PATHS=ON -DCMAKE_PREFIX_PATH=/usr/local; \
   ldd /vcmi/out/build/portmaster-release/bin/vcmiclient | \
     grep -E 'libboost|libtbb|libicu' | \
     awk 'NF==4{system(\"cp \"$3\" /vcmi/out/build/portmaster-release/bin/\")}' \
 "]
-
 
 
 # Build on ARM64 processor or ARM64 chroot with:
