@@ -38,10 +38,17 @@ jobs:
         shell: bash
         run: |
           docker run --rm \
-            -e ENABLE_STRICT_COMPILATION=OFF \
-            -e CXXFLAGS="${CXXFLAGS} -Wno-error=maybe-uninitialized -Wno-error=array-bounds -Wno-error" \
             -v "${GITHUB_WORKSPACE}:/vcmi" \
-            vcmi-portmaster-build
+            -w /vcmi \
+            vcmi-portmaster-build \
+            bash -lc '
+              rm -rf out/build/portmaster-release &&
+              cmake -S . -B out/build/portmaster-release -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DENABLE_STRICT_COMPILATION=OFF \
+                -DFORCE_BUNDLED_FL=ON \
+                -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wno-error -Wno-error=maybe-uninitialized -Wno-error=array-bounds" &&
+              ninja -C out/build/portmaster-release vcmiclient
 
       - name: Package
         shell: bash
