@@ -50,6 +50,7 @@ jobs:
             -DFORCE_BUNDLED_FL=ON \
             -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wno-error -Wno-error=maybe-uninitialized -Wno-error=array-bounds"
           ninja -C out/build/portmaster-release vcmiclient
+          BASH
 
       - name: Package
         shell: bash
