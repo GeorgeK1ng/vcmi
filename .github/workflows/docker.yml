@@ -35,7 +35,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build VCMI
-        run: docker run --rm -v "$PWD:/vcmi" vcmi-portmaster-build
+        run: docker run --rm -e CXXFLAGS="-Wno-error=maybe-uninitialized" -v "$PWD:/vcmi" vcmi-portmaster-build
 
       - name: Package
         shell: bash
