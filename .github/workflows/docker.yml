@@ -41,14 +41,15 @@ jobs:
             -v "${GITHUB_WORKSPACE}:/vcmi" \
             -w /vcmi \
             vcmi-portmaster-build \
-            bash -lc '
-              rm -rf out/build/portmaster-release &&
-              cmake -S . -B out/build/portmaster-release -G Ninja \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DENABLE_STRICT_COMPILATION=OFF \
-                -DFORCE_BUNDLED_FL=ON \
-                -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wno-error -Wno-error=maybe-uninitialized -Wno-error=array-bounds" &&
-              ninja -C out/build/portmaster-release vcmiclient
+            bash -s <<'BASH'
+          set -euo pipefail
+          rm -rf out/build/portmaster-release
+          cmake -S . -B out/build/portmaster-release -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_STRICT_COMPILATION=OFF \
+            -DFORCE_BUNDLED_FL=ON \
+            -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wno-error -Wno-error=maybe-uninitialized -Wno-error=array-bounds"
+          ninja -C out/build/portmaster-release vcmiclient
 
       - name: Package
         shell: bash
