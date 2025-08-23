@@ -3,11 +3,32 @@ WORKDIR /usr/local/app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt-get install libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-program-options-dev libboost-locale-dev libboost-iostreams-dev \
-libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-qtbase5-dev qttools5-dev libqt5svg5-dev \
-ninja-build zlib1g-dev libavformat-dev libswscale-dev libtbb-dev libluajit-5.1-dev \
-libminizip-dev libfuzzylite-dev libsqlite3-dev # Optional dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential g++ wget ca-certificates \
+    cmake ninja-build \
+    libicu-dev zlib1g-dev \
+    libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+    qtbase5-dev qttools5-dev libqt5svg5-dev \
+    libavformat-dev libswscale-dev libtbb-dev libluajit-5.1-dev \
+    libminizip-dev libfuzzylite-dev libsqlite3-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Boost 1.88 – setup to /usr/local
+ARG BOOST_VER=1_88_0
+RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/1.88.0/source/boost_${BOOST_VER}.tar.gz \
+ && tar xf boost_${BOOST_VER}.tar.gz \
+ && cd boost_${BOOST_VER} \
+ && ./bootstrap.sh --with-libraries=filesystem,system,thread,program_options,locale,iostreams --prefix=/usr/local \
+ && ./b2 -j"$(nproc)" cxxstd=17 link=shared runtime-link=shared threading=multi install \
+ && ldconfig \
+ && cd .. && rm -rf boost_${BOOST_VER} boost_${BOOST_VER}.tar.gz
+
+# CMake /usr/local 
+ENV BOOST_ROOT=/usr/local
+ENV BOOST_INCLUDEDIR=/usr/local/include
+ENV BOOST_LIBRARYDIR=/usr/local/lib
+ENV CMAKE_PREFIX_PATH=/usr/local:${CMAKE_PREFIX_PATH}
+ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 
 
 CMD ["sh", "-c", " \
