@@ -40,7 +40,8 @@ jobs:
           docker run --rm \
             -e ENABLE_STRICT_COMPILATION=OFF \
             -e CXXFLAGS="${CXXFLAGS} -Wno-error=maybe-uninitialized -Wno-error=array-bounds -Wno-error" \
-            -v "$PWD:/vcmi" \
+            -v "${GITHUB_WORKSPACE}:/vcmi" \
+            vcmi-portmaster-build
 
       - name: Package
         shell: bash
