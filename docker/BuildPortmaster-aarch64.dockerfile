@@ -13,15 +13,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libminizip-dev libfuzzylite-dev libsqlite3-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Boost 1.88 – setup to /usr/local
-ARG BOOST_VER=1_88_0
-RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/1.88.0/source/boost_${BOOST_VER}.tar.gz \
- && tar xf boost_${BOOST_VER}.tar.gz \
- && cd boost_${BOOST_VER} \
- && ./bootstrap.sh --with-libraries=filesystem,system,thread,program_options,locale,iostreams --prefix=/usr/local \
- && ./b2 -j"$(nproc)" cxxstd=17 link=shared runtime-link=shared threading=multi install \
- && ldconfig \
- && cd .. && rm -rf boost_${BOOST_VER} boost_${BOOST_VER}.tar.gz
+ARG BOOST_VERSION=1.88.0
+ARG BOOST_DIR=boost_1_88_0
+RUN set -eux; \
+    url="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_DIR}.tar.gz"; \
+    wget -O boost.tar.gz "$url"; \
+    tar -xzf boost.tar.gz; \
+    cd "${BOOST_DIR}"; \
+    ./bootstrap.sh --with-libraries=filesystem,system,thread,program_options,locale,iostreams --prefix=/usr/local; \
+    ./b2 -j"$(nproc)" cxxstd=17 link=shared runtime-link=shared threading=multi install; \
+    ldconfig; \
+    cd ..; rm -rf boost.tar.gz "${BOOST_DIR}"
 
 # CMake /usr/local 
 ENV BOOST_ROOT=/usr/local
