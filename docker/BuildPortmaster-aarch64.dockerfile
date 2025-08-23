@@ -3,15 +3,11 @@ WORKDIR /usr/local/app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# newer cmake version to support presets
-RUN apt-get remove -y cmake
-RUN wget -q https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-linux-aarch64.tar.gz \
- && tar xf cmake-3.31.5-linux-aarch64.tar.gz -C /opt \
- && ln -s /opt/cmake-3.31.5-linux-aarch64/bin/* /usr/local/bin/ \
- && rm cmake-3.31.5-linux-aarch64.tar.gz
-
-# from VCMI build docs
-RUN apt update && apt-get install -y cmake g++ clang libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev zlib1g-dev libavformat-dev libswscale-dev libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-program-options-dev libboost-locale-dev libboost-iostreams-dev qtbase5-dev libtbb-dev libluajit-5.1-dev liblzma-dev libsqlite3-dev qttools5-dev ninja-build ccache
+sudo apt-get install libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-program-options-dev libboost-locale-dev libboost-iostreams-dev \
+libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+qtbase5-dev qttools5-dev libqt5svg5-dev \
+ninja-build zlib1g-dev libavformat-dev libswscale-dev libtbb-dev libluajit-5.1-dev \
+libminizip-dev libfuzzylite-dev libsqlite3-dev # Optional dependencies
 
 
 CMD ["sh", "-c", " \
