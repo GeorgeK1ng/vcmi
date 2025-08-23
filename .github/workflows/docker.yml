@@ -1,10 +1,13 @@
-name: Build
+name: Build Portmaster
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - beta
+      - master
+      - develop
   pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
