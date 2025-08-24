@@ -515,13 +515,13 @@ jobs:
         mkdir artifact/extracted
         unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
 
-    - name: Build pickerPlugin
-      shell: bash
-      run: |
-        cmake -S "CI/wininstaller/pickerPlugin" -B "CI/wininstaller/pickerPlugin/_build_win32" -G "Visual Studio 17 2022" -A Win32
-        cmake --build "CI/wininstaller/pickerPlugin/_build_win32" --config Release
-        cp "CI/wininstaller/pickerPlugin/_build_win32/bin/Release/pickerPlugin.dll" "CI/wininstaller/pickerPlugin/pickerPlugin.dll"
-        test -f "CI/wininstaller/pickerPlugin/pickerPlugin.dll" || { echo "pickerPlugin.dll missing!"; exit 1; }
+#    - name: Build pickerPlugin
+#      shell: bash
+#      run: |
+#        cmake -S "CI/wininstaller/pickerPlugin" -B "CI/wininstaller/pickerPlugin/_build_win32" -G "Visual Studio 17 2022" -A Win32
+#        cmake --build "CI/wininstaller/pickerPlugin/_build_win32" --config Release
+#        cp "CI/wininstaller/pickerPlugin/_build_win32/bin/Release/pickerPlugin.dll" "CI/wininstaller/pickerPlugin/pickerPlugin.dll"
+#        test -f "CI/wininstaller/pickerPlugin/pickerPlugin.dll" || { echo "pickerPlugin.dll missing!"; exit 1; }
   
     - name: Ensure Inno Setup is installed
       shell: bash
