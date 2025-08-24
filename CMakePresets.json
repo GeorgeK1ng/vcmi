@@ -365,7 +365,8 @@
                 "ENABLE_TRANSLATIONS": "OFF",
                 "FORCE_BUNDLED_FL": "ON",
                 "ENABLE_GOLDMASTER": "ON",
-                "VCMI_PORTMASTER": "ON"
+                "VCMI_PORTMASTER": "ON",
+                "ENABLE_STRICT_COMPILATION": "OFF"
             }
         }
     ],
