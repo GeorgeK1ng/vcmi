@@ -3,7 +3,12 @@ WORKDIR /usr/local/app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# From VCMI build docs
+# RUN apt update && apt install -y cmake g++ clang libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev zlib1g-dev libavformat-dev libswscale-dev libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-program-options-dev libboost-locale-dev libboost-iostreams-dev qtbase5-dev libtbb-dev libluajit-5.1-dev liblzma-dev libsqlite3-dev qttools5-dev ninja-build ccache
+
+
+
+RUN apt update && apt install -y --no-install-recommends \
     build-essential wget ca-certificates \
     libicu-dev zlib1g-dev libbz2-dev \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
@@ -27,11 +32,6 @@ RUN set -eux; \
   ldconfig; cd ..; rm -rf boost.tar.gz "${BOOST_DIR}"
 
 
-ENV CMAKE_PREFIX_PATH=/usr/local
-ENV BOOST_ROOT=/usr/local
-ENV LD_LIBRARY_PATH=/usr/local/lib
-
-
 # CMake >= 3.31 (presets support)
 ARG CMAKE_VER=3.31.5
 RUN set -eux; \
@@ -42,25 +42,21 @@ RUN set -eux; \
   cmake --version
 
 
-# CMake /usr/local 
-ENV BOOST_ROOT=/usr/local
-ENV BOOST_INCLUDEDIR=/usr/local/include
-ENV BOOST_LIBRARYDIR=/usr/local/lib
-ENV CMAKE_PREFIX_PATH=/usr/local:${CMAKE_PREFIX_PATH}
-ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
-
-
-CMD ["bash","-lc","set -euo pipefail; \
-  cd /vcmi; \
-  ln -sf /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so || true; \
-  cmake --preset portmaster-release; \
-  cmake --build out/build/portmaster-release --parallel --verbose --target vcmiclient; \
-  ldd out/build/portmaster-release/bin/vcmiclient | \
-    grep -E 'libboost|libtbb|libicu' | \
-    awk 'NF==4{system(\"cp \"$3\" out/build/portmaster-release/bin/\")}' \
+CMD ["sh", "-c", " \
+    # switch to mounted dir
+    cd /vcmi ; \
+    # fix for wrong path of base image
+    ln -s /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so ; \
+    # build
+    cmake --preset portmaster-release ; \
+    cmake --build --preset portmaster-release ; \
+    # export missing libraries
+    ldd /vcmi/out/build/portmaster-release/bin/vcmiclient | grep -e libboost -e libtbb -e libicu | awk 'NF == 4 { system(\"cp \" $3 \" /vcmi/out/build/portmaster-release/bin/\") }' \
 "]
 
-
+# Build on ARM64 processor or ARM64 chroot with:
+#      docker build -f docker/BuildPortmaster-aarch64.dockerfile -t vcmi-portmaster-build .
+#      docker run -it --rm -v $PWD/:/vcmi vcmi-portmaster-build
 # Build on ARM64 processor or ARM64 chroot with:
 #      docker build -f docker/BuildPortmaster-aarch64.dockerfile -t vcmi-portmaster-build .
 #      docker run -it --rm -v $PWD/:/vcmi vcmi-portmaster-build
