@@ -9,12 +9,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 
 RUN apt update && apt install -y --no-install-recommends \
-    build-essential wget ca-certificates \
+    build-essential wget ca-certificates git \
     libicu-dev zlib1g-dev libbz2-dev \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
     qtbase5-dev qttools5-dev libqt5svg5-dev \
     ninja-build libavformat-dev libswscale-dev \
-    libtbb-dev libluajit-5.1-dev libminizip-dev libfuzzylite-dev libsqlite3-dev \
+    libluajit-5.1-dev libminizip-dev libsqlite3-dev \
  && rm -rf /var/lib/apt/lists/*
 
 
@@ -40,6 +40,17 @@ RUN set -eux; \
   ln -s /opt/cmake-${CMAKE_VER}-linux-aarch64/bin/* /usr/local/bin/; \
   rm -f cmake-${CMAKE_VER}-linux-aarch64.tar.gz; \
   cmake --version
+
+
+
+ARG TBB_VER=2021.12.0
+RUN set -eux; \
+  wget -qO /tmp/oneTBB.tar.gz https://github.com/oneapi-src/oneTBB/archive/refs/tags/v${TBB_VER}.tar.gz; \
+  mkdir -p /tmp/oneTBB && tar -xzf /tmp/oneTBB.tar.gz -C /tmp/oneTBB --strip-components=1; \
+  cmake -S /tmp/oneTBB -B /tmp/oneTBB/build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release -DTBB_TEST=OFF -DCMAKE_INSTALL_PREFIX=/usr/local; \
+  cmake --build /tmp/oneTBB/build --target install -j"$(nproc)"; \
+  rm -rf /tmp/oneTBB*; ldconfig
 
 
 CMD ["sh", "-c", " \
