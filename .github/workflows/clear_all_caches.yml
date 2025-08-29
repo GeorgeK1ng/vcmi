@@ -1,0 +1,36 @@
+name: Purge all GitHub Actions caches
+
+on:
+  workflow_dispatch:
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete all caches in this repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "Listing caches for $GH_REPO…"
+          ids=$(gh cache list --limit 10000 --json id --jq '.[].id')
+
+          if [ -z "${ids}" ]; then
+            echo "No caches found."
+            exit 0
+          fi
+
+          echo "Deleting caches…"
+          # best effort – neukončuj při chybě mazání jednoho záznamu
+          set +e
+          for id in $ids; do
+            echo "Deleting cache id: $id"
+            gh cache delete "$id" --confirm
+          done
+          set -e
+
+          echo "Done."
