@@ -29,7 +29,7 @@ jobs:
           set +e
           for id in $ids; do
             echo "Deleting cache id: $id"
-            gh cache delete "$id" --confirm
+            gh cache delete "$id"
           done
           set -e
 
