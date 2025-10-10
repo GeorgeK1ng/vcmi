@@ -221,7 +221,7 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 }
 
 
-QStringList Helper::findFilesForCopy(const QString &treeUri)
+QStringList findFilesForCopy(const QString &treeUri)
 {
 #ifdef VCMI_ANDROID
     QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(treeUri));
