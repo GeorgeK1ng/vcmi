@@ -24,22 +24,26 @@
 #include "../languages.h"
 #include "../innoextract.h"
 
+#include <QProgressDialog>
+#include <QCoreApplication>
+
 #ifdef VCMI_IOS
 #include "ios/selectdirectory.h"
-
 #include "iOS_utils.h"
-// #elif defined(VCMI_ANDROID)
-// #include <QAndroidJniObject>
-// #include <QtAndroid>
 
-// static FirstLaunchView * thiz;
-// extern "C" JNIEXPORT void JNICALL Java_eu_vcmi_vcmi_NativeMethods_heroesDataUpdate(JNIEnv * env, jclass cls)
-// {
-//	thiz->heroesDataUpdate();
-// }
+#elif defined(VCMI_ANDROID)
+#include <QAndroidJniObject>
+#include <QtAndroid>
+
+static FirstLaunchView * thiz;
+extern "C" JNIEXPORT void JNICALL
+Java_eu_vcmi_vcmi_NativeMethods_copyHeroesData(JNIEnv * env, jclass, jstring jpath)
+{
+	const QString picked = QAndroidJniObject(jpath).toString();
+	thiz->copyHeroesData(picked);
+}
+
 #endif
-
-#include <QProgressDialog>
 
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
@@ -121,14 +125,14 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-// #ifdef VCMI_ANDROID
-//	thiz = this;
-//	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
-// #else
+ #ifdef VCMI_ANDROID
+	thiz = this;
+	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
+ #else
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{ copyHeroesData(); });
-// #endif
+ #endif
 }
 
 void FirstLaunchView::on_pushButtonGogInstall_clicked()
@@ -594,7 +598,7 @@ void FirstLaunchView::copyHeroesData(const QString & path, bool move)
 	    // Update progress text/value
 	    progress.setLabelText(QFileInfo(it.src).fileName());
 	    progress.setValue(i);
-	    QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+	    QCoreApplication::processEvents();
 	
 	    // Overwrite target if exists
 	    if (QFile::exists(it.dst))
