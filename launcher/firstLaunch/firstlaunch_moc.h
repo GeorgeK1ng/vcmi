@@ -43,7 +43,6 @@ class FirstLaunchView : public QWidget
 	QString getHeroesInstallDir();
 	void extractGogData();
 	void extractGogDataAsync(QString filePathBin, QString filePathExe);
-	void copyHeroesData(const QString & path = {}, bool move = false);
 
 	// Tab Mod Preset
 	void modPresetUpdate();
@@ -62,6 +61,7 @@ public:
 
 	// Tab Heroes III Data
 	bool heroesDataUpdate();
+	void copyHeroesData(const QString & path = {}, bool move = false);
 
 public slots:
 
