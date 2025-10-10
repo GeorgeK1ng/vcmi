@@ -22,6 +22,7 @@
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
 #include <QtAndroid>
+#include <QAndroidJniEnvironment>
 #include <QAndroidActivityResultReceiver>
 #endif
 
