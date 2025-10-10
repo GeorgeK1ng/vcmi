@@ -216,10 +216,7 @@ void FirstLaunchView::heroesDataMissing()
 	ui->labelDataManualDescr->setVisible(true);
 	ui->pushButtonDataSearch->setVisible(true);
 
-#ifdef VCMI_ANDROID
-	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
-	const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
-#elif defined(VCMI_IOS)
+#ifdef VCMI_IOS
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
 	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
 #else
