@@ -27,24 +27,6 @@
 #include <QProgressDialog>
 #include <QCoreApplication>
 
-#ifdef VCMI_IOS
-#include "ios/selectdirectory.h"
-#include "iOS_utils.h"
-
-#elif defined(VCMI_ANDROID)
-#include <QAndroidJniObject>
-#include <QtAndroid>
-
-static FirstLaunchView * thiz;
-extern "C" JNIEXPORT void JNICALL
-Java_eu_vcmi_vcmi_NativeMethods_copyHeroesData(JNIEnv * env, jclass, jstring jpath)
-{
-	const QString picked = QAndroidJniObject(jpath).toString();
-	thiz->copyHeroesData(picked);
-}
-
-#endif
-
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
@@ -125,14 +107,14 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-// #ifdef VCMI_ANDROID
-//	thiz = this;
-//	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
-// #else
-	// iOS can't display modal dialogs when called directly on button press
-	// https://bugreports.qt.io/browse/QTBUG-98651
-	MessageBoxCustom::showDialog(this, [this]{ copyHeroesData(); });
-// #endif
+    // iOS can't display modal dialogs when called directly on button press
+    // https://bugreports.qt.io/browse/QTBUG-98651
+    MessageBoxCustom::showDialog(this, [this]{
+        Helper::nativeFolderPicker(this, [this](const QString &picked){
+            if (!picked.isEmpty())
+                copyHeroesData(picked);
+        });
+    });
 }
 
 void FirstLaunchView::on_pushButtonGogInstall_clicked()
@@ -484,28 +466,15 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	}
 
 	logGlobal->info("Copying provided game files...");
-	copyHeroesData(tempDir.path(), true);
+	copyHeroesData(Helper::getRealPath(tempDir.path()));
 
 	tempDir.removeRecursively();
 #endif
 }
 
-void FirstLaunchView::copyHeroesData(const QString & path, bool move)
+void FirstLaunchView::copyHeroesData(const QString & path)
 {
-	QDir sourceRoot{ Helper::getRealPath(path) };
-
-#ifdef VCMI_IOS
-	// TODO: Qt 6.5 can select directories https://codereview.qt-project.org/c/qt/qtbase/+/446449
-	SelectDirectory iosDirectorySelector;
-	if(path.isEmpty())
-		sourceRoot.setPath(iosDirectorySelector.getExistingDirectory());
-#else
-	if(path.isEmpty())
-	{
-		QString pickedDir = QFileDialog::getExistingDirectory(this, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-		sourceRoot.setPath(Helper::getRealPath(pickedDir));
-	}
-#endif
+	QDir sourceRoot{ path };
 
 	if(!sourceRoot.exists())
 		return;
