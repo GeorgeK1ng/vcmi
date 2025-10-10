@@ -218,7 +218,7 @@ void FirstLaunchView::heroesDataMissing()
 
 #ifdef VCMI_IOS
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
-	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
+	const bool canUseDataCopy = isOsVersionAtLeast(13);
 #else
 	const bool canUseDataCopy = true;
 #endif
