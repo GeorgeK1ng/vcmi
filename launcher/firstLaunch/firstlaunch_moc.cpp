@@ -499,6 +499,7 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 	if(dirData.empty())
 	{
 		QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
+		QMessageBox::critical(this, tr("Heroes III data not found!"), path);
 		return;
 	}
 
