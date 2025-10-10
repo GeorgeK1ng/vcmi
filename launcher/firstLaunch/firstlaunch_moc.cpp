@@ -28,16 +28,18 @@
 #include "ios/selectdirectory.h"
 
 #include "iOS_utils.h"
-#elif defined(VCMI_ANDROID)
-#include <QAndroidJniObject>
-#include <QtAndroid>
+// #elif defined(VCMI_ANDROID)
+// #include <QAndroidJniObject>
+// #include <QtAndroid>
 
-static FirstLaunchView * thiz;
-extern "C" JNIEXPORT void JNICALL Java_eu_vcmi_vcmi_NativeMethods_heroesDataUpdate(JNIEnv * env, jclass cls)
-{
-	thiz->heroesDataUpdate();
-}
+// static FirstLaunchView * thiz;
+// extern "C" JNIEXPORT void JNICALL Java_eu_vcmi_vcmi_NativeMethods_heroesDataUpdate(JNIEnv * env, jclass cls)
+// {
+//	thiz->heroesDataUpdate();
+// }
 #endif
+
+#include <QProgressDialog>
 
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
@@ -119,14 +121,14 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-#ifdef VCMI_ANDROID
-	thiz = this;
-	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
-#else
+// #ifdef VCMI_ANDROID
+//	thiz = this;
+//	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
+// #else
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{ copyHeroesData(); });
-#endif
+// #endif
 }
 
 void FirstLaunchView::on_pushButtonGogInstall_clicked()
@@ -230,7 +232,8 @@ void FirstLaunchView::heroesDataMissing()
 
 #ifdef VCMI_ANDROID
 	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
-	const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
+	// const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
+	const bool canUseDataCopy = true;
 #elif defined(VCMI_IOS)
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
 	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
@@ -495,7 +498,10 @@ void FirstLaunchView::copyHeroesData(const QString & path, bool move)
 		sourceRoot.setPath(iosDirectorySelector.getExistingDirectory());
 #else
 	if(path.isEmpty())
-		sourceRoot.setPath(QFileDialog::getExistingDirectory(this, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
+	{
+		QString pickedDir = QFileDialog::getExistingDirectory(this, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+		sourceRoot.setPath(Helper::getRealPath(pickedDir));
+	}
 #endif
 
 	if(!sourceRoot.exists())
@@ -551,34 +557,55 @@ void FirstLaunchView::copyHeroesData(const QString & path, bool move)
 	}
 
 	QStringList copyDirectories;
-
-	copyDirectories += dirData.front();
-	if (!dirMaps.empty())
-		copyDirectories += dirMaps.front();
-
-	if (!dirMp3.empty())
-		copyDirectories += dirMp3.front();
-
+	copyDirectories << dirData.front();
+	if (!dirMaps.isEmpty()) copyDirectories << dirMaps.front();
+	if (!dirMp3.isEmpty())  copyDirectories << dirMp3.front();
+	
 	QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-
-	for(const QString & dirName : copyDirectories)
+	
+	// Gather files (top-level only) for progress
+	struct Item { QString src, dst; };
+	QVector<Item> items;
+	
+	for (const QString & dirName : copyDirectories)
 	{
-		QDir sourceDir = sourceRoot.filePath(dirName);
-		QDir targetDir = targetRoot.filePath(dirName);
-
-		if(!targetRoot.exists(dirName))
-			targetRoot.mkdir(dirName);
-
-		for(const QString & filename : sourceDir.entryList(QDir::Filter::Files))
-		{
-			QFile sourceFile(sourceDir.filePath(filename));
-			if(move)
-				sourceFile.rename(targetDir.filePath(filename));
-			else
-				sourceFile.copy(targetDir.filePath(filename));
-		}
+	    QDir sourceDir = sourceRoot.filePath(dirName);
+	    QDir targetDir = targetRoot.filePath(dirName);
+	
+	    QDir{}.mkpath(targetDir.path()); // ensure target dir exists
+	
+	    const QStringList files = sourceDir.entryList(QDir::Files);
+	    for (const QString & filename : files)
+	    {
+	        const QString src = Helper::getRealPath(sourceDir.filePath(filename));
+	        const QString dst = Helper::getRealPath(targetDir.filePath(filename));
+	        items.push_back({src, dst});
+	    }
 	}
-
+	
+	QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, items.size(), this);
+	progress.setCancelButton(nullptr);
+	progress.setMinimumDuration(0);
+	
+	for (int i = 0; i < items.size(); ++i)
+	{
+	    const auto & it = items[i];
+	
+	    // Update progress text/value
+	    progress.setLabelText(QFileInfo(it.src).fileName());
+	    progress.setValue(i);
+	    QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+	
+	    // Overwrite target if exists
+	    if (QFile::exists(it.dst))
+	        QFile::remove(it.dst);
+	
+	    // Always copy via helper
+	    Helper::performNativeCopy(it.src, it.dst);
+	}
+	
+	progress.setValue(items.size());
+	
 	heroesDataUpdate();
 }
 
