@@ -472,85 +472,68 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 #endif
 }
 
-// Find a subdirectory by name (case-insensitive) and return its real on-disk name
-static QString findDirCI(const QDir &root, const QString &name)
-{
-    const QStringList dirs = root.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    for (const QString &d : dirs)
-        if (d.compare(name, Qt::CaseInsensitive) == 0)
-            return d; // real name, e.g. "Data" / "Maps" / "Mp3"
-    return {};
-}
-
-// List files matching wildcard patterns (case-insensitive), returns file names
-static QStringList listFilesCI(const QDir &dir, const QStringList &wildcards)
-{
-    QStringList out;
-    const QStringList all = dir.entryList(QDir::Files);
-    for (const QString &fn : all) {
-        for (const QString &wc : wildcards) {
-            const QRegularExpression rx(
-                QRegularExpression::wildcardToRegularExpression(wc),
-                QRegularExpression::CaseInsensitiveOption
-            );
-            if (rx.match(fn).hasMatch()) { out << fn; break; }
-        }
-    }
-    return out;
-}
-
 void FirstLaunchView::copyHeroesData(const QString & path)
 {
-	QDir sourceRoot{ Helper::getRealPath(path) };
-	if (!sourceRoot.exists())
-	    return;
-	
-	// If user picked "Data" directly, step one level up if needed
+	QDir sourceRoot{ path };
+
+	if(!sourceRoot.exists())
+		return;
+
 	if (sourceRoot.dirName().compare("data", Qt::CaseInsensitive) == 0)
 	{
-	    // If there is no "Data" inside, go up to treat current as game root
-	    if (findDirCI(sourceRoot, "data").isEmpty())
-	        sourceRoot.cdUp();
+		// We got Data folder. Possibly user selected "Data" folder of Heroes III install. Check whether valid data might exist 1 level above
+
+		QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs);
+		if (dirData.empty())
+		{
+			// This is "Data" folder without any "Data" folders inside. Try to check for data 1 level above
+			sourceRoot.cdUp();
+		}
 	}
-	
-	// Find expected subdirs (case-insensitive)
-	const QString dataDirName = findDirCI(sourceRoot, "data");
-	const QString mapsDirName = findDirCI(sourceRoot, "maps");
-	const QString mp3DirName  = findDirCI(sourceRoot, "mp3");
+
+	QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs);
+	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs);
+	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs);
+
+	QMessageBox::critical(this, tr("Heroes III debug"), sourceRoot);
 	
 	const auto noDataMessage = tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-	if (dataDirName.isEmpty()) {
-	    QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-	    return;
+	if(dirData.empty())
+	{
+		QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
+		return;
 	}
-	
-	QDir sourceData = sourceRoot.filePath(dataDirName);
-	
-	// Case-insensitive file matching
-	const QStringList roeFiles = listFilesCI(sourceData, {"*.lod"});
-	const QStringList sodFiles = listFilesCI(sourceData, {"H3ab*.lod"});
-	const QStringList hdFiles  = listFilesCI(sourceData, {"*.pak"});
-	
-	if (sodFiles.isEmpty()) {
-	    if (roeFiles.isEmpty()) {
-	        QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-	        return;
-	    }
-	    if (!hdFiles.isEmpty()) {
-	        QMessageBox::critical(this, tr("Heroes III data not found!"),
-	            tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-	        return;
-	    }
-	    QMessageBox::critical(this, tr("Heroes III data not found!"),
-	        tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-	    return;
+
+	QDir sourceData = sourceRoot.filePath(dirData.front());
+	QStringList roeFiles = sourceData.entryList({"*.lod"}, QDir::Filter::Files);
+	QStringList sodFiles = sourceData.entryList({"H3ab*.lod"}, QDir::Filter::Files);
+	QStringList hdFiles = sourceData.entryList({"*.pak"}, QDir::Filter::Files);
+
+	if(sodFiles.empty())
+	{
+		if (roeFiles.empty())
+		{
+			// Directory structure is correct (Data/Maps/Mp3) but no .lod archives that should be present in any install
+			QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
+			return;
+		}
+
+		if (!hdFiles.empty())
+		{
+			// HD Edition contains only RoE data so we can't use even unmodified files from it
+			QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
+			return;
+		}
+
+		// RoE or some other unsupported edition. Demo version?
+		QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
+		return;
 	}
-	
-	// Build list of directories to copy using the real names we found
+
 	QStringList copyDirectories;
-	copyDirectories << dataDirName;
-	if (!mapsDirName.isEmpty()) copyDirectories << mapsDirName;
-	if (!mp3DirName.isEmpty())  copyDirectories << mp3DirName;
+	copyDirectories << dirData.front();
+	if (!dirMaps.isEmpty()) copyDirectories << dirMaps.front();
+	if (!dirMp3.isEmpty())  copyDirectories << dirMp3.front();
 	
 	QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
 	
