@@ -495,11 +495,12 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs);
 	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs);
 
+	QMessageBox::critical(this, tr("Heroes III debug"), path);
+	
 	const auto noDataMessage = tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
 	if(dirData.empty())
 	{
 		QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-		QMessageBox::critical(this, tr("Heroes III data not found!"), path);
 		return;
 	}
 
