@@ -105,16 +105,74 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 	heroesDataUpdate();
 }
 
+//void FirstLaunchView::on_pushButtonDataCopy_clicked()
+//{
+//    // iOS can't display modal dialogs when called directly on button press
+//    // https://bugreports.qt.io/browse/QTBUG-98651
+//    MessageBoxCustom::showDialog(this, [this]{
+//        Helper::nativeFolderPicker(this, [this](const QString &picked){
+//            if (!picked.isEmpty())
+//				//copyHeroesData(Helper::getRealPath(picked));
+//				copyHeroesData(picked);
+//        });
+//    });
+//}
+
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-    // iOS can't display modal dialogs when called directly on button press
-    // https://bugreports.qt.io/browse/QTBUG-98651
     MessageBoxCustom::showDialog(this, [this]{
+#ifdef VCMI_ANDROID
+        // Reuse your existing picker, but return URI (content://). 
         Helper::nativeFolderPicker(this, [this](const QString &picked){
-            if (!picked.isEmpty())
-				//copyHeroesData(Helper::getRealPath(picked));
-				copyHeroesData(picked);
+            if (picked.isEmpty()) return;
+
+            // Build copy plan
+            const QStringList items = Helper::findFilesForCopy(picked);
+            if (items.isEmpty()) {
+                QMessageBox::critical(this, tr("Copy failed"),
+                                      tr("No matching files found in the selected folder."));
+                return;
+            }
+
+            QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
+            struct Plan { QString srcUri, dstPath; };
+            QVector<Plan> plan; plan.reserve(items.size());
+
+            for (const QString &line : items) {
+                const QStringList parts = line.split('\t');
+                if (parts.size() < 3) continue;
+                const QString &src = parts[0];
+                const QString &tgt = parts[1]; // "Data" / "Maps" / "Mp3"
+                const QString &name = parts[2];
+
+                QDir dstDir = targetRoot.filePath(tgt);
+                QDir().mkpath(dstDir.path());
+                plan.push_back({ src, dstDir.filePath(name) });
+            }
+
+            QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, plan.size(), this);
+            progress.setCancelButton(nullptr);
+            progress.setMinimumDuration(0);
+
+            for (int i = 0; i < plan.size(); ++i) {
+                progress.setLabelText(QFileInfo(plan[i].dstPath).fileName());
+                progress.setValue(i);
+                QCoreApplication::processEvents();
+
+                if (QFile::exists(plan[i].dstPath))
+                    QFile::remove(plan[i].dstPath);
+
+                Helper::performNativeCopy(plan[i].srcUri, plan[i].dstPath);
+            }
+            progress.setValue(plan.size());
+            heroesDataUpdate();
         });
+#else
+        // Desktop/iOS: keep your existing FS path flow
+        Helper::nativeFolderPicker(this, [this](const QString &picked){
+            if (!picked.isEmpty()) copyHeroesData(picked);
+        });
+#endif
     });
 }
 
