@@ -493,7 +493,7 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 
 	QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs);
 	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs);
-	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs;
+	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs);
 
 	QMessageBox::critical(this, tr("Heroes III debug 1"), path);
 	QMessageBox::critical(this, tr("Heroes III debug 2"), dirData.front());
