@@ -475,119 +475,114 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString & path)
 {
-    QDir sourceRoot{ path };
-    if (!sourceRoot.exists())
-        return;
+	QDir sourceRoot{ path };
 
-    // If user selected the "Data" folder itself, try to go one level up
-    if (sourceRoot.dirName().compare("data", Qt::CaseInsensitive) == 0)
-    {
-        const QStringList subdirs = sourceRoot.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-        if (subdirs.isEmpty())
-            sourceRoot.cdUp();
-    }
+	if(!sourceRoot.exists())
+		return;
 
-    // --- find "data/maps/mp3" case-insensitively ---
-    const QStringList allDirs = sourceRoot.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    auto findDirCI = [&](const char *name) -> QString {
-        for (const QString &d : allDirs)
-            if (d.compare(QLatin1String(name), Qt::CaseInsensitive) == 0)
-                return d;
-        return {};
-    };
+	if (sourceRoot.dirName().compare("data", Qt::CaseInsensitive) == 0)
+	{
+		// We got Data folder. Possibly user selected "Data" folder of Heroes III install. Check whether valid data might exist 1 level above
 
-    const QString dataName = findDirCI("data");
-    const QString mapsName = findDirCI("maps");
-    const QString mp3Name  = findDirCI("mp3");
+		QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs);
+		if (dirData.empty())
+		{
+			// This is "Data" folder without any "Data" folders inside. Try to check for data 1 level above
+			sourceRoot.cdUp();
+		}
+	}
 
-    const auto noDataMessage = tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-    if (dataName.isEmpty())
-    {
-        QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-        return;
-    }
+	QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
+	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
+	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
 
-    // --- detect archives in Data (case-insensitive) ---
-    QDir sourceData = sourceRoot.filePath(dataName);
-    const QFileInfoList files = sourceData.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable);
+	QMessageBox::critical(this, tr("Heroes III debug 1"), path);
+	QMessageBox::critical(this, tr("Heroes III debug 2"), dirData.front());
+	
+	const auto noDataMessage = tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
+	if(dirData.empty())
+	{
+		QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
+		//return;
+	}
 
-    auto hasLOD   = [](const QFileInfo &fi){ return fi.suffix().compare("lod", Qt::CaseInsensitive) == 0; };
-    auto isSODLOD = [](const QFileInfo &fi){
-        return fi.suffix().compare("lod", Qt::CaseInsensitive) == 0
-            && fi.fileName().startsWith("H3ab", Qt::CaseInsensitive);
-    };
-    auto isHDPAK  = [](const QFileInfo &fi){ return fi.suffix().compare("pak", Qt::CaseInsensitive) == 0; };
+	QDir sourceData = sourceRoot.filePath(dirData.front());
+	QStringList roeFiles = sourceData.entryList({"*.lod"}, QDir::Filter::Files);
+	QStringList sodFiles = sourceData.entryList({"H3ab*.lod"}, QDir::Filter::Files);
+	QStringList hdFiles = sourceData.entryList({"*.pak"}, QDir::Filter::Files);
 
-    const bool anyLOD = std::any_of(files.begin(), files.end(), hasLOD);
-    const bool anySOD = std::any_of(files.begin(), files.end(), isSODLOD);
-    const bool anyHD  = std::any_of(files.begin(), files.end(), isHDPAK);
+	if(sodFiles.empty())
+	{
+		if (roeFiles.empty())
+		{
+			// Directory structure is correct (Data/Maps/Mp3) but no .lod archives that should be present in any install
+			QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
+			//return;
+		}
 
-    if (!anySOD)
-    {
-        if (!anyLOD)
-        {
-            QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-            return;
-        }
-        if (anyHD)
-        {
-            QMessageBox::critical(this, tr("Heroes III data not found!"),
-                tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-            return;
-        }
-        QMessageBox::critical(this, tr("Heroes III data not found!"),
-            tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-        return;
-    }
+		if (!hdFiles.empty())
+		{
+			// HD Edition contains only RoE data so we can't use even unmodified files from it
+			QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
+			//return;
+		}
 
-    // --- which folders to copy ---
-    QStringList copyDirectories; copyDirectories << dataName;
-    if (!mapsName.isEmpty()) copyDirectories << mapsName;
-    if (!mp3Name.isEmpty())  copyDirectories << mp3Name;
+		// RoE or some other unsupported edition. Demo version?
+		QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
+		//return;
+	}
 
-    QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-
-    // Gather files (top-level only) for progress
-    struct Item { QString src, dst; };
-    QVector<Item> items;
-
-    for (const QString &dirName : copyDirectories)
-    {
-        QDir sourceDir = sourceRoot.filePath(dirName);
-        QDir targetDir = targetRoot.filePath(dirName);
-
-        QDir{}.mkpath(targetDir.path()); // ensure target dir exists
-
-        const QStringList filesInDir = sourceDir.entryList(QDir::Files);
-        for (const QString &filename : filesInDir)
-        {
-            const QString src = sourceDir.filePath(filename);
-            const QString dst = targetDir.filePath(filename);
-            items.push_back({ src, dst });
-        }
-    }
-
-    QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, items.size(), this);
-    progress.setCancelButton(nullptr);
-    progress.setMinimumDuration(0);
-
-    for (int i = 0; i < items.size(); ++i)
-    {
-        const auto &it = items[i];
-
-        progress.setLabelText(QFileInfo(it.src).fileName());
-        progress.setValue(i);
-        QCoreApplication::processEvents();
-
-        if (QFile::exists(it.dst))
-            QFile::remove(it.dst);
-
-        // Android: Java/ContentResolver; others: QFile::copy
-        Helper::performNativeCopy(it.src, it.dst);
-    }
-
-    progress.setValue(items.size());
-    heroesDataUpdate();
+	QStringList copyDirectories;
+	copyDirectories << dirData.front();
+	if (!dirMaps.isEmpty()) copyDirectories << dirMaps.front();
+	if (!dirMp3.isEmpty())  copyDirectories << dirMp3.front();
+	
+	QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
+	
+	// Gather files (top-level only) for progress
+	struct Item { QString src, dst; };
+	QVector<Item> items;
+	
+	for (const QString & dirName : copyDirectories)
+	{
+	    QDir sourceDir = sourceRoot.filePath(dirName);
+	    QDir targetDir = targetRoot.filePath(dirName);
+	
+	    QDir{}.mkpath(targetDir.path()); // ensure target dir exists
+	
+	    const QStringList files = sourceDir.entryList(QDir::Files);
+	    for (const QString & filename : files)
+	    {
+	        const QString src = sourceDir.filePath(filename);
+	        const QString dst = targetDir.filePath(filename);
+	        items.push_back({src, dst});
+	    }
+	}
+	
+	QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, items.size(), this);
+	progress.setCancelButton(nullptr);
+	progress.setMinimumDuration(0);
+	
+	for (int i = 0; i < items.size(); ++i)
+	{
+	    const auto & it = items[i];
+	
+	    // Update progress text/value
+	    progress.setLabelText(QFileInfo(it.src).fileName());
+	    progress.setValue(i);
+	    QCoreApplication::processEvents();
+	
+	    // Overwrite target if exists
+	    if (QFile::exists(it.dst))
+	        QFile::remove(it.dst);
+	
+	    // Always copy via helper
+	    Helper::performNativeCopy(it.src, it.dst);
+	}
+	
+	progress.setValue(items.size());
+	
+	heroesDataUpdate();
 }
 
 // Tab Mod Preset
