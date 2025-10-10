@@ -25,4 +25,5 @@ namespace Helper
 	MainWindow * getMainWindow();
 	void keepScreenOn(bool isEnabled);
 	void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb);
+	QStringList findFilesForCopy(const QString &treeUri);
 }
