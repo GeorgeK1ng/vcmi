@@ -236,8 +236,7 @@ void FirstLaunchView::heroesDataMissing()
 
 #ifdef VCMI_ANDROID
 	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
-	// const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
-	const bool canUseDataCopy = true;
+	const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
 #elif defined(VCMI_IOS)
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
 	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
@@ -493,7 +492,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString & path, bool move)
 {
-	QDir sourceRoot{path};
+	QDir sourceRoot{Helper::getRealPath(path)};
 
 #ifdef VCMI_IOS
 	// TODO: Qt 6.5 can select directories https://codereview.qt-project.org/c/qt/qtbase/+/446449
