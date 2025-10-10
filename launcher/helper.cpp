@@ -214,6 +214,7 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 #endif
 }
 
+
 // --- file-local helpers (C++ FS traversal) ---
 static inline QString classifyTargetByExt(const QString &baseName)
 {
@@ -226,10 +227,16 @@ static inline QString classifyTargetByExt(const QString &baseName)
     return {};
 }
 
-QStringList findFilesForCopy(const QString &path)
+static void addIfExists(QVector<QDir> &scan, const QDir &base, const char *child)
+{
+    QDir d(base.filePath(QLatin1String(child)));
+    if (d.exists()) scan << d;
+}
+
+QStringList Helper::findFilesForCopy(const QString &path)
 {
 #ifdef VCMI_ANDROID
-
+    // Android SAF: delegate to Java helper; FS path stays in C++.
     if (path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
     {
         const QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(path));
@@ -251,33 +258,54 @@ QStringList findFilesForCopy(const QString &path)
         for (jsize i = 0; i < n; ++i)
         {
             QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
-            out.push_back(s.toString()); // "uri\tTarget\tName"
+            out.push_back(s.toString()); // "src\tTarget\tName"
         }
         return out;
     }
 #endif
-    // Non-Android, or Android with real FS path
 
-	QStringList out;
+    // Non-Android, or Android with real FS path
+    QStringList out;
     QDir root(path);
     if (!root.exists())
         return out;
 
-    // Depth-first traversal; classify by extension
-    QDirIterator it(path, QDir::Files | QDir::Readable | QDir::NoSymLinks, QDirIterator::Subdirectories);
+    // Build list of directories to scan
+    QVector<QDir> scan;
+    scan << root;
 
-    while (it.hasNext())
+    // If user picked "Data", also scan ../Maps and ../Mp3 (if present)
+    if (root.dirName().compare(QLatin1String("Data"), Qt::CaseInsensitive) == 0)
     {
-        const QString fp = it.next();
-        const QFileInfo fi(fp);
-        const QString  tgt = classifyTargetByExt(fi.fileName());
-        if (tgt.isEmpty())
-            continue;
-		
-        out.push_back(fp + QLatin1Char('\t') + tgt + QLatin1Char('\t') + fi.fileName());
+        QDir parent = root;
+        if (parent.cdUp())
+        {
+            addIfExists(scan, parent, "Maps");
+            addIfExists(scan, parent, "Mp3");
+        }
     }
-    return out;
 
+    // Depth-first traversal on each directory; classify by extension
+    for (const QDir &d : scan)
+    {
+        QDirIterator it(d.absolutePath(),
+                        QDir::Files | QDir::Readable | QDir::NoSymLinks,
+                        QDirIterator::Subdirectories);
+
+        while (it.hasNext())
+        {
+            const QString fp = it.next();
+            const QFileInfo fi(fp);
+            const QString  tgt = classifyTargetByExt(fi.fileName());
+            if (tgt.isEmpty())
+                continue;
+
+            // "src<TAB>Target<TAB>Name"
+            out.push_back(fp + QLatin1Char('\t') + tgt + QLatin1Char('\t') + fi.fileName());
+        }
+    }
+
+    return out;
 }
 
 
