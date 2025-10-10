@@ -22,6 +22,7 @@
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
 #include <QtAndroid>
+#include <QAndroidActivityResultReceiver>
 #endif
 
 #ifdef VCMI_IOS
@@ -152,38 +153,33 @@ void keepScreenOn(bool isEnabled)
 #ifdef VCMI_ANDROID
 static constexpr int kFolderPickerReqCode = 4242;
 
-// Receives result from Android's ACTION_OPEN_DOCUMENT_TREE
-class FolderPickReceiver : public QtAndroidActivityResultReceiver
+class FolderPickReceiver : public QAndroidActivityResultReceiver
 {
 public:
     std::function<void(QString)> onDone;
 
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
-        if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid())
-        {
+        if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid()) {
             if (onDone) onDone({});
             return;
         }
-
-        // Extract Uri as string
         QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
         QAndroidJniObject s   = uri.callObjectMethod("toString","()Ljava/lang/String;");
         const QString picked  = s.toString();
 
-        // Persist permissions so subsequent reads via helper work reliably
         QAndroidJniObject ctx = QtAndroid::androidContext();
         QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
         cr.callMethod<void>("takePersistableUriPermission",
                             "(Landroid/net/Uri;I)V",
                             uri.object<jobject>(),
-                            jint(1 /*READ*/ | 2 /*WRITE*/));
+                            jint(1 | 2)); // READ | WRITE
 
         if (onDone) onDone(picked);
     }
 };
 static FolderPickReceiver g_receiver;
-#endif // VCMI_ANDROID
+#endif
 
 // Cross-platform folder picker:
 // - Android: SAF (asynchronous), returns content:// tree URI
