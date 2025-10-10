@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -69,6 +71,15 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
         startActivityForResult(intent, PICK_EXTERNAL_VCMI_DATA_TO_COPY);
     }
 
+	public void keepScreenOn(boolean isEnabled)
+    {
+        if(isEnabled)
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+	
     public void onLaunchGameBtnPressed()
     {
         startActivity(new Intent(ActivityLauncher.this, VcmiSDLActivity.class));
