@@ -553,8 +553,8 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 	    const QStringList files = sourceDir.entryList(QDir::Files);
 	    for (const QString & filename : files)
 	    {
-	        const QString src = Helper::getRealPath(sourceDir.filePath(filename));
-	        const QString dst = Helper::getRealPath(targetDir.filePath(filename));
+	        const QString src = sourceDir.filePath(filename);
+	        const QString dst = targetDir.filePath(filename);
 	        items.push_back({src, dst});
 	    }
 	}
