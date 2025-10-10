@@ -63,7 +63,7 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
     public void copyHeroesData()
     {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        //intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 
         intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
             Uri.fromFile(new File(Environment.getExternalStorageDirectory(), "vcmi-data"))
@@ -71,7 +71,7 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
         startActivityForResult(intent, PICK_EXTERNAL_VCMI_DATA_TO_COPY);
     }
 
-	public void keepScreenOn(boolean isEnabled)
+    public void keepScreenOn(boolean isEnabled)
     {
         if(isEnabled)
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -79,7 +79,6 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
-	
     public void onLaunchGameBtnPressed()
     {
         startActivity(new Intent(ActivityLauncher.this, VcmiSDLActivity.class));
