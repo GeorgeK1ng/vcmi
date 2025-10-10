@@ -221,33 +221,75 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 }
 
 
-QStringList findFilesForCopy(const QString &treeUri)
+
+
+// --- file-local helpers (C++ FS traversal) ---
+static inline QString classifyTargetByExt(const QString &name)
 {
-#ifdef VCMI_ANDROID
-    QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(treeUri));
-    QAndroidJniObject jArr = QAndroidJniObject::callStaticObjectMethod(
-        "eu/vcmi/vcmi/util/FileUtil",
-        "findFilesForCopy",
-        "(Ljava/lang/String;Landroid/content/Context;)[Ljava/lang/String;",
-        jUri.object<jstring>(),
-        QtAndroid::androidContext().object());
+    const QString n = name.toLower();
+    if (n.endsWith(".lod") || n.endsWith(".snd") || n.endsWith(".vid") || n.endsWith(".pak")) return "Data";
+    if (n.endsWith(".h3m")) return "Maps";
+    if (n.endsWith(".mp3")) return "Mp3";
+    return {};
+}
 
+static QStringList buildFsListForCopy(const QString &rootPath)
+{
     QStringList out;
-    if (!jArr.isValid()) return out;
+    QDir root(rootPath);
+    if (!root.exists()) return out;
 
-    QAndroidJniEnvironment env;
-    jobjectArray arr = static_cast<jobjectArray>(jArr.object<jobject>());
-    jsize n = env->GetArrayLength(arr);
-    out.reserve(n);
-    for (jsize i = 0; i < n; ++i) {
-        QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
-        out.push_back(s.toString());
+    // Depth-first over filesystem; follow only real files
+    QDirIterator it(rootPath,
+                    QStringList{}, // no name filters, classify by extension
+                    QDir::Files | QDir::Readable | QDir::NoSymLinks,
+                    QDirIterator::Subdirectories);
+
+    while (it.hasNext())
+    {
+        const QString fp = it.next();              // absolute FS path
+        const QFileInfo fi(fp);
+        const QString tgt = classifyTargetByExt(fi.fileName());
+        if (tgt.isEmpty()) continue;
+
+        // "src<TAB>Target<TAB>Name"
+        out.push_back(fp + "\t" + tgt + "\t" + fi.fileName());
     }
     return out;
-#else
-    Q_UNUSED(treeUri);
-    return {};
+}
+
+
+
+QStringList Helper::findFilesForCopy(const QString &path)
+{
+#ifdef VCMI_ANDROID
+    // If it's a SAF tree, delegate to Java. Otherwise, do FS traversal just like other OS.
+    if (path.startsWith("content://", Qt::CaseInsensitive))
+    {
+        QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(path));
+        QAndroidJniObject jArr = QAndroidJniObject::callStaticObjectMethod(
+            "eu/vcmi/vcmi/util/FileUtil",
+            "findFilesForCopy",
+            "(Ljava/lang/String;Landroid/content/Context;)[Ljava/lang/String;",
+            jUri.object<jstring>(),
+            QtAndroid::androidContext().object());
+
+        QStringList out;
+        if (!jArr.isValid()) return out;
+
+        QAndroidJniEnvironment env;
+        jobjectArray arr = static_cast<jobjectArray>(jArr.object<jobject>());
+        const jsize n = env->GetArrayLength(arr);
+        out.reserve(n);
+        for (jsize i = 0; i < n; ++i) {
+            QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
+            out.push_back(s.toString()); // "uri\tTarget\tName"
+        }
+        return out;
+    }
 #endif
+    // Non-Android, or Android with real FS path:
+    return buildFsListForCopy(path);
 }
 
 
