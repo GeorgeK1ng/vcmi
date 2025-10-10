@@ -260,7 +260,7 @@ static QStringList buildFsListForCopy(const QString &rootPath)
 
 
 
-QStringList Helper::findFilesForCopy(const QString &path)
+QStringList findFilesForCopy(const QString &path)
 {
 #ifdef VCMI_ANDROID
     // If it's a SAF tree, delegate to Java. Otherwise, do FS traversal just like other OS.
