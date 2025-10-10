@@ -233,7 +233,7 @@ static void addIfExists(QVector<QDir> &scan, const QDir &base, const char *child
     if (d.exists()) scan << d;
 }
 
-QStringList Helper::findFilesForCopy(const QString &path)
+QStringList findFilesForCopy(const QString &path)
 {
 #ifdef VCMI_ANDROID
     // Android SAF: delegate to Java helper; FS path stays in C++.
