@@ -279,4 +279,36 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 
 }
 
+
+
+QStringList Helper::findFilesForCopy(const QString &treeUri)
+{
+#ifdef VCMI_ANDROID
+    QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(treeUri));
+    QAndroidJniObject jArr = QAndroidJniObject::callStaticObjectMethod(
+        "eu/vcmi/vcmi/util/FileUtil",
+        "findFilesForCopy",
+        "(Ljava/lang/String;Landroid/content/Context;)[Ljava/lang/String;",
+        jUri.object<jstring>(),
+        QtAndroid::androidContext().object());
+
+    QStringList out;
+    if (!jArr.isValid()) return out;
+
+    QAndroidJniEnvironment env;
+    jobjectArray arr = static_cast<jobjectArray>(jArr.object<jobject>());
+    jsize n = env->GetArrayLength(arr);
+    out.reserve(n);
+    for (jsize i = 0; i < n; ++i) {
+        QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
+        out.push_back(s.toString());
+    }
+    return out;
+#else
+    Q_UNUSED(treeUri);
+    return {};
+#endif
+}
+
+
 }
