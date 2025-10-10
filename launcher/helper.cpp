@@ -153,6 +153,61 @@ void keepScreenOn(bool isEnabled)
 #ifdef VCMI_ANDROID
 static constexpr int kFolderPickerReqCode = 4242;
 
+// Try to resolve a SAF tree URI to a filesystem path (ExternalStorageProvider only)
+static QString tryResolveTreeUriToFsPath(const QString &treeUriStr)
+{
+    // Uri + authority
+    QAndroidJniObject uri = QAndroidJniObject::callStaticObjectMethod(
+        "android/net/Uri","parse","(Ljava/lang/String;)Landroid/net/Uri;",
+        QAndroidJniObject::fromString(treeUriStr).object<jstring>());
+
+    if (!uri.isValid())
+        return {};
+
+    const QString authority = uri.callObjectMethod("getAuthority","()Ljava/lang/String;").toString();
+
+    // Only handle com.android.externalstorage.documents (primary storage / SD card)
+    if (authority != QLatin1String("com.android.externalstorage.documents"))
+        return {};
+
+    // Get tree documentId, e.g. "primary:Download" or "1234-5678:Games/H3"
+    QAndroidJniObject docIdJ = QAndroidJniObject::callStaticObjectMethod(
+        "android/provider/DocumentsContract",
+        "getTreeDocumentId",
+        "(Landroid/net/Uri;)Ljava/lang/String;",
+        uri.object());
+    const QString docId = docIdJ.toString();
+    if (docId.isEmpty())
+        return {};
+
+    const int colon = docId.indexOf(':');
+    const QString type = colon < 0 ? docId : docId.left(colon);            // "primary" or "XXXX-XXXX"
+    const QString rel  = colon < 0 ? QString() : docId.mid(colon + 1);     // "Download" / "Games/H3" / ""
+
+    QString base;
+    if (type.compare(QStringLiteral("primary"), Qt::CaseInsensitive) == 0)
+    {
+        // /storage/emulated/0  (fallback if Environment fails)
+        QAndroidJniObject file = QAndroidJniObject::callStaticObjectMethod(
+            "android/os/Environment","getExternalStorageDirectory","()Ljava/io/File;");
+        if (file.isValid())
+        {
+            base = file.callObjectMethod("getAbsolutePath","()Ljava/lang/String;").toString();
+        }
+        if (base.isEmpty())
+            base = QStringLiteral("/storage/emulated/0");
+    }
+    else
+    {
+        // Secondary volume (SD card): /storage/<volumeId>
+        base = QStringLiteral("/storage/") + type;
+    }
+
+    const QString full = rel.isEmpty() ? base : (base + QLatin1Char('/') + rel);
+    return QDir::cleanPath(full);
+}
+
+// One-shot receiver for ACTION_OPEN_DOCUMENT_TREE
 class FolderPickReceiver : public QAndroidActivityResultReceiver
 {
 public:
@@ -160,28 +215,34 @@ public:
 
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
-        if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid()) {
-            // hop back to Qt thread even on cancel (empty string)
-            auto cb = onDone; onDone = nullptr;
+        // Always bounce back to Qt main thread
+        auto cb = onDone; onDone = nullptr;
+
+        if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid())
+        {
             QMetaObject::invokeMethod(qApp, [cb]{ if (cb) cb(QString{}); }, Qt::QueuedConnection);
             return;
         }
 
+        // Selected tree URI as string
         QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
-        QAndroidJniObject s   = uri.callObjectMethod("toString","()Ljava/lang/String;");
-        const QString picked  = s.toString();
+        QAndroidJniObject us  = uri.callObjectMethod("toString","()Ljava/lang/String;");
+        const QString pickedTree = us.toString();
 
-        // Persist perms (OK volat zde)
+        // Persist permission for future access via ContentResolver
         QAndroidJniObject ctx = QtAndroid::androidContext();
         QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
         cr.callMethod<void>("takePersistableUriPermission",
                             "(Landroid/net/Uri;I)V",
                             uri.object<jobject>(),
-                            jint(1 | 2)); // READ | WRITE
+                            jint(1 /*READ*/ | 2 /*WRITE*/));
 
-        // !!! Call the user's callback on Qt main thread
-        auto cb = onDone; onDone = nullptr;
-        QMetaObject::invokeMethod(qApp, [cb, picked]{ if (cb) cb(picked); }, Qt::QueuedConnection);
+        // Try to resolve to FS path (works for ExternalStorageProvider)
+        const QString resolved = tryResolveTreeUriToFsPath(pickedTree);
+        const QString toReturn = resolved.isEmpty() ? pickedTree : resolved;
+
+        // Return on Qt thread
+        QMetaObject::invokeMethod(qApp, [cb, toReturn]{ if (cb) cb(toReturn); }, Qt::QueuedConnection);
     }
 };
 
@@ -198,23 +259,18 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
     intent.callObjectMethod("setAction",
                             "(Ljava/lang/String;)Landroid/content/Intent;",
                             QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
-
     // Flags: READ | WRITE | PERSIST | PREFIX
-    intent.callObjectMethod("addFlags",
-                            "(I)Landroid/content/Intent;",
-                            jint(1 | 2 | 64 | 128));
+    intent.callObjectMethod("addFlags","(I)Landroid/content/Intent;", jint(1 | 2 | 64 | 128));
 
-    // Qt 5: single call that registers the receiver and starts the activity
+    // Qt 5 API: register + start in one call
     QtAndroid::startActivity(intent, kFolderPickerReqCode, &g_receiver);
 
 #elif defined(VCMI_IOS)
-    // iOS: use your existing utility
     SelectDirectory iosDirectorySelector;
     const QString dir = iosDirectorySelector.getExistingDirectory();
     if (cb) cb(dir);
 
 #else
-    // Desktop: standard dialog (callback for a unified API)
     const QString dir = QFileDialog::getExistingDirectory(
         parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (cb) cb(dir);
