@@ -152,4 +152,41 @@ public class FileUtil
 
         return fileName;
     }
+
+	public static String[] findFilesForCopy(String treeUriStr, android.content.Context ctx) {
+	    android.net.Uri treeUri = android.net.Uri.parse(treeUriStr);
+	    androidx.documentfile.provider.DocumentFile root =
+	            androidx.documentfile.provider.DocumentFile.fromTreeUri(ctx, treeUri);
+	    if (root == null) return new String[0];
+	
+	    java.util.ArrayList<String> out = new java.util.ArrayList<>();
+	    java.util.ArrayDeque<androidx.documentfile.provider.DocumentFile> stack = new java.util.ArrayDeque<>();
+	    stack.push(root);
+	
+	    while (!stack.isEmpty()) {
+	        androidx.documentfile.provider.DocumentFile d = stack.pop();
+	        for (androidx.documentfile.provider.DocumentFile f : d.listFiles()) {
+	            if (f.isDirectory()) { stack.push(f); continue; }
+	            String name = f.getName();
+	            if (name == null) continue;
+	            String lower = name.toLowerCase(java.util.Locale.ROOT);
+	
+	            String target = null;
+	            if (lower.endsWith(".lod") || lower.endsWith(".snd") || lower.endsWith(".vid") || lower.endsWith(".pak"))
+	                target = "Data";
+	            else if (lower.endsWith(".h3m"))
+	                target = "Maps";
+	            else if (lower.endsWith(".mp3"))
+	                target = "Mp3";
+	
+	            if (target != null) {
+	                String line = f.getUri().toString() + "\t" + target + "\t" + name;
+	                out.add(line);
+	            }
+	        }
+	    }
+	    return out.toArray(new String[0]);
+	}
+
+	
 }
