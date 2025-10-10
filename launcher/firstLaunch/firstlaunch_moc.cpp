@@ -224,8 +224,6 @@ void FirstLaunchView::heroesDataMissing()
 	const bool canUseDataCopy = true;
 #endif
 
-	
-
 	ui->labelDataCopyTitle->setVisible(canUseDataCopy);
 	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
 	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
@@ -519,28 +517,33 @@ void FirstLaunchView::copyHeroesData(const QString &path)
     }
 
     // Prepare target dirs
-    QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-    QHash<QString, QDir> targets;
-    for (auto tgt : { QStringLiteral("Data"), QStringLiteral("Maps"), QStringLiteral("Mp3") }) {
-        QDir d = targetRoot.filePath(tgt);
-        QDir().mkpath(d.path());
-        targets.insert(tgt, d);
-    }
-
-    struct CopyItem { QString src, dst; };
-    QVector<CopyItem> plan; plan.reserve(items.size());
-
-    for (const QString &line : items) {
-        const auto p = line.split('\t');
-        if (p.size() < 3) continue;
-
-        const QString &src = p[0];
-        const QString &tgt = p[1]; // "Data" / "Maps" / "Mp3"
-        const QString &name= p[2];
-
-        if (!targets.contains(tgt)) continue; // safety
-        plan.push_back({ src, targets[tgt].filePath(name) });
-    }
+	QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
+	QSet<QString> ensured; // které cíle už mají vytvořený adresář
+	
+	struct CopyItem { QString src, dst; };
+	QVector<CopyItem> plan; plan.reserve(items.size());
+	
+	for (const QString &line : items) {
+	    const auto p = line.split('\t');
+	    if (p.size() < 3) continue;
+	
+	    const QString &src  = p[0];
+	    const QString &tgt  = p[1]; // "Data" / "Maps" / "Mp3"
+	    const QString &name = p[2];
+	
+	    if (tgt.compare("Data", Qt::CaseInsensitive) != 0 &&
+	        tgt.compare("Maps", Qt::CaseInsensitive) != 0 &&
+	        tgt.compare("Mp3",  Qt::CaseInsensitive) != 0)
+	        continue;
+	
+	    if (!ensured.contains(tgt)) {
+	        QDir{}.mkpath(targetRoot.filePath(tgt));
+	        ensured.insert(tgt);
+	    }
+	
+	    const QDir dstDir = targetRoot.filePath(tgt);
+	    plan.push_back({ src, dstDir.filePath(name) });
+	}
 
     if (plan.isEmpty()) {
         QMessageBox::critical(this, tr("Heroes III data not found!"),  tr("No matching files found in the selected folder."));
