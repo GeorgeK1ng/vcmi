@@ -112,7 +112,8 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
     MessageBoxCustom::showDialog(this, [this]{
         Helper::nativeFolderPicker(this, [this](const QString &picked){
             if (!picked.isEmpty())
-				copyHeroesData(Helper::getRealPath(picked));
+				//copyHeroesData(Helper::getRealPath(picked));
+				copyHeroesData(picked);
         });
     });
 }
