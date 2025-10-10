@@ -502,7 +502,6 @@ static QString validateH3Signature(const QStringList &items)
     return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
 }
 
-
 void FirstLaunchView::copyHeroesData(const QString &path)
 {
     const QStringList items = Helper::findFilesForCopy(path);
@@ -564,17 +563,17 @@ void FirstLaunchView::copyHeroesData(const QString &path)
 	
 	auto *title = new QLabel(tr("Copying Heroes III data..."), overlay);
 	title->setAlignment(Qt::AlignCenter);
-	title->setStyleSheet("color: white; font-size: 16px; font-weight: 600;");
+	title->setStyleSheet("font-size: 16px; font-weight: 600;");
 	
 	auto *name  = new QLabel("", overlay);
 	name->setAlignment(Qt::AlignCenter);
-	name->setStyleSheet("color: white;");
 	name->setWordWrap(true);
 	
 	auto *bar = new QProgressBar(overlay);
 	bar->setRange(0, plan.size());
-	bar->setTextVisible(false);
+	bar->setTextVisible(true);
 	bar->setMinimumHeight(18);
+	bar->setFormat("%p%");
 	
 	v->addStretch();
 	v->addWidget(title);
@@ -583,15 +582,45 @@ void FirstLaunchView::copyHeroesData(const QString &path)
 	v->addStretch();
 	
 	qApp->processEvents();
+
+	QVector<qint64> sizes; sizes.reserve(plan.size());
+	qint64 totalBytes = 0;
+	bool bytesMode = true;
 	
-	for (int i = 0; i < plan.size(); ++i)
-	{
-	    name->setText(QFileInfo(plan[i].dst).fileName());
-	    bar->setValue(i + 1);
-	    qApp->processEvents();
+	for (const auto &ci : plan) {
+	    const qint64 sz = QFileInfo(ci.src).size(); 
+	    sizes.push_back(sz);
+	    if (sz < 0)
+			bytesMode = false;
+	    else totalBytes += sz;
+	}
 	
-	    if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
-	    Helper::performNativeCopy(plan[i].src, plan[i].dst);
+	if (bytesMode && totalBytes > 0) {
+	    bar->setRange(0, 1000); 
+	    qint64 copied = 0;
+	
+	    for (int i = 0; i < plan.size(); ++i) {
+	        name->setText(QString("%1/%2  •  %3").arg(i+1).arg(plan.size()).arg(QFileInfo(plan[i].dst).fileName()));
+	        qApp->processEvents();
+	
+	        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+	        Helper::performNativeCopy(plan[i].src, plan[i].dst);
+	
+	        copied += qMax<qint64>(0, sizes[i]); 
+	        const int val = int((copied * 1000) / qMax<qint64>(1, totalBytes));
+	        bar->setValue(val);
+	    }
+	} else {
+	    bar->setRange(0, plan.size());
+	    for (int i = 0; i < plan.size(); ++i) {
+	        name->setText(QString("%1/%2  •  %3").arg(i+1).arg(plan.size()).arg(QFileInfo(plan[i].dst).fileName()));
+	        qApp->processEvents();
+	
+	        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+	        Helper::performNativeCopy(plan[i].src, plan[i].dst);
+	
+	        bar->setValue(i + 1);
+	    }
 	}
 	
 	overlay->deleteLater();
