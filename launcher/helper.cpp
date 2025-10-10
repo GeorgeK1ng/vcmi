@@ -150,41 +150,40 @@ void keepScreenOn(bool isEnabled)
 }
 
 
-// ===== Helper::nativeFolderPicker (drop-in) =====
+// ===== Helper::nativeFolderPicker =====
 #ifdef VCMI_ANDROID
-static constexpr int kFolderPickerReqCode = 4242;
+static constexpr int  kFolderPickerReqCode = 4242;
 
-// One-shot receiver for ACTION_OPEN_DOCUMENT_TREE
-class FolderPickReceiver : public QAndroidActivityResultReceiver
+// Intent flags: READ | WRITE | PERSISTABLE | PREFIX
+static constexpr jint kIntentFlags        = 1 | 2 | 64 | 128;
+
+class FolderPickReceiver final : public QAndroidActivityResultReceiver
 {
 public:
     std::function<void(QString)> onDone;
 
+    // One-shot result handler for ACTION_OPEN_DOCUMENT_TREE
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
-        // Always bounce back to Qt main thread
-        auto cb = onDone; onDone = nullptr;
+        auto cb = std::move(onDone); // guarantee single-use
 
         if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid())
         {
-            QMetaObject::invokeMethod(qApp, [cb]{ if (cb) cb(QString{}); }, Qt::QueuedConnection);
+            QMetaObject::invokeMethod(qApp, [cb]{ if (cb) cb({}); }, Qt::QueuedConnection);
             return;
         }
 
-        // Selected tree URI as string (always return content://)
-        QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
-        QAndroidJniObject us  = uri.callObjectMethod("toString","()Ljava/lang/String;");
-        const QString pickedTree = us.toString();
+        // Always return content:// tree URI
+        const QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
+        const QAndroidJniObject us  = uri.callObjectMethod("toString","()Ljava/lang/String;");
+        const QString pickedTree    = us.toString();
 
-        // Persist permission for future access via ContentResolver
-        QAndroidJniObject ctx = QtAndroid::androidContext();
-        QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
-        cr.callMethod<void>("takePersistableUriPermission",
-                            "(Landroid/net/Uri;I)V",
-                            uri.object<jobject>(),
-                            jint(1 /*READ*/ | 2 /*WRITE*/));
+        // Persist read+write permission
+        const QAndroidJniObject ctx = QtAndroid::androidContext();
+        const QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
+        cr.callMethod<void>("takePersistableUriPermission", "(Landroid/net/Uri;I)V", uri.object<jobject>(), jint(1 | 2));
 
-        // Return URI on Qt thread
+        // Bounce back to Qt thread
         QMetaObject::invokeMethod(qApp, [cb, pickedTree]{ if (cb) cb(pickedTree); }, Qt::QueuedConnection);
     }
 };
@@ -199,12 +198,8 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
     g_receiver.onDone = std::move(cb);
 
     QAndroidJniObject intent("android/content/Intent","()V");
-    intent.callObjectMethod("setAction",
-                            "(Ljava/lang/String;)Landroid/content/Intent;",
-                            QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
-
-    // Flags: READ | WRITE | PERSISTABLE | PREFIX
-    intent.callObjectMethod("addFlags","(I)Landroid/content/Intent;", jint(1 | 2 | 64 | 128));
+    intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;", AndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
+    intent.callObjectMethod("addFlags","(I)Landroid/content/Intent;", kIntentFlags);
 
     QtAndroid::startActivity(intent, kFolderPickerReqCode, &g_receiver);
 
@@ -214,60 +209,31 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
     if (cb) cb(dir);
 
 #else
-    const QString dir = QFileDialog::getExistingDirectory(
-        parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    const QString dir = QFileDialog::getExistingDirectory(parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (cb) cb(dir);
 #endif
 }
 
-
-
-
 // --- file-local helpers (C++ FS traversal) ---
-static inline QString classifyTargetByExt(const QString &name)
+static inline QString classifyTargetByExt(const QString &baseName)
 {
-    const QString n = name.toLower();
-    if (n.endsWith(".lod") || n.endsWith(".snd") || n.endsWith(".vid") || n.endsWith(".pak")) return "Data";
-    if (n.endsWith(".h3m")) return "Maps";
-    if (n.endsWith(".mp3")) return "Mp3";
+    // Case-insensitive suffix checks without making a lowercase copy
+    auto ends = [&](const char *s){ return baseName.endsWith(QLatin1String(s), Qt::CaseInsensitive); };
+
+    if (ends(".lod") || ends(".snd") || ends(".vid") || ends(".pak")) return QStringLiteral("Data");
+    if (ends(".h3m")) return QStringLiteral("Maps");
+    if (ends(".mp3")) return QStringLiteral("Mp3");
     return {};
 }
-
-static QStringList buildFsListForCopy(const QString &rootPath)
-{
-    QStringList out;
-    QDir root(rootPath);
-    if (!root.exists()) return out;
-
-    // Depth-first over filesystem; follow only real files
-    QDirIterator it(rootPath,
-                    QStringList{}, // no name filters, classify by extension
-                    QDir::Files | QDir::Readable | QDir::NoSymLinks,
-                    QDirIterator::Subdirectories);
-
-    while (it.hasNext())
-    {
-        const QString fp = it.next();              // absolute FS path
-        const QFileInfo fi(fp);
-        const QString tgt = classifyTargetByExt(fi.fileName());
-        if (tgt.isEmpty()) continue;
-
-        // "src<TAB>Target<TAB>Name"
-        out.push_back(fp + "\t" + tgt + "\t" + fi.fileName());
-    }
-    return out;
-}
-
-
 
 QStringList findFilesForCopy(const QString &path)
 {
 #ifdef VCMI_ANDROID
-    // If it's a SAF tree, delegate to Java. Otherwise, do FS traversal just like other OS.
-    if (path.startsWith("content://", Qt::CaseInsensitive))
+
+    if (path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
     {
-        QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(path));
-        QAndroidJniObject jArr = QAndroidJniObject::callStaticObjectMethod(
+        const QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(path));
+        const QAndroidJniObject jArr = QAndroidJniObject::callStaticObjectMethod(
             "eu/vcmi/vcmi/util/FileUtil",
             "findFilesForCopy",
             "(Ljava/lang/String;Landroid/content/Context;)[Ljava/lang/String;",
@@ -275,21 +241,43 @@ QStringList findFilesForCopy(const QString &path)
             QtAndroid::androidContext().object());
 
         QStringList out;
-        if (!jArr.isValid()) return out;
+        if (!jArr.isValid())
+            return out;
 
         QAndroidJniEnvironment env;
-        jobjectArray arr = static_cast<jobjectArray>(jArr.object<jobject>());
+        const jobjectArray arr = static_cast<jobjectArray>(jArr.object<jobject>());
         const jsize n = env->GetArrayLength(arr);
         out.reserve(n);
-        for (jsize i = 0; i < n; ++i) {
+        for (jsize i = 0; i < n; ++i)
+        {
             QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
             out.push_back(s.toString()); // "uri\tTarget\tName"
         }
         return out;
     }
 #endif
-    // Non-Android, or Android with real FS path:
-    return buildFsListForCopy(path);
+    // Non-Android, or Android with real FS path
+
+	QStringList out;
+    QDir root(path);
+    if (!root.exists())
+        return out;
+
+    // Depth-first traversal; classify by extension
+    QDirIterator it(rootPath, QDir::Files | QDir::Readable | QDir::NoSymLinks, QDirIterator::Subdirectories);
+
+    while (it.hasNext())
+    {
+        const QString fp = it.next();
+        const QFileInfo fi(fp);
+        const QString  tgt = classifyTargetByExt(fi.fileName());
+        if (tgt.isEmpty())
+            continue;
+		
+        out.push_back(fp + QLatin1Char('\t') + tgt + QLatin1Char('\t') + fi.fileName());
+    }
+    return out;
+
 }
 
 
