@@ -474,7 +474,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 // Validate H3 data signature using the flat list ("src \t Target \t Name").
 // Returns empty string if OK (SOD present). Otherwise returns user-facing error text.
-static QString validateH3Signature(const QStringList &items, QWidget *parent)
+static QString validateH3Signature(const QStringList &items)
 {
     bool anyLOD = false;   // any *.lod in Data
     bool anySOD = false;   // any H3ab*.lod in Data
@@ -499,12 +499,10 @@ static QString validateH3Signature(const QStringList &items, QWidget *parent)
         }
     }
 
-    const auto noDataMessage = QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-
     if (!anySOD)
     {
         if (!anyLOD)
-            return noDataMessage; // no LOD at all
+            return QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
 
         if (anyHD)
             return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
@@ -512,7 +510,7 @@ static QString validateH3Signature(const QStringList &items, QWidget *parent)
         return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
     }
 
-    return {}; // OK
+    return {};
 }
 
 
@@ -523,19 +521,18 @@ void FirstLaunchView::copyHeroesData(const QString &path)
 
     if (items.isEmpty())
     {
-        QMessageBox::critical(this, tr("Heroes III data not found!"),
-                              tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+        QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
         return;
     }
 
     // 1b) Validate signature (SOD/ROE/HD) purely from the list; abort if invalid
-    if (const QString err = validateH3Signature(items, this); !err.isEmpty())
-    {
-        QMessageBox::critical(this, tr("Heroes III data not found!"), err);
-        return;
-    }
+	const QString err = validateH3Signature(items);
+	if (!err.isEmpty()) {
+	    QMessageBox::critical(this, tr("Heroes III data not found!"), err);
+	    return;
+	}
 
-    // 2) Build copy plan (src,dst) → Data/Maps/Mp3 in userData
+    // 2) Build copy plan (src,dst) -> Data/Maps/Mp3 in userData
     QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
     QDir().mkpath(targetRoot.filePath("Data"));
     QDir().mkpath(targetRoot.filePath("Maps"));
@@ -569,7 +566,8 @@ void FirstLaunchView::copyHeroesData(const QString &path)
     progress.setWindowTitle(tr("Copying game files"));
     progress.setCancelButton(nullptr);
     progress.setMinimumDuration(0);
-    progress.show(); qApp->processEvents();
+    progress.show();
+	qApp->processEvents();
     progress.resize(700, 200);
     progress.setStyleSheet("QProgressBar { min-height: 18px; }");
 
@@ -579,12 +577,14 @@ void FirstLaunchView::copyHeroesData(const QString &path)
         progress.setValue(i);
         QCoreApplication::processEvents();
 
-        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+        if (QFile::exists(plan[i].dst))
+			QFile::remove(plan[i].dst);
         Helper::performNativeCopy(plan[i].src, plan[i].dst);
     }
 
     progress.setValue(plan.size());
-    heroesDataUpdate();
+	if (heroesDataUpdate())
+    	activateTabModPreset();
 }
 
 // Tab Mod Preset
