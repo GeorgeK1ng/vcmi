@@ -153,6 +153,7 @@ void keepScreenOn(bool isEnabled)
 #ifdef VCMI_ANDROID
 static constexpr int kFolderPickerReqCode = 4242;
 
+// Receives result from Android's ACTION_OPEN_DOCUMENT_TREE
 class FolderPickReceiver : public QAndroidActivityResultReceiver
 {
 public:
@@ -160,58 +161,61 @@ public:
 
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
+        // Unregister immediately (one-shot)
+        QtAndroid::unregisterActivityResultReceiver(kFolderPickerReqCode);
+
         if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid()) {
             if (onDone) onDone({});
             return;
         }
+
         QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
         QAndroidJniObject s   = uri.callObjectMethod("toString","()Ljava/lang/String;");
         const QString picked  = s.toString();
 
+        // Persist permissions so subsequent reads via helper work reliably
         QAndroidJniObject ctx = QtAndroid::androidContext();
         QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
         cr.callMethod<void>("takePersistableUriPermission",
                             "(Landroid/net/Uri;I)V",
                             uri.object<jobject>(),
-                            jint(1 | 2)); // READ | WRITE
+                            jint(1 /*READ*/ | 2 /*WRITE*/));
 
         if (onDone) onDone(picked);
     }
 };
 static FolderPickReceiver g_receiver;
-#endif
+#endif // VCMI_ANDROID
 
-// Cross-platform folder picker:
-// - Android: SAF (asynchronous), returns content:// tree URI
-// - iOS:     existing SelectDirectory helper (synchronous)
-// - Desktop: QFileDialog (synchronous)
-// The API is unified via callback.
+// Cross-platform folder picker (callback-based)
 void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 {
 #if defined(VCMI_ANDROID)
-    // SAF – asynchronous folder picker
     g_receiver.onDone = std::move(cb);
 
     QAndroidJniObject intent("android/content/Intent","()V");
     intent.callObjectMethod("setAction",
                             "(Ljava/lang/String;)Landroid/content/Intent;",
                             QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
-
     // Flags: READ | WRITE | PERSIST | PREFIX
     intent.callObjectMethod("addFlags",
                             "(I)Landroid/content/Intent;",
                             jint(1 | 2 | 64 | 128));
 
-    QtAndroid::startActivityForResult(intent.object<jobject>(), kFolderPickerReqCode, &g_receiver);
+    // Register receiver and start activity via Activity.startActivityForResult(...)
+    QtAndroid::registerActivityResultReceiver(kFolderPickerReqCode, &g_receiver);
+    QAndroidJniObject activity = QtAndroid::androidActivity();
+    activity.callMethod<void>("startActivityForResult",
+                              "(Landroid/content/Intent;I)V",
+                              intent.object<jobject>(),
+                              kFolderPickerReqCode);
 
 #elif defined(VCMI_IOS)
-    // iOS – use your existing utility
     SelectDirectory iosDirectorySelector;
     const QString dir = iosDirectorySelector.getExistingDirectory();
     if (cb) cb(dir);
 
 #else
-    // Desktop – standard dialog (callback for a unified API)
     const QString dir = QFileDialog::getExistingDirectory(
         parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (cb) cb(dir);
