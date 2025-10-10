@@ -198,7 +198,7 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
     g_receiver.onDone = std::move(cb);
 
     QAndroidJniObject intent("android/content/Intent","()V");
-    intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;", AndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
+    intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;", QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
     intent.callObjectMethod("addFlags","(I)Landroid/content/Intent;", kIntentFlags);
 
     QtAndroid::startActivity(intent, kFolderPickerReqCode, &g_receiver);
@@ -264,7 +264,7 @@ QStringList findFilesForCopy(const QString &path)
         return out;
 
     // Depth-first traversal; classify by extension
-    QDirIterator it(rootPath, QDir::Files | QDir::Readable | QDir::NoSymLinks, QDirIterator::Subdirectories);
+    QDirIterator it(path, QDir::Files | QDir::Readable | QDir::NoSymLinks, QDirIterator::Subdirectories);
 
     while (it.hasNext())
     {
