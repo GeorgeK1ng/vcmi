@@ -121,58 +121,43 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
     MessageBoxCustom::showDialog(this, [this]{
-#ifdef VCMI_ANDROID
-        // Reuse your existing picker, but return URI (content://). 
         Helper::nativeFolderPicker(this, [this](const QString &picked){
             if (picked.isEmpty()) return;
 
-            // Build copy plan
+#ifdef VCMI_ANDROID
+            // Android: picked is content:// tree → list & copy
             const QStringList items = Helper::findFilesForCopy(picked);
             if (items.isEmpty()) {
                 QMessageBox::critical(this, tr("Copy failed"),
                                       tr("No matching files found in the selected folder."));
                 return;
             }
-
             QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-            struct Plan { QString srcUri, dstPath; };
-            QVector<Plan> plan; plan.reserve(items.size());
-
+            struct Plan { QString src, dst; }; QVector<Plan> plan; plan.reserve(items.size());
             for (const QString &line : items) {
-                const QStringList parts = line.split('\t');
+                const auto parts = line.split('\t');
                 if (parts.size() < 3) continue;
-                const QString &src = parts[0];
-                const QString &tgt = parts[1]; // "Data" / "Maps" / "Mp3"
-                const QString &name = parts[2];
-
-                QDir dstDir = targetRoot.filePath(tgt);
+                QDir dstDir = targetRoot.filePath(parts[1]); // Data / Maps / Mp3
                 QDir().mkpath(dstDir.path());
-                plan.push_back({ src, dstDir.filePath(name) });
+                plan.push_back({ parts[0], dstDir.filePath(parts[2]) });
             }
-
             QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, plan.size(), this);
             progress.setCancelButton(nullptr);
             progress.setMinimumDuration(0);
-
-            for (int i = 0; i < plan.size(); ++i) {
-                progress.setLabelText(QFileInfo(plan[i].dstPath).fileName());
+            for (int i=0;i<plan.size();++i) {
+                progress.setLabelText(QFileInfo(plan[i].dst).fileName());
                 progress.setValue(i);
                 QCoreApplication::processEvents();
-
-                if (QFile::exists(plan[i].dstPath))
-                    QFile::remove(plan[i].dstPath);
-
-                Helper::performNativeCopy(plan[i].srcUri, plan[i].dstPath);
+                if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+                Helper::performNativeCopy(plan[i].src, plan[i].dst);
             }
             progress.setValue(plan.size());
             heroesDataUpdate();
-        });
 #else
-        // Desktop/iOS: keep your existing FS path flow
-        Helper::nativeFolderPicker(this, [this](const QString &picked){
-            if (!picked.isEmpty()) copyHeroesData(picked);
-        });
+            // Other OS: keep your FS-based flow
+            copyHeroesData(picked);
 #endif
+        });
     });
 }
 
