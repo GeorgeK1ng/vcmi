@@ -467,7 +467,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	}
 
 	logGlobal->info("Copying provided game files...");
-	copyHeroesData(Helper::getRealPath(tempDir.path()));
+	copyHeroesData(tempDir.path());
 
 	tempDir.removeRecursively();
 #endif
