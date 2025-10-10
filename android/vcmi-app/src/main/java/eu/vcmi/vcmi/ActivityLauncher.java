@@ -6,15 +6,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
 import java.io.File;
 
 import eu.vcmi.vcmi.VcmiSDLActivity;
-import eu.vcmi.vcmi.util.FileUtil;
 
 import org.libsdl.app.SDL;
 
@@ -40,8 +37,30 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
     {
         if (requestCode == PICK_EXTERNAL_VCMI_DATA_TO_COPY && resultCode == Activity.RESULT_OK)
         {
-            if (resultData != null && FileUtil.copyData(resultData.getData(), this))
-                NativeMethods.heroesDataUpdate();
+            if (resultData != null)
+            {
+                final Uri treeUri = resultData.getData();
+                if (treeUri != null)
+                {
+                    // keep read/write permission to the selected folder (best-effort)
+                    final int flags = resultData.getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    try
+                    {
+                        getContentResolver().takePersistableUriPermission(
+                                treeUri,
+                                flags | Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        );
+                    }
+                    catch (SecurityException ignore)
+                    {
+                        // some document providers may not support persistable permissions; continue anyway
+                    }
+
+                    // hand off to C++: FirstLaunchView::copyHeroesData(QString)
+                    NativeMethods.copyHeroesData(treeUri.toString());
+                }
+            }
             return;
         }
 
@@ -51,18 +70,15 @@ public class ActivityLauncher extends org.qtproject.qt5.android.bindings.QtActiv
     public void copyHeroesData()
     {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
-            Uri.fromFile(new File(Environment.getExternalStorageDirectory(), "vcmi-data"))
-        );
-        startActivityForResult(intent, PICK_EXTERNAL_VCMI_DATA_TO_COPY);
-    }
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 
-    public void keepScreenOn(boolean isEnabled)
-    {
-        if(isEnabled)
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        else
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
+                Uri.fromFile(new File(Environment.getExternalStorageDirectory(), "vcmi-data"))
+        );
+
+        startActivityForResult(intent, PICK_EXTERNAL_VCMI_DATA_TO_COPY);
     }
 
     public void onLaunchGameBtnPressed()
