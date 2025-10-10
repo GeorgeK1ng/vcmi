@@ -549,7 +549,7 @@ void FirstLaunchView::copyHeroesData(const QString &path)
 
 	QWidget *overlay = new QWidget(this);
 	overlay->setObjectName("copyOverlay");
-	overlay->setStyleSheet("QWidget#copyOverlay { background: rgba(0,0,0,160); }");
+	//overlay->setStyleSheet("QWidget#copyOverlay { background: rgba(0,0,0,160); }");
 	overlay->setGeometry(this->rect().adjusted(0, 50, 0, 0));
 	overlay->show();
 	
