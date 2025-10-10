@@ -125,14 +125,14 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
- #ifdef VCMI_ANDROID
-	thiz = this;
-	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
- #else
+// #ifdef VCMI_ANDROID
+//	thiz = this;
+//	QtAndroid::androidActivity().callMethod<void>("copyHeroesData");
+// #else
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{ copyHeroesData(); });
- #endif
+// #endif
 }
 
 void FirstLaunchView::on_pushButtonGogInstall_clicked()
@@ -492,7 +492,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString & path, bool move)
 {
-	QDir sourceRoot{Helper::getRealPath(path)};
+	QDir sourceRoot{ Helper::getRealPath(path) };
 
 #ifdef VCMI_IOS
 	// TODO: Qt 6.5 can select directories https://codereview.qt-project.org/c/qt/qtbase/+/446449
