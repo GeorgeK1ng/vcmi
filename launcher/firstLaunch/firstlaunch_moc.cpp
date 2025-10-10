@@ -492,9 +492,9 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 		}
 	}
 
-	QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs);
-	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs);
-	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs);
+	QStringList dirData = sourceRoot.entryList({"data"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
+	QStringList dirMaps = sourceRoot.entryList({"maps"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
+	QStringList dirMp3 = sourceRoot.entryList({"mp3"}, QDir::Filter::Dirs | QDir::NoDotAndDotDot);
 
 	QMessageBox::critical(this, tr("Heroes III debug 1"), path);
 	QMessageBox::critical(this, tr("Heroes III debug 2"), dirData.front());
@@ -503,7 +503,7 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 	if(dirData.empty())
 	{
 		QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-		return;
+		//return;
 	}
 
 	QDir sourceData = sourceRoot.filePath(dirData.front());
@@ -517,19 +517,19 @@ void FirstLaunchView::copyHeroesData(const QString & path)
 		{
 			// Directory structure is correct (Data/Maps/Mp3) but no .lod archives that should be present in any install
 			QMessageBox::critical(this, tr("Heroes III data not found!"), noDataMessage);
-			return;
+			//return;
 		}
 
 		if (!hdFiles.empty())
 		{
 			// HD Edition contains only RoE data so we can't use even unmodified files from it
 			QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-			return;
+			//return;
 		}
 
 		// RoE or some other unsupported edition. Demo version?
 		QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death."));
-		return;
+		//return;
 	}
 
 	QStringList copyDirectories;
