@@ -547,14 +547,12 @@ void FirstLaunchView::copyHeroesData(const QString &path)
         return;
     }
 
-	// Build an overlay that covers the whole view except top 50 px
 	QWidget *overlay = new QWidget(this);
 	overlay->setObjectName("copyOverlay");
 	overlay->setStyleSheet("QWidget#copyOverlay { background: rgba(0,0,0,160); }");
 	overlay->setGeometry(this->rect().adjusted(0, 50, 0, 0));
 	overlay->show();
 	
-	// Content (title + file name + progress bar)
 	auto *v = new QVBoxLayout(overlay);
 	v->setContentsMargins(24, 24, 24, 24);
 	v->setSpacing(12);
@@ -580,19 +578,22 @@ void FirstLaunchView::copyHeroesData(const QString &path)
 	v->addStretch();
 	
 	qApp->processEvents();
-
-    for (int i = 0; i < plan.size(); ++i) {
-        progress.setLabelText(QFileInfo(plan[i].dst).fileName());
-        progress.setValue(i);
-        QCoreApplication::processEvents();
-
-        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
-        Helper::performNativeCopy(plan[i].src, plan[i].dst);
-    }
-
-    progress.setValue(plan.size());
-    if (heroesDataUpdate())
-        activateTabModPreset();
+	
+	for (int i = 0; i < plan.size(); ++i)
+	{
+	    name->setText(QFileInfo(plan[i].dst).fileName());
+	    bar->setValue(i + 1);
+	    qApp->processEvents();
+	
+	    if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+	    Helper::performNativeCopy(plan[i].src, plan[i].dst);
+	}
+	
+	overlay->deleteLater();
+	this->setEnabled(true);
+	
+	if (heroesDataUpdate())
+	    activateTabModPreset();
 }
 
 
