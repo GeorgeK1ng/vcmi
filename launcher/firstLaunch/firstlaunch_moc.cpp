@@ -128,12 +128,13 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
             // Android: picked is content:// tree → list & copy
             const QStringList items = Helper::findFilesForCopy(picked);
             if (items.isEmpty()) {
-                QMessageBox::critical(this, tr("Copy failed"),
-                                      tr("No matching files found in the selected folder."));
+                QMessageBox::critical(this, tr("Copy failed"), tr("No matching files found in the selected folder."));
                 return;
             }
+			
             QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
             struct Plan { QString src, dst; }; QVector<Plan> plan; plan.reserve(items.size());
+			
             for (const QString &line : items) {
                 const auto parts = line.split('\t');
                 if (parts.size() < 3) continue;
@@ -141,16 +142,26 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
                 QDir().mkpath(dstDir.path());
                 plan.push_back({ parts[0], dstDir.filePath(parts[2]) });
             }
+			
             QProgressDialog progress(tr("Copying Heroes III data..."), QString(), 0, plan.size(), this);
             progress.setCancelButton(nullptr);
             progress.setMinimumDuration(0);
+
+			progress.show();                 // force layout
+			qApp->processEvents();
+			progress.resize(400, 200);       // fixed size
+			
             for (int i=0;i<plan.size();++i) {
                 progress.setLabelText(QFileInfo(plan[i].dst).fileName());
                 progress.setValue(i);
+				
                 QCoreApplication::processEvents();
-                if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
+				
+                if (QFile::exists(plan[i].dst))
+					QFile::remove(plan[i].dst);
                 Helper::performNativeCopy(plan[i].src, plan[i].dst);
             }
+			
             progress.setValue(plan.size());
             heroesDataUpdate();
 #else
