@@ -220,4 +220,4 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 
 }
 
-
+}
