@@ -161,24 +161,27 @@ public:
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
         if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid()) {
-            if (onDone) onDone({});
+            // hop back to Qt thread even on cancel (empty string)
+            auto cb = onDone; onDone = nullptr;
+            QMetaObject::invokeMethod(qApp, [cb]{ if (cb) cb(QString{}); }, Qt::QueuedConnection);
             return;
         }
 
-        // Extract Uri -> string (keep content://)
         QAndroidJniObject uri = data.callObjectMethod("getData","()Landroid/net/Uri;");
         QAndroidJniObject s   = uri.callObjectMethod("toString","()Ljava/lang/String;");
         const QString picked  = s.toString();
 
-        // Persist perms so later reads via helper are stable
+        // Persist perms (OK volat zde)
         QAndroidJniObject ctx = QtAndroid::androidContext();
         QAndroidJniObject cr  = ctx.callObjectMethod("getContentResolver","()Landroid/content/ContentResolver;");
         cr.callMethod<void>("takePersistableUriPermission",
                             "(Landroid/net/Uri;I)V",
                             uri.object<jobject>(),
-                            jint(1 /*READ*/ | 2 /*WRITE*/));
+                            jint(1 | 2)); // READ | WRITE
 
-        if (onDone) onDone(picked);
+        // !!! Call the user's callback on Qt main thread
+        auto cb = onDone; onDone = nullptr;
+        QMetaObject::invokeMethod(qApp, [cb, picked]{ if (cb) cb(picked); }, Qt::QueuedConnection);
     }
 };
 
