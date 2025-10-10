@@ -105,21 +105,10 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 	heroesDataUpdate();
 }
 
-//void FirstLaunchView::on_pushButtonDataCopy_clicked()
-//{
-//    // iOS can't display modal dialogs when called directly on button press
-//    // https://bugreports.qt.io/browse/QTBUG-98651
-//    MessageBoxCustom::showDialog(this, [this]{
-//        Helper::nativeFolderPicker(this, [this](const QString &picked){
-//            if (!picked.isEmpty())
-//				//copyHeroesData(Helper::getRealPath(picked));
-//				copyHeroesData(picked);
-//        });
-//    });
-//}
-
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
+    // iOS can't display modal dialogs when called directly on button press
+    // https://bugreports.qt.io/browse/QTBUG-98651
     MessageBoxCustom::showDialog(this, [this]{
         Helper::nativeFolderPicker(this, [this](const QString &picked){
             if(!picked.isEmpty())
