@@ -502,132 +502,124 @@ static QString validateH3Signature(const QStringList &items)
     return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
 }
 
+// Orchestrates overlay → scan (next event-loop tick) → validate → plan → copy → cleanup.
+// Keeps UI responsive and avoids the post-picker black frame on Android.
 void FirstLaunchView::copyHeroesData(const QString &path)
 {
-    const QStringList items = Helper::findFilesForCopy(path);
-    if (items.isEmpty()) {
-        QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
-        return;
+    // 0) Show a lightweight full-view overlay immediately
+    QWidget *overlay = new QWidget(this);
+    overlay->setAutoFillBackground(true);
+    {
+        // Match parent background to feel native
+        QPalette pal = overlay->palette();
+        pal.setColor(QPalette::Window, this->palette().color(QPalette::Window));
+        overlay->setPalette(pal);
     }
+    overlay->setGeometry(this->rect().adjusted(0, 50, 0, 0)); // keep top 50 px visible (your header)
+    overlay->show();
 
-    if (const QString err = validateH3Signature(items); !err.isEmpty()) {
-        QMessageBox::critical(this, tr("Heroes III data not found!"), err);
-        return;
-    }
+    auto *v = new QVBoxLayout(overlay);
+    v->setContentsMargins(24, 24, 24, 24);
+    v->setSpacing(12);
 
-    // Prepare target dirs
-	QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-	QSet<QString> ensured; // které cíle už mají vytvořený adresář
-	
-	struct CopyItem { QString src, dst; };
-	QVector<CopyItem> plan; plan.reserve(items.size());
-	
-	for (const QString &line : items) {
-	    const auto p = line.split('\t');
-	    if (p.size() < 3) continue;
-	
-	    const QString &src  = p[0];
-	    const QString &tgt  = p[1]; // "Data" / "Maps" / "Mp3"
-	    const QString &name = p[2];
-	
-	    if (tgt.compare("Data", Qt::CaseInsensitive) != 0 &&
-	        tgt.compare("Maps", Qt::CaseInsensitive) != 0 &&
-	        tgt.compare("Mp3",  Qt::CaseInsensitive) != 0)
-	        continue;
-	
-	    if (!ensured.contains(tgt)) {
-	        QDir{}.mkpath(targetRoot.filePath(tgt));
-	        ensured.insert(tgt);
-	    }
-	
-	    const QDir dstDir = targetRoot.filePath(tgt);
-	    plan.push_back({ src, dstDir.filePath(name) });
-	}
+    auto *title = new QLabel(tr("Scanning selected folder..."), overlay);
+    title->setAlignment(Qt::AlignCenter);
+    title->setStyleSheet("font-size: 16px; font-weight: 600;");
 
-    if (plan.isEmpty()) {
-        QMessageBox::critical(this, tr("Heroes III data not found!"),  tr("No matching files found in the selected folder."));
-        return;
-    }
+    auto *name  = new QLabel("", overlay);
+    name->setAlignment(Qt::AlignCenter);
+    name->setWordWrap(true);
 
-	QWidget *overlay = new QWidget(this);
-	overlay->setAutoFillBackground(true);
-	QPalette pal = overlay->palette();
-	pal.setColor(QPalette::Window, this->palette().color(QPalette::Window));
-	overlay->setPalette(pal);
-	overlay->setGeometry(this->rect().adjusted(0, 50, 0, 0));
-	overlay->show();
-	
-	auto *v = new QVBoxLayout(overlay);
-	v->setContentsMargins(24, 24, 24, 24);
-	v->setSpacing(12);
-	
-	auto *title = new QLabel(tr("Copying Heroes III data..."), overlay);
-	title->setAlignment(Qt::AlignCenter);
-	title->setStyleSheet("font-size: 16px; font-weight: 600;");
-	
-	auto *name  = new QLabel("", overlay);
-	name->setAlignment(Qt::AlignCenter);
-	name->setWordWrap(true);
-	
-	auto *bar = new QProgressBar(overlay);
-	bar->setRange(0, plan.size());
-	bar->setTextVisible(true);
-	bar->setMinimumHeight(18);
-	bar->setFormat("%p%");
-	
-	v->addStretch();
-	v->addWidget(title);
-	v->addWidget(name);
-	v->addWidget(bar);
-	v->addStretch();
-	
-	qApp->processEvents();
+    auto *bar = new QProgressBar(overlay);
+    bar->setMinimumHeight(18);
+    bar->setRange(0, 0); // indeterminate while scanning
 
-	QVector<qint64> sizes; sizes.reserve(plan.size());
-	qint64 totalBytes = 0;
-	bool bytesMode = true;
-	
-	for (const auto &ci : plan) {
-	    const qint64 sz = QFileInfo(ci.src).size(); 
-	    sizes.push_back(sz);
-	    if (sz < 0)
-			bytesMode = false;
-	    else totalBytes += sz;
-	}
-	
-	if (bytesMode && totalBytes > 0) {
-	    bar->setRange(0, 1000); 
-	    qint64 copied = 0;
-	
-	    for (int i = 0; i < plan.size(); ++i) {
-	        name->setText(QString("%1/%2  •  %3").arg(i+1).arg(plan.size()).arg(QFileInfo(plan[i].dst).fileName()));
-	        qApp->processEvents();
-	
-	        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
-	        Helper::performNativeCopy(plan[i].src, plan[i].dst);
-	
-	        copied += qMax<qint64>(0, sizes[i]); 
-	        const int val = int((copied * 1000) / qMax<qint64>(1, totalBytes));
-	        bar->setValue(val);
-	    }
-	} else {
-	    bar->setRange(0, plan.size());
-	    for (int i = 0; i < plan.size(); ++i) {
-	        name->setText(QString("%1/%2  •  %3").arg(i+1).arg(plan.size()).arg(QFileInfo(plan[i].dst).fileName()));
-	        qApp->processEvents();
-	
-	        if (QFile::exists(plan[i].dst)) QFile::remove(plan[i].dst);
-	        Helper::performNativeCopy(plan[i].src, plan[i].dst);
-	
-	        bar->setValue(i + 1);
-	    }
-	}
-	
-	overlay->deleteLater();
-	this->setEnabled(true);
-	
-	if (heroesDataUpdate())
-	    activateTabModPreset();
+    v->addStretch();
+    v->addWidget(title);
+    v->addWidget(name);
+    v->addWidget(bar);
+    v->addStretch();
+
+    qApp->processEvents(); // let the overlay paint now
+
+    // 1) Defer heavy scanning to next event-loop tick (prevents black screen after SAF)
+    QTimer::singleShot(0, this, [this, path, overlay, title, name, bar]() mutable
+    {
+        // 1a) Scan (Android SAF / FS) → flat list "src\tTarget\tName"
+        const QStringList items = Helper::findFilesForCopy(path);
+        if (items.isEmpty()) {
+            overlay->deleteLater();
+            QMessageBox::critical(this, tr("Heroes III data not found!"),
+                                  tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+            return;
+        }
+
+        // 1b) Validate signature (SOD present, not HD-only)
+        const QString err = validateH3Signature(items);
+        if (!err.isEmpty()) {
+            overlay->deleteLater();
+            QMessageBox::critical(this, tr("Heroes III data not found!"), err);
+            return;
+        }
+
+        // 2) Build copy plan; create target dirs only when needed
+        QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
+        QSet<QString> ensured; // which target subdirs are already created
+
+        struct CopyItem { QString src, dst; };
+        QVector<CopyItem> plan; plan.reserve(items.size());
+
+        for (const QString &line : items) {
+            const auto p = line.split('\t');
+            if (p.size() < 3) continue;
+
+            const QString &src  = p[0];
+            const QString &tgt  = p[1]; // "Data" / "Maps" / "Mp3"
+            const QString &fn   = p[2];
+
+            if (tgt.compare("Data", Qt::CaseInsensitive)!=0 &&
+                tgt.compare("Maps", Qt::CaseInsensitive)!=0 &&
+                tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
+                continue;
+
+            if (!ensured.contains(tgt)) {
+                QDir{}.mkpath(targetRoot.filePath(tgt));
+                ensured.insert(tgt);
+            }
+            const QDir dstDir = targetRoot.filePath(tgt);
+            plan.push_back({ src, dstDir.filePath(fn) });
+        }
+
+        if (plan.isEmpty()) {
+            overlay->deleteLater();
+            QMessageBox::critical(this, tr("Heroes III data not found!"),
+                                  tr("No matching files found in the selected folder."));
+            return;
+        }
+
+        // 3) Switch overlay UI → copying (determinate)
+        title->setText(tr("Copying Heroes III data..."));
+        bar->setRange(0, plan.size());
+        bar->setValue(0);
+        name->clear();
+        qApp->processEvents();
+
+        // 4) Copy loop (per-file progress)
+        for (int i = 0; i < plan.size(); ++i) {
+            name->setText(QFileInfo(plan[i].dst).fileName());
+            bar->setValue(i + 1);
+            qApp->processEvents();
+
+            if (QFile::exists(plan[i].dst))
+                QFile::remove(plan[i].dst);
+            Helper::performNativeCopy(plan[i].src, plan[i].dst); // handles content:// on Android
+        }
+
+        // 5) Cleanup + detect + auto-advance
+        overlay->deleteLater();
+        if (heroesDataUpdate())
+            activateTabModPreset();
+    });
 }
 
 
