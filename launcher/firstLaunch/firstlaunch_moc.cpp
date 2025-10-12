@@ -468,7 +468,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 	copyHeroesData(tempDir.path());
 	
-	//tempDir.removeRecursively();
+	tempDir.removeRecursively();
 #endif
 }
 
@@ -614,6 +614,8 @@ void FirstLaunchView::copyHeroesData(const QString &path)
             if (QFile::exists(plan[i].dst))
                 QFile::remove(plan[i].dst);
             Helper::performNativeCopy(plan[i].src, plan[i].dst); // handles content:// on Android
+
+			logGlobal->info("Copying '%s' -> '%s')", plan[i].src, plan[i].dst);
         }
 
         // 5) Cleanup + detect + auto-advance
