@@ -464,9 +464,9 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	}
 
 	logGlobal->info("Copying provided game files...");
-		logGlobal->info("Temp dir: %s", tempDir.path().toStdString());
+	logGlobal->info("Using '%s' as temporary directory", tempDir.path().toStdString());
 
-	copyHeroesData(tempDir.path().toStdString());
+	copyHeroesData(pathToQString(tempDir.path()));
 	
 	//tempDir.removeRecursively();
 #endif
