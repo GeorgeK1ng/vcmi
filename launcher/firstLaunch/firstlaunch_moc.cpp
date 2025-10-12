@@ -464,9 +464,12 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	}
 
 	logGlobal->info("Copying provided game files...");
-	copyHeroesData(Helper::getRealPath(tempDir.path()));
-
-	tempDir.removeRecursively();
+	
+	QMessageBox::critical(this, tr("Debug"), tempDir.path().toStdString());
+	
+	copyHeroesData(tempDir.path().toStdString());
+	
+	//tempDir.removeRecursively();
 #endif
 }
 
@@ -549,8 +552,7 @@ void FirstLaunchView::copyHeroesData(const QString &path)
         const QStringList items = Helper::findFilesForCopy(path);
         if (items.isEmpty()) {
             overlay->deleteLater();
-            QMessageBox::critical(this, tr("Heroes III data not found!"),
-                                  tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+            QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
             return;
         }
 
