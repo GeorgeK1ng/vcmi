@@ -465,7 +465,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 	logGlobal->info("Copying provided game files...");
 
-	QMessageBox::critical(this, tr("Heroes III data not found!"), tempDir.path().toStdString());
+	QMessageBox::critical(this, tr("Heroes III data not found!"), tempDir.path().toStdString(), QMessageBox::Ok, QMessageBox::Ok);
 	
 	copyHeroesData(tempDir.path().toStdString());
 	
