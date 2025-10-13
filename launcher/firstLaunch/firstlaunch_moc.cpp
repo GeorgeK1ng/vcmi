@@ -468,7 +468,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 	copyHeroesData(tempDir.path());
 	
-	tempDir.removeRecursively();
+	//tempDir.removeRecursively();
 #endif
 }
 
