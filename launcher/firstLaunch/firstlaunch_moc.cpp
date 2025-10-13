@@ -24,8 +24,8 @@
 #include "../languages.h"
 #include "../innoextract.h"
 
-#include <QProgressDialog>
-#include <QCoreApplication>
+//#include <QProgressDialog>
+//#include <QCoreApplication>
 
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
