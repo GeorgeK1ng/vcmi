@@ -490,7 +490,7 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     }
 
     // 4) Copy with progress
-    overlay->setTitle(QObject::tr("Copying Heroes III data..."));
+    overlay->setTitle(QObject::tr("Importing Heroes III data..."));
     overlay->setIndeterminate(false);
     overlay->setRange(plan.size());
 
@@ -666,7 +666,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         logGlobal->info("Copying provided game files...");
 
         // --- 6) Reuse the same overlay for copy phase ---
-        overlay->setTitle(tr("Copying Heroes III data..."));
+        overlay->setTitle(tr("Importing Heroes III data..."));
         overlay->setFileName({});
         overlay->setRange(100); // performCopyFlow will reset to plan size internally
         overlay->setValue(0);
