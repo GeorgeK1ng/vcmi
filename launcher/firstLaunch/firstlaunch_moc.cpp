@@ -408,14 +408,6 @@ void FirstLaunchView::extractGogData()
 #endif
 }
 
-// Forward declaration so we can call it from extractGogDataAsync
-class ProgressOverlay;
-class FirstLaunchView;
-static bool performCopyFlow(const QString &path,
-                            FirstLaunchView *self,
-                            ProgressOverlay *overlay,
-                            bool removeSourceAfter = false);
-
 void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathExe)
 {
 	logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
