@@ -655,9 +655,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             }
             else
             {
-                QMessageBox::critical(this, tr("No Heroes III data!"),
-                                      tr("Selected files do not contain Heroes III data!"),
-                                      QMessageBox::Ok, QMessageBox::Ok);
+                QMessageBox::critical(this, tr("No Heroes III data!"),  tr("Selected files do not contain Heroes III data!"), QMessageBox::Ok, QMessageBox::Ok);
             }
             tempDir.removeRecursively();
             return;
@@ -768,15 +766,16 @@ bool FirstLaunchView::checkCanInstallDemo()
     QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
     QDir dataDir(userRoot.filePath(QStringLiteral("data")));
 
-	static constexpr qint64 DEMO_THRESHOLD = 8'000'000; // 8 MB
-	
     QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
     for(const QString &name : files)
     {
         if(name.compare(QStringLiteral("H3ab_spr.lod"), Qt::CaseInsensitive) == 0)
         {
-            QFileInfo lod(dataDir.filePath(name));
-            return lod.exists() && lod.size() < DEMO_THRESHOLD;
+            QFile lod(dataDir.filePath(name));
+            quint64 fileSize = lod.size();
+			logGlobal->error("H3ab_spr.lod size: %s", fileSize.toStdString());
+            if(fileSize < 8000000) // 8 MB
+            	return true;
         }
     }
     return false;
