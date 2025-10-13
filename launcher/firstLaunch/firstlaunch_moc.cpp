@@ -760,7 +760,7 @@ bool FirstLaunchView::checkCanInstallTow()
 
 bool FirstLaunchView::checkCanInstallDemo()
 {
-    if (!checkCanInstallMod("demo-support"))
+    if (!checkCanInstallMod("demo support"))
         return false;
 
     QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
@@ -818,7 +818,7 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 		modsToInstall.push_back("vcmi-extras");
 
 	if (ui->buttonPresetDemo->isChecked() && checkCanInstallDemo())
-		modsToInstall.push_back("demo-support");
+		modsToInstall.push_back("demo support");
 	
 	if (ui->buttonPresetWog->isChecked() && checkCanInstallWog())
 		modsToInstall.push_back("wake-of-gods");
