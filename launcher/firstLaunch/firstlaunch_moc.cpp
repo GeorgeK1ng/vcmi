@@ -764,7 +764,7 @@ bool FirstLaunchView::checkCanInstallDemo()
         return false;
 
     QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
-    QDir dataDir(userRoot.filePath(QStringLiteral("data")));
+    QDir dataDir(userRoot.filePath(QStringLiteral("Data")));
 
     QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
     for(const QString &name : files)
@@ -773,7 +773,7 @@ bool FirstLaunchView::checkCanInstallDemo()
         {
             QFile lod(dataDir.filePath(name));
             quint64 fileSize = lod.size();
-			logGlobal->error("H3ab_spr.lod size: %s", fileSize.toStdString());
+			logGlobal->error("H3ab_spr.lod size: %s", static_cast<unsigned long long>(fileSize));
             if(fileSize < 8000000) // 8 MB
             	return true;
         }
