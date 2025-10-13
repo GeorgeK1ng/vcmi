@@ -105,16 +105,40 @@ QString getRealPath(QString path)
 bool performNativeCopy(QString src, QString dst)
 {
 #ifdef VCMI_ANDROID
-	auto srcStr = QAndroidJniObject::fromString(safeEncode(src));
-	auto dstStr = QAndroidJniObject::fromString(safeEncode(dst));
-	QAndroidJniObject::callStaticObjectMethod("eu/vcmi/vcmi/util/FileUtil", "copyFileFromUri", "(Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)V", srcStr.object<jstring>(), dstStr.object<jstring>(), QtAndroid::androidContext().object());
+    // Ensure destination directory exists for both branches
+    QFileInfo dstInfo(dst);
+    QDir().mkpath(dstInfo.absolutePath());
 
-	if(QFileInfo(dst).exists())
-		return true;
-	else
-		return false;
+    const bool srcIsContent = src.startsWith("content://", Qt::CaseInsensitive);
+    const bool dstIsContent = dst.startsWith("content://", Qt::CaseInsensitive);
+
+    if (srcIsContent || dstIsContent)
+    {
+        // SAF involved -> use Java helper that reads/writes via ContentResolver
+        const QAndroidJniObject jSrc = QAndroidJniObject::fromString(srcIsContent ? safeEncode(src) : src);
+        const QAndroidJniObject jDst = QAndroidJniObject::fromString(dstIsContent ? safeEncode(dst) : dst);
+
+        QAndroidJniObject::callStaticObjectMethod(
+            "eu/vcmi/vcmi/util/FileUtil",
+            "copyFileFromUri",
+            "(Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)V",
+            jSrc.object<jstring>(),
+            jDst.object<jstring>(),
+            QtAndroid::androidContext().object()
+        );
+        return QFileInfo(dst).exists();
+    }
+
+    // Pure filesystem -> use Qt copy
+    if (QFile::exists(dst))
+        QFile::remove(dst);
+    return QFile::copy(src, dst);
 #else
-	return QFile::copy(src, dst);
+    QFileInfo dstInfo(dst);
+    QDir().mkpath(dstInfo.absolutePath());
+    if (QFile::exists(dst))
+        QFile::remove(dst);
+    return QFile::copy(src, dst);
 #endif
 }
 
