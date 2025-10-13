@@ -581,10 +581,7 @@ static QString validateH3Signature(const QStringList &items)
 
 // Build → validate → plan → copy, with UI feedback in 'overlay'.
 // Returns true on success. Optionally removes source directory (FS only).
-static bool performCopyFlow(const QString &path,
-                            FirstLaunchView *self,
-                            ProgressOverlay *overlay,
-                            bool removeSourceAfter = false)
+bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false)
 {
     // 1) Scan → "src \t Target \t Name"
     overlay->setTitle(QObject::tr("Scanning selected folder..."));
