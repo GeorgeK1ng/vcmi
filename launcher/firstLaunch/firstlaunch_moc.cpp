@@ -706,16 +706,20 @@ void FirstLaunchView::modPresetUpdate()
 
 	ui->buttonPresetLanguage->setVisible(checkCanInstallTranslation());
 	ui->buttonPresetExtras->setVisible(checkCanInstallExtras());
+	ui->buttonPresetDemo->setVisible(checkCanInstallDemo());
 	ui->buttonPresetHota->setVisible(checkCanInstallHota());
 	ui->buttonPresetWog->setVisible(checkCanInstallWog());
+	ui->buttonPresetTow->setVisible(checkCanInstallTow());
 
 	ui->labelPresetLanguageDescr->setVisible(checkCanInstallTranslation());
 	ui->labelPresetExtrasDescr->setVisible(checkCanInstallExtras());
+	ui->labelPresetDemoDescr->setVisible(checkCanInstallDemo());
 	ui->labelPresetHotaDescr->setVisible(checkCanInstallHota());
 	ui->labelPresetWogDescr->setVisible(checkCanInstallWog());
+	ui->labelPresetTowDescr->setVisible(checkCanInstallTow());
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if (!checkCanInstallTranslation() && !checkCanInstallExtras() && !checkCanInstallHota() && !checkCanInstallWog())
+	if (!checkCanInstallTranslation() && !checkCanInstallExtras() && !checkCanInstallDemo() && !checkCanInstallHota() && !checkCanInstallWog() && !checkCanInstallTow())
 		exitSetup(false);
 }
 
@@ -749,6 +753,33 @@ bool FirstLaunchView::checkCanInstallWog()
 bool FirstLaunchView::checkCanInstallHota()
 {
 	return checkCanInstallMod("hota");
+}
+
+bool FirstLaunchView::checkCanInstallTow()
+{
+	return checkCanInstallMod("tides-of-war");
+}
+
+bool FirstLaunchView::checkCanInstallDemo()
+{
+    if (!checkCanInstallMod("demo-support"))
+        return false;
+
+    QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
+    QDir dataDir(userRoot.filePath(QStringLiteral("data")));
+
+	static constexpr qint64 DEMO_THRESHOLD = 8'000'000; // 8 MB
+	
+    QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
+    for(const QString &name : files)
+    {
+        if(name.compare(QStringLiteral("H3ab_spr.lod"), Qt::CaseInsensitive) == 0)
+        {
+            QFileInfo lod(dataDir.filePath(name));
+            return lod.exists() && lod.size() < DEMO_THRESHOLD;
+        }
+    }
+    return false;
 }
 
 bool FirstLaunchView::checkCanInstallExtras()
@@ -787,12 +818,18 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 	if (ui->buttonPresetExtras->isChecked() && checkCanInstallExtras())
 		modsToInstall.push_back("vcmi-extras");
 
+	if (ui->buttonPresetDemo->isChecked() && checkCanInstallDemo())
+		modsToInstall.push_back("demo-support");
+	
 	if (ui->buttonPresetWog->isChecked() && checkCanInstallWog())
 		modsToInstall.push_back("wake-of-gods");
 
 	if (ui->buttonPresetHota->isChecked() && checkCanInstallHota())
 		modsToInstall.push_back("hota");
 
+	if (ui->buttonPresetTow->isChecked() && checkCanInstallTow())
+		modsToInstall.push_back("tides-of-war");
+	
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);
 
