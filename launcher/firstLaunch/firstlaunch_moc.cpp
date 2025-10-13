@@ -408,6 +408,116 @@ void FirstLaunchView::extractGogData()
 #endif
 }
 
+
+// Build → validate → plan → copy, with UI feedback in 'overlay'.
+// Returns true on success. Optionally removes source directory (FS only).
+bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false)
+{
+    // 1) Scan → "src \t Target \t Name"
+    overlay->setTitle(QObject::tr("Scanning selected folder..."));
+    overlay->setIndeterminate(true);
+
+    const QStringList items = Helper::findFilesForCopy(path);
+    if (items.isEmpty()) {
+        overlay->deleteLater();
+        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"),
+            QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+        return false;
+    }
+
+    // 2) Validate signature
+    auto validate = [](const QStringList &items)->QString {
+        bool anyLOD=false, anySOD=false, anyHD=false;
+        for (const QString &line : items) {
+            const auto p = line.split('\t');
+            if (p.size() < 3 || p[1].compare("Data", Qt::CaseInsensitive) != 0) continue;
+            const QString &n = p[2];
+            if (n.endsWith(".lod", Qt::CaseInsensitive)) {
+                anyLOD = true;
+                if (n.startsWith("H3ab", Qt::CaseInsensitive))
+                    anySOD = true;
+            } else if (n.endsWith(".pak", Qt::CaseInsensitive)) {
+                anyHD = true;
+            }
+        }
+        if (anySOD) return {};
+        if (!anyLOD)
+            return QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
+        if (anyHD)
+            return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
+        return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
+    };
+
+    const QString err = validate(items);
+    if (!err.isEmpty()) {
+        overlay->deleteLater();
+        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), err);
+        return false;
+    }
+
+    // 3) Plan destination (create target dirs on demand)
+    QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
+    QSet<QString> created;
+
+    struct CopyItem { QString src, dst; };
+    QVector<CopyItem> plan; plan.reserve(items.size());
+
+    for (const QString &line : items) {
+        const auto p = line.split('\t');
+        if (p.size() < 3) continue;
+
+        const QString &src  = p[0];
+        const QString &tgt  = p[1]; // Data / Maps / Mp3
+        const QString &fn   = p[2];
+
+        if (tgt.compare("Data", Qt::CaseInsensitive)!=0 &&
+            tgt.compare("Maps", Qt::CaseInsensitive)!=0 &&
+            tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
+            continue;
+
+        if (!created.contains(tgt)) {
+            QDir{}.mkpath(targetRoot.filePath(tgt));
+            created.insert(tgt);
+        }
+        const QDir dstDir = targetRoot.filePath(tgt);
+        plan.push_back({ src, dstDir.filePath(fn) });
+    }
+
+    if (plan.isEmpty()) {
+        overlay->deleteLater();
+        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"),
+                              QObject::tr("No matching files found in the selected folder."));
+        return false;
+    }
+
+    // 4) Copy with progress
+    overlay->setTitle(QObject::tr("Copying Heroes III data..."));
+    overlay->setIndeterminate(false);
+    overlay->setRange(plan.size());
+
+    for (int i = 0; i < plan.size(); ++i) {
+        overlay->setFileName(QFileInfo(plan[i].dst).fileName());
+        overlay->setValue(i + 1);
+        qApp->processEvents();
+
+        if (QFile::exists(plan[i].dst))
+            QFile::remove(plan[i].dst);
+        Helper::performNativeCopy(plan[i].src, plan[i].dst);
+
+        logGlobal->info("Copying '%s' -> '%s'",
+            plan[i].src.toStdString(),
+            plan[i].dst.toStdString());
+    }
+
+    // 5) Optional cleanup (never delete SAF trees)
+    if (removeSourceAfter && !path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
+        QDir(path).removeRecursively();
+
+    overlay->deleteLater();
+    return true;
+}
+
+
 void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathExe)
 {
 	logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
@@ -577,116 +687,6 @@ static QString validateH3Signature(const QStringList &items)
         return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
     return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
 }
-
-
-// Build → validate → plan → copy, with UI feedback in 'overlay'.
-// Returns true on success. Optionally removes source directory (FS only).
-bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false)
-{
-    // 1) Scan → "src \t Target \t Name"
-    overlay->setTitle(QObject::tr("Scanning selected folder..."));
-    overlay->setIndeterminate(true);
-
-    const QStringList items = Helper::findFilesForCopy(path);
-    if (items.isEmpty()) {
-        overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"),
-            QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
-        return false;
-    }
-
-    // 2) Validate signature
-    auto validate = [](const QStringList &items)->QString {
-        bool anyLOD=false, anySOD=false, anyHD=false;
-        for (const QString &line : items) {
-            const auto p = line.split('\t');
-            if (p.size() < 3 || p[1].compare("Data", Qt::CaseInsensitive) != 0) continue;
-            const QString &n = p[2];
-            if (n.endsWith(".lod", Qt::CaseInsensitive)) {
-                anyLOD = true;
-                if (n.startsWith("H3ab", Qt::CaseInsensitive))
-                    anySOD = true;
-            } else if (n.endsWith(".pak", Qt::CaseInsensitive)) {
-                anyHD = true;
-            }
-        }
-        if (anySOD) return {};
-        if (!anyLOD)
-            return QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-        if (anyHD)
-            return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
-        return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
-    };
-
-    const QString err = validate(items);
-    if (!err.isEmpty()) {
-        overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), err);
-        return false;
-    }
-
-    // 3) Plan destination (create target dirs on demand)
-    QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
-    QSet<QString> created;
-
-    struct CopyItem { QString src, dst; };
-    QVector<CopyItem> plan; plan.reserve(items.size());
-
-    for (const QString &line : items) {
-        const auto p = line.split('\t');
-        if (p.size() < 3) continue;
-
-        const QString &src  = p[0];
-        const QString &tgt  = p[1]; // Data / Maps / Mp3
-        const QString &fn   = p[2];
-
-        if (tgt.compare("Data", Qt::CaseInsensitive)!=0 &&
-            tgt.compare("Maps", Qt::CaseInsensitive)!=0 &&
-            tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
-            continue;
-
-        if (!created.contains(tgt)) {
-            QDir{}.mkpath(targetRoot.filePath(tgt));
-            created.insert(tgt);
-        }
-        const QDir dstDir = targetRoot.filePath(tgt);
-        plan.push_back({ src, dstDir.filePath(fn) });
-    }
-
-    if (plan.isEmpty()) {
-        overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"),
-                              QObject::tr("No matching files found in the selected folder."));
-        return false;
-    }
-
-    // 4) Copy with progress
-    overlay->setTitle(QObject::tr("Copying Heroes III data..."));
-    overlay->setIndeterminate(false);
-    overlay->setRange(plan.size());
-
-    for (int i = 0; i < plan.size(); ++i) {
-        overlay->setFileName(QFileInfo(plan[i].dst).fileName());
-        overlay->setValue(i + 1);
-        qApp->processEvents();
-
-        if (QFile::exists(plan[i].dst))
-            QFile::remove(plan[i].dst);
-        Helper::performNativeCopy(plan[i].src, plan[i].dst);
-
-        logGlobal->info("Copying '%s' -> '%s'",
-            plan[i].src.toStdString(),
-            plan[i].dst.toStdString());
-    }
-
-    // 5) Optional cleanup (never delete SAF trees)
-    if (removeSourceAfter && !path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
-        QDir(path).removeRecursively();
-
-    overlay->deleteLater();
-    return true;
-}
-
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter)
 {
