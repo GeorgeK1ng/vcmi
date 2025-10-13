@@ -656,38 +656,6 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 #endif
 }
 
-// Validate H3 data signature using the flat list ("src \t Target \t Name").
-// Returns empty QString on success (SOD / Complete present), otherwise user-facing error text.
-static QString validateH3Signature(const QStringList &items)
-{
-    bool anyLOD = false;   // *.lod in Data
-    bool anySOD = false;   // H3ab*.lod in Data
-    bool anyHD  = false;   // *.pak in Data
-
-    for (const QString &line : items)
-    {
-        const auto p = line.split('\t');
-        if (p.size() < 3 || p[1].compare("Data", Qt::CaseInsensitive) != 0)
-            continue;
-
-        const QString &name = p[2];
-        if (name.endsWith(".lod", Qt::CaseInsensitive)) {
-            anyLOD = true;
-            if (name.startsWith("H3ab", Qt::CaseInsensitive))
-                anySOD = true;
-        } else if (name.endsWith(".pak", Qt::CaseInsensitive)) {
-            anyHD = true;
-        }
-    }
-
-    if (anySOD) return {};
-    if (!anyLOD)
-        return QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-    if (anyHD)
-        return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
-    return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
-}
-
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter)
 {
     auto *overlay = createOverlay(this, tr("Scanning selected folder..."), /*indeterminate=*/true);
