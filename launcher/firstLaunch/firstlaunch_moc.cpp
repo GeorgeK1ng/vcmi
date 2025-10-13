@@ -386,8 +386,6 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	if(!tempDir.cd("tmp"))
 		return; // should not happen - but avoid deleting wrong folder in any case
 
-	
-
 	QString tmpFileExe = tempDir.filePath("h3_gog.exe");
 	QString tmpFileBin = tempDir.filePath("h3_gog-1.bin");
 
