@@ -28,9 +28,6 @@
 #include "iOS_utils.h"
 #endif
 
-//#include <QProgressDialog>
-//#include <QCoreApplication>
-
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
@@ -116,7 +113,7 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
     MessageBoxCustom::showDialog(this, [this]{
         Helper::nativeFolderPicker(this, [this](const QString &picked){
             if(!picked.isEmpty())
-            	copyHeroesData(picked);
+            	copyHeroesData(picked, false);
         });
     });
 }
@@ -168,7 +165,7 @@ void FirstLaunchView::activateTabHeroesData()
 	{
 		auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
 		if(reply == QMessageBox::Yes)
-			copyHeroesData(installPath);
+			copyHeroesData(installPath, false);
 	}
 }
 
@@ -466,9 +463,8 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 	logGlobal->info("Copying provided game files...");
 
-	copyHeroesData(tempDir.path());
-	
-	//tempDir.removeRecursively();
+	copyHeroesData(tempDir.path(), true);
+
 #endif
 }
 
@@ -506,7 +502,7 @@ static QString validateH3Signature(const QStringList &items)
 
 // Orchestrates overlay → scan (next event-loop tick) → validate → plan → copy → cleanup.
 // Keeps UI responsive and avoids the post-picker black frame on Android.
-void FirstLaunchView::copyHeroesData(const QString &path)
+void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
     // 0) Show a lightweight full-view overlay immediately
     QWidget *overlay = new QWidget(this);
@@ -621,7 +617,11 @@ void FirstLaunchView::copyHeroesData(const QString &path)
         }
 
         // 5) Cleanup + detect + auto-advance
-        overlay->deleteLater();
+        if (removeSource)
+            QDir(path).removeRecursively();
+		
+		overlay->deleteLater();
+		
         if (heroesDataUpdate())
             activateTabModPreset();
     });
