@@ -408,11 +408,23 @@ void FirstLaunchView::extractGogData()
 #endif
 }
 
+// Forward declaration so we can call it from extractGogDataAsync
+class ProgressOverlay;
+class FirstLaunchView;
+static bool performCopyFlow(const QString &path,
+                            FirstLaunchView *self,
+                            ProgressOverlay *overlay,
+                            bool removeSourceAfter = false);
+
 void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathExe)
 {
 	logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
 
 #ifdef ENABLE_INNOEXTRACT
+
+    const QString filterBin = tr("GOG data") + " (*.bin)";
+    const QString filterExe = tr("GOG installer") + " (*.exe)";
+	
     // One overlay for the whole flow
     auto *overlay = createOverlay(this, tr("Extracting installer..."), false);
     overlay->setRange(100);
@@ -687,7 +699,7 @@ static bool performCopyFlow(const QString &path,
 }
 
 
-void FirstLaunchView::copyHeroesData(const QString &path)
+void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter)
 {
     auto *overlay = createOverlay(this, tr("Scanning selected folder..."), /*indeterminate=*/true);
 
@@ -695,7 +707,7 @@ void FirstLaunchView::copyHeroesData(const QString &path)
     const bool defer = path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive);
 
     auto work = [this, path, overlay]() {
-        if (performCopyFlow(path, this, overlay, /*removeSourceAfter=*/false))
+        if (performCopyFlow(path, this, overlay, false))
             if (heroesDataUpdate())
                 activateTabModPreset();
     };
