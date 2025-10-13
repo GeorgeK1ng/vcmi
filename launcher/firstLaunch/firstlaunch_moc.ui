@@ -912,6 +912,9 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            <property name="checkable">
             <bool>true</bool>
            </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
            <property name="toolButtonStyle">
             <enum>Qt::ToolButtonTextBesideIcon</enum>
            </property>
