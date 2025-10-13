@@ -781,7 +781,7 @@ bool FirstLaunchView::checkCanInstallDemo()
             QFile lod(dataDir.filePath(name));
             quint64 fileSize = lod.size();
 			logGlobal->error("H3ab_spr.lod size: %s", static_cast<unsigned long long>(fileSize));
-            if(fileSize < 8000000) && hasDemoMap // 8 MB + Demo map
+            if(fileSize < 8000000 && hasDemoMap) // 8 MB + Demo map
             	return true;
         }
     }
