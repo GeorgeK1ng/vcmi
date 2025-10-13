@@ -386,7 +386,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	if(!tempDir.cd("tmp"))
 		return; // should not happen - but avoid deleting wrong folder in any case
 
-	logGlobal->info("Using '%s' as temporary directory", tempDir.path().toStdString());
+	
 
 	QString tmpFileExe = tempDir.filePath("h3_gog.exe");
 	QString tmpFileBin = tempDir.filePath("h3_gog-1.bin");
@@ -467,7 +467,6 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	}
 
 	logGlobal->info("Copying provided game files...");
-	logGlobal->info("Using '%s' as temporary directory", tempDir.path().toStdString());
 
 	copyHeroesData(tempDir.path());
 	
@@ -629,7 +628,6 @@ void FirstLaunchView::copyHeroesData(const QString &path)
             activateTabModPreset();
     });
 }
-
 
 // Tab Mod Preset
 void FirstLaunchView::modPresetUpdate()
