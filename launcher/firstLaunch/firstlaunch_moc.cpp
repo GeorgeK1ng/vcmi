@@ -541,7 +541,7 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
     qApp->processEvents(); // let the overlay paint now
 
     // 1) Defer heavy scanning to next event-loop tick (prevents black screen after SAF)
-    QTimer::singleShot(0, this, [this, path, overlay, title, name, bar]() mutable
+    QTimer::singleShot(0, this, [this, path, overlay, title, name, bar, removeSource]() mutable
     {
         // 1a) Scan (Android SAF / FS) → flat list "src\tTarget\tName"
         const QStringList items = Helper::findFilesForCopy(path);
