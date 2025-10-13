@@ -24,6 +24,10 @@
 #include "../languages.h"
 #include "../innoextract.h"
 
+#ifdef VCMI_IOS
+#include "iOS_utils.h"
+#endif
+
 //#include <QProgressDialog>
 //#include <QCoreApplication>
 
@@ -218,8 +222,7 @@ void FirstLaunchView::heroesDataMissing()
 
 #ifdef VCMI_IOS
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
-	//const bool canUseDataCopy = isOsVersionAtLeast(13);
-	const bool canUseDataCopy = true;
+	const bool canUseDataCopy = isOsVersionAtLeast(13);
 #else
 	const bool canUseDataCopy = true;
 #endif
@@ -468,7 +471,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 	copyHeroesData(tempDir.path());
 	
-	//tempDir.removeRecursively();
+	tempDir.removeRecursively();
 #endif
 }
 
