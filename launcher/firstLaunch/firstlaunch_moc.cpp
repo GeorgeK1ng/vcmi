@@ -765,7 +765,14 @@ bool FirstLaunchView::checkCanInstallDemo()
 
     QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
     QDir dataDir(userRoot.filePath(QStringLiteral("Data")));
+	QDir mapsDir(userRoot.filePath(QStringLiteral("Maps")));
 
+    bool hasDemoMap = false;
+    QStringList mapFiles = mapsDir.entryList(QDir::Files | QDir::Readable);
+    for (const QString &name : mapFiles)
+        if (name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
+            hasDemoMap = true;
+	
     QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
     for(const QString &name : files)
     {
@@ -774,7 +781,7 @@ bool FirstLaunchView::checkCanInstallDemo()
             QFile lod(dataDir.filePath(name));
             quint64 fileSize = lod.size();
 			logGlobal->error("H3ab_spr.lod size: %s", static_cast<unsigned long long>(fileSize));
-            if(fileSize < 8000000) // 8 MB
+            if(fileSize < 8000000) && hasDemoMap // 8 MB + Demo map
             	return true;
         }
     }
