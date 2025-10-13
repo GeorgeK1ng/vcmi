@@ -44,6 +44,7 @@ class FirstLaunchView : public QWidget
 	void extractGogData();
 	void extractGogDataAsync(QString filePathBin, QString filePathExe);
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
+	bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false);
 
 	// Tab Mod Preset
 	void modPresetUpdate();
