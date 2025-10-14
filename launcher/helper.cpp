@@ -132,12 +132,14 @@ bool performNativeCopy(QString src, QString dst)
     // Pure filesystem -> use Qt copy
     if (QFile::exists(dst))
         QFile::remove(dst);
+	
     return QFile::copy(src, dst);
 #else
     QFileInfo dstInfo(dst);
     QDir().mkpath(dstInfo.absolutePath());
     if (QFile::exists(dst))
         QFile::remove(dst);
+	
     return QFile::copy(src, dst);
 #endif
 }
@@ -160,7 +162,6 @@ MainWindow * getMainWindow()
 	return nullptr;
 }
 
-
 void keepScreenOn(bool isEnabled)
 {
 #if defined(VCMI_ANDROID)
@@ -173,8 +174,6 @@ void keepScreenOn(bool isEnabled)
 #endif
 }
 
-
-// ===== Helper::nativeFolderPicker =====
 #ifdef VCMI_ANDROID
 static constexpr int  kFolderPickerReqCode = 4242;
 
@@ -238,8 +237,6 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 #endif
 }
 
-
-// --- file-local helpers (C++ FS traversal) ---
 static inline QString classifyTargetByExt(const QString &baseName)
 {
     // Case-insensitive suffix checks without making a lowercase copy
@@ -260,7 +257,6 @@ static void addIfExists(QVector<QDir> &scan, const QDir &base, const char *child
 QStringList findFilesForCopy(const QString &path)
 {
 #ifdef VCMI_ANDROID
-    // Android SAF: delegate to Java helper; FS path stays in C++.
     if (path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
     {
         const QAndroidJniObject jUri = QAndroidJniObject::fromString(safeEncode(path));
@@ -282,7 +278,7 @@ QStringList findFilesForCopy(const QString &path)
         for (jsize i = 0; i < n; ++i)
         {
             QAndroidJniObject s((jstring)env->GetObjectArrayElement(arr, i));
-            out.push_back(s.toString()); // "src\tTarget\tName"
+            out.push_back(s.toString());                                                       // "src \t Target \t Name"
         }
         return out;
     }
@@ -312,9 +308,7 @@ QStringList findFilesForCopy(const QString &path)
     // Depth-first traversal on each directory; classify by extension
     for (const QDir &d : scan)
     {
-        QDirIterator it(d.absolutePath(),
-                        QDir::Files | QDir::Readable | QDir::NoSymLinks,
-                        QDirIterator::Subdirectories);
+        QDirIterator it(d.absolutePath(), QDir::Files | QDir::Readable | QDir::NoSymLinks, QDirIterator::Subdirectories);
 
         while (it.hasNext())
         {
@@ -324,8 +318,8 @@ QStringList findFilesForCopy(const QString &path)
             if (tgt.isEmpty())
                 continue;
 
-            // "src<TAB>Target<TAB>Name"
-            out.push_back(fp + QLatin1Char('\t') + tgt + QLatin1Char('\t') + fi.fileName());
+            
+            out.push_back(fp + QLatin1Char('\t') + tgt + QLatin1Char('\t') + fi.fileName());   // "src \t Target \t Name"
         }
     }
 
