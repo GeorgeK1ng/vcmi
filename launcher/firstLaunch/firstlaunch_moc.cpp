@@ -688,7 +688,7 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter
                 activateTabModPreset();
     };
 
-    QTimer::singleShot(0, this, work) : work();
+    QTimer::singleShot(0, this, work);
 }
 
 // Tab Mod Preset
