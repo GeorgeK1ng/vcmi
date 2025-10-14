@@ -708,6 +708,7 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetHota->setVisible(checkCanInstallHota());
 	ui->buttonPresetWog->setVisible(checkCanInstallWog());
 	ui->buttonPresetTow->setVisible(checkCanInstallTow());
+	ui->buttonPresetFod->setVisible(checkCanInstallFod());
 
 	ui->labelPresetLanguageDescr->setVisible(checkCanInstallTranslation());
 	ui->labelPresetExtrasDescr->setVisible(checkCanInstallExtras());
@@ -715,9 +716,10 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetHotaDescr->setVisible(checkCanInstallHota());
 	ui->labelPresetWogDescr->setVisible(checkCanInstallWog());
 	ui->labelPresetTowDescr->setVisible(checkCanInstallTow());
+	ui->labelPresetFodDescr->setVisible(checkCanInstallFod());
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if (!checkCanInstallTranslation() && !checkCanInstallExtras() && !checkCanInstallDemo() && !checkCanInstallHota() && !checkCanInstallWog() && !checkCanInstallTow())
+	if (!checkCanInstallTranslation() && !checkCanInstallExtras() && !checkCanInstallDemo() && !checkCanInstallHota() && !checkCanInstallWog() && !checkCanInstallTow() && !checkCanInstallFod())
 		exitSetup(false);
 }
 
@@ -756,6 +758,11 @@ bool FirstLaunchView::checkCanInstallHota()
 bool FirstLaunchView::checkCanInstallTow()
 {
 	return checkCanInstallMod("tides-of-war");
+}
+
+bool FirstLaunchView::checkCanInstallFod()
+{
+	return checkCanInstallMod("fallen-of-the-depth");
 }
 
 bool FirstLaunchView::checkCanInstallDemo()
@@ -835,7 +842,10 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 
 	if (ui->buttonPresetTow->isChecked() && checkCanInstallTow())
 		modsToInstall.push_back("tides-of-war");
-	
+
+	if (ui->buttonPresetFod->isChecked() && checkCanInstallFod())
+		modsToInstall.push_back("fallen-of-the-depth");
+
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);
 
