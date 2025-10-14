@@ -28,8 +28,7 @@
 #include "iOS_utils.h"
 #endif
 
-
-// ---- Unified progress overlay ----
+// Unified progress overlay
 class ProgressOverlay final : public QWidget
 {
 public:
@@ -42,7 +41,7 @@ public:
         pal.setColor(QPalette::Window, parent->palette().color(QPalette::Window));
         setPalette(pal);
 
-        // Cover whole view except top offset (your header)
+        // Cover whole view except top offset
         setGeometry(parent->rect().adjusted(0, topOffsetPx, 0, 0));
 
         auto *layout = new QVBoxLayout(this);
@@ -390,30 +389,22 @@ void FirstLaunchView::extractGogData()
 	QString fileBin = fileSelection(filterBin);
 	if(fileBin.isEmpty())
 		return;
+	
 	QString fileExe = fileSelection(filterExe, QFileInfo(fileBin).absolutePath());
 	if(fileExe.isEmpty())
 		return;
 
-	//ui->progressBarGog->setVisible(true);
-	//ui->pushButtonGogInstall->setVisible(false);
-	//setEnabled(false);
-
 	QTimer::singleShot(100, this, [this, fileBin, fileExe](){ // background to make sure FileDialog is closed...
 		extractGogDataAsync(fileBin, fileExe);
-		//ui->progressBarGog->setVisible(false);
-		//ui->pushButtonGogInstall->setVisible(true);
 		setEnabled(true);
 		heroesDataUpdate();
 	});
 #endif
 }
 
-
-// Build → validate → plan → copy, with UI feedback in 'overlay'.
-// Returns true on success. Optionally removes source directory (FS only).
 bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false)
 {
-    // 1) Scan → "src \t Target \t Name"
+    // 1) Scan -> "src \t Target \t Name"
     overlay->setTitle(QObject::tr("Scanning selected folder..."));
     overlay->setIndeterminate(true);
 
@@ -455,7 +446,7 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
         return false;
     }
 
-    // 3) Plan destination (create target dirs on demand)
+    // 3) Plan destination, create target dirs on demand
     QDir targetRoot = pathToQString(VCMIDirs::get().userDataPath());
     QSet<QString> created;
 
@@ -506,8 +497,8 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
         logGlobal->info("Copying '%s' -> '%s'", plan[i].src.toStdString(), plan[i].dst.toStdString());
     }
 
-    // 5) Optional cleanup (never delete SAF trees)
-    if (removeSourceAfter && !path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive))
+    // 5) Optional cleanup
+    if (removeSourceAfter)
         QDir(path).removeRecursively();
 
     overlay->deleteLater();
@@ -520,7 +511,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
     logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
 
 #ifdef ENABLE_INNOEXTRACT
-    // --- 0) Show overlay immediately so the UI doesn't look frozen ---
+    //  Show overlay immediately so the UI doesn't look frozen
     auto *overlay = createOverlay(this, tr("Checking installer..."), /*indeterminate=*/true);
     overlay->setFileName(QFileInfo(filePathExe).fileName());
     overlay->raise();
@@ -532,7 +523,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         const QString filterBin = tr("GOG data") + " (*.bin)";
         const QString filterExe = tr("GOG installer") + " (*.exe)";
 
-        // --- 1) Prepare temp dir (clean old tmp, then create fresh) ---
+        // 1) Prepare temp dir
         QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
         if (tempDir.cd("tmp"))
         {
@@ -550,13 +541,13 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         const QString tmpFileExe = tempDir.filePath("h3_gog.exe");
         const QString tmpFileBin = tempDir.filePath("h3_gog-1.bin");
 
-        // --- 2) Copy selected files into tmp (ensures fast local reads for checks/extract) ---
+        // 2) Copy selected files into tmp
         logGlobal->info("Performing native copy...");
         Helper::performNativeCopy(filePathExe, tmpFileExe);
         Helper::performNativeCopy(filePathBin, tmpFileBin);
         logGlobal->info("Native copy completed");
 
-        // --- 3) Sanity checks (keep your original checks) ---
+        // 3) Sanity checks
         auto checkMagic = [](QString filename, QString filter, QByteArray magic)
         {
             logGlobal->info("Checking file %s", filename.toStdString());
@@ -615,7 +606,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             }
         }
 
-        // --- 4) Extract (reuse overlay; determinate with percent) ---
+        // Extract
         if (errorText.isEmpty())
         {
             overlay->setTitle(tr("Extracting installer..."));
@@ -633,7 +624,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             logGlobal->info("Extraction done!");
         }
 
-        // --- 5) Post-extract verification and error reporting (unchanged logic) ---
+        // 5) Post-extract verification and error reporting
         QString hashError;
         if (!errorText.isEmpty())
             hashError = Innoextract::getHashError(tmpFileExe, tmpFileBin, filePathExe, filePathBin);
@@ -663,7 +654,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
         logGlobal->info("Copying provided game files...");
 
-        // --- 6) Reuse the same overlay for copy phase ---
+        // 6) Reuse overlay for copy phase
         overlay->setTitle(tr("Importing Heroes III data..."));
         overlay->setFileName({});
         overlay->setRange(100); // performCopyFlow will reset to plan size internally
@@ -770,7 +761,7 @@ bool FirstLaunchView::checkCanInstallDemo()
             QFile lod(dataDir.filePath(name));
             quint64 fileSize = lod.size();
 			logGlobal->error("H3ab_spr.lod size: %s", static_cast<unsigned long long>(fileSize));
-            if(fileSize < 8000000 && hasDemoMap) // 8 MB + Demo map
+            if(fileSize < 8000000 && hasDemoMap) // 8 MB + Demo map = Merged Windows and MacOS Demo
             	return true;
         }
     }
@@ -794,8 +785,7 @@ bool FirstLaunchView::checkCanInstallTow()
 
 bool FirstLaunchView::checkCanInstallFod()
 {
-	//return checkCanInstallMod("fallen-of-the-depth");
-	return checkCanInstallMod("tides-of-war");
+	return checkCanInstallMod("fallen-of-the-depth");
 }
 
 CModListView * FirstLaunchView::getModView()
