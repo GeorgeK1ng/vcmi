@@ -682,16 +682,13 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter
 {
     auto *overlay = createOverlay(this, tr("Scanning selected folder..."), /*indeterminate=*/true);
 
-    // For SAF (Android) defer heavy work to next tick to avoid black frame
-    const bool defer = path.startsWith(QLatin1String("content://"), Qt::CaseInsensitive);
-
     auto work = [this, path, overlay]() {
         if (performCopyFlow(path, this, overlay, false))
             if (heroesDataUpdate())
                 activateTabModPreset();
     };
 
-    defer ? QTimer::singleShot(0, this, work) : work();
+    QTimer::singleShot(0, this, work) : work();
 }
 
 // Tab Mod Preset
