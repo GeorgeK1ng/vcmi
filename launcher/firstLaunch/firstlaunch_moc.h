@@ -52,11 +52,12 @@ class FirstLaunchView : public QWidget
 	QString findTranslationModName();
 
 	bool checkCanInstallTranslation();
-	bool checkCanInstallWog();
-	bool checkCanInstallHota();
 	bool checkCanInstallExtras();
-	bool checkCanInstallTow();
 	bool checkCanInstallDemo();
+	bool checkCanInstallHota();
+	bool checkCanInstallWog();
+	bool checkCanInstallTow();
+	bool checkCanInstallFod();
 	bool checkCanInstallMod(const QString & modID);
 
 public:
