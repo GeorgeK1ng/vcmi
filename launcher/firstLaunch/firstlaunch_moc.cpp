@@ -745,24 +745,9 @@ bool FirstLaunchView::checkCanInstallTranslation()
 	return checkCanInstallMod(modName);
 }
 
-bool FirstLaunchView::checkCanInstallWog()
+bool FirstLaunchView::checkCanInstallExtras()
 {
-	return checkCanInstallMod("wake-of-gods");
-}
-
-bool FirstLaunchView::checkCanInstallHota()
-{
-	return checkCanInstallMod("hota");
-}
-
-bool FirstLaunchView::checkCanInstallTow()
-{
-	return checkCanInstallMod("tides-of-war");
-}
-
-bool FirstLaunchView::checkCanInstallFod()
-{
-	return checkCanInstallMod("fallen-of-the-depth");
+	return checkCanInstallMod("vcmi-extras");
 }
 
 bool FirstLaunchView::checkCanInstallDemo()
@@ -776,8 +761,8 @@ bool FirstLaunchView::checkCanInstallDemo()
 
     bool hasDemoMap = false;
     QStringList mapFiles = mapsDir.entryList(QDir::Files | QDir::Readable);
-    for (const QString &name : mapFiles)
-        if (name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
+    for(const QString &name : mapFiles)
+        if(name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
             hasDemoMap = true;
 	
     QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
@@ -795,9 +780,24 @@ bool FirstLaunchView::checkCanInstallDemo()
     return false;
 }
 
-bool FirstLaunchView::checkCanInstallExtras()
+bool FirstLaunchView::checkCanInstallHota()
 {
-	return checkCanInstallMod("vcmi-extras");
+	return checkCanInstallMod("hota");
+}
+
+bool FirstLaunchView::checkCanInstallWog()
+{
+	return checkCanInstallMod("wake-of-gods");
+}
+
+bool FirstLaunchView::checkCanInstallTow()
+{
+	return checkCanInstallMod("tides-of-war");
+}
+
+bool FirstLaunchView::checkCanInstallFod()
+{
+	return checkCanInstallMod("fallen-of-the-depth");
 }
 
 CModListView * FirstLaunchView::getModView()
