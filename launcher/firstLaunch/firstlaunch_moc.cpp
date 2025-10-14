@@ -797,7 +797,8 @@ bool FirstLaunchView::checkCanInstallTow()
 
 bool FirstLaunchView::checkCanInstallFod()
 {
-	return checkCanInstallMod("fallen-of-the-depth");
+	//return checkCanInstallMod("fallen-of-the-depth");
+	return checkCanInstallMod("tides-of-war");
 }
 
 CModListView * FirstLaunchView::getModView()
