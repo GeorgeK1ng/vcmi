@@ -801,7 +801,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Install exclusive expansion Fallen of the Depth available only in VCMI</string>
+            <string>Install exclusive underground mushroom expansion Fallen of the Depth available only in VCMI</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
