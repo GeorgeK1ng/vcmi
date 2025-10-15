@@ -171,10 +171,8 @@ void MainWindow::exitSetup(bool goToMods)
 	ui->aboutButton->setEnabled(true);
 	ui->modslistButton->setEnabled(true);
 	if (goToMods)
-		//ui->tabListWidget->setCurrentIndex(TabRows::MODS);
 		switchToModsTab();
 	else
-		//ui->tabListWidget->setCurrentIndex(TabRows::START);
 		switchToStartTab();
 }
 
