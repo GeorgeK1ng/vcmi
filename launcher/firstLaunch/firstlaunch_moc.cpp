@@ -65,6 +65,13 @@ public:
         layout->addWidget(fileLabel);
         layout->addWidget(progressBar);
         layout->addStretch();
+
+		Helper::keepScreenOn(true);
+    }
+
+    ~ProgressOverlay() override
+    {
+        Helper::keepScreenOn(false);
     }
 
     void setTitle(const QString &t)        { titleLabel->setText(t); }
@@ -404,14 +411,15 @@ void FirstLaunchView::extractGogData()
 #endif
 }
 
-bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSourceAfter = false)
+bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay *overlay, bool removeSource = false)
 {
     // 1) Scan -> "src \t Target \t Name"
     overlay->setTitle(QObject::tr("Scanning selected folder..."));
     overlay->setIndeterminate(true);
 
     const QStringList items = Helper::findFilesForCopy(path);
-    if (items.isEmpty()) {
+    if(items.isEmpty())
+	{
         overlay->deleteLater();
         QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
         return false;
@@ -419,29 +427,42 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
 
     // 2) Validate signature - TODO: Find proper way for pure SoD check in import or way to block pure RoE / AB
     auto validate = [](const QStringList &items)->QString {
-        bool anyLOD=false, anySOD=false, anyHD=false;
-        for (const QString &line : items) {
+        bool anyLOD=false;
+		bool anySOD=false;
+		bool anyHD=false;
+		
+        for(const QString &line : items)
+		{
             const auto part = line.split('\t');
-            if (part.size() < 3 || part[1].compare("Data", Qt::CaseInsensitive) != 0) continue;
+            if(part.size() < 3 || part[1].compare("Data", Qt::CaseInsensitive) != 0)
+				continue;
+			
             const QString &name = part[2];
-            if (name.endsWith(".lod", Qt::CaseInsensitive)) {
+            if(name.endsWith(".lod", Qt::CaseInsensitive))
+			{
                 anyLOD = true;
-                if (name.startsWith("H3ab", Qt::CaseInsensitive))
+                if(name.startsWith("H3ab", Qt::CaseInsensitive))
                     anySOD = true;
-            } else if (name.endsWith(".pak", Qt::CaseInsensitive)) {
-                anyHD = true;
             }
+			
+			if(name.endsWith(".pak", Qt::CaseInsensitive))
+                anyHD = true;
         }
-        if (anySOD) return {};
-        if (!anyLOD)
+		
+        if(anySOD) return {};
+
+        if(!anyLOD)
             return QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data.");
-        if (anyHD)
+
+        if(anyHD)
             return QObject::tr("Heroes III: HD Edition files are not supported by VCMI.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
+
         return QObject::tr("Unknown or unsupported Heroes III version found.\nPlease select the directory with Heroes III: Complete Edition or Heroes III: Shadow of Death.");
     };
 
     const QString err = validate(items);
-    if (!err.isEmpty()) {
+    if(!err.isEmpty())
+	{
         overlay->deleteLater();
         QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), err);
         return false;
@@ -455,7 +476,8 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     QVector<CopyItem> plan;
 	plan.reserve(items.size());
 
-    for(const QString &line : items) {
+    for(const QString &line : items)
+	{
         const auto part = line.split('\t');
         if(part.size() < 3)
 			continue;
@@ -464,18 +486,21 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
         const QString &tgt  = part[1]; // Data / Maps / Mp3
         const QString &file = part[2];
 
-        if (tgt.compare("Data", Qt::CaseInsensitive)!=0 && tgt.compare("Maps", Qt::CaseInsensitive)!=0 && tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
+        if(tgt.compare("Data", Qt::CaseInsensitive)!=0 && tgt.compare("Maps", Qt::CaseInsensitive)!=0 && tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
             continue;
 
-        if (!created.contains(tgt)) {
+        if(!created.contains(tgt))
+		{
             QDir{}.mkpath(targetRoot.filePath(tgt));
             created.insert(tgt);
         }
+
         const QDir dstDir = targetRoot.filePath(tgt);
         plan.push_back({ src, dstDir.filePath(file) });
     }
 
-    if (plan.isEmpty()) {
+    if(plan.isEmpty())
+	{
         overlay->deleteLater();
         QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), QObject::tr("No matching files found in the selected folder."));
         return false;
@@ -486,20 +511,22 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     overlay->setIndeterminate(false);
     overlay->setRange(plan.size());
 
-    for (int i = 0; i < plan.size(); ++i) {
+    for(int i = 0; i < plan.size(); ++i)
+	{
         overlay->setFileName(QFileInfo(plan[i].dst).fileName());
         overlay->setValue(i + 1);
         qApp->processEvents();
 
         if (QFile::exists(plan[i].dst))
             QFile::remove(plan[i].dst);
+
         Helper::performNativeCopy(plan[i].src, plan[i].dst);
 
         logGlobal->info("Copying '%s' -> '%s'", plan[i].src.toStdString(), plan[i].dst.toStdString());
     }
 
     // 5) Optional cleanup
-    if (removeSourceAfter)
+    if(removeSource)
         QDir(path).removeRecursively();
 
     overlay->deleteLater();
@@ -597,7 +624,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             return data.contains(magicId);
         };
 
-        if (errorText.isEmpty())
+        if(errorText.isEmpty())
         {
             if(isGogGalaxyExe(tmpFileExe))
             {
@@ -615,12 +642,12 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             overlay->setValue(0);
 
             logGlobal->info("Performing extraction using innoextract...");
-            Helper::keepScreenOn(true);
+
             errorText = Innoextract::extract(tmpFileExe, tempDir.path(), [overlay](float progress){
                 overlay->setValue(int(progress * 100));
                 qApp->processEvents();
             });
-            Helper::keepScreenOn(false);
+
             logGlobal->info("Extraction done!");
         }
 
@@ -669,7 +696,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 #endif
 }
 
-void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter)
+void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
     auto *overlay = createOverlay(this, tr("Scanning selected folder..."), true);
 
