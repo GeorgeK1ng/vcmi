@@ -28,6 +28,10 @@
 #include "iOS_utils.h"
 #endif
 
+#ifdef VCMI_ANDROID
+#include <QtAndroid>
+#endif
+
 // Unified progress overlay
 class ProgressOverlay final : public QWidget
 {
