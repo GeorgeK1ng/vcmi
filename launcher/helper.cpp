@@ -325,3 +325,5 @@ QStringList findFilesForCopy(const QString &path)
 
     return out;
 }
+
+}
