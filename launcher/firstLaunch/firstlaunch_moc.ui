@@ -679,7 +679,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Compatible build of the fan-made Horn of the Abyss expansion</string>
+            <string>Install compatible version of &quot;Horn of the Abyss&quot;, a fan-made Heroes III expansion ported by the VCMI team</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -695,7 +695,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>You can install these mods now or later from the VCMI Launcher. Automatically enabled mods are required.</string>
+            <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -778,7 +778,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Compatible build of the fan-made Wake of Gods expansion</string>
+            <string>Install compatible version of &quot;In The Wake of Gods&quot;, a fan-made Heroes III expansion</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -794,7 +794,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Install exclusive expansion Tides of War available only in VCMI</string>
+            <string>Install the Tides of War expansion, which adds the ability to build alternative level 7 creature dwellings for all 9 standard towns</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -810,7 +810,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Install exclusive underground, mushroom-themed expansion available only in VCMI.</string>
+            <string>Install the exclusive underground, mushroom-themed expansion Fallen of the Depth, available only in VCMI</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -826,7 +826,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Heroes III Demo files detected. This mod is required to run VCMI with demo assets, otherwise the game will crash.</string>
+            <string>Heroes III Demo files detected. This mod is required to use demo assets in VCMI, or the game will crash</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
