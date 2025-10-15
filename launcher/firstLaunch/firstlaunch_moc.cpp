@@ -429,7 +429,9 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
         return false;
     }
 
-    // 2) Validate signature - TODO: Find proper way for pure SoD check in import or way to block pure RoE / AB
+    // 2) Validate signature
+	// TODO: Find proper way for pure SoD check in import or way to block pure RoE / AB
+	//       Or prepare RoE / AB Ban mod and allow VCMI to with any H3 version
     auto validate = [](const QStringList &items)->QString {
         bool anyLOD=false;
 		bool anySOD=false;
@@ -543,7 +545,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 #ifdef ENABLE_INNOEXTRACT
     //  Show overlay immediately so the UI doesn't look frozen
-    auto *overlay = createOverlay(this, tr("Checking installer..."), /*indeterminate=*/true);
+    auto *overlay = createOverlay(this, tr("Checking installer..."), true);
     overlay->setFileName(QFileInfo(filePathExe).fileName());
     overlay->raise();
     qApp->processEvents();
