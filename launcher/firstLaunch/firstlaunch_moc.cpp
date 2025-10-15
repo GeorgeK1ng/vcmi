@@ -92,7 +92,6 @@ static inline ProgressOverlay* createOverlay(QWidget *parent, const QString &tit
     return overlay;
 }
 
-
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
@@ -282,7 +281,10 @@ void FirstLaunchView::heroesDataMissing()
 	ui->labelDataManualDescr->setVisible(true);
 	ui->pushButtonDataSearch->setVisible(true);
 
-#ifdef VCMI_IOS
+#ifdef VCMI_ANDROID
+	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
+	const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
+#elif defined(VCMI_IOS)
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
 	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
 #else
@@ -389,7 +391,7 @@ void FirstLaunchView::extractGogData()
 	QString fileBin = fileSelection(filterBin);
 	if(fileBin.isEmpty())
 		return;
-	
+
 	QString fileExe = fileSelection(filterExe, QFileInfo(fileBin).absolutePath());
 	if(fileExe.isEmpty())
 		return;
@@ -411,23 +413,22 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     const QStringList items = Helper::findFilesForCopy(path);
     if (items.isEmpty()) {
         overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"),
-            QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
         return false;
     }
 
-    // 2) Validate signature
+    // 2) Validate signature - TODO: Find proper way for pure SoD check in import or way to block pure RoE / AB
     auto validate = [](const QStringList &items)->QString {
         bool anyLOD=false, anySOD=false, anyHD=false;
         for (const QString &line : items) {
-            const auto p = line.split('\t');
-            if (p.size() < 3 || p[1].compare("Data", Qt::CaseInsensitive) != 0) continue;
-            const QString &n = p[2];
-            if (n.endsWith(".lod", Qt::CaseInsensitive)) {
+            const auto part = line.split('\t');
+            if (part.size() < 3 || part[1].compare("Data", Qt::CaseInsensitive) != 0) continue;
+            const QString &name = part[2];
+            if (name.endsWith(".lod", Qt::CaseInsensitive)) {
                 anyLOD = true;
-                if (n.startsWith("H3ab", Qt::CaseInsensitive))
+                if (name.startsWith("H3ab", Qt::CaseInsensitive))
                     anySOD = true;
-            } else if (n.endsWith(".pak", Qt::CaseInsensitive)) {
+            } else if (name.endsWith(".pak", Qt::CaseInsensitive)) {
                 anyHD = true;
             }
         }
@@ -451,19 +452,19 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     QSet<QString> created;
 
     struct CopyItem { QString src, dst; };
-    QVector<CopyItem> plan; plan.reserve(items.size());
+    QVector<CopyItem> plan;
+	plan.reserve(items.size());
 
-    for (const QString &line : items) {
-        const auto p = line.split('\t');
-        if (p.size() < 3) continue;
+    for(const QString &line : items) {
+        const auto part = line.split('\t');
+        if(part.size() < 3)
+			continue;
 
-        const QString &src  = p[0];
-        const QString &tgt  = p[1]; // Data / Maps / Mp3
-        const QString &fn   = p[2];
+        const QString &src  = part[0];
+        const QString &tgt  = part[1]; // Data / Maps / Mp3
+        const QString &file = part[2];
 
-        if (tgt.compare("Data", Qt::CaseInsensitive)!=0 &&
-            tgt.compare("Maps", Qt::CaseInsensitive)!=0 &&
-            tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
+        if (tgt.compare("Data", Qt::CaseInsensitive)!=0 && tgt.compare("Maps", Qt::CaseInsensitive)!=0 && tgt.compare("Mp3",  Qt::CaseInsensitive)!=0)
             continue;
 
         if (!created.contains(tgt)) {
@@ -471,7 +472,7 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
             created.insert(tgt);
         }
         const QDir dstDir = targetRoot.filePath(tgt);
-        plan.push_back({ src, dstDir.filePath(fn) });
+        plan.push_back({ src, dstDir.filePath(file) });
     }
 
     if (plan.isEmpty()) {
@@ -505,7 +506,6 @@ bool performCopyFlow(const QString &path, FirstLaunchView *self, ProgressOverlay
     return true;
 }
 
-
 void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathExe)
 {
     logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
@@ -525,14 +525,14 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
         // 1) Prepare temp dir
         QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
-        if (tempDir.cd("tmp"))
+        if(tempDir.cd("tmp"))
         {
             logGlobal->info("Cleaning up old temp data");
             tempDir.removeRecursively();
             tempDir.cdUp();
         }
         tempDir.mkdir("tmp");
-        if (!tempDir.cd("tmp"))
+        if(!tempDir.cd("tmp"))
         {
             overlay->deleteLater();
             return; // should not happen - safety bail out
@@ -553,14 +553,14 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             logGlobal->info("Checking file %s", filename.toStdString());
 
             QFile tmpFile(filename);
-            if (!tmpFile.open(QIODevice::ReadOnly))
+            if(!tmpFile.open(QIODevice::ReadOnly))
             {
                 logGlobal->info("File cannot be opened: %s", tmpFile.errorString().toStdString());
                 return QObject::tr("Failed to open file: %1").arg(tmpFile.errorString());
             }
 
             QByteArray magicFile = tmpFile.read(magic.length());
-            if (!magicFile.startsWith(magic))
+            if(!magicFile.startsWith(magic))
             {
                 logGlobal->info("Invalid file selected: %s", filter.toStdString());
                 return QObject::tr("You have to select %1 file!", "param is file extension").arg(filter);
@@ -572,10 +572,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
         QString errorText{};
 
-        if (errorText.isEmpty())
+        if(errorText.isEmpty())
             errorText = checkMagic(tmpFileBin, filterBin, QByteArray{"idska32"});
 
-        if (errorText.isEmpty())
+        if(errorText.isEmpty())
             errorText = checkMagic(tmpFileExe, filterExe, QByteArray{"MZ"});
 
         logGlobal->info("Installing exe '%s' ('%s')", tmpFileExe.toStdString(), filePathExe.toStdString());
@@ -586,10 +586,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             QFile file(fileToTest);
             quint64 fileSize = file.size();
 
-            if (fileSize > 10 * 1024 * 1024)
+            if(fileSize > 10 * 1024 * 1024)
                 return false; // avoid loading big files; Galaxy exe is smaller...
 
-            if (!file.open(QIODevice::ReadOnly))
+            if(!file.open(QIODevice::ReadOnly))
                 return false;
 
             QByteArray data = file.readAll();
@@ -599,7 +599,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
         if (errorText.isEmpty())
         {
-            if (isGogGalaxyExe(tmpFileExe))
+            if(isGogGalaxyExe(tmpFileExe))
             {
                 logGlobal->info("GOG Galaxy detected! Aborting...");
                 errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
@@ -607,7 +607,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         }
 
         // Extract
-        if (errorText.isEmpty())
+        if(errorText.isEmpty())
         {
             overlay->setTitle(tr("Extracting installer..."));
             overlay->setIndeterminate(false);
@@ -626,19 +626,19 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
         // 5) Post-extract verification and error reporting
         QString hashError;
-        if (!errorText.isEmpty())
+        if(!errorText.isEmpty())
             hashError = Innoextract::getHashError(tmpFileExe, tmpFileBin, filePathExe, filePathBin);
 
         QStringList dirData = tempDir.entryList({"data"}, QDir::Filter::Dirs);
-        if (!errorText.isEmpty() || dirData.empty() || QDir(tempDir.filePath(dirData.front())).entryList({"*.lod"}, QDir::Filter::Files).empty())
+        if(!errorText.isEmpty() || dirData.empty() || QDir(tempDir.filePath(dirData.front())).entryList({"*.lod"}, QDir::Filter::Files).empty())
         {
             overlay->deleteLater();
 
-            if (!errorText.isEmpty())
+            if(!errorText.isEmpty())
             {
                 logGlobal->error("Gog installer extraction failure! Reason: %s", errorText.toStdString());
                 QMessageBox::critical(this, tr("Extracting error!"), errorText, QMessageBox::Ok, QMessageBox::Ok);
-                if (!hashError.isEmpty())
+                if(!hashError.isEmpty())
                 {
                     logGlobal->error("Hash error: %s", hashError.toStdString());
                     QMessageBox::critical(this, tr("Hash error!"), hashError, QMessageBox::Ok, QMessageBox::Ok);
@@ -660,9 +660,9 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         overlay->setRange(100); // performCopyFlow will reset to plan size internally
         overlay->setValue(0);
 
-        if (performCopyFlow(tempDir.path(), this, overlay, /*removeSourceAfter=*/true))
+        if(performCopyFlow(tempDir.path(), this, overlay, true))
         {
-            if (heroesDataUpdate())
+            if(heroesDataUpdate())
                 activateTabModPreset();
         }
     });
@@ -671,11 +671,11 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSourceAfter)
 {
-    auto *overlay = createOverlay(this, tr("Scanning selected folder..."), /*indeterminate=*/true);
+    auto *overlay = createOverlay(this, tr("Scanning selected folder..."), true);
 
     auto work = [this, path, overlay]() {
-        if (performCopyFlow(path, this, overlay, false))
-            if (heroesDataUpdate())
+        if(performCopyFlow(path, this, overlay, false))
+            if(heroesDataUpdate())
                 activateTabModPreset();
     };
 
@@ -740,7 +740,7 @@ bool FirstLaunchView::checkCanInstallExtras()
 
 bool FirstLaunchView::checkCanInstallDemo()
 {
-    if (!checkCanInstallMod("demo-support"))
+    if(!checkCanInstallMod("demo-support"))
         return false;
 
     QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
