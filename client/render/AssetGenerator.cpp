@@ -77,6 +77,8 @@ void AssetGenerator::initialize()
 	
 	animationFiles[AnimationPath::builtin("SPRITES/GSPButtonClear")] = createGSPButtonClear();
 
+	imageFiles[ImagePath::builtin("muplayer.png")] = [this](){ return createMultiplayerImage(); };
+	
 	createPaletteShiftedSprites();
 }
 
@@ -808,4 +810,18 @@ AssetGenerator::AnimationLayoutMap AssetGenerator::createGSPButtonClear()
 	}
 
 	return layout;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createMultiplayerImage() const
+{
+    auto locator = ImageLocator(ImagePath::builtin("muhotsea"), EImageBlitMode::OPAQUE);
+    std::shared_ptr<IImage> src = ENGINE->renderHandler().loadImage(locator);
+
+    auto out = ENGINE->renderHandler().createImage(Point(363, 196), CanvasScalingPolicy::IGNORE);
+    Canvas canvas = out->getCanvas();
+
+    canvas.draw(src, Point(0, 0), Rect(0, 0, 363, 104));
+    canvas.draw(src, Point(0, 104), Rect(0, 315, 363, 92));
+
+    return out;
 }
