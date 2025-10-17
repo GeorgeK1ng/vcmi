@@ -65,6 +65,8 @@ private:
 	CanvasPtr createQuestWindow() const;
 	AnimationLayoutMap createGSPButtonClear();
 
+	CanvasPtr createMultiplayerImage() const;
+
 	void createPaletteShiftedSprites();
 	void generatePaletteShiftedAnimation(const AnimationPath & source, const std::vector<PaletteAnimation> & animation);
 };
