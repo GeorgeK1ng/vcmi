@@ -544,6 +544,10 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 {
 	OBJECT_CONSTRUCTION;
 
+    const bool shortUI = (shortcut != EShortcut::MAIN_MENU_HOTSEAT);
+    background = std::make_shared<CPicture>(ImagePath::builtin(shortUI ? "MUPLAYER" : "MUHOTSEA"));
+    pos = background->center();
+	
 	std::string text;
 	switch (shortcut)
 	{
@@ -559,12 +563,10 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 		break;
 	}
 
-	if(shortcut != EShortcut::MAIN_MENU_HOTSEAT)
-	{
-		background = std::make_shared<CPicture>(ImagePath::builtin("MUHOTSEA"));
-		
-		textTitle = std::make_shared<CTextBox>(text, Rect(25, 10, 315, 60), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
+	textTitle = std::make_shared<CTextBox>(text, Rect(25, 10, 315, 60), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
 	
+	if(!shortUI)
+	{
 		for(int i = 0; i < inputNames.size(); i++)
 		{
 			inputNames[i] = std::make_shared<CTextInput>(Rect(60, 85 + i * 30, 280, 16), background->getSurface());
@@ -577,11 +579,6 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 	}
 	else
 	{
-        background = std::make_shared<CPicture>(ImagePath::builtin("MUPLAYER"));
-
-        textTitle = std::make_shared<CTextBox>(text, Rect(25, 10, 315, 60), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
-
-        // only first input
         inputNames[0] = std::make_shared<CTextInput>(Rect(60, 85, 280, 16), background->getSurface());
         inputNames[0]->setCallback(std::bind(&CMultiPlayers::onChange, this, _1));
         for (size_t i = 1; i < inputNames.size(); ++i) inputNames[i].reset();
