@@ -82,7 +82,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
-
+	imageFiles[ImagePath::builtin("muplayer.png")] = [this](){ return createMultiplayerImage(); };
+	
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
 		imageFiles[ImagePath::builtin("DialogBoxBackground_" + color.toString())] = [this, color](){ return createPlayerColoredBackground(color);};
 
@@ -883,4 +884,18 @@ AssetGenerator::AnimationLayoutMap AssetGenerator::createGSPButtonClear()
 	}
 
 	return layout;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createMultiplayerImage() const
+{
+    auto locator = ImageLocator(ImagePath::builtin("muhotsea"), EImageBlitMode::OPAQUE);
+    std::shared_ptr<IImage> src = ENGINE->renderHandler().loadImage(locator);
+
+    auto out = ENGINE->renderHandler().createImage(Point(363, 196), CanvasScalingPolicy::IGNORE);
+    Canvas canvas = out->getCanvas();
+
+    canvas.draw(src, Point(0, 0), Rect(0, 0, 363, 104));
+    canvas.draw(src, Point(0, 104), Rect(0, 315, 363, 92));
+
+    return out;
 }
