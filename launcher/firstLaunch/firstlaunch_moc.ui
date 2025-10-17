@@ -643,6 +643,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -710,6 +716,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -741,6 +753,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
            </property>
            <property name="font">
             <font>
@@ -857,6 +875,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -888,6 +912,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
            </property>
            <property name="font">
             <font>
@@ -921,6 +951,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -952,6 +988,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
            </property>
            <property name="font">
             <font>
