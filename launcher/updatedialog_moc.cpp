@@ -198,7 +198,7 @@ void UpdateDialog::loadFromJson(const JsonNode & node)
 	
 	const int vcmp = cmpSemver(currentVersion, newVersion);
 	
-	const std::string curSha   = std::string(GameConstants::GIT_SHA1);
+	const std::string curSha   = std::string(GIT_SHA1);
 	const std::string curSha7  = commitShort(curSha);
 	const std::string jsonSha7 = commitShort(newCommit);
 	
