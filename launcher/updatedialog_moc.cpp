@@ -13,7 +13,7 @@
 
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
-#include "../lib/Version.h"
+#include "../Version.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
