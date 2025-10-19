@@ -198,14 +198,14 @@ void UpdateDialog::loadFromJson(const JsonNode & node)
 	
 	const int vcmp = cmpSemver(currentVersion, newVersion);
 	
-	const std::string curSha   = std::string(GIT_SHA1);
-	const std::string curSha7  = commitShort(curSha);
-	const std::string jsonSha7 = commitShort(newCommit);
+	const std::string curSha   = std::string(VCMI::GameConstants::GIT_SHA1);
+	const std::string curShaShort  = commitShort(curSha);
+	const std::string jsonSha = commitShort(newCommit);
 	
 	// semver higher -> update; same semver + different 7-char commit -> update
 	if (vcmp < 0)
 	    offer = true;
-	else if (vcmp == 0 && !jsonSha7.empty() && !curSha7.empty() && jsonSha7 != curSha7)
+	else if (vcmp == 0 && !jsonSha.empty() && !curShaShort.empty() && jsonSha != curShaShort)
 	    offer = true;
 	
 	// If no update, silently close (when auto) and exit
