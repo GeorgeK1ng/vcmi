@@ -10,6 +10,7 @@
 #pragma once
 #include <QDialog>
 #include <QNetworkAccessManager>
+#include <QUrl>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -33,12 +34,12 @@ public:
 
 private slots:
     void on_checkOnStartup_stateChanged(int state);
+	void downloadAndRunInstaller(const QUrl &url);
 
 private:
 	Ui::UpdateDialog *ui;
 	
 	std::string currentVersion;
-	std::string platformParameter = "other";
 	
 	QNetworkAccessManager networkManager;
 	
