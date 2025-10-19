@@ -13,7 +13,6 @@
 
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
-#include "../Version.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -23,6 +22,7 @@
 #include <QProcess>
 #include <QDesktopServices>
 #include <QDir>
+#include <QProgressBar>
 
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	QDialog(parent),
@@ -198,7 +198,7 @@ void UpdateDialog::loadFromJson(const JsonNode & node)
 	
 	const int vcmp = cmpSemver(currentVersion, newVersion);
 	
-	const std::string curSha   = std::string(VCMI::GameConstants::GIT_SHA1);
+	const std::string curSha   = std::string(GameConstants::GIT_SHA1);
 	const std::string curShaShort  = commitShort(curSha);
 	const std::string jsonSha = commitShort(newCommit);
 	
