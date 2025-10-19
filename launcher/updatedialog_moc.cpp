@@ -17,12 +17,23 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
+#include <QSysInfo>
+#include <QTemporaryFile>
+#include <QProcess>
+#include <QDesktopServices>
+#include <QDir>
+
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	QDialog(parent),
 	ui(new Ui::UpdateDialog),
 	calledManually(calledManually)
 {
 	ui->setupUi(this);
+
+    // make QLabel emit linkActivated instead of opening the browser itself
+    ui->downloadLink->setOpenExternalLinks(false);
+    ui->downloadLink->setTextFormat(Qt::RichText);
+    ui->downloadLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
 	
 	if(calledManually)
 	{
@@ -38,18 +49,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	currentVersion = GameConstants::VCMI_VERSION;
 	
 	setWindowTitle(QString::fromStdString(currentVersion));
-	
-#ifdef VCMI_WINDOWS
-	platformParameter = "windows";
-#elif defined(VCMI_MAC)
-	platformParameter = "macos";
-#elif defined(VCMI_IOS)
-	platformParameter = "ios";
-#elif defined(VCMI_ANDROID)
-	platformParameter = "android";
-#elif defined(VCMI_UNIX)
-	platformParameter = "linux";
-#endif
 	
 	QString url = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
 		
@@ -90,58 +89,226 @@ void UpdateDialog::on_checkOnStartup_stateChanged(int state)
 	node->Bool() = ui->checkOnStartup->isChecked();
 }
 
+// Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
+static QString platformKeyFromRuntime()
+{
+#if defined(Q_OS_WIN)
+    const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64","i386","arm64",…
+    if (arch == "x86_64") return "windows-x64";
+    if (arch == "i386" || arch == "i686") return "windows-x86";
+    if (arch == "arm64" || arch == "aarch64") return "windows-arm64";
+    return "windows-x64";
+#elif defined(Q_OS_MACOS)
+    const auto arch = QSysInfo::currentCpuArchitecture();
+    return (arch == "arm64" || arch == "aarch64") ? "macos-arm" : "macos-intel";
+#elif defined(Q_OS_ANDROID)
+    const auto arch = QSysInfo::currentCpuArchitecture(); // "arm64-v8a","armeabi-v7a",…
+    return arch.contains("64") ? "android-arm64-v8a" : "android-armeabi-v7a";
+#elif defined(Q_OS_IOS)
+    return "ios-ios";
+#else
+    // placeholder for future linux keys
+    const auto arch = QSysInfo::currentCpuArchitecture();
+    if (arch == "x86_64") return "linux-x64";
+    if (arch == "arm64" || arch == "aarch64") return "linux-arm64";
+    return "linux-x64";
+#endif
+}
+
+// Compare semantic versions M.m.p (suffixes ignored)
+static int cmpSemver(const std::string &a, const std::string &b)
+{
+    int A=0,B=0,C=0, X=0,Y=0,Z=0;
+    std::sscanf(a.c_str(), "%d.%d.%d", &A,&B,&C);
+    std::sscanf(b.c_str(), "%d.%d.%d", &X,&Y,&Z);
+    if (A!=X) return (A<X)?-1:+1;
+    if (B!=Y) return (B<Y)?-1:+1;
+    if (C!=Z) return (C<Z)?-1:+1;
+    return 0;
+}
+
+// Background color for version bump; same version + different commit -> lightblue
+static QString bgForChange(const std::string &cur, const std::string &nw)
+{
+    int M1=0,m1=0,p1=0, M2=0,m2=0,p2=0;
+    std::sscanf(cur.c_str(), "%d.%d.%d", &M1,&m1,&p1);
+    std::sscanf(nw.c_str(),  "%d.%d.%d", &M2,&m2,&p2);
+    if (M2>M1) return "red";
+    if (M2==M1 && m2>m1) return "orange";
+    if (M2==M1 && m2==m1 && p2>p1) return "gray";
+    return "lightblue";
+}
+
+// Pick best download URL from "download" object
+static QString pickDownloadUrl(const JsonNode &node)
+{
+    const auto prefer = platformKeyFromRuntime().toStdString();
+    if (node["download"][prefer].getType() == JsonNode::JsonType::DATA_STRING)
+        return QString::fromStdString(node["download"][prefer].String());
+
+#if defined(Q_OS_WIN)
+    const char* candidates[] = {"windows-x64","windows-arm64","windows-x86"};
+#elif defined(Q_OS_MACOS)
+    const char* candidates[] = {"macos-arm","macos-intel"};
+#elif defined(Q_OS_ANDROID)
+    const char* candidates[] = {"android-arm64-v8a","android-armeabi-v7a"};
+#elif defined(Q_OS_IOS)
+    const char* candidates[] = {"ios-ios"};
+#else
+    const char* candidates[] = {"linux-x64","linux-arm64"};
+#endif
+    for (auto c : candidates)
+        if (node["download"][c].getType() == JsonNode::JsonType::DATA_STRING)
+            return QString::fromStdString(node["download"][c].String());
+
+    // last resort: first string in "download"
+    for (const auto &kv : node["download"].Struct())
+        if (kv.second.getType() == JsonNode::JsonType::DATA_STRING)
+            return QString::fromStdString(kv.second.String());
+    return {};
+}
+
+// Return first 7 characters of a commit-ish; gracefully handles empty/short strings.
+static std::string commitShort(const std::string &s)
+{
+    if (s.size() <= 7) return s;
+    return s.substr(0, 7);
+}
+
 void UpdateDialog::loadFromJson(const JsonNode & node)
 {
-	if(node.getType() != JsonNode::JsonType::DATA_STRUCT ||
-	   node["updateType"].getType() != JsonNode::JsonType::DATA_STRING ||
-	   node["version"].getType() != JsonNode::JsonType::DATA_STRING ||
-	   node["changeLog"].getType() != JsonNode::JsonType::DATA_STRING ||
-	   node["downloadLinks"].getType() != JsonNode::JsonType::DATA_STRUCT) //we need at least one link - other are optional
-	{
-		ui->plainTextEdit->setPlainText(tr("Cannot read JSON from URL or incorrect JSON data"));
-		return;
+    // Expect ONLY the new schema
+    if (node.getType() != JsonNode::JsonType::DATA_STRUCT ||
+        node["version"].getType()  != JsonNode::JsonType::DATA_STRING ||
+        node["commit"].getType()   != JsonNode::JsonType::DATA_STRING ||
+        node["download"].getType() != JsonNode::JsonType::DATA_STRUCT)
+    {
+        ui->plainTextEdit->setPlainText(tr("Invalid update JSON (expecting new schema)."));
+        return;
+    }
+
+    const std::string newVersion = node["version"].String();
+    const std::string newCommit  = node["commit"].String();
+    const std::string buildDate  = node["buildDate"].getType()==JsonNode::JsonType::DATA_STRING ? node["buildDate"].String() : "";
+    const std::string changeLog  = node["changeLog"].getType()==JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
+
+	// Offer update if semver is higher OR (same semver AND 7-char commit differs)
+	bool offer = false;
+	
+	const int vcmp = cmpSemver(currentVersion, newVersion);
+	
+	const std::string curSha   = std::string(GameConstants::GIT_SHA1);
+	const std::string curSha7  = commitShort(curSha);
+	const std::string jsonSha7 = commitShort(newCommit);
+	
+	// semver higher -> update; same semver + different 7-char commit -> update
+	if (vcmp < 0)
+	    offer = true;
+	else if (vcmp == 0 && !jsonSha7.empty() && !curSha7.empty() && jsonSha7 != curSha7)
+	    offer = true;
+	
+	// If no update, silently close (when auto) and exit
+	if (!offer) {
+	    if (!calledManually)
+	        close();
+	    return;
 	}
 	
-	//check whether update is needed
-	bool isFutureVersion = true;
-	std::string newVersion = node["version"].String();
-	for(auto & prevVersion : node["history"].Vector())
-	{
-		if(prevVersion.String() == currentVersion)
-			isFutureVersion = false;
+	if (!calledManually) {
+	    setWindowModality(Qt::ApplicationModal);
+	    show();
 	}
-		
-	if(isFutureVersion || currentVersion == newVersion)
-	{
-		if(!calledManually)
-			close();
-		
-		return;
-	}
-	
-	if(!calledManually)
-	{
-		setWindowModality(Qt::ApplicationModal);
-		show();
-	}
-	
-	const auto updateType = node["updateType"].String();
-	
-	QString bgColor;
-	if(updateType == "minor")
-		bgColor = "gray";
-	else if(updateType == "major")
-		bgColor = "orange";
-	else if(updateType == "critical")
-		bgColor = "red";
-	
-	ui->versionLabel->setStyleSheet(QString("QLabel { background-color : %1; color : black; }").arg(bgColor));
-	ui->versionLabel->setText(QString::fromStdString(newVersion));
-	ui->plainTextEdit->setPlainText(QString::fromStdString(node["changeLog"].String()));
-	
-	QString downloadLink = QString::fromStdString(node["downloadLinks"]["other"].String());
-	if(node["downloadLinks"][platformParameter].getType() == JsonNode::JsonType::DATA_STRING)
-		downloadLink = QString::fromStdString(node["downloadLinks"][platformParameter].String());
-	
-	ui->downloadLink->setText(QString{"<a href=\"%1\">Download page</a>"}.arg(downloadLink));
+
+    const QString bgColor = bgForChange(currentVersion, newVersion);
+    ui->versionLabel->setStyleSheet(QString("QLabel { background-color : %1; color : black; }").arg(bgColor));
+    ui->versionLabel->setText(QString::fromStdString(newVersion));
+
+	QString logText = QString::fromStdString(changeLog);
+	if (!buildDate.empty() || !newCommit.empty())
+	    logText = tr("%1\n\nBuild: %2\nCommit: %3")
+	                .arg(logText,
+	                     QString::fromStdString(buildDate),
+	                     QString::fromStdString(commitShort(newCommit)));
+    ui->plainTextEdit->setPlainText(logText);
+
+    const QString link = pickDownloadUrl(node);
+    if (link.isEmpty()) {
+        ui->downloadLink->setText(tr("No download available for this platform."));
+        return;
+    }
+    ui->downloadLink->setText(QString("<a href=\"%1\">%2</a>").arg(link, tr("Download")));
+
+#if defined(Q_OS_WIN)
+    // If Install button exists, wire it to auto-download+run; also handle link click
+    if (ui->installButton) {
+        ui->installButton->setVisible(true);
+        ui->installButton->disconnect();
+        connect(ui->installButton, &QPushButton::clicked, this, [this, link]{
+            this->downloadAndRunInstaller(QUrl(link));
+        });
+    }
+    // Optional: clicking the link also installs directly
+    connect(ui->downloadLink, &QLabel::linkActivated, this, [this](const QString &u){
+        this->downloadAndRunInstaller(QUrl(u));
+    });
+#else
+    // Non-Windows: open in default browser
+    connect(ui->downloadLink, &QLabel::linkActivated, this, [](const QString &u){
+        QDesktopServices::openUrl(QUrl(u));
+    });
+#endif
+}
+
+
+void UpdateDialog::downloadAndRunInstaller(const QUrl &url)
+{
+#if !defined(Q_OS_WIN)
+    // Non-Windows: just open URL
+    QDesktopServices::openUrl(url);
+    return;
+#else
+    // Download installer
+    QNetworkReply *rep = networkManager.get(QNetworkRequest(url));
+
+    if (ui->progressBar) {
+        ui->progressBar->setVisible(true);
+        ui->progressBar->setRange(0, 0); // indeterminate until we know size
+        connect(rep, &QNetworkReply::downloadProgress, this, [this](qint64 rec, qint64 tot){
+            if (!ui->progressBar) return;
+            if (tot > 0) { ui->progressBar->setRange(0, (int)tot); ui->progressBar->setValue((int)rec); }
+        });
+    }
+
+    connect(rep, &QNetworkReply::finished, this, [this, rep]{
+        rep->deleteLater();
+        if (rep->error() != QNetworkReply::NoError) {
+            ui->plainTextEdit->appendPlainText(tr("\nDownload failed: %1").arg(rep->errorString()));
+            if (ui->progressBar) ui->progressBar->setVisible(false);
+            return;
+        }
+
+        // Save to temp .exe
+        QTemporaryFile tmp(QDir::tempPath() + "/VCMI_Update_XXXXXX.exe");
+        tmp.setAutoRemove(false);
+        if (!tmp.open()) {
+            ui->plainTextEdit->appendPlainText(tr("\nCannot create temporary file."));
+            if (ui->progressBar) ui->progressBar->setVisible(false);
+            return;
+        }
+        tmp.write(rep->readAll());
+        tmp.close();
+
+        if (ui->progressBar) ui->progressBar->setVisible(false);
+
+        // Optional: Inno Setup silent args (enable only if your installer supports them)
+        QStringList args; // e.g. args << "/VERYSILENT" << "/NORESTART" << "/LAUNCH";
+
+        if (!QProcess::startDetached(tmp.fileName(), args)) {
+            ui->plainTextEdit->appendPlainText(tr("\nCannot start installer."));
+            return;
+        }
+        // Optionally close the dialog:
+        // close();
+    });
+#endif
 }
