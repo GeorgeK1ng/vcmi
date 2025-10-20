@@ -14,6 +14,7 @@ VCMI_LIB_NAMESPACE_BEGIN
 namespace GameConstants
 {
 	DLL_LINKAGE extern const std::string VCMI_VERSION;
+	DLL_LINKAGE extern const std::string VCMI_COMMIT;
 
 	constexpr int PUZZLE_MAP_PIECES = 48;
 
