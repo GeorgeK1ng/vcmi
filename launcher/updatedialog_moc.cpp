@@ -13,6 +13,7 @@
 
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
+#include "../lib/VCMIDirs.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -24,6 +25,15 @@
 #include <QDir>
 #include <QProgressBar>
 
+ // Helper to normalize channel text to Stable/Beta/Develop
+static QString normalizeChannel(const QString& text)
+{
+	const auto t = text.trimmed().toLower();
+	if (t.contains("beta"))    return "Beta";
+	if (t.contains("develop")) return "Develop";
+	return "Stable";
+}
+
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	QDialog(parent),
 	ui(new Ui::UpdateDialog),
@@ -31,11 +41,15 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 {
 	ui->setupUi(this);
 
+	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+
     // make QLabel emit linkActivated instead of opening the browser itself
     ui->downloadLink->setOpenExternalLinks(false);
     ui->downloadLink->setTextFormat(Qt::RichText);
     ui->downloadLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
-	
+
+	ui->progressBar->setHidden(true);
+
 	if(calledManually)
 	{
 		setWindowModality(Qt::ApplicationModal);
@@ -46,30 +60,27 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	
 	if(settings["launcher"]["updateOnStartup"].Bool())
 		ui->checkOnStartup->setCheckState(Qt::CheckState::Checked);
-	
+
+
+	if (settings["launcher"]["testingBuilds"].Bool())
+		ui->testingBuilds->setCheckState(Qt::CheckState::Checked);
+
 	currentVersion = GameConstants::VCMI_VERSION;
+	currentCommit = GameConstants::VCMI_COMMIT;
 	
-	setWindowTitle(QString::fromStdString(currentVersion));
-	
-	QString url = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
-		
-	QNetworkReply *response = networkManager.get(QNetworkRequest(QUrl(url)));
-	
-	connect(response, &QNetworkReply::finished, [&, response]{
-		response->deleteLater();
-		
-		if(response->error() != QNetworkReply::NoError)
-		{
-			ui->versionLabel->setStyleSheet("QLabel { background-color : red; color : black; }");
-			ui->versionLabel->setText(tr("Network error"));
-			ui->plainTextEdit->setPlainText(response->errorString());
-			return;
-		}
-		
-		auto byteArray = response->readAll();
-		JsonNode node(reinterpret_cast<const std::byte*>(byteArray.constData()), byteArray.size(), "<network packet from server at updateConfigUrl>");
-		loadFromJson(node);
-	});
+	//setWindowTitle(QString::fromStdString(currentVersion));
+
+	setWindowTitle(tr("VCMI Updates configuration"));
+
+
+	// Testing build info
+	if (ui->testingBuilds->isChecked()) {
+		fetchChannel(normalizeChannel(ui->testingBuilds->text()));
+		ui->tabWidget->setCurrentIndex(1);
+	}
+
+	fetchChannel("Stable");
+
 }
 
 UpdateDialog::~UpdateDialog()
@@ -88,6 +99,61 @@ void UpdateDialog::on_checkOnStartup_stateChanged(int state)
 {
 	Settings node = settings.write["launcher"]["updateOnStartup"];
 	node->Bool() = ui->checkOnStartup->isChecked();
+}
+
+void UpdateDialog::on_testingBuilds_stateChanged(int state)
+{
+	bool testing = ui->testingBuilds->isChecked();
+
+	Settings node = settings.write["launcher"]["testingBuilds"];
+	node->Bool() = testing;
+
+	QLabel* versionLabel = testing ? ui->releaseVersion : ui->testingVersion;
+	QTextBrowser* changelogBox = testing ? ui->releaseChangelog : ui->testingChangelog;
+
+	// Additionally load the selected testing channel if enabled
+	if(testing)
+	{
+		const QString channel = ui->buildChannel ? (ui->buildChannel->currentText()) : QString("Develop");
+		fetchChannel(channel);
+
+		ui->buildChannel->setEnabled(true);
+		ui->titleTesting->setEnabled(true);
+		ui->testingChangelogTitle->setEnabled(true);
+		//changelogBox->setEnabled(true);
+	}
+	else
+	{
+		ui->buildChannel->setDisabled(true);
+		ui->titleTesting->setDisabled(true);
+		ui->testingChangelogTitle->setDisabled(true);
+		versionLabel->setText("");
+		changelogBox->setMarkdown("");
+		//changelogBox->setDisabled(true);
+	}
+}
+
+// Build filename for the selected update channel.
+static QString filenameForChannel(const QString& channel)
+{
+	const QString ch = channel.trimmed().toLower();
+	if (ch == "stable")  return "vcmi-stable.json";
+	if (ch == "beta")    return "vcmi-beta.json";
+	return "vcmi-develop.json"; // default
+}
+
+
+
+void UpdateDialog::on_buildChannel_currentIndexChanged(int)
+{
+	// Only react when testing builds are enabled
+	QCheckBox* testingBox = ui->testingBuilds ? ui->testingBuilds
+		: this->findChild<QCheckBox*>("testingBuilds");
+	if (!testingBox || !testingBox->isChecked())
+		return;
+
+	const QString ch = filenameForChannel(ui->buildChannel->currentText());
+	fetchChannel(ch);
 }
 
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
@@ -140,6 +206,15 @@ static QString bgForChange(const std::string &cur, const std::string &nw)
     return "lightblue";
 }
 
+
+// Join base URL (may or may not end with /) with filename.
+static QUrl joinBaseAndFile(const QString& base, const QString& file)
+{
+	QString b = base.trimmed();
+	if (!b.endsWith('/')) b.append('/');
+	return QUrl(b + file);
+}
+
 // Pick best download URL from "download" object
 static QString pickDownloadUrl(const JsonNode &node)
 {
@@ -176,141 +251,198 @@ static std::string commitShort(const std::string &s)
     return s.substr(0, 7);
 }
 
-void UpdateDialog::loadFromJson(const JsonNode & node)
+void UpdateDialog::fetchChannel(const QString& channel)
 {
-    // Expect ONLY the new schema
-    if (node.getType() != JsonNode::JsonType::DATA_STRUCT ||
-        node["version"].getType()  != JsonNode::JsonType::DATA_STRING ||
-        node["commit"].getType()   != JsonNode::JsonType::DATA_STRING ||
-        node["download"].getType() != JsonNode::JsonType::DATA_STRUCT)
-    {
-        ui->plainTextEdit->setPlainText(tr("Invalid update JSON (expecting new schema)."));
-        return;
-    }
+	const QString norm = normalizeChannel(channel);
+	const bool isTesting = (norm != "Stable"); // Beta/Develop -> testing area
 
-    const std::string newVersion = node["version"].String();
-    const std::string newCommit  = node["commit"].String();
-    const std::string buildDate  = node["buildDate"].getType()==JsonNode::JsonType::DATA_STRING ? node["buildDate"].String() : "";
-    const std::string changeLog  = node["changeLog"].getType()==JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
+	const QString base = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
+	const QUrl url = joinBaseAndFile(base, filenameForChannel(norm));
 
-	// Offer update if semver is higher OR (same semver AND 7-char commit differs)
-	bool offer = false;
-	
-	const int vcmp = cmpSemver(currentVersion, newVersion);
-	
-	const std::string curSha   = std::string(GameConstants::VCMI_COMMIT);
-	//const std::string curSha   = "1a2b3c4d5e6f";
-	const std::string curShaShort  = commitShort(curSha);
-	const std::string jsonSha = commitShort(newCommit);
-	
-	// semver higher -> update; same semver + different 7-char commit -> update
-	if (vcmp < 0)
-	    offer = true;
-	else if (vcmp == 0 && !jsonSha.empty() && !curShaShort.empty() && jsonSha != curShaShort)
-	    offer = true;
-	
-	// If no update, silently close (when auto) and exit
-	if (!offer) {
-	    if (!calledManually)
-	        close();
-	    return;
-	}
-	
-	if (!calledManually) {
-	    setWindowModality(Qt::ApplicationModal);
-	    show();
-	}
+	// Route the "loading" message to the correct changelog box
+	//(isTesting ? ui->testingChangelog : ui->releaseChangelog)->setPlainText(tr("Loading %1 …").arg(url.toString()));
 
-    const QString bgColor = bgForChange(currentVersion, newVersion);
-    ui->versionLabel->setStyleSheet(QString("QLabel { background-color : %1; color : black; }").arg(bgColor));
-    ui->versionLabel->setText(QString::fromStdString(newVersion));
+	QNetworkReply* response = networkManager.get(QNetworkRequest(url));
 
-	QString logText = QString::fromStdString(changeLog);
-	if (!buildDate.empty() || !newCommit.empty())
-	    logText = tr("%1\n\nBuild: %2\nCommit: %3")
-	                .arg(logText,
-	                     QString::fromStdString(buildDate),
-	                     QString::fromStdString(commitShort(newCommit)));
-    ui->plainTextEdit->setPlainText(logText);
+	connect(response, &QNetworkReply::finished, [this, response, isTesting] {
+		response->deleteLater();
 
-    const QString link = pickDownloadUrl(node);
-    if (link.isEmpty()) {
-        ui->downloadLink->setText(tr("No download available for this platform."));
-        return;
-    }
-    ui->downloadLink->setText(QString("<a href=\"%1\">%2</a>").arg(link, tr("Download")));
+		if (response->error() != QNetworkReply::NoError)
+		{
+			(isTesting ? ui->testingChangelog : ui->releaseChangelog)->setMarkdown(tr("Network error: %1").arg(response->errorString()));
+			return;
+		}
 
-#if defined(Q_OS_WIN)
-    // If Install button exists, wire it to auto-download+run; also handle link click
-    if (ui->installButton) {
-        ui->installButton->setVisible(true);
-        ui->installButton->disconnect();
-        connect(ui->installButton, &QPushButton::clicked, this, [this, link]{
-            this->downloadAndRunInstaller(QUrl(link));
-        });
-    }
-    // Optional: clicking the link also installs directly
-    connect(ui->downloadLink, &QLabel::linkActivated, this, [this](const QString &u){
-        this->downloadAndRunInstaller(QUrl(u));
-    });
-#else
-    // Non-Windows: open in default browser
-    connect(ui->downloadLink, &QLabel::linkActivated, this, [](const QString &u){
-        QDesktopServices::openUrl(QUrl(u));
-    });
-#endif
+		const auto bytes = response->readAll();
+		JsonNode node(reinterpret_cast<const std::byte*>(bytes.constData()), bytes.size(), "<network packet from update url>");
+		loadFromJson(node, isTesting);
+		});
 }
 
 
-void UpdateDialog::downloadAndRunInstaller(const QUrl &url)
+// Optionally enable/disable Install for this payload
+static void setInstallEnabled(Ui::UpdateDialog* ui, bool enabled)
 {
-#if !defined(Q_OS_WIN)
-    // Non-Windows: just open URL
-    QDesktopServices::openUrl(url);
-    return;
+#if defined(Q_OS_WIN)
+	if (ui->installButton) {
+		ui->installButton->setVisible(true);
+		ui->installButton->setEnabled(enabled);
+		ui->installButton->setToolTip(enabled ? QString() : QObject::tr("You already have this build."));
+	}
 #else
-    // Download installer
-    QNetworkReply *rep = networkManager.get(QNetworkRequest(url));
+	Q_UNUSED(ui);
+	Q_UNUSED(enabled);
+#endif
+}
 
-	QProgressBar *progress = this->findChild<QProgressBar*>("progressBar");
-	
-	if (progress) {
-	    progress->setVisible(true);
-	    progress->setRange(0, 0);
-	    connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot){
-	        if (!progress) return;
-	        if (tot > 0) { progress->setRange(0, (int)tot); progress->setValue((int)rec); }
-	    });
+void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
+{
+	// Validate schema
+	if (node.getType() != JsonNode::JsonType::DATA_STRUCT ||
+		node["version"].getType() != JsonNode::JsonType::DATA_STRING ||
+		node["download"].getType() != JsonNode::JsonType::DATA_STRUCT)
+	{
+		//(testing ? ui->testingChangelog : ui->releaseChangelog)->setPlainText(tr("Invalid update JSON (missing 'version' or 'download')."));
+		return;
 	}
 
-	connect(rep, &QNetworkReply::finished, this, [this, rep, progress]{
-	    rep->deleteLater();
-	    if (rep->error() != QNetworkReply::NoError) {
-	        ui->plainTextEdit->appendPlainText(tr("\nDownload failed: %1").arg(rep->errorString()));
-	        if (progress) progress->setVisible(false);
-	        return;
-	    }
-	
-	    // Save to temp .exe
-	    QTemporaryFile tmp(QDir::tempPath() + "/VCMI_Update_XXXXXX.exe");
-	    tmp.setAutoRemove(false);
-	    if (!tmp.open()) {
-	        ui->plainTextEdit->appendPlainText(tr("\nCannot create temporary file."));
-	        if (progress) progress->setVisible(false);   
-	        return;
-	    }
-	    tmp.write(rep->readAll());
-	    tmp.close();
-	
-	    if (progress) progress->setVisible(false);
-	
-	    QStringList args; // např.: args << "/VERYSILENT" << "/NORESTART";
-	    if (!QProcess::startDetached(tmp.fileName(), args)) {
-	        ui->plainTextEdit->appendPlainText(tr("\nCannot start installer."));
-	        return;
-	    }
-        // Optionally close the dialog:
-        // close();
-    });
+	// Choose target widgets based on 'testing'
+	QLabel* versionLabel = testing ? ui->testingVersion : ui->releaseVersion;
+	QTextBrowser* changelogBox = testing ? ui->testingChangelog : ui->releaseChangelog;
+	QString &downloadURL = testing ? testingUrl : releaseUrl;
+	QString &version = testing ? testingVersion : releaseVersion;
+
+	const std::string newVersion = node["version"].String();
+	const std::string newCommit = node["commit"].getType() == JsonNode::JsonType::DATA_STRING ? node["commit"].String() : "";
+	const std::string buildDate = node["buildDate"].getType() == JsonNode::JsonType::DATA_STRING ? node["buildDate"].String() : "";
+	const std::string changeLog = node["changeLog"].getType() == JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
+
+	// Decide if update is offered, but never early-return or close the dialog
+	bool offer = false;
+	const int vcmp = cmpSemver(currentVersion, newVersion);
+	const std::string curSha = "1a2b3c4d5e6f"; // replace with GameConstants::VCMI_COMMIT if available
+	//const std::string curSha = commitShort(currentCommit);
+	const std::string jsonSha = commitShort(newCommit);
+
+	if (vcmp < 0)
+		offer = true;
+	else if (vcmp == 0 && !jsonSha.empty() && !curSha.empty() && jsonSha != curSha) offer = true;
+
+	// Populate UI
+	if (versionLabel)
+		versionLabel->setText(QString::fromStdString(newVersion));
+
+	// Build the header first (Build + Commit), then an empty line, then the changelog body.
+	QStringList headerLines;
+	if (!buildDate.empty())
+		headerLines << tr("Build date: %1").arg(QString::fromStdString(buildDate));
+	if (!newCommit.empty())
+		headerLines << tr("Commit: %1").arg(QString::fromStdString(commitShort(newCommit)));
+
+	const QString body = QString::fromStdString(changeLog);
+
+	QString logText;
+	if (!headerLines.isEmpty())
+		logText = headerLines.join("\n\n");
+
+	logText += "<br/><br/>"; // blank line between header and body
+	logText += body;
+
+	if (changelogBox)
+		changelogBox->setMarkdown(logText);
+
+	// Download link (shared label is OK)
+	const QString link = pickDownloadUrl(node);
+
+	downloadURL = link;
+	version = QString::fromStdString(newVersion);
+
+
+	if (!link.isEmpty()) {
+		ui->downloadLink->setText(QString("<a href=\"%1\">%2</a>").arg(link, tr("Download")));
+#if defined(Q_OS_WIN)
+		// Keep only one active connection
+		ui->downloadLink->disconnect();
+		
 #endif
+	}
+	else {
+		changelogBox->setMarkdown(tr("No download available for this platform."));
+	}
+
+	// Only enable Install if this payload is newer
+	setInstallEnabled(ui, offer);
+	}
+
+void UpdateDialog::on_installButton_clicked()
+{
+	const bool testingOn = ui->testingBuilds && ui->testingBuilds->isChecked();
+	const QString url = testingOn && !testingUrl.isEmpty() ? testingUrl : releaseUrl;
+
+	if (url.isEmpty())
+	{
+		ui->downloadLink->setText(tr("No package to download/install."));
+		return;
+}
+	startDownloadToCacheAndRun(QUrl(url));
+}
+
+void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
+{
+	QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
+
+	QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
+	if (progress) {
+		progress->setVisible(true);
+		progress->setRange(0, 0);
+		connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot) {
+			if (!progress) return;
+			if (tot > 0) { progress->setRange(0, int(tot)); progress->setValue(int(rec)); }
+			});
+	}
+
+	connect(rep, &QNetworkReply::finished, this, [this, rep, progress] {
+		rep->deleteLater();
+		if (rep->error() != QNetworkReply::NoError) {
+			if (progress) progress->setVisible(false);
+			ui->downloadLink->setText(tr("Download failed: %1").arg(rep->errorString()));
+			return;
+		}
+
+		const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
+		QDir().mkpath(cacheDir);
+
+		QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
+
+		const QString fullPath = QDir(cacheDir).filePath(fileName);
+
+		QFile out(fullPath);
+		out.write(rep->readAll());
+		out.close();
+
+#if !defined(Q_OS_WIN)
+		QFile::setPermissions(fullPath, QFile::permissions(fullPath)
+			| QFileDevice::ExeOwner | QFileDevice::ExeUser
+			| QFileDevice::ExeGroup | QFileDevice::ExeOther);
+#endif
+
+		if (progress)
+			progress->setVisible(false);
+
+#if defined(Q_OS_WIN)
+		const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
+		if (!QProcess::startDetached(fullPath, exeArgs)) {
+			return;
+		}
+#else
+		// macOS default handler, fallback to startDetached
+		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+			if (!QProcess::startDetached(fullPath, {})) {
+				ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+				return;
+			}
+		}
+		//ui->downloadLink->setText(tr("Package saved to %1").arg(fullPath));
+#endif
+		});
 }

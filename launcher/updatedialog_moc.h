@@ -32,18 +32,31 @@ public:
 	
 	static void showUpdateDialog(bool isManually);
 
+	QString releaseUrl;
+	QString testingUrl;
+	QString releaseVersion;
+	QString testingVersion;
+
+
 private slots:
     void on_checkOnStartup_stateChanged(int state);
-	void downloadAndRunInstaller(const QUrl &url);
+    void on_testingBuilds_stateChanged(int state);
+
+	void on_buildChannel_currentIndexChanged(int index);
+
+	void on_installButton_clicked();
 
 private:
 	Ui::UpdateDialog *ui;
 	
 	std::string currentVersion;
+	std::string currentCommit;
 	
 	QNetworkAccessManager networkManager;
 	
 	bool calledManually;
 	
-	void loadFromJson(const JsonNode & node);
+	void loadFromJson(const JsonNode & node, bool testing = false);
+	void fetchChannel(const QString& channel);
+	void startDownloadToCacheAndRun(const QUrl& url);
 };
