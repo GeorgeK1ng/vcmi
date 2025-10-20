@@ -13,7 +13,6 @@
 
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
-#include "../Version.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -199,7 +198,8 @@ void UpdateDialog::loadFromJson(const JsonNode & node)
 	
 	const int vcmp = cmpSemver(currentVersion, newVersion);
 	
-	const std::string curSha   = std::string(GameConstants::GIT_SHA1);
+	//const std::string curSha   = std::string(GameConstants::GIT_SHA1);
+	const std::string curSha   = "1a2b3c4d5e6f";
 	const std::string curShaShort  = commitShort(curSha);
 	const std::string jsonSha = commitShort(newCommit);
 	
