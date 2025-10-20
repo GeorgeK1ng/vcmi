@@ -14,6 +14,8 @@
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
 #include "../lib/VCMIDirs.h"
+#include "helper.h"
+#include "mainwindow_moc.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -24,6 +26,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QProgressBar>
+#include <QVersionNumber>
 
  // Helper to normalize channel text to Stable/Beta/Develop
 static QString normalizeChannel(const QString& text)
@@ -44,9 +47,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     // make QLabel emit linkActivated instead of opening the browser itself
-    ui->downloadLink->setOpenExternalLinks(false);
-    ui->downloadLink->setTextFormat(Qt::RichText);
-    ui->downloadLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
+   // ui->downloadLink->setOpenExternalLinks(false);
+   // ui->downloadLink->setTextFormat(Qt::RichText);
+   // ui->downloadLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
 	ui->progressBar->setHidden(true);
 
@@ -72,7 +75,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	setWindowTitle(tr("VCMI Updates configuration"));
 
-
 	// Testing build info
 	if (ui->testingBuilds->isChecked()) {
 		fetchChannel(normalizeChannel(ui->testingBuilds->text()));
@@ -90,8 +92,7 @@ UpdateDialog::~UpdateDialog()
 
 void UpdateDialog::showUpdateDialog(bool isManually)
 {
-	auto * dialog = new UpdateDialog(isManually);
-	
+	auto * dialog = new UpdateDialog(isManually, Helper::getMainWindow());
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 }
 
@@ -182,17 +183,25 @@ static QString platformKeyFromRuntime()
 #endif
 }
 
-// Compare semantic versions M.m.p (suffixes ignored)
-static int cmpSemver(const std::string &a, const std::string &b)
+static QVersionNumber toVersion(QString s)
 {
-    int A=0,B=0,C=0, X=0,Y=0,Z=0;
-    std::sscanf(a.c_str(), "%d.%d.%d", &A,&B,&C);
-    std::sscanf(b.c_str(), "%d.%d.%d", &X,&Y,&Z);
-    if (A!=X) return (A<X)?-1:+1;
-    if (B!=Y) return (B<Y)?-1:+1;
-    if (C!=Z) return (C<Z)?-1:+1;
-    return 0;
+	// vezmeme první "M.m.p" z řetězce (pro jistotu)
+	static const QRegularExpression re(R"((\d+)\.(\d+)\.(\d+))");
+	const auto m = re.match(s);
+	if (!m.hasMatch()) return QVersionNumber(); // null
+	return QVersionNumber(m.captured(1).toInt(),
+		m.captured(2).toInt(),
+		m.captured(3).toInt());
 }
+
+inline int cmpSemver(QString a, QString b)
+{
+	// klíčové: normalize -> odstraní koncové nuly
+	const auto va = toVersion(a).normalized(); // např. 1.2.0 -> 1.2
+	const auto vb = toVersion(b).normalized(); // dto
+	return QVersionNumber::compare(va, vb);
+}
+
 
 // Join base URL (may or may not end with /) with filename.
 static QUrl joinBaseAndFile(const QString& base, const QString& file)
@@ -266,22 +275,6 @@ void UpdateDialog::fetchChannel(const QString& channel)
 		});
 }
 
-
-// Optionally enable/disable Install for this payload
-static void setInstallEnabled(Ui::UpdateDialog* ui, bool enabled)
-{
-#if defined(Q_OS_WIN)
-	if (ui->installButton) {
-		ui->installButton->setVisible(true);
-		ui->installButton->setEnabled(enabled);
-		ui->installButton->setToolTip(enabled ? QString() : QObject::tr("You already have this build."));
-	}
-#else
-	Q_UNUSED(ui);
-	Q_UNUSED(enabled);
-#endif
-}
-
 void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 {
 	// Validate schema
@@ -305,15 +298,20 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 	const std::string changeLog = node["changeLog"].getType() == JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
 
 	// Decide if update is offered, but never early-return or close the dialog
-	bool offer = false;
-	const int vcmp = cmpSemver(currentVersion, newVersion);
-	const std::string curSha = "1a2b3c4d5e6f"; // replace with GameConstants::VCMI_COMMIT if available
 	//const std::string curSha = commitShort(currentCommit);
+	const std::string curSha = commitShort("1a2b3c4d5e6f"); // TODO: replace with commitShort(currentCommit);
 	const std::string jsonSha = commitShort(newCommit);
 
+	bool offer = false;
+	const int vcmp = cmpSemver(QString::fromStdString(currentVersion), QString::fromStdString(newVersion));
+
 	if (vcmp < 0)
-		offer = true;
-	else if (vcmp == 0 && !jsonSha.empty() && !curSha.empty() && jsonSha != curSha) offer = true;
+		offer = true; // New version available
+	else if (vcmp == 0) {
+		// Same version number, decide by different commit
+		if (!curSha.empty() && !jsonSha.empty() && curSha != jsonSha)
+			offer = true;
+	}
 
 	// Populate UI
 	if (versionLabel)
@@ -338,28 +336,24 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 	if (changelogBox)
 		changelogBox->setMarkdown(logText);
 
-	// Download link (shared label is OK)
+	// Download link
 	const QString link = pickDownloadUrl(node);
 
 	downloadURL = link;
 	version = QString::fromStdString(newVersion);
 
-
-	if (!link.isEmpty()) {
-		ui->downloadLink->setText(QString("<a href=\"%1\">%2</a>").arg(link, tr("Download")));
-#if defined(Q_OS_WIN)
-		// Keep only one active connection
-		ui->downloadLink->disconnect();
-		
-#endif
-	}
-	else {
+	if(link.isEmpty())
 		changelogBox->setMarkdown(tr("No download available for this platform."));
+
+	if (offer && !calledManually) {
+		this->show();
+		this->raise();
+		this->activateWindow();
+		// volitelně přepnout na příslušný tab
+		if (testing && ui->tabWidget) ui->tabWidget->setCurrentIndex(1);
 	}
 
-	// Only enable Install if this payload is newer
-	setInstallEnabled(ui, offer);
-	}
+}
 
 void UpdateDialog::on_installButton_clicked()
 {
@@ -418,9 +412,10 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 
 #if defined(Q_OS_WIN)
 		const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
-		if (!QProcess::startDetached(fullPath, exeArgs)) {
-			return;
+		if (QProcess::startDetached(fullPath, exeArgs)) {
+			QApplication::quit();
 		}
+		
 #else
 		// macOS default handler, fallback to startDetached
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
