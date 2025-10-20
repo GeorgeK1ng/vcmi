@@ -13,6 +13,7 @@
 
 #include "../lib/CConfigHandler.h"
 #include "../lib/GameConstants.h"
+#include "../Version.h"
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -53,9 +54,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	
 	QString url = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
 		
-	QNetworkReply *response = networkManager.get(QNetworkRequest(QUrl(url)));
+	QNetworkly *response = networkManager.get(QNetworkRequest(QUrl(url)));
 	
-	connect(response, &QNetworkReply::finished, [&, response]{
+	connect(response, &QNetworkly::finished, [&, response]{
 		response->deleteLater();
 		
 		if(response->error() != QNetworkReply::NoError)
@@ -271,20 +272,22 @@ void UpdateDialog::downloadAndRunInstaller(const QUrl &url)
     // Download installer
     QNetworkReply *rep = networkManager.get(QNetworkRequest(url));
 
-    if (ui->progressBar) {
-        ui->progressBar->setVisible(true);
-        ui->progressBar->setRange(0, 0); // indeterminate until we know size
-        connect(rep, &QNetworkReply::downloadProgress, this, [this](qint64 rec, qint64 tot){
-            if (!ui->progressBar) return;
-            if (tot > 0) { ui->progressBar->setRange(0, (int)tot); ui->progressBar->setValue((int)rec); }
-        });
-    }
+	QProgressBar *progress = this->findChild<QProgressBar*>("progressBar");
+	
+	if (progress) {
+	    progress->setVisible(true);
+	    progress->setRange(0, 0);
+	    connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot){
+	        if (!progress) return;
+	        if (tot > 0) { progress->setRange(0, (int)tot); progress->setValue((int)rec); }
+	    });
+	}
 
     connect(rep, &QNetworkReply::finished, this, [this, rep]{
         rep->deleteLater();
         if (rep->error() != QNetworkReply::NoError) {
             ui->plainTextEdit->appendPlainText(tr("\nDownload failed: %1").arg(rep->errorString()));
-            if (ui->progressBar) ui->progressBar->setVisible(false);
+            if (ui->progressBar) progress->setVisible(false);
             return;
         }
 
@@ -293,13 +296,13 @@ void UpdateDialog::downloadAndRunInstaller(const QUrl &url)
         tmp.setAutoRemove(false);
         if (!tmp.open()) {
             ui->plainTextEdit->appendPlainText(tr("\nCannot create temporary file."));
-            if (ui->progressBar) ui->progressBar->setVisible(false);
+            if (ui->progressBar) progress->setVisible(false);
             return;
         }
         tmp.write(rep->readAll());
         tmp.close();
 
-        if (ui->progressBar) ui->progressBar->setVisible(false);
+        if (ui->progressBar) progress->setVisible(false);
 
         // Optional: Inno Setup silent args (enable only if your installer supports them)
         QStringList args; // e.g. args << "/VERYSILENT" << "/NORESTART" << "/LAUNCH";
