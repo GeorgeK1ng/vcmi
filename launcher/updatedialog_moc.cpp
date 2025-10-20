@@ -54,9 +54,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	
 	QString url = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
 		
-	QNetworkly *response = networkManager.get(QNetworkRequest(QUrl(url)));
+	QNetworkReply *response = networkManager.get(QNetworkRequest(QUrl(url)));
 	
-	connect(response, &QNetworkly::finished, [&, response]{
+	connect(response, &QNetworkReply::finished, [&, response]{
 		response->deleteLater();
 		
 		if(response->error() != QNetworkReply::NoError)
