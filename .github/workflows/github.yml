@@ -405,29 +405,6 @@ jobs:
       run: |
         python3 CI/emit_partial.py
 
-    - name: Debug output
-      run: |
-        ART="${{ github.workspace }}/out/build/${{ matrix.preset }}/${{ env.VCMI_PACKAGE_FILE_NAME }}"
-        echo "Artifact path: $ART"
-        if [ -e "$ART" ]; then
-          echo "=== stat ==="
-          file "$ART" || true
-          echo "=== size ==="
-          du -sh "$ART" || true
-          if [ -d "$ART" ]; then
-            echo "=== top level ==="
-            ls -la "$ART" || true
-            echo "=== recursive (first 200 entries) ==="
-            find "$ART" -mindepth 1 -printf "%y %p (%s bytes)\n" 2>/dev/null | sed -n '1,200p' || true
-          else
-            echo "=== file listing (parent) ==="
-            ls -la "$(dirname "$ART")" || true
-          fi
-        else
-          echo "Path does not exist!"
-          exit 1
-        fi
-
     - name: Upload partial JSON with build informations
       uses: actions/upload-artifact@v4
       with:
