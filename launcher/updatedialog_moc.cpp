@@ -194,19 +194,6 @@ static int cmpSemver(const std::string &a, const std::string &b)
     return 0;
 }
 
-// Background color for version bump; same version + different commit -> lightblue
-static QString bgForChange(const std::string &cur, const std::string &nw)
-{
-    int M1=0,m1=0,p1=0, M2=0,m2=0,p2=0;
-    std::sscanf(cur.c_str(), "%d.%d.%d", &M1,&m1,&p1);
-    std::sscanf(nw.c_str(),  "%d.%d.%d", &M2,&m2,&p2);
-    if (M2>M1) return "red";
-    if (M2==M1 && m2>m1) return "orange";
-    if (M2==M1 && m2==m1 && p2>p1) return "gray";
-    return "lightblue";
-}
-
-
 // Join base URL (may or may not end with /) with filename.
 static QUrl joinBaseAndFile(const QString& base, const QString& file)
 {
@@ -438,7 +425,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		// macOS default handler, fallback to startDetached
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
 			if (!QProcess::startDetached(fullPath, {})) {
-				ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+				//ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 				return;
 			}
 		}
