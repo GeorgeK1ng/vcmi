@@ -123,8 +123,10 @@ namespace GameConstants
 {
 #ifdef VCMI_NO_EXTRA_VERSION
 	const std::string VCMI_VERSION = "VCMI " VCMI_VERSION_STRING;
+	const std::string VCMI_COMMIT = {};
 #else
 	const std::string VCMI_VERSION = "VCMI " VCMI_VERSION_STRING "." + std::string{GIT_SHA1};
+	const std::string VCMI_COMMIT = std::string{GIT_SHA1};
 #endif
 }
 
