@@ -333,35 +333,6 @@ jobs:
         mv "$OUTPUT_DIRECTORY/apk/release/vcmi-release.apk" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.apk"
         mv "$OUTPUT_DIRECTORY/bundle/release/vcmi-release.aab" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.aab"
 
-    - name: Debug what exists at build output
-      shell: bash
-      run: |
-        ROOT="${{ github.workspace }}/out/build/${{ matrix.preset }}"
-        BASE="${{ env.VCMI_PACKAGE_FILE_NAME }}"
-        EXT="${{ matrix.extension }}"
-        ART_FILE="$ROOT/$BASE.$EXT"
-        ART_DIR="$ROOT/$BASE"
-    
-        echo "==> ROOT: $ROOT"
-        echo "==> BASE: $BASE"
-        echo "==> EXT:  $EXT"
-        echo
-    
-        echo "==> ls -la ROOT"
-        ls -la "$ROOT" || true
-        echo
-    
-        echo "==> Does file exist? $ART_FILE"
-        if [ -f "$ART_FILE" ]; then
-          file "$ART_FILE" || true
-          du -h "$ART_FILE" || true
-        else
-          echo "No file at $ART_FILE"
-          echo "-- Similar files (*.$EXT) in ROOT (first 10):"
-          ls -1 "$ROOT"/*."$EXT" 2>/dev/null | sed -n '1,10p' || true
-        fi
-        echo
-    
         echo "==> Does folder exist? $ART_DIR"
         if [ -d "$ART_DIR" ]; then
           du -sh "$ART_DIR" || true
