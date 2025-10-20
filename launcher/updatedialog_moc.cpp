@@ -283,34 +283,32 @@ void UpdateDialog::downloadAndRunInstaller(const QUrl &url)
 	    });
 	}
 
-    connect(rep, &QNetworkReply::finished, this, [this, rep]{
-        rep->deleteLater();
-        if (rep->error() != QNetworkReply::NoError) {
-            ui->plainTextEdit->appendPlainText(tr("\nDownload failed: %1").arg(rep->errorString()));
-            if (ui->progressBar) progress->setVisible(false);
-            return;
-        }
-
-        // Save to temp .exe
-        QTemporaryFile tmp(QDir::tempPath() + "/VCMI_Update_XXXXXX.exe");
-        tmp.setAutoRemove(false);
-        if (!tmp.open()) {
-            ui->plainTextEdit->appendPlainText(tr("\nCannot create temporary file."));
-            if (ui->progressBar) progress->setVisible(false);
-            return;
-        }
-        tmp.write(rep->readAll());
-        tmp.close();
-
-        if (ui->progressBar) progress->setVisible(false);
-
-        // Optional: Inno Setup silent args (enable only if your installer supports them)
-        QStringList args; // e.g. args << "/VERYSILENT" << "/NORESTART" << "/LAUNCH";
-
-        if (!QProcess::startDetached(tmp.fileName(), args)) {
-            ui->plainTextEdit->appendPlainText(tr("\nCannot start installer."));
-            return;
-        }
+	connect(rep, &QNetworkReply::finished, this, [this, rep, progress]{
+	    rep->deleteLater();
+	    if (rep->error() != QNetworkReply::NoError) {
+	        ui->plainTextEdit->appendPlainText(tr("\nDownload failed: %1").arg(rep->errorString()));
+	        if (progress) progress->setVisible(false);
+	        return;
+	    }
+	
+	    // Save to temp .exe
+	    QTemporaryFile tmp(QDir::tempPath() + "/VCMI_Update_XXXXXX.exe");
+	    tmp.setAutoRemove(false);
+	    if (!tmp.open()) {
+	        ui->plainTextEdit->appendPlainText(tr("\nCannot create temporary file."));
+	        if (progress) progress->setVisible(false);   
+	        return;
+	    }
+	    tmp.write(rep->readAll());
+	    tmp.close();
+	
+	    if (progress) progress->setVisible(false);
+	
+	    QStringList args; // např.: args << "/VERYSILENT" << "/NORESTART";
+	    if (!QProcess::startDetached(tmp.fileName(), args)) {
+	        ui->plainTextEdit->appendPlainText(tr("\nCannot start installer."));
+	        return;
+	    }
         // Optionally close the dialog:
         // close();
     });
