@@ -287,6 +287,7 @@ jobs:
           androidOptions+=("-DCMAKE_C_COMPILER_LAUNCHER=ccache" "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache")
         fi
         cmake -DENABLE_CCACHE:BOOL=ON "${androidOptions[@]}" --preset ${{ matrix.preset }}
+
     - name: Configure (MSVC)
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       run: |
@@ -331,6 +332,20 @@ jobs:
         OUTPUT_DIRECTORY="${{ github.workspace }}/out/build/${{ matrix.preset }}/android-build/vcmi-app/build/outputs"
         mv "$OUTPUT_DIRECTORY/apk/release/vcmi-release.apk" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.apk"
         mv "$OUTPUT_DIRECTORY/bundle/release/vcmi-release.aab" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.aab"
+
+    - name: Debug list parent folder (no archive inspect)
+      shell: bash
+      run: |
+        ART="${{ github.workspace }}/out/build/${{ matrix.preset }}/${{ env.VCMI_PACKAGE_FILE_NAME }}.${{ matrix.extension }}"
+        DIR="$(dirname "$ART")"
+        BASE="${{ env.VCMI_PACKAGE_FILE_NAME }}"
+    
+        echo "==> Parent directory:"
+        echo "$DIR"
+        echo
+        echo "==> Top-level listing:"
+        ls -la "$DIR" || true
+        echo
 
     - name: Upload Artifact
       id: upload_artifact
