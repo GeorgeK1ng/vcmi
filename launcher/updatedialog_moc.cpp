@@ -160,26 +160,40 @@ void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
 static QString platformKeyFromRuntime()
 {
-#if defined(Q_OS_WIN)
-    const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64","i386","arm64",…
-    if (arch == "x86_64") return "windows-x64";
-    if (arch == "i386" || arch == "i686") return "windows-x86";
-    if (arch == "arm64" || arch == "aarch64") return "windows-arm64";
-    return "windows-x64";
-#elif defined(Q_OS_MACOS)
-    const auto arch = QSysInfo::currentCpuArchitecture();
-    return (arch == "arm64" || arch == "aarch64") ? "macos-arm" : "macos-intel";
-#elif defined(Q_OS_ANDROID)
-    const auto arch = QSysInfo::currentCpuArchitecture(); // "arm64-v8a","armeabi-v7a",…
-    return arch.contains("64") ? "android-arm64-v8a" : "android-armeabi-v7a";
-#elif defined(Q_OS_IOS)
-    return "ios-ios";
+#if defined(VCMI_WINDOWS)
+	const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64","i386","arm64"
+	if (arch == "x86_64")
+		return "windows-x64";
+	if (arch == "i386" || arch == "i686")
+		return "windows-x86";
+	if (arch == "arm64" || arch == "aarch64")
+		return "windows-arm64";
+	return "windows-x64";
+
+#elif defined(VCMI_MAC)
+	const auto arch = QSysInfo::currentCpuArchitecture();
+	return (arch == "arm64" || arch == "aarch64") ? "macos-arm" : "macos-intel";
+
+#elif defined(VCMI_ANDROID)
+	const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64", "arm64-v8a","armeabi-v7a"
+	if (arch == "x86_64")
+		return "android-x64";
+	else
+		return arch.contains("64") ? "android-arm64-v8a" : "android-armeabi-v7a";
+
+#elif defined(VCMI_IOS)
+	return "ios-ios";
+
+#elif defined(VCMI_UNIX)
+	const auto arch = QSysInfo::currentCpuArchitecture();
+	if (arch == "x86_64")
+		return "linux-x64";
+	if (arch == "arm64" || arch == "aarch64")
+		return "linux-arm64";
+	return "linux-x64";
+
 #else
-    // placeholder for future linux keys
-    const auto arch = QSysInfo::currentCpuArchitecture();
-    if (arch == "x86_64") return "linux-x64";
-    if (arch == "arm64" || arch == "aarch64") return "linux-arm64";
-    return "linux-x64";
+	return "linux-x64";
 #endif
 }
 
@@ -393,38 +407,57 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
 		QDir().mkpath(cacheDir);
 
-		QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
-
+		const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
 		const QString fullPath = QDir(cacheDir).filePath(fileName);
 
 		QFile out(fullPath);
 		out.write(rep->readAll());
 		out.close();
 
-#if !defined(Q_OS_WIN)
+#if !defined(VCMI_WINDOWS)
 		QFile::setPermissions(fullPath, QFile::permissions(fullPath)
 			| QFileDevice::ExeOwner | QFileDevice::ExeUser
 			| QFileDevice::ExeGroup | QFileDevice::ExeOther);
 #endif
 
-		if (progress)
-			progress->setVisible(false);
+		if (progress) progress->setVisible(false);
 
-#if defined(Q_OS_WIN)
+#if defined(VCMI_WINDOWS)
+		// Windows: tichá instalace + vypnout launcher po úspěchu
 		const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
 		if (QProcess::startDetached(fullPath, exeArgs)) {
 			QApplication::quit();
 		}
-		
-#else
-		// macOS default handler, fallback to startDetached
-		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
-			if (!QProcess::startDetached(fullPath, {})) {
-				//ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
-				return;
-			}
+		else {
+			ui->downloadLink->setText(tr("Failed to start installer."));
 		}
-		//ui->downloadLink->setText(tr("Package saved to %1").arg(fullPath));
+
+#elif defined(VCMI_MAC)
+		// macOS: otevři defaultním handlerem (.dmg/.pkg). QProcess tady nepotřebujeme.
+		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+		}
+
+#elif defined(VCMI_ANDROID)
+		// Android: TODO – později Helper::installApk(fullPath) přes JNI
+		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+		}
+
+#elif defined(VCMI_IOS)
+		// iOS: instalace externích balíků není podporovaná
+		ui->downloadLink->setText(tr("Package saved to %1 — installation is not supported on iOS.").arg(fullPath));
+
+#elif defined(VCMI_UNIX)
+		// Linux/BSD: zkus otevřít defaultním handlerem
+		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+		}
+#else
+		// Fallback
+		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+		}
 #endif
 		});
 }
