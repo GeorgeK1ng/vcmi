@@ -333,19 +333,55 @@ jobs:
         mv "$OUTPUT_DIRECTORY/apk/release/vcmi-release.apk" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.apk"
         mv "$OUTPUT_DIRECTORY/bundle/release/vcmi-release.aab" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.aab"
 
-    - name: Debug list parent folder (no archive inspect)
+    - name: Debug what exists at build output
       shell: bash
       run: |
-        ART="${{ github.workspace }}/out/build/${{ matrix.preset }}/${{ env.VCMI_PACKAGE_FILE_NAME }}.${{ matrix.extension }}"
-        DIR="$(dirname "$ART")"
+        ROOT="${{ github.workspace }}/out/build/${{ matrix.preset }}"
         BASE="${{ env.VCMI_PACKAGE_FILE_NAME }}"
+        EXT="${{ matrix.extension }}"
+        ART_FILE="$ROOT/$BASE.$EXT"
+        ART_DIR="$ROOT/$BASE"
     
-        echo "==> Parent directory:"
-        echo "$DIR"
+        echo "==> ROOT: $ROOT"
+        echo "==> BASE: $BASE"
+        echo "==> EXT:  $EXT"
         echo
-        echo "==> Top-level listing:"
-        ls -la "$DIR" || true
+    
+        echo "==> ls -la ROOT"
+        ls -la "$ROOT" || true
         echo
+    
+        echo "==> Does file exist? $ART_FILE"
+        if [ -f "$ART_FILE" ]; then
+          file "$ART_FILE" || true
+          du -h "$ART_FILE" || true
+        else
+          echo "No file at $ART_FILE"
+          echo "-- Similar files (*.$EXT) in ROOT (first 10):"
+          ls -1 "$ROOT"/*."$EXT" 2>/dev/null | sed -n '1,10p' || true
+        fi
+        echo
+    
+        echo "==> Does folder exist? $ART_DIR"
+        if [ -d "$ART_DIR" ]; then
+          du -sh "$ART_DIR" || true
+          echo "-- top level:"
+          ls -la "$ART_DIR" || true
+          echo "-- recursive (first 200):"
+          find "$ART_DIR" -maxdepth 2 -print 2>/dev/null | sed -n '1,200p' || true
+        else
+          echo "No folder at $ART_DIR"
+        fi
+        echo
+    
+        for CAND in "$ROOT/staged" "$ROOT/${BASE}-contents"; do
+          if [ -d "$CAND" ]; then
+            echo "==> Candidate folder: $CAND"
+            du -sh "$CAND" || true
+            ls -la "$CAND" || true
+            echo
+          fi
+        done
 
     - name: Upload Artifact
       id: upload_artifact
