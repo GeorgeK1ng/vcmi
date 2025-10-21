@@ -415,8 +415,18 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
 		const QString fullPath = QDir(cacheDir).filePath(fileName);
 
-		QFile out(Helper::getRealPath(fullPath));
-		out.write(rep->readAll());
+		QFile out(fullPath);
+		if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+			ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
+			return;
+		}
+
+		const QByteArray data = rep->readAll();
+		if (out.write(data) != data.size()) {
+			ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
+			out.close();
+			return;
+		}
 		out.close();
 
 #if !defined(VCMI_WINDOWS)
@@ -466,5 +476,5 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
 #endif
-		});
+	});
 }
