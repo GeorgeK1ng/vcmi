@@ -27,6 +27,9 @@
 #include <QDir>
 #include <QProgressBar>
 #include <QVersionNumber>
+#include <QFileInfo>
+#include <QSaveFile>
+#include <QStandardPaths>
 
  // Helper to normalize channel text to Stable/Beta/Develop
 static QString normalizeChannel(const QString& text)
@@ -406,38 +409,61 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 			return;
 		}
 
+	// ⬇︎ NAHRAĎ svůj blok od "cacheDir" po "out.close()" tímto:
+	QString baseDir;
+	
 	#if defined(VCMI_ANDROID)
-	    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-	    if (cacheDir.isEmpty())
-	        cacheDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	    QDir().mkpath(cacheDir + "/VCMI");
-	    cacheDir += "/VCMI";
+	// Android: veřejná složka "Download" (singulár), pod ní vytvoříme "VCMI"
+	baseDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+	qInfo() << "[Update] DownloadLocation =" << baseDir;
+	if (baseDir.isEmpty())
+	    baseDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	
+	QDir d(baseDir);
+	const bool mk = d.mkpath("VCMI");
+	const QString cacheDir = d.filePath("VCMI");
+	qInfo() << "[Update] mkpath VCMI =" << mk << "->" << cacheDir;
+	
 	#else
-	    const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
+	// Ostatní platformy: interní cache
+	const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
+	QDir().mkpath(cacheDir);
 	#endif
-
-		const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
-		const QString fullPath = QDir(cacheDir).filePath(fileName);
-
-		QFile out(fullPath);
-		if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-			ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
-			return;
-		}
-
-		const QByteArray data = rep->readAll();
-		if (out.write(data) != data.size()) {
-			ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
-			out.close();
-			return;
-		}
-		out.close();
-
-#if !defined(VCMI_WINDOWS)
-		QFile::setPermissions(fullPath, QFile::permissions(fullPath)
-			| QFileDevice::ExeOwner | QFileDevice::ExeUser
-			| QFileDevice::ExeGroup | QFileDevice::ExeOther);
-#endif
+	
+	const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
+	const QString fullPath = QDir(cacheDir).filePath(fileName);
+	qInfo() << "[Update] target =" << fullPath;
+	
+	// Zápis (použijeme QSaveFile kvůli jistotě)
+	QSaveFile out(fullPath);
+	if (!out.open(QIODevice::WriteOnly)) {
+	    ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
+	    return;
+	}
+	
+	const QByteArray data = rep->readAll();
+	if (out.write(data) != data.size()) {
+	    ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
+	    return;
+	}
+	if (!out.commit()) {
+	    ui->downloadLink->setText(tr("Commit failed: %1").arg(out.errorString()));
+	    return;
+	}
+	
+	#if !defined(VCMI_WINDOWS)
+	QFile::setPermissions(fullPath, QFile::permissions(fullPath)
+	    | QFileDevice::ExeOwner | QFileDevice::ExeUser
+	    | QFileDevice::ExeGroup | QFileDevice::ExeOther);
+	#endif
+	
+	// Ověření
+	QFileInfo fi(fullPath);
+	qInfo() << "[Update] saved exists?" << fi.exists() << "size" << fi.size();
+	if (!fi.exists() || fi.size() == 0) {
+	    ui->downloadLink->setText(tr("File not saved (path: %1)").arg(fullPath));
+	    return;
+	}
 
 		if (progress)
 			progress->setVisible(false);
