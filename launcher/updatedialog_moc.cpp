@@ -377,7 +377,7 @@ void UpdateDialog::on_installButton_clicked()
 	startDownloadToCacheAndRun(QUrl(url));
 }
 
-void UpdateDialog::on_installButton_clicked()
+void UpdateDialog::on_closeButton_clicked()
 {
 	close();
 }
