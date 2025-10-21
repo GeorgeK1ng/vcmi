@@ -358,8 +358,8 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 		this->show();
 		this->raise();
 		this->activateWindow();
-		// volitelně přepnout na příslušný tab
-		if (testing && ui->tabWidget) ui->tabWidget->setCurrentIndex(1);
+		if (testing)
+			ui->tabWidget->setCurrentIndex(1);
 	}
 
 }
@@ -448,6 +448,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		// Android: TODO – Helper::installApk(fullPath) using JNI
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+			ui->testingChangelog->append(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
 
 #elif defined(VCMI_IOS)
