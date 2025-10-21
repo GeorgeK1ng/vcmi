@@ -43,9 +43,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	calledManually(calledManually)
 {
 	ui->setupUi(this);
-
-    setAttribute(Qt::WA_AcceptTouchEvents, true);
-    setAttribute(Qt::WA_TabletTracking, true);
 	
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
@@ -409,8 +406,15 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 			return;
 		}
 
-		const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-		QDir().mkpath(cacheDir);
+	#if defined(VCMI_ANDROID)
+	    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+	    if (cacheDir.isEmpty())
+	        cacheDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	    QDir().mkpath(cacheDir + "/VCMI");
+	    cacheDir += "/VCMI";
+	#else
+	    const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
+	#endif
 
 		const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
 		const QString fullPath = QDir(cacheDir).filePath(fileName);
