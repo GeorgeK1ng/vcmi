@@ -45,6 +45,7 @@ private slots:
 	void on_buildChannel_currentIndexChanged(int index);
 
 	void on_installButton_clicked();
+	void on_closeButton_clicked();
 
 private:
 	Ui::UpdateDialog *ui;
