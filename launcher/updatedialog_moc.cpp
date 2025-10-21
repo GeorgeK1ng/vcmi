@@ -44,12 +44,10 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 {
 	ui->setupUi(this);
 
+    setAttribute(Qt::WA_AcceptTouchEvents, true);
+    setAttribute(Qt::WA_TabletTracking, true);
+	
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-
-    // make QLabel emit linkActivated instead of opening the browser itself
-   // ui->downloadLink->setOpenExternalLinks(false);
-   // ui->downloadLink->setTextFormat(Qt::RichText);
-   // ui->downloadLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
 	ui->progressBar->setHidden(true);
 
@@ -59,11 +57,8 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 		show();
 	}
 	
-	connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
-	
 	if(settings["launcher"]["updateOnStartup"].Bool())
 		ui->checkOnStartup->setCheckState(Qt::CheckState::Checked);
-
 
 	if (settings["launcher"]["testingBuilds"].Bool())
 		ui->testingBuilds->setCheckState(Qt::CheckState::Checked);
@@ -72,7 +67,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	currentCommit = GameConstants::VCMI_COMMIT;
 	
 	//setWindowTitle(QString::fromStdString(currentVersion));
-
 	setWindowTitle(tr("VCMI Updates configuration"));
 
 	// Testing build info
@@ -137,24 +131,23 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 // Build filename for the selected update channel.
 static QString filenameForChannel(const QString& channel)
 {
-	const QString ch = channel.trimmed().toLower();
-	if (ch == "stable")  return "vcmi-stable.json";
-	if (ch == "beta")    return "vcmi-beta.json";
+	const QString name = channel.trimmed().toLower();
+	
+	if(name == "stable")
+		return "vcmi-stable.json";
+	if(name == "beta")
+		return "vcmi-beta.json";
+	
 	return "vcmi-develop.json"; // default
 }
-
-
 
 void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 {
 	// Only react when testing builds are enabled
-	QCheckBox* testingBox = ui->testingBuilds ? ui->testingBuilds
-		: this->findChild<QCheckBox*>("testingBuilds");
-	if (!testingBox || !testingBox->isChecked())
+	if(!ui->testingBuilds->isChecked())
 		return;
 
-	const QString ch = filenameForChannel(ui->buildChannel->currentText());
-	fetchChannel(ch);
+	fetchChannel(filenameForChannel(ui->buildChannel->currentText()));
 }
 
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
@@ -193,13 +186,13 @@ static QString platformKeyFromRuntime()
 	return "linux-x64";
 
 #else
-	return "linux-x64";
+	return {};
 #endif
 }
 
 static QVersionNumber toVersion(QString s)
 {
-	// vezmeme první "M.m.p" z řetězce (pro jistotu)
+	// First "M.m.p" from string
 	static const QRegularExpression re(R"((\d+)\.(\d+)\.(\d+))");
 	const auto m = re.match(s);
 	if (!m.hasMatch()) return QVersionNumber(); // null
@@ -210,9 +203,9 @@ static QVersionNumber toVersion(QString s)
 
 inline int cmpSemver(QString a, QString b)
 {
-	// klíčové: normalize -> odstraní koncové nuly
-	const auto va = toVersion(a).normalized(); // např. 1.2.0 -> 1.2
-	const auto vb = toVersion(b).normalized(); // dto
+	// normalize - remove end zero
+	const auto va = toVersion(a).normalized(); // example: 1.2.0 -> 1.2
+	const auto vb = toVersion(b).normalized();
 	return QVersionNumber::compare(va, vb);
 }
 
@@ -221,7 +214,8 @@ inline int cmpSemver(QString a, QString b)
 static QUrl joinBaseAndFile(const QString& base, const QString& file)
 {
 	QString b = base.trimmed();
-	if (!b.endsWith('/')) b.append('/');
+	if (!b.endsWith('/'))
+		b.append('/');
 	return QUrl(b + file);
 }
 
@@ -232,13 +226,13 @@ static QString pickDownloadUrl(const JsonNode &node)
     if (node["download"][prefer].getType() == JsonNode::JsonType::DATA_STRING)
         return QString::fromStdString(node["download"][prefer].String());
 
-#if defined(Q_OS_WIN)
+#if defined(VCMI_WINDOWS)
     const char* candidates[] = {"windows-x64","windows-arm64","windows-x86"};
-#elif defined(Q_OS_MACOS)
+#elif defined(VCMI_MAC)
     const char* candidates[] = {"macos-arm","macos-intel"};
-#elif defined(Q_OS_ANDROID)
-    const char* candidates[] = {"android-arm64-v8a","android-armeabi-v7a"};
-#elif defined(Q_OS_IOS)
+#elif defined(VCMI_ANDROID)
+    const char* candidates[] = {"android-arm64-v8a","android-armeabi-v7a","android-x64"};
+#elif defined(VCMI_IOS)
     const char* candidates[] = {"ios-ios"};
 #else
     const char* candidates[] = {"linux-x64","linux-arm64"};
@@ -255,10 +249,11 @@ static QString pickDownloadUrl(const JsonNode &node)
 }
 
 // Return first 7 characters of a commit-ish; gracefully handles empty/short strings.
-static std::string commitShort(const std::string &s)
+static std::string commitShort(const std::string &str)
 {
-    if (s.size() <= 7) return s;
-    return s.substr(0, 7);
+    if (str.size() <= 7)
+		return str;
+    return str.substr(0, 7);
 }
 
 void UpdateDialog::fetchChannel(const QString& channel)
@@ -371,15 +366,20 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 
 void UpdateDialog::on_installButton_clicked()
 {
-	const bool testingOn = ui->testingBuilds && ui->testingBuilds->isChecked();
-	const QString url = testingOn && !testingUrl.isEmpty() ? testingUrl : releaseUrl;
+	const QString url = ui->testingBuilds->isChecked() && !testingUrl.isEmpty() ? testingUrl : releaseUrl;
 
 	if (url.isEmpty())
 	{
 		ui->downloadLink->setText(tr("No package to download/install."));
 		return;
-}
+	}
+	
 	startDownloadToCacheAndRun(QUrl(url));
+}
+
+void UpdateDialog::on_installButton_clicked()
+{
+	close();
 }
 
 void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
@@ -391,15 +391,20 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		progress->setVisible(true);
 		progress->setRange(0, 0);
 		connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot) {
-			if (!progress) return;
-			if (tot > 0) { progress->setRange(0, int(tot)); progress->setValue(int(rec)); }
-			});
+			if (!progress)
+				return;
+			if (tot > 0) {
+				progress->setRange(0, int(tot));
+				progress->setValue(int(rec));
+			}
+		});
 	}
 
 	connect(rep, &QNetworkReply::finished, this, [this, rep, progress] {
 		rep->deleteLater();
 		if (rep->error() != QNetworkReply::NoError) {
-			if (progress) progress->setVisible(false);
+			if (progress)
+				progress->setVisible(false);
 			ui->downloadLink->setText(tr("Download failed: %1").arg(rep->errorString()));
 			return;
 		}
@@ -410,7 +415,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
 		const QString fullPath = QDir(cacheDir).filePath(fileName);
 
-		QFile out(fullPath);
+		QFile out(Helper::getRealPath(fullPath));
 		out.write(rep->readAll());
 		out.close();
 
@@ -420,10 +425,11 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 			| QFileDevice::ExeGroup | QFileDevice::ExeOther);
 #endif
 
-		if (progress) progress->setVisible(false);
+		if (progress)
+			progress->setVisible(false);
 
 #if defined(VCMI_WINDOWS)
-		// Windows: tichá instalace + vypnout launcher po úspěchu
+		// Windows: Silent update
 		const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
 		if (QProcess::startDetached(fullPath, exeArgs)) {
 			QApplication::quit();
@@ -433,23 +439,23 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 		}
 
 #elif defined(VCMI_MAC)
-		// macOS: otevři defaultním handlerem (.dmg/.pkg). QProcess tady nepotřebujeme.
+		// macOS: open using default handler (.dmg/.pkg)
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
 
 #elif defined(VCMI_ANDROID)
-		// Android: TODO – později Helper::installApk(fullPath) přes JNI
+		// Android: TODO – Helper::installApk(fullPath) using JNI
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
 
 #elif defined(VCMI_IOS)
-		// iOS: instalace externích balíků není podporovaná
+		// iOS: Unsupported
 		ui->downloadLink->setText(tr("Package saved to %1 — installation is not supported on iOS.").arg(fullPath));
 
 #elif defined(VCMI_UNIX)
-		// Linux/BSD: zkus otevřít defaultním handlerem
+		// Linux
 		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
