@@ -386,6 +386,104 @@ void UpdateDialog::on_closeButton_clicked()
 	close();
 }
 
+
+
+#if defined(VCMI_ANDROID)
+#include <QFileInfo>
+#include <QtAndroidExtras/QAndroidJniObject>
+#include <QtAndroidExtras/QAndroidJniEnvironment>
+#include <QtAndroidExtras/QtAndroid>
+
+static QAndroidJniObject appContext()
+{
+    QAndroidJniObject activity = QtAndroid::androidActivity();
+    if (activity.isValid())
+        return activity.callObjectMethod("getApplicationContext", "()Landroid/content/Context;");
+    return QtAndroid::androidContext(); // fallback
+}
+
+static QAndroidJniObject fileProviderUri(const QString &path)
+{
+    QAndroidJniObject ctx = appContext();
+    if (!ctx.isValid()) return QAndroidJniObject();
+
+    // authority = "<package>.fileprovider"
+    QAndroidJniObject pkg = ctx.callObjectMethod("getPackageName", "()Ljava/lang/String;");
+    QAndroidJniObject auth = QAndroidJniObject::fromString(pkg.toString() + ".fileprovider");
+
+    QAndroidJniObject jFile("java/io/File",
+                            "(Ljava/lang/String;)V",
+                            QAndroidJniObject::fromString(path).object<jstring>());
+
+    // Try AndroidX first…
+    QAndroidJniObject uri = QAndroidJniObject::callStaticObjectMethod(
+        "androidx/core/content/FileProvider",
+        "getUriForFile",
+        "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+        ctx.object<jobject>(),
+        auth.object<jstring>(),
+        jFile.object<jobject>());
+
+    // …fallback to legacy support lib if project isn’t migrated to AndroidX
+    if (!uri.isValid()) {
+        uri = QAndroidJniObject::callStaticObjectMethod(
+            "android/support/v4/content/FileProvider",
+            "getUriForFile",
+            "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+            ctx.object<jobject>(),
+            auth.object<jstring>(),
+            jFile.object<jobject>());
+    }
+    return uri;
+}
+
+bool installApk(const QString &fullPath)
+{
+    QFileInfo fi(fullPath);
+    if (!fi.exists() || fi.size() <= 0)
+        return false;
+
+    QAndroidJniObject ctx = appContext();
+    if (!ctx.isValid())
+        return false;
+
+    QAndroidJniObject uri = fileProviderUri(fullPath);
+    if (!uri.isValid())
+        return false;
+
+    // Intent ACTION_VIEW with APK MIME
+    QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.VIEW");
+    QAndroidJniObject intent("android/content/Intent",
+                             "(Ljava/lang/String;)V",
+                             action.object<jstring>());
+
+    QAndroidJniObject mime = QAndroidJniObject::fromString("application/vnd.android.package-archive");
+    intent.callObjectMethod("setDataAndType",
+                            "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;",
+                            uri.object<jobject>(), mime.object<jstring>());
+
+    // Flags: NEW_TASK + GRANT_READ_URI_PERMISSION
+    const jint FLAG_ACTIVITY_NEW_TASK = 0x10000000;
+    const jint FLAG_GRANT_READ_URI_PERMISSION = 0x00000001;
+    intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;", FLAG_ACTIVITY_NEW_TASK);
+    intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;", FLAG_GRANT_READ_URI_PERMISSION);
+
+    // Start activity; catch any Java exceptions (e.g., unknown apps permission)
+    QAndroidJniEnvironment env;
+    env->ExceptionClear();
+    ctx.callObjectMethod("startActivity", "(Landroid/content/Intent;)V", intent.object<jobject>());
+    const bool ok = !env->ExceptionCheck();
+    if (!ok) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
+    return ok;
+}
+#endif // VCMI_ANDROID
+
+
+
+
 void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 {
 	QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
@@ -462,7 +560,8 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 
 #elif defined(VCMI_ANDROID)
 		// Android: TODO – Helper::installApk(fullPath) using JNI
-		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+		//if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+		if (!installApk(fullPath)) {
 			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 			ui->testingChangelog->append(tr("Package saved to %1 — open it manually.").arg(fullPath));
 		}
