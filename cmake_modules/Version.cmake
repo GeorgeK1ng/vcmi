@@ -4,6 +4,9 @@ include(VCMIUtils)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
 set(GIT_BRANCH "${GIT_REFSPEC}")
+string(REPLACE "refs/heads/" ""   GIT_BRANCH "${GIT_BRANCH}")
+string(REPLACE "refs/remotes/" "" GIT_BRANCH "${GIT_BRANCH}")
+string(REPLACE "origin/" ""       GIT_BRANCH "${GIT_BRANCH}")
 
 configure_file("${CMAKE_CURRENT_LIST_DIR}/../Version.cpp.in" "Version.cpp" @ONLY)
 vcmi_print_git_commit_hash()
