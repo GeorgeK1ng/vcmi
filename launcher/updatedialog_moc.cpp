@@ -67,7 +67,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	currentCommit = GameConstants::VCMI_COMMIT;
 	
 	//setWindowTitle(QString::fromStdString(currentVersion));
-	setWindowTitle(tr("VCMI Updates configuration"));
+	//setWindowTitle(tr("VCMI Updates configuration"));
+
+	setWindowTitle(QString::fromStdString(GameConstants::VCMI_BRANCH));
 
 	// Testing build info
 	if (ui->testingBuilds->isChecked()) {
