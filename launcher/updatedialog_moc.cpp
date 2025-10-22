@@ -71,6 +71,8 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	setWindowTitle(QString::fromStdString(GameConstants::VCMI_BRANCH));
 
+	ui->title->setText(QString::fromStdString(GameConstants::VCMI_BRANCH));
+
 	// Testing build info
 	if (ui->testingBuilds->isChecked()) {
 		fetchChannel(normalizeChannel(ui->testingBuilds->text()));
