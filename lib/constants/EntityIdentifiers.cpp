@@ -128,7 +128,7 @@ namespace GameConstants
 #else
 	const std::string VCMI_VERSION = "VCMI " VCMI_VERSION_STRING "." + std::string{GIT_SHA1};
 	const std::string VCMI_COMMIT = std::string{GIT_SHA1};
-	const std::string VCMI_BRANCH = std::string{GIT_BRANCH}
+	const std::string VCMI_BRANCH = std::string{GIT_BRANCH};
 #endif
 }
 
