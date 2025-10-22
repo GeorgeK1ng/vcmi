@@ -2,5 +2,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 include(GetGitRevisionDescription)
 include(VCMIUtils)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+
+set(GIT_BRANCH "${GIT_REFSPEC}")
+
 configure_file("${CMAKE_CURRENT_LIST_DIR}/../Version.cpp.in" "Version.cpp" @ONLY)
 vcmi_print_git_commit_hash()
