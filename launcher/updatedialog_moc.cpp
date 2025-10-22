@@ -413,38 +413,16 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 			return;
 		}
 
-	// ⬇︎ NAHRAĎ svůj blok od "cacheDir" po "out.close()" tímto:
-	QString baseDir;
-	
-	#if defined(VCMI_ANDROID)
-	// Android: veřejná složka "Download" (singulár), pod ní vytvoříme "VCMI"
-	baseDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-	qInfo() << "[Update] DownloadLocation =" << baseDir;
-	if (baseDir.isEmpty())
-	    baseDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	
-	QDir d(baseDir);
-	const bool mk = d.mkpath("VCMI");
-	const QString cacheDir = d.filePath("VCMI");
-	qInfo() << "[Update] mkpath VCMI =" << mk << "->" << cacheDir;
-	
-	#else
-	// Ostatní platformy: interní cache
 	const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-	QDir().mkpath(cacheDir);
-	#endif
-	
 	const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
 	const QString fullPath = QDir(cacheDir).filePath(fileName);
-	qInfo() << "[Update] target =" << fullPath;
-	
-	// Zápis (použijeme QSaveFile kvůli jistotě)
+
 	QSaveFile out(fullPath);
 	if (!out.open(QIODevice::WriteOnly)) {
 	    ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
 	    return;
 	}
-	
+
 	const QByteArray data = rep->readAll();
 	if (out.write(data) != data.size()) {
 	    ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
@@ -454,23 +432,17 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
 	    ui->downloadLink->setText(tr("Commit failed: %1").arg(out.errorString()));
 	    return;
 	}
-	
-	#if !defined(VCMI_WINDOWS)
-	QFile::setPermissions(fullPath, QFile::permissions(fullPath)
-	    | QFileDevice::ExeOwner | QFileDevice::ExeUser
-	    | QFileDevice::ExeGroup | QFileDevice::ExeOther);
-	#endif
-	
-	// Ověření
+
+	QFile::setPermissions(fullPath, QFile::permissions(fullPath) | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup | QFileDevice::ExeOther);
+
 	QFileInfo fi(fullPath);
-	qInfo() << "[Update] saved exists?" << fi.exists() << "size" << fi.size();
 	if (!fi.exists() || fi.size() == 0) {
 	    ui->downloadLink->setText(tr("File not saved (path: %1)").arg(fullPath));
 	    return;
 	}
 
-		if (progress)
-			progress->setVisible(false);
+	if (progress)
+		progress->setVisible(false);
 
 #if defined(VCMI_WINDOWS)
 		// Windows: Silent update
