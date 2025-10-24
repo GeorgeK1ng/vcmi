@@ -326,7 +326,7 @@ QStringList findFilesForCopy(const QString &path)
     return out;
 }
 
-
+#ifdef VCMI_ANDROID
 bool hasFolderPickerIntent()
 {
     // ACTION_OPEN_DOCUMENT_TREE exists since API 21, bail early for lower.
@@ -363,5 +363,5 @@ bool hasFolderPickerIntent()
     const jboolean isEmpty = list.callMethod<jboolean>("isEmpty", "()Z");
     return isEmpty == JNI_FALSE;
 }
-
+#endif
 }
