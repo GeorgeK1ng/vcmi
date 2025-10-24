@@ -293,8 +293,8 @@ void FirstLaunchView::heroesDataMissing()
 	ui->pushButtonDataSearch->setVisible(true);
 
 #ifdef VCMI_ANDROID
-	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
-	const bool canUseDataCopy = QtAndroid::androidSdkVersion() >= 21;
+    // Folder picker requires both API >= 21 and an installed handler (DocumentsUI or compatible).
+    const bool canUseDataCopy = Helper::hasFolderPickerIntent();
 #elif defined(VCMI_IOS)
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
 	const bool canUseDataCopy = iOS_utils::isOsVersionAtLeast(13);
