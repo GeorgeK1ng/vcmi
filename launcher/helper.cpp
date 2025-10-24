@@ -375,3 +375,5 @@ bool hasFolderPickerIntent()
     return true;
 #endif
 }
+
+}
