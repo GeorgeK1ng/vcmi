@@ -26,4 +26,9 @@ namespace Helper
 	void keepScreenOn(bool isEnabled);
 	void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb);
 	QStringList findFilesForCopy(const QString &treeUri);
+
+#ifdef VCMI_ANDROID
+    /// Returns true if the system has any handler for ACTION_OPEN_DOCUMENT_TREE.
+    bool hasFolderPickerIntent();
+#endif
 }
