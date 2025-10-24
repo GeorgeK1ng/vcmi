@@ -337,36 +337,30 @@ bool hasFolderPickerIntent()
     if (!ctx.isValid())
         return false;
 
-    // Build the intent.
+    // Build the intent
     QAndroidJniObject intent("android/content/Intent","()V");
     intent.callObjectMethod("setAction",
                             "(Ljava/lang/String;)Landroid/content/Intent;",
                             QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE").object<jstring>());
 
-    // Try resolveActivity(pm).
+    // Quick check: resolveActivity(pm)
     QAndroidJniObject pm = ctx.callObjectMethod("getPackageManager","()Landroid/content/pm/PackageManager;");
     QAndroidJniObject ri = intent.callObjectMethod(
         "resolveActivity",
         "(Landroid/content/pm/PackageManager;)Landroid/content/pm/ResolveInfo;",
         pm.object());
-
     if (!ri.isValid() || ri.object<jobject>() == nullptr)
         return false;
 
-    // Extra safety: queryIntentActivities to ensure at least one match.
+    // Extra safety: queryIntentActivities(...) and ensure list is not empty
     QAndroidJniObject list = pm.callObjectMethod(
         "queryIntentActivities",
         "(Landroid/content/Intent;I)Ljava/util/List;",
         intent.object<jobject>(), 0);
-
     if (!list.isValid())
         return false;
 
-    // list.size() > 0 ?
-    jint size = QAndroidJniObject::callStaticMethod<jint>(
-        "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", 0); // dummy init
-    // Use Java: list.isEmpty()
-    jboolean isEmpty = list.callMethod<jboolean>("isEmpty", "()Z");
+    const jboolean isEmpty = list.callMethod<jboolean>("isEmpty", "()Z");
     return isEmpty == JNI_FALSE;
 }
 
