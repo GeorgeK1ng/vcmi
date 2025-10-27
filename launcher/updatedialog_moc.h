@@ -59,5 +59,5 @@ private:
 	
 	void loadFromJson(const JsonNode & node, bool testing = false);
 	void fetchChannel(const QString& channel);
-	void startDownloadToCacheAndRun(const QUrl& url);
+	void startDownloadToCacheAndRun(const QUrl& url, const QString& target);
 };
