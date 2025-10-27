@@ -31,6 +31,11 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 
+#ifdef VCMI_ANDROID
+#include <QAndroidJniObject>
+#include <QtAndroid>
+#endif
+
  // Helper to normalize channel text to Stable/Beta/Develop
 static QString normalizeChannel(const QString& text)
 {
