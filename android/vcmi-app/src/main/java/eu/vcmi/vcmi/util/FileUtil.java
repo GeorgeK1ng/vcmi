@@ -153,6 +153,17 @@ public class FileUtil
         return fileName;
     }
 
+    public static String createFileInTree(String treeUriStr, String displayName, String mime, Context ctx) {
+        try {
+            Uri treeUri = Uri.parse(treeUriStr);
+            Uri docUri  = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
+            Uri created = DocumentsContract.createDocument(ctx.getContentResolver(), docUri, (mime != null ? mime : "application/octet-stream"), displayName);
+            return created != null ? created.toString() : "";
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
 	// Build a flat list of copy tasks for a SAF tree selection.
 	// Output rows are "srcUri\tTarget\tName" where Target is one of Data/Maps/Mp3 decided by file extension.
 	// Heuristic: if user picked "Data" and we found no Maps/Mp3, also scan ../Maps and ../Mp3 one level up.
