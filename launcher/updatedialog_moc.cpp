@@ -52,7 +52,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 {
 	ui->setupUi(this);
 	
-	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+	//setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
 	ui->progressBar->setHidden(true);
 
