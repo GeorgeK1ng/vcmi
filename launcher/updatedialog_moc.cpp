@@ -51,9 +51,13 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	ui->progressBar->setHidden(true);
 
-	if(calledManually)
+	if (calledManually)
 	{
-		setWindowModality(Qt::ApplicationModal);
+		#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+		    setWindowModality(Qt::NonModal);
+		#else
+		    setWindowModality(Qt::ApplicationModal);
+		#endif
 		show();
 	}
 	
