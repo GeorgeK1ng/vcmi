@@ -372,14 +372,25 @@ void UpdateDialog::on_installButton_clicked()
 {
 	const QString url = ui->testingBuilds->isChecked() && !testingUrl.isEmpty() ? testingUrl : releaseUrl;
 
-	if (url.isEmpty())
-	{
-		ui->downloadLink->setText(tr("No package to download/install."));
-		return;
+	if (url.isEmpty()) {
+	    ui->downloadLink->setText(tr("No package to download."));
+	    return;
 	}
 	
-	startDownloadToCacheAndRun(QUrl(url));
-}
+	#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+	    // Always ask user where to save on mobile
+	    Helper::nativeFolderPicker(this, [this, url](QString picked){
+	        if (picked.isEmpty())
+	            return; // user cancelled
+	        startDownloadToCacheAndRun(QUrl(url), picked);
+	    });
+	    return;
+	#else
+	    // Desktop: keep current behaviour (or adjust as you wish)
+	    startDownloadToCacheAndRun(QUrl(url));
+	#endif
+	
+	}
 
 void UpdateDialog::on_closeButton_clicked()
 {
@@ -387,199 +398,134 @@ void UpdateDialog::on_closeButton_clicked()
 }
 
 
-
-#if defined(VCMI_ANDROID)
-#include <QFileInfo>
-#include <QtAndroidExtras/QAndroidJniObject>
-#include <QtAndroidExtras/QAndroidJniEnvironment>
-#include <QtAndroidExtras/QtAndroid>
-
-static QAndroidJniObject appContext()
+void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target)
 {
-    QAndroidJniObject activity = QtAndroid::androidActivity();
-    if (activity.isValid())
-        return activity.callObjectMethod("getApplicationContext", "()Landroid/content/Context;");
-    return QtAndroid::androidContext(); // fallback
-}
+    QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
 
-static QAndroidJniObject fileProviderUri(const QString &path)
-{
-    QAndroidJniObject ctx = appContext();
-    if (!ctx.isValid()) return QAndroidJniObject();
-
-    // authority = "<package>.fileprovider"
-    QAndroidJniObject pkg = ctx.callObjectMethod("getPackageName", "()Ljava/lang/String;");
-    QAndroidJniObject auth = QAndroidJniObject::fromString(pkg.toString() + ".fileprovider");
-
-    QAndroidJniObject jFile("java/io/File",
-                            "(Ljava/lang/String;)V",
-                            QAndroidJniObject::fromString(path).object<jstring>());
-
-    // Try AndroidX first…
-    QAndroidJniObject uri = QAndroidJniObject::callStaticObjectMethod(
-        "androidx/core/content/FileProvider",
-        "getUriForFile",
-        "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
-        ctx.object<jobject>(),
-        auth.object<jstring>(),
-        jFile.object<jobject>());
-
-    // …fallback to legacy support lib if project isn’t migrated to AndroidX
-    if (!uri.isValid()) {
-        uri = QAndroidJniObject::callStaticObjectMethod(
-            "android/support/v4/content/FileProvider",
-            "getUriForFile",
-            "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
-            ctx.object<jobject>(),
-            auth.object<jstring>(),
-            jFile.object<jobject>());
+    QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
+    if (progress) {
+        progress->setVisible(true);
+        progress->setRange(0, 0);
+        connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot) {
+            if (!progress)
+                return;
+            if (tot > 0) {
+                progress->setRange(0, int(tot));
+                progress->setValue(int(rec));
+            }
+        });
     }
-    return uri;
-}
 
-bool installApk(const QString &fullPath)
-{
-    QFileInfo fi(fullPath);
-    if (!fi.exists() || fi.size() <= 0)
-        return false;
+    connect(rep, &QNetworkReply::finished, this, [this, rep, progress, target] {
+        rep->deleteLater();
+        if (rep->error() != QNetworkReply::NoError) {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("Download failed: %1").arg(rep->errorString()));
+            return;
+        }
 
-    QAndroidJniObject ctx = appContext();
-    if (!ctx.isValid())
-        return false;
+        const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
+        const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
+        const QString fullPath = QDir(cacheDir).filePath(fileName);
 
-    QAndroidJniObject uri = fileProviderUri(fullPath);
-    if (!uri.isValid())
-        return false;
+        QSaveFile out(fullPath);
+        if (!out.open(QIODevice::WriteOnly)) {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
+            return;
+        }
 
-    // Intent ACTION_VIEW with APK MIME
-    QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.VIEW");
-    QAndroidJniObject intent("android/content/Intent",
-                             "(Ljava/lang/String;)V",
-                             action.object<jstring>());
+        const QByteArray data = rep->readAll();
+        if (out.write(data) != data.size()) {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
+            return;
+        }
+        if (!out.commit()) {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("Commit failed: %1").arg(out.errorString()));
+            return;
+        }
 
-    QAndroidJniObject mime = QAndroidJniObject::fromString("application/vnd.android.package-archive");
-    intent.callObjectMethod("setDataAndType",
-                            "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;",
-                            uri.object<jobject>(), mime.object<jstring>());
+        // Not strictly needed on mobile, harmless elsewhere
+        QFile::setPermissions(
+            fullPath,
+            QFile::permissions(fullPath)
+            | QFileDevice::ExeOwner | QFileDevice::ExeUser
+            | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
-    // Flags: NEW_TASK + GRANT_READ_URI_PERMISSION
-    const jint FLAG_ACTIVITY_NEW_TASK = 0x10000000;
-    const jint FLAG_GRANT_READ_URI_PERMISSION = 0x00000001;
-    intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;", FLAG_ACTIVITY_NEW_TASK);
-    intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;", FLAG_GRANT_READ_URI_PERMISSION);
-
-    // Start activity; catch any Java exceptions (e.g., unknown apps permission)
-    QAndroidJniEnvironment env;
-    env->ExceptionClear();
-    ctx.callObjectMethod("startActivity", "(Landroid/content/Intent;)V", intent.object<jobject>());
-    const bool ok = !env->ExceptionCheck();
-    if (!ok) {
-        env->ExceptionDescribe();
-        env->ExceptionClear();
-    }
-    return ok;
-}
-#endif // VCMI_ANDROID
-
-
-
-
-void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url)
-{
-	QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
-
-	QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
-	if (progress) {
-		progress->setVisible(true);
-		progress->setRange(0, 0);
-		connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot) {
-			if (!progress)
-				return;
-			if (tot > 0) {
-				progress->setRange(0, int(tot));
-				progress->setValue(int(rec));
-			}
-		});
-	}
-
-	connect(rep, &QNetworkReply::finished, this, [this, rep, progress] {
-		rep->deleteLater();
-		if (rep->error() != QNetworkReply::NoError) {
-			if (progress)
-				progress->setVisible(false);
-			ui->downloadLink->setText(tr("Download failed: %1").arg(rep->errorString()));
-			return;
-		}
-
-	const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-	const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
-	const QString fullPath = QDir(cacheDir).filePath(fileName);
-
-	QSaveFile out(fullPath);
-	if (!out.open(QIODevice::WriteOnly)) {
-	    ui->downloadLink->setText(tr("Can't create file: %1").arg(out.errorString()));
-	    return;
-	}
-
-	const QByteArray data = rep->readAll();
-	if (out.write(data) != data.size()) {
-	    ui->downloadLink->setText(tr("Write failed: %1").arg(out.errorString()));
-	    return;
-	}
-	if (!out.commit()) {
-	    ui->downloadLink->setText(tr("Commit failed: %1").arg(out.errorString()));
-	    return;
-	}
-
-	QFile::setPermissions(fullPath, QFile::permissions(fullPath) | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup | QFileDevice::ExeOther);
-
-	QFileInfo fi(fullPath);
-	if (!fi.exists() || fi.size() == 0) {
-	    ui->downloadLink->setText(tr("File not saved (path: %1)").arg(fullPath));
-	    return;
-	}
-
-	if (progress)
-		progress->setVisible(false);
+        QFileInfo fi(fullPath);
+        if (!fi.exists() || fi.size() == 0) {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("File not saved (path: %1)").arg(fullPath));
+            return;
+        }
 
 #if defined(VCMI_WINDOWS)
-		// Windows: Silent update
-		const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
-		if (QProcess::startDetached(fullPath, exeArgs)) {
-			QApplication::quit();
-		}
-		else {
-			ui->downloadLink->setText(tr("Failed to start installer."));
-		}
+        // Windows: Silent update
+        const QStringList exeArgs = { "/SILENT", "/NORESTART", "/LAUNCH" };
+        if (QProcess::startDetached(fullPath, exeArgs)) {
+            if (progress) progress->setVisible(false);
+            QApplication::quit();
+        }
+        else {
+            if (progress) progress->setVisible(false);
+            ui->downloadLink->setText(tr("Failed to start installer."));
+        }
 
 #elif defined(VCMI_MAC)
-		// macOS: open using default handler (.dmg/.pkg)
-		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
-			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
-		}
+        // macOS: open using default handler (.dmg/.pkg)
+        if (progress) progress->setVisible(false);
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+            ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+        }
 
 #elif defined(VCMI_ANDROID)
-		// Android: TODO – Helper::installApk(fullPath) using JNI
-		//if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
-		if (!installApk(fullPath)) {
-			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
-			ui->testingChangelog->append(tr("Package saved to %1 — open it manually.").arg(fullPath));
-		}
+        // Android: copy into the picked SAF folder (content:// tree)
+        if (target.startsWith("content://", Qt::CaseInsensitive)) {
+            QAndroidJniObject jTree = QAndroidJniObject::fromString(target);
+            QAndroidJniObject jName = QAndroidJniObject::fromString(fileName);
+            QAndroidJniObject jMime = QAndroidJniObject::fromString("application/octet-stream");
+            QAndroidJniObject jDst  = QAndroidJniObject::callStaticObjectMethod(
+                "eu/vcmi/vcmi/util/FileUtil",
+                "createFileInTree",
+                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)Ljava/lang/String;",
+                jTree.object<jstring>(),
+                jName.object<jstring>(),
+                jMime.object<jstring>(),
+                QtAndroid::androidContext().object()
+            );
+            const QString dstUri = jDst.isValid() ? jDst.toString() : QString();
+            if (!dstUri.isEmpty()) {
+                Helper::performNativeCopy(fullPath, dstUri); // src=file path, dst=content://
+                ui->downloadLink->setText(tr("Saved to selected folder."));
+            } else {
+                ui->downloadLink->setText(tr("Saved to cache (failed to create destination file)."));
+            }
+        } else {
+            // If user returned a filesystem path (rare on Android), copy directly
+            const QString dstPath = QDir(target).filePath(fileName);
+            Helper::performNativeCopy(fullPath, dstPath);
+            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+        }
+        if (progress) progress->setVisible(false);
 
 #elif defined(VCMI_IOS)
-		// iOS: Unsupported
-		ui->downloadLink->setText(tr("Package saved to %1 — installation is not supported on iOS.").arg(fullPath));
+        // iOS: copy into the picked filesystem folder
+        {
+            const QString dstPath = QDir(target).filePath(fileName);
+            Helper::performNativeCopy(fullPath, dstPath);
+            Helper::revealDirectoryInFileBrowser(target);
+            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+        }
+        if (progress) progress->setVisible(false);
 
-#elif defined(VCMI_UNIX)
-		// Linux
-		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
-			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
-		}
 #else
-		// Fallback
-		if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
-			ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
-		}
+        // Fallback: just open or inform
+        if (progress) progress->setVisible(false);
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath))) {
+            ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
+        }
 #endif
-	});
+    });
 }
