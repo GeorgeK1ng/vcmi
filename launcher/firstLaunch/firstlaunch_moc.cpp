@@ -568,8 +568,8 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
             logGlobal->info("Performing extraction using innoextract...");
 
-            errorText = Innoextract::extract(tmpFileExe, tempDir.path(), [overlay](float progress){
-                overlay->setValue(int(progress * 100));
+			errorText = Innoextract::extract(tmpFileExe, tempDir.path(), [overlayPtr = overlay.data()](float progress) {
+				overlayPtr->setValue(static_cast<int>(progress * 100));
                 qApp->processEvents();
             });
 
