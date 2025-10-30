@@ -23,66 +23,7 @@
 #include "../helper.h"
 #include "../languages.h"
 #include "../innoextract.h"
-
-// Unified progress overlay
-class ProgressOverlay final : public QWidget
-{
-public:
-    explicit ProgressOverlay(QWidget *parent, int topOffsetPx = 50)
-        : QWidget(parent)
-    {
-        // Match parent background to feel native
-        setAutoFillBackground(true);
-        QPalette pal = palette();
-        pal.setColor(QPalette::Window, parent->palette().color(QPalette::Window));
-        setPalette(pal);
-
-        // Cover whole view except top offset
-        setGeometry(parent->rect().adjusted(0, topOffsetPx, 0, 0));
-
-        auto *layout = new QVBoxLayout(this);
-        layout->setContentsMargins(24, 24, 24, 24);
-        layout->setSpacing(12);
-
-        titleLabel = new QLabel(this);
-        titleLabel->setAlignment(Qt::AlignCenter);
-        titleLabel->setStyleSheet("font-size: 16px; font-weight: 600;");
-
-        fileLabel = new QLabel("", this);
-        fileLabel->setAlignment(Qt::AlignCenter);
-        fileLabel->setWordWrap(true);
-
-        progressBar = new QProgressBar(this);
-        progressBar->setMinimumHeight(18);
-        setIndeterminate(true); 
-
-        layout->addStretch();
-        layout->addWidget(titleLabel);
-        layout->addWidget(fileLabel);
-        layout->addWidget(progressBar);
-        layout->addStretch();
-
-		Helper::keepScreenOn(true);
-    }
-
-    ~ProgressOverlay() override
-    {
-        Helper::keepScreenOn(false);
-    }
-
-    void setTitle(const QString &t)        { titleLabel->setText(t); }
-    void setFileName(const QString &name)  { fileLabel->setText(name); }
-
-    // Switch between indeterminate and determinate progress
-    void setIndeterminate(bool on)		   { progressBar->setRange(0, on ? 0 : 100); }
-    void setRange(int max)                 { progressBar->setRange(0, qMax(1, max)); progressBar->setValue(0); }
-    void setValue(int v)                   { progressBar->setValue(v); }
-
-private:
-    QLabel *titleLabel;
-    QLabel *fileLabel;
-    QProgressBar *progressBar;
-};
+#include "progressoverlay.h"
 
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
@@ -705,24 +646,32 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetLanguageDescr->setVisible(translationExists);
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
-	ui->buttonPresetLanguage->setVisible(checkCanInstallTranslation());
-	ui->buttonPresetExtras->setVisible(checkCanInstallExtras());
-	ui->buttonPresetDemo->setVisible(checkCanInstallDemo());
-	ui->buttonPresetHota->setVisible(checkCanInstallHota());
-	ui->buttonPresetWog->setVisible(checkCanInstallWog());
-	ui->buttonPresetTow->setVisible(checkCanInstallTow());
-	ui->buttonPresetFod->setVisible(checkCanInstallFod());
+    bool canTrans  = checkCanInstallTranslation();
+    bool canExtras = checkCanInstallExtras();
+    bool canDemo   = checkCanInstallDemo();
+    bool canHota   = checkCanInstallHota();
+    bool canWog    = checkCanInstallWog();
+    bool canTow    = checkCanInstallTow();
+    bool canFod    = checkCanInstallFod();
 
-	ui->labelPresetLanguageDescr->setVisible(checkCanInstallTranslation());
-	ui->labelPresetExtrasDescr->setVisible(checkCanInstallExtras());
-	ui->labelPresetDemoDescr->setVisible(checkCanInstallDemo());
-	ui->labelPresetHotaDescr->setVisible(checkCanInstallHota());
-	ui->labelPresetWogDescr->setVisible(checkCanInstallWog());
-	ui->labelPresetTowDescr->setVisible(checkCanInstallTow());
-	ui->labelPresetFodDescr->setVisible(checkCanInstallFod());
+    ui->buttonPresetLanguage->setVisible(canTrans);
+    ui->buttonPresetExtras->setVisible(canExtras);
+    ui->buttonPresetDemo->setVisible(canDemo);
+    ui->buttonPresetHota->setVisible(canHota);
+    ui->buttonPresetWog->setVisible(canWog);
+    ui->buttonPresetTow->setVisible(canTow);
+    ui->buttonPresetFod->setVisible(canFod);
+
+    ui->labelPresetLanguageDescr->setVisible(canTrans);
+    ui->labelPresetExtrasDescr->setVisible(canExtras);
+    ui->labelPresetDemoDescr->setVisible(canDemo);
+    ui->labelPresetHotaDescr->setVisible(canHota);
+    ui->labelPresetWogDescr->setVisible(canWog);
+    ui->labelPresetTowDescr->setVisible(canTow);
+    ui->labelPresetFodDescr->setVisible(canFod);
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if (!checkCanInstallTranslation() && !checkCanInstallExtras() && !checkCanInstallDemo() && !checkCanInstallHota() && !checkCanInstallWog() && !checkCanInstallTow() && !checkCanInstallFod())
+    if (!canTrans && !canExtras && !canDemo && !canHota && !canWog && !canTow && !canFod)
 		exitSetup(false);
 }
 
@@ -839,7 +788,7 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 
 	if (ui->buttonPresetDemo->isChecked() && checkCanInstallDemo())
 		modsToInstall.push_back("demo-support");
-	
+
 	if (ui->buttonPresetWog->isChecked() && checkCanInstallWog())
 		modsToInstall.push_back("wake-of-gods");
 
