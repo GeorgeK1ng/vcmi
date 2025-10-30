@@ -343,7 +343,6 @@ void FirstLaunchView::extractGogData()
 bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* overlay, bool removeSource)
 {
     // 1) Scan -> "src \t Target \t Name"
-    overlay->setTitle(tr("Scanning selected folder..."));
     overlay->setIndeterminate(true);
 
     const QStringList items = Helper::findFilesForCopy(path);
@@ -621,13 +620,13 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
     QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
     overlay->raise();
-    qApp->processEvents();
+    //qApp->processEvents();
     auto work = [this, path, removeSource, overlay]() {
         if (performCopyFlow(path, overlay, removeSource))
             if (heroesDataUpdate())
                 activateTabModPreset();
 
-        overlay->deleteLater();
+        //overlay->deleteLater();
     };
 
     QTimer::singleShot(0, this, work);
