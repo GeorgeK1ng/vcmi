@@ -349,7 +349,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     const QStringList items = Helper::findFilesForCopy(path);
     if(items.isEmpty())
 	{
-        overlay->deleteLater();
         QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
         return false;
     }
@@ -394,7 +393,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     const QString err = validate(items);
     if(!err.isEmpty())
 	{
-        overlay->deleteLater();
         QMessageBox::critical(this, tr("Heroes III data not found!"), err);
         return false;
     }
@@ -430,7 +428,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
 	// Never happends?
     if(plan.isEmpty())
 	{
-        overlay->deleteLater();
         QMessageBox::critical(this, tr("Heroes III data not found!"), tr("No matching files found in the selected folder."));
         return false;
     }
@@ -458,7 +455,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     if(removeSource)
         QDir(path).removeRecursively();
 
-    overlay->deleteLater();
     return true;
 }
 
@@ -467,15 +463,14 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
     logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
 
 #ifdef ENABLE_INNOEXTRACT
-    //  Show overlay immediately so the UI doesn't look frozen
-    auto *overlay = createOverlay(this, tr("Checking installer..."), true);
-    overlay->setFileName(QFileInfo(filePathExe).fileName());
-    overlay->raise();
-    qApp->processEvents();
-
     // Defer heavy work to next event-loop tick to ensure overlay is painted
-    QTimer::singleShot(0, this, [this, overlay, filePathBin, filePathExe]()
-    {
+	QTimer::singleShot(0, this, [this, filePathBin, filePathExe]()
+	{
+		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Checking installer..."), true));
+		overlay->setFileName(QFileInfo(filePathExe).fileName());
+		overlay->raise();
+		qApp->processEvents();
+
         const QString filterBin = tr("GOG data") + " (*.bin)";
         const QString filterExe = tr("GOG installer") + " (*.exe)";
 
@@ -490,7 +485,6 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         tempDir.mkdir("tmp");
         if(!tempDir.cd("tmp"))
         {
-            overlay->deleteLater();
             return; // should not happen - but avoid deleting wrong folder in any case
         }
 
@@ -590,8 +584,6 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         QStringList dirData = tempDir.entryList({"data"}, QDir::Filter::Dirs);
         if(!errorText.isEmpty() || dirData.empty() || QDir(tempDir.filePath(dirData.front())).entryList({"*.lod"}, QDir::Filter::Files).empty())
         {
-            overlay->deleteLater();
-
             if(!errorText.isEmpty())
             {
                 logGlobal->error("Gog installer extraction failure! Reason: %s", errorText.toStdString());
@@ -616,7 +608,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         overlay->setRange(100); // performCopyFlow will reset to plan size internally
         overlay->setValue(0);
 
-        if(performCopyFlow(tempDir.path(), overlay, true))
+        if(performCopyFlow(tempDir.path(), overlay.data(), true))
         {
             if(heroesDataUpdate())
                 activateTabModPreset();
@@ -627,15 +619,12 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
-    auto *overlay = createOverlay(this, tr("Scanning selected folder..."), true);
-
-    auto work = [this, path, overlay]() {
-        if(performCopyFlow(path, overlay, false))
-            if(heroesDataUpdate())
-                activateTabModPreset();
-    };
-
-    QTimer::singleShot(0, this, work);
+	QTimer::singleShot(0, this, [this, path]() {
+		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Scanning selected folder..."), true));
+		if(performCopyFlow(path, overlay.data(), false))
+			if(heroesDataUpdate())
+				activateTabModPreset();
+    });
 }
 
 // Tab Mod Preset
@@ -646,32 +635,32 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetLanguageDescr->setVisible(translationExists);
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
-    bool canTrans  = checkCanInstallTranslation();
-    bool canExtras = checkCanInstallExtras();
-    bool canDemo   = checkCanInstallDemo();
-    bool canHota   = checkCanInstallHota();
-    bool canWog    = checkCanInstallWog();
-    bool canTow    = checkCanInstallTow();
-    bool canFod    = checkCanInstallFod();
+	bool canTrans  = checkCanInstallTranslation();
+	bool canExtras = checkCanInstallExtras();
+	bool canDemo   = checkCanInstallDemo();
+	bool canHota   = checkCanInstallHota();
+	bool canWog    = checkCanInstallWog();
+	bool canTow    = checkCanInstallTow();
+	bool canFod    = checkCanInstallFod();
 
-    ui->buttonPresetLanguage->setVisible(canTrans);
-    ui->buttonPresetExtras->setVisible(canExtras);
-    ui->buttonPresetDemo->setVisible(canDemo);
-    ui->buttonPresetHota->setVisible(canHota);
-    ui->buttonPresetWog->setVisible(canWog);
-    ui->buttonPresetTow->setVisible(canTow);
-    ui->buttonPresetFod->setVisible(canFod);
+	ui->buttonPresetLanguage->setVisible(canTrans);
+	ui->buttonPresetExtras->setVisible(canExtras);
+	ui->buttonPresetDemo->setVisible(canDemo);
+	ui->buttonPresetHota->setVisible(canHota);
+	ui->buttonPresetWog->setVisible(canWog);
+	ui->buttonPresetTow->setVisible(canTow);
+	ui->buttonPresetFod->setVisible(canFod);
 
-    ui->labelPresetLanguageDescr->setVisible(canTrans);
-    ui->labelPresetExtrasDescr->setVisible(canExtras);
-    ui->labelPresetDemoDescr->setVisible(canDemo);
-    ui->labelPresetHotaDescr->setVisible(canHota);
-    ui->labelPresetWogDescr->setVisible(canWog);
-    ui->labelPresetTowDescr->setVisible(canTow);
-    ui->labelPresetFodDescr->setVisible(canFod);
+	ui->labelPresetLanguageDescr->setVisible(canTrans);
+	ui->labelPresetExtrasDescr->setVisible(canExtras);
+	ui->labelPresetDemoDescr->setVisible(canDemo);
+	ui->labelPresetHotaDescr->setVisible(canHota);
+	ui->labelPresetWogDescr->setVisible(canWog);
+	ui->labelPresetTowDescr->setVisible(canTow);
+	ui->labelPresetFodDescr->setVisible(canFod);
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-    if (!canTrans && !canExtras && !canDemo && !canHota && !canWog && !canTow && !canFod)
+	if (!canTrans && !canExtras && !canDemo && !canHota && !canWog && !canTow && !canFod)
 		exitSetup(false);
 }
 
