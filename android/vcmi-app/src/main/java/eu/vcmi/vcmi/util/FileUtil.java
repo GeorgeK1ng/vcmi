@@ -184,9 +184,7 @@ public static String[] findFilesForCopy(String treeUriStr, Context ctx)
     final DocumentFile root = DocumentFile.fromTreeUri(ctx, treeUri);
     
 	if (root == null)
-	{
         return new String[0];
-    }
 
     final List<String> out = new ArrayList<>();
     int foundMaps = 0;
@@ -200,48 +198,41 @@ public static String[] findFilesForCopy(String treeUriStr, Context ctx)
 	{
         final DocumentFile entry = stack.pop();
         if (entry == null)
-		{
             continue;
-        }
 
         if (entry.isDirectory())
 		{
             final DocumentFile[] children = entry.listFiles();
             if (children == null)
-			{
                 continue;
-            }
+
             for (final DocumentFile child : children) {
                 if (child != null)
-				{
                     stack.push(child);
-                }
             }
             continue;
-        }
+		}
 
         final String name = entry.getName();
         if (name == null)
-		{
             continue;
-        }
 
         final String lower = name.toLowerCase(Locale.ROOT);
         String target = null;
 
         if (lower.endsWith(".lod") || lower.endsWith(".snd") || lower.endsWith(".vid") || lower.endsWith(".pak")) {
             target = TARGET_DATA;
-        } else if (lower.endsWith(".h3m")) {
+		} else if (lower.endsWith(".h3m")) {
             target = TARGET_MAPS;
             foundMaps++;
-        } else if (lower.endsWith(".mp3")) {
+		} else if (lower.endsWith(".mp3")) {
             target = TARGET_MP3;
             foundMp3++;
-        }
+		}
 
-        if (target != null) {
-            out.add(String.format(Locale.ROOT, "%s\t%s\t%s", entry.getUri().toString(), target, name));
-        }
+        if (target != null)
+			out.add(String.format(Locale.ROOT, "%s\t%s\t%s", entry.getUri().toString(), target, name));
+
     }
 
     // 2) If user picked "Data" and Maps/Mp3 were not found, also scan ../Maps and ../Mp3
@@ -255,24 +246,19 @@ public static String[] findFilesForCopy(String treeUriStr, Context ctx)
 			{
                 final DocumentFile maps = findChildDirIgnoreCase(parentRoot, TARGET_MAPS);
                 if (maps != null)
-				{
                     foundMaps += collectFilesByExt(maps, ".h3m", TARGET_MAPS, out);
-                }
             }
             if (foundMp3 == 0)
 			{
                 final DocumentFile mp3 = findChildDirIgnoreCase(parentRoot, TARGET_MP3);
                 if (mp3 != null)
-				{
                     foundMp3 += collectFilesByExt(mp3, ".mp3", TARGET_MP3, out);
-                }
             }
         }
     }
 
     return out.toArray(new String[0]);
 }
-
 
 
 private static int collectFilesByExt(final DocumentFile start, final String extLower, final String target, final List<String> out)
@@ -285,32 +271,25 @@ private static int collectFilesByExt(final DocumentFile start, final String extL
 	{
         final DocumentFile entry = stack.pop();
         if (entry == null)
-		{
             continue;
-        }
 
         if (entry.isDirectory())
 		{
             final DocumentFile[] children = entry.listFiles();
             if (children == null)
-			{
                 continue;
-            }
+
             for (final DocumentFile child : children)
 			{
                 if (child != null)
-				{
                     stack.push(child);
-                }
             }
             continue;
         }
 
         final String name = entry.getName();
         if (name == null)
-		{
             continue;
-        }
 
         if (name.toLowerCase(Locale.ROOT).endsWith(extLower))
 		{
@@ -326,9 +305,7 @@ private static DocumentFile findChildDirIgnoreCase(final DocumentFile parent, fi
 {
     final DocumentFile[] children = parent.listFiles();
     if (children == null)
-	{
         return null;
-    }
 
     for (final DocumentFile child : children)
 	{
@@ -336,9 +313,7 @@ private static DocumentFile findChildDirIgnoreCase(final DocumentFile parent, fi
 		{
             final String name = child.getName();
             if (name != null && name.equalsIgnoreCase(childName))
-			{
                 return child;
-            }
         }
     }
     return null;
@@ -353,9 +328,7 @@ private static DocumentFile tryResolveParentOfTree(final Context ctx, final Uri 
     try {
         final String treeDocId = DocumentsContract.getTreeDocumentId(treeUri);
         if (treeDocId == null)
-		{
             return null;
-        }
 
         final String[] parts = treeDocId.split(":", 2);
         final String type = parts.length > 0 ? parts[0] : "";
@@ -377,5 +350,4 @@ private static DocumentFile tryResolveParentOfTree(final Context ctx, final Uri 
     }
 }
 
-	
 }

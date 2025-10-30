@@ -619,12 +619,12 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
-	QTimer::singleShot(0, this, [this, path]() {
+	//QTimer::singleShot(0, this, [this, path]() {
 		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Scanning selected folder..."), true));
 		if(performCopyFlow(path, overlay.data(), false))
 			if(heroesDataUpdate())
 				activateTabModPreset();
-    });
+    //});
 }
 
 // Tab Mod Preset
