@@ -105,41 +105,22 @@ QString getRealPath(QString path)
 bool performNativeCopy(QString src, QString dst)
 {
 #ifdef VCMI_ANDROID
-    // Ensure destination directory exists for both branches
-    QFileInfo dstInfo(dst);
-    QDir().mkpath(dstInfo.absolutePath());
-
     const bool srcIsContent = src.startsWith("content://", Qt::CaseInsensitive);
     const bool dstIsContent = dst.startsWith("content://", Qt::CaseInsensitive);
 
     if (srcIsContent || dstIsContent)
     {
-        // SAF involved -> use Java helper that reads/writes via ContentResolver
         const QAndroidJniObject jSrc = QAndroidJniObject::fromString(srcIsContent ? safeEncode(src) : src);
         const QAndroidJniObject jDst = QAndroidJniObject::fromString(dstIsContent ? safeEncode(dst) : dst);
-
-        QAndroidJniObject::callStaticObjectMethod(
-            "eu/vcmi/vcmi/util/FileUtil",
-            "copyFileFromUri",
-            "(Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)V",
-            jSrc.object<jstring>(),
-            jDst.object<jstring>(),
-            QtAndroid::androidContext().object()
-        );
+        QAndroidJniObject::callStaticObjectMethod("eu/vcmi/vcmi/util/FileUtil", "copyFileFromUri", "(Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)V", jSrc.object<jstring>(), jDst.object<jstring>(), QtAndroid::androidContext().object());
         return QFileInfo(dst).exists();
     }
 
     // Pure filesystem -> use Qt copy
-    if (QFile::exists(dst))
-        QFile::remove(dst);
-	
+    QFile::remove(dst);
     return QFile::copy(src, dst);
 #else
-    QFileInfo dstInfo(dst);
-    QDir().mkpath(dstInfo.absolutePath());
-    if (QFile::exists(dst))
-        QFile::remove(dst);
-	
+	QFile::remove(dst);
     return QFile::copy(src, dst);
 #endif
 }
@@ -174,6 +155,19 @@ void keepScreenOn(bool isEnabled)
 #endif
 }
 
+bool canUseFolderPicker()
+{
+#if defined(VCMI_ANDROID)
+    // ACTION_OPEN_DOCUMENT_TREE je od API 21
+    return QtAndroid::androidSdkVersion() >= 21;
+#elif defined(VCMI_IOS)
+    // UIDocumentPickerViewController od iOS 13
+    return iOS_utils::isOsVersionAtLeast(13);
+#else
+    return true;
+#endif
+}
+
 #ifdef VCMI_ANDROID
 static constexpr int  kFolderPickerReqCode = 4242;
 
@@ -188,7 +182,9 @@ public:
     // One-shot result handler for ACTION_OPEN_DOCUMENT_TREE
     void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
     {
-        auto cb = std::move(onDone); // guarantee single-use
+        auto cb = std::exchange(onDone, {}); // guarantee single-use
+		if (!cb)
+			return;
 
         if (req != kFolderPickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid())
         {
@@ -214,8 +210,11 @@ public:
 static FolderPickReceiver g_receiver;
 #endif // VCMI_ANDROID
 
-void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
+void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb)
 {
+	if (!cb)
+		return;
+
 #if defined(VCMI_ANDROID)
     Q_UNUSED(parent);
     g_receiver.onDone = std::move(cb);
@@ -229,11 +228,11 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)> cb)
 #elif defined(VCMI_IOS)
     SelectDirectory iosDirectorySelector;
     const QString dir = iosDirectorySelector.getExistingDirectory();
-    if (cb) cb(dir);
+    cb(dir);
 
 #else
     const QString dir = QFileDialog::getExistingDirectory(parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (cb) cb(dir);
+    cb(dir);
 #endif
 }
 
