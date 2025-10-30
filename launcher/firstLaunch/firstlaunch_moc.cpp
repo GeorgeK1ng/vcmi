@@ -514,7 +514,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             return QString();
         };
 
-        QString errorText{};
+        QString errorText;
 
         if(errorText.isEmpty())
             errorText = checkMagic(tmpFileBin, filterBin, QByteArray{"idska32"});
@@ -537,7 +537,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
             QByteArray data = file.readAll();
 
-            const QByteArray magicId{reinterpret_cast<const char*>(u"GOG Galaxy"), 20};
+            constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+            const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+            const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
+
             return data.contains(magicId);
         };
 
