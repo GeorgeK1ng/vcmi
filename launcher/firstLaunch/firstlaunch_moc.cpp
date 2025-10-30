@@ -620,13 +620,13 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
     QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
     overlay->raise();
-    //qApp->processEvents();
+
     auto work = [this, path, removeSource, overlay]() {
         if (performCopyFlow(path, overlay, removeSource))
             if (heroesDataUpdate())
                 activateTabModPreset();
 
-        //overlay->deleteLater();
+        overlay->deleteLater();
     };
 
     QTimer::singleShot(0, this, work);
