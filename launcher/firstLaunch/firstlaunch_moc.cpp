@@ -619,24 +619,15 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
-	//QTimer::singleShot(0, this, [this, path]() {
-		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Scanning selected folder..."), true));
-		overlay->raise();
-		qApp->processEvents();
-
-		//if(performCopyFlow(path, overlay.data(), false))
-		//	if(heroesDataUpdate())
-		//		activateTabModPreset();
-    //});
+    QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
+    overlay->raise();
+    qApp->processEvents();
     auto work = [this, path, removeSource, overlay]() {
-        if (!overlay) return; // pro jistotu
-
-        if (performCopyFlow(path, overlay, removeSource)) {
+        if (performCopyFlow(path, overlay, removeSource))
             if (heroesDataUpdate())
                 activateTabModPreset();
-        }
 
-        if (overlay) overlay->deleteLater();
+        overlay->deleteLater();
     };
 
     QTimer::singleShot(0, this, work);
