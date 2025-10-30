@@ -212,11 +212,11 @@ public:
 };
 
 static FolderPickReceiver g_receiver;
-#endif // VCMI_ANDROID
+#endif
 
 void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb)
 {
-	if (!cb)
+	if(!cb)
 		return;
 
 #if defined(VCMI_ANDROID)

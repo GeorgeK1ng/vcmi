@@ -220,12 +220,17 @@ public static String[] findFilesForCopy(String treeUriStr, Context ctx)
         final String lower = name.toLowerCase(Locale.ROOT);
         String target = null;
 
-        if (lower.endsWith(".lod") || lower.endsWith(".snd") || lower.endsWith(".vid") || lower.endsWith(".pak")) {
+        if (lower.endsWith(".lod") || lower.endsWith(".snd") || lower.endsWith(".vid") || lower.endsWith(".pak"))
+		{
             target = TARGET_DATA;
-		} else if (lower.endsWith(".h3m")) {
+		}
+		else if (lower.endsWith(".h3m"))
+		{
             target = TARGET_MAPS;
             foundMaps++;
-		} else if (lower.endsWith(".mp3")) {
+		}
+		else if (lower.endsWith(".mp3"))
+		{
             target = TARGET_MP3;
             foundMp3++;
 		}

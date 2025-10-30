@@ -423,13 +423,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
         const QDir dstDir = targetRoot.filePath(tgt);
         plan.push_back({ src, dstDir.filePath(file) });
     }
-	
-	// Never happends?
-    if(plan.isEmpty())
-	{
-        QMessageBox::critical(this, tr("Heroes III data not found!"), tr("No matching files found in the selected folder."));
-        return false;
-    }
 
     // 4) Copy with progress
     overlay->setTitle(tr("Importing Heroes III data..."));
@@ -440,7 +433,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
 	{
         overlay->setFileName(QFileInfo(plan[i].dst).fileName());
         overlay->setValue(i + 1);
-        qApp->processEvents(); // ?? qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        qApp->processEvents();
 
         if (QFile::exists(plan[i].dst))
             QFile::remove(plan[i].dst);
@@ -620,7 +613,6 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
     QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
     overlay->raise();
-
     auto work = [this, path, removeSource, overlay]() {
         if (performCopyFlow(path, overlay, removeSource))
             if (heroesDataUpdate())
