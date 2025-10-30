@@ -284,7 +284,7 @@ void FirstLaunchView::heroesDataMissing()
 	ui->labelDataManualDescr->setVisible(true);
 	ui->pushButtonDataSearch->setVisible(true);
 
-	const bool canUseDataCopy = Helper::canUseDataCopy();
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
 	ui->labelDataCopyTitle->setVisible(canUseDataCopy);
 	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
@@ -409,7 +409,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     if(items.isEmpty())
 	{
         overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), QObject::tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
+        QMessageBox::critical(this, tr("Heroes III data not found!"), tr("Failed to detect valid Heroes III data in chosen directory.\nPlease select the directory with installed Heroes III data."));
         return false;
     }
 
@@ -454,7 +454,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     if(!err.isEmpty())
 	{
         overlay->deleteLater();
-        QMessageBox::critical(self, QObject::tr("Heroes III data not found!"), err);
+        QMessageBox::critical(this, tr("Heroes III data not found!"), err);
         return false;
     }
 
@@ -490,12 +490,12 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     if(plan.isEmpty())
 	{
         overlay->deleteLater();
-        QMessageBox::critical(self, tr("Heroes III data not found!"), tr("No matching files found in the selected folder."));
+        QMessageBox::critical(this, tr("Heroes III data not found!"), tr("No matching files found in the selected folder."));
         return false;
     }
 
     // 4) Copy with progress
-    overlay->setTitle(QObject::tr("Importing Heroes III data..."));
+    overlay->setTitle(tr("Importing Heroes III data..."));
     overlay->setIndeterminate(false);
     overlay->setRange(plan.size());
 
@@ -573,14 +573,14 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
             if(!tmpFile.open(QIODevice::ReadOnly))
             {
                 logGlobal->info("File cannot be opened: %s", tmpFile.errorString().toStdString());
-                return QObject::tr("Failed to open file: %1").arg(tmpFile.errorString());
+                return tr("Failed to open file: %1").arg(tmpFile.errorString());
             }
 
             QByteArray magicFile = tmpFile.read(magic.length());
             if(!magicFile.startsWith(magic))
             {
                 logGlobal->info("Invalid file selected: %s", filter.toStdString());
-                return QObject::tr("You have to select %1 file!", "param is file extension").arg(filter);
+                return tr("You have to select %1 file!", "param is file extension").arg(filter);
             }
 
             logGlobal->info("Checking file %s", filename.toStdString());
