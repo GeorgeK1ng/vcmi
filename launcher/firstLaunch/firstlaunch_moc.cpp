@@ -368,7 +368,7 @@ void FirstLaunchView::extractGogData()
 
 	if(!errorText.isEmpty())
 	{
-		QMessageBox::critical(this, tr("Invalid installer"), errorText);
+		QMessageBox::critical(this, tr("Invalid file selected"), errorText);
 		return;
 	}
 
@@ -514,13 +514,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
     // Defer heavy work to next event-loop tick to ensure overlay is painted
 	QTimer::singleShot(0, this, [this, filePathBin, filePathExe]()
 	{
-		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Checking installer..."), true));
+		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Preparing installer..."), true));
 		overlay->setFileName(QFileInfo(filePathExe).fileName());
 		overlay->raise();
 		qApp->processEvents();
-
-        const QString filterBin = tr("GOG data") + " (*.bin)";
-        const QString filterExe = tr("GOG installer") + " (*.exe)";
 
         // 1) Prepare temp dir
         QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
