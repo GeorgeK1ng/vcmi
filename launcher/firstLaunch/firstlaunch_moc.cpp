@@ -333,7 +333,7 @@ void FirstLaunchView::extractGogData()
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
 
 		QFileInfo fileInfo(filename);
-		quint64 fileSize = file.size();
+		quint64 fileSize = static_cast<quint64>(fileInfo.size());
 		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
 
 		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive)){
