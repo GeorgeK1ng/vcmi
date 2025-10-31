@@ -321,7 +321,6 @@ void FirstLaunchView::extractGogData()
 		return file;
 	};
 
-	QString filterBin = tr("GOG data") + " (*.bin)";
 	QString filterExe = tr("GOG installer") + " (*.exe)";
 
 	QString fileExe = fileSelection(filterExe);
@@ -332,29 +331,30 @@ void FirstLaunchView::extractGogData()
 		QFile file(filename);
 		if(!file.open(QIODevice::ReadOnly))
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
+		
+		// GOG Galaxy fail-fast by size (all known offline installers are > ~800 KB)
+		QFileInfo fileInfo(file);
+		quint64 fileSize = static_cast<quint64>(fileInfo.size());
+		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
+		if(fileSize < 800000)
+			return QObject::tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
 
 		const QByteArray magicFile = file.read(magic.length());
 		if(!magicFile.startsWith(magic))
 			return QObject::tr("You have to select %1 file!", "param is file extension").arg(filter);
-
+		
 		return QString();
 	};
 	
-	QString errorText;
-	
-	// GOG Offline Installer
-	errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
+	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
 
-	// GOG Galaxy unsupported installer
-	if(errorText.isEmpty())
-		if(!checkMagic(fileExe, filterExe, QByteArray{"MZ"}).isEmpty())
-			errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
-	
 	if(!errorText.isEmpty())
 	{
 		QMessageBox::critical(this, tr("Invalid installer"), errorText);
 		return;
 	}
+
+	QString filterBin = QFileInfo(fileExe).completeBaseName() + "-1.bin";
 
 	QString fileBin = fileSelection(filterBin, QFileInfo(fileExe).absolutePath());
 	if(fileBin.isEmpty())
