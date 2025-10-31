@@ -337,14 +337,10 @@ void FirstLaunchView::extractGogData()
 		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
 	
 
-		QFile file(fileToTest);
 		//quint64 fileSize = file.size();
 
-		if(fileSize > 10 * 1024 * 1024)
-			return false; // avoid loading big files; Galaxy exe is smaller...
-
-		if(!file.open(QIODevice::ReadOnly))
-			return false;
+		//if(fileSize > 10 * 1024 * 1024)
+		//	return false; // avoid loading big files; Galaxy exe is smaller...
 
 		QByteArray data = file.readAll();
 
