@@ -345,14 +345,17 @@ void FirstLaunchView::extractGogData()
 
 	QByteArray fileHeader = file.read(128 * 1024); // small read is enough
 	constexpr std::u16string_view galaxyID = u"GOG Galaxy";
-	const char *galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
-	const QByteArray utf16 = QByteArray::fromRawData(galaxyIDBytes, static_cast<int>(galaxyID.size() * sizeof(decltype(galaxyID)::value_type)));
+	const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+	const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
 
-	if(fileHeader.contains(utf16))
+	if(fileHeader.contains(magicId))
 		errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
 
 	if(errorText.isEmpty())
 		errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
+
+	//if(errorText.isEmpty())
+	//	errorText = checkMagic(fileExe, filterExe, QByteArray{"MZ"});
 
 	if(!errorText.isEmpty())
 	{
