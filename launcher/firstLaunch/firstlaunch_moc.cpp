@@ -321,7 +321,7 @@ void FirstLaunchView::extractGogData()
 	};
 
 	QString filterExe = tr("GOG installer") + " (*.exe)";
-	QString titleExe  = tr("Select offline GOG installer (.exe)");
+	QString titleExe  = tr("Select the offline GOG installer (.exe)");
 
 	QString fileExe = fileSelection(titleExe, filterExe);
 	if(fileExe.isEmpty())
@@ -337,7 +337,7 @@ void FirstLaunchView::extractGogData()
 
 		logGlobal->error("Checking %s with size: %llu", filename.toStdString(), fileSize);
 		
-		// On mobile platforms is not possible to filter selection by extension in "File picker"
+		// On mobile platforms it is not possible to filter selection by extension in the file picker
 #if defined(VCMI_MOBILE)
 			if(fileInfo.suffix().compare(ext, Qt::CaseInsensitive) != 0)
 				return QObject::tr("You need to select a %1 file!", "param is file extension").arg(ext);
@@ -345,7 +345,10 @@ void FirstLaunchView::extractGogData()
 
 		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0){
 			if(fileSize > 1500000) // 1.5MB
-				return QObject::tr("Unknown installer selected");
+			{
+				logGlobal->info("Unknown installer selected: %s", filename.toStdString());
+				return QObject::tr("Unknown installer selected.\nYou need to select the offline GOG installer (.exe).");
+			}
 
 			const QByteArray data = file.peek(fileSize);
 
@@ -354,7 +357,10 @@ void FirstLaunchView::extractGogData()
 			const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
 
 			if(data.contains(magicId))
+			{
+				logGlobal->info("GOG Galaxy detected! Aborting...");
 				return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
+			}
 		}
 
 		const QByteArray magicFile = file.peek(magic.length());
@@ -375,7 +381,7 @@ void FirstLaunchView::extractGogData()
 	QFileInfo exeInfo(fileExe);
 	QString expectedBinName = exeInfo.completeBaseName() + "-1.bin";
 	QString filterBin = tr("GOG data") + " (*.bin)";
-	QString titleBin = tr("Select GOG data file: %1", "param is file name").arg(expectedBinName);
+	QString titleBin = tr("Select the offline GOG installer data file: %1", "param is file name").arg(expectedBinName);
 
 	QString fileBin = fileSelection(titleBin, filterBin, exeInfo.absolutePath());
 	if(fileBin.isEmpty())
