@@ -306,6 +306,37 @@ QString FirstLaunchView::getHeroesInstallDir()
 	return QString{};
 }
 
+static QString defaultStartDirForOpen()
+{
+#if defined(VCMI_MOBILE)
+    const QStandardPaths::StandardLocation mobilePrefs[] = {
+        QStandardPaths::DocumentsLocation,
+        QStandardPaths::HomeLocation
+    };
+	for(auto location : mobilePrefs)
+	{
+		for(const QString &path : QStandardPaths::standardLocations(location))
+			if(QDir(path).exists() && !path.isEmpty())
+				return path;
+    }
+    return QDir::homePath();
+#else
+    // Desktop: prefer Downloads, then Home, then Desktop
+    const QStandardPaths::StandardLocation desktopPrefs[] = {
+        QStandardPaths::DownloadLocation,
+        QStandardPaths::HomeLocation,
+        QStandardPaths::DesktopLocation
+    };
+    for(auto location : desktopPrefs)
+	{
+        for(const QString &path : QStandardPaths::standardLocations(location))
+            if(QDir(path).exists() && !path.isEmpty())
+				return path;
+    }
+    return QDir::homePath();
+#endif
+}
+
 void FirstLaunchView::extractGogData()
 {
 #ifdef ENABLE_INNOEXTRACT
@@ -314,7 +345,7 @@ void FirstLaunchView::extractGogData()
 		filter = tr("GOG file (*.*)");
 		QMessageBox::information(this, tr("File selection"), title);
 #endif
-		QString file = QFileDialog::getOpenFileName(this, title, startPath.isEmpty() ? QDir::homePath() : startPath, filter);
+		QString file = QFileDialog::getOpenFileName(this, title, startPath.isEmpty() ? defaultStartDirForOpen() : startPath, filter);
 		if(file.isEmpty())
 			return QString{};
 		return file;
@@ -369,7 +400,7 @@ void FirstLaunchView::extractGogData()
 
 		return QString();
 	};
-	
+
 	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"}, "EXE");
 
 	if(!errorText.isEmpty())
