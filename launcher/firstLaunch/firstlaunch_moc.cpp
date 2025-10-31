@@ -309,7 +309,7 @@ QString FirstLaunchView::getHeroesInstallDir()
 void FirstLaunchView::extractGogData()
 {
 #ifdef ENABLE_INNOEXTRACT
-	auto fileSelection = [this](const QString &title, QString filter, const QString &startPath = {}) {
+	auto fileSelection = [this](const QString &title,  QString filter, const QString &startPath = {}) {
 #if defined(VCMI_MOBILE)
 		filter = tr("GOG file (*.*)");
 		QMessageBox::information(this, tr("File selection"), title);
@@ -335,15 +335,34 @@ void FirstLaunchView::extractGogData()
 		QFileInfo fileInfo(filename);
 		quint64 fileSize = static_cast<quint64>(fileInfo.size());
 		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
-		
-		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0)
-		{
-			if(fileSize < 800000) // GOG Galaxy fail-fast by size (all known offline installers are > ~800 KB)
-				return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
+	
 
-			if(fileSize > 1500000) // Anything > 1.5 MB is wrong
-				return QObject::tr("Unknown installer selected");
-		}
+		QFile file(fileToTest);
+		//quint64 fileSize = file.size();
+
+		if(fileSize > 10 * 1024 * 1024)
+			return false; // avoid loading big files; Galaxy exe is smaller...
+
+		if(!file.open(QIODevice::ReadOnly))
+			return false;
+
+		QByteArray data = file.readAll();
+
+		constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+		const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+		const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
+
+		if(data.contains(magicId))
+			return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
+	
+		//if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0)
+		//{
+		//	if(fileSize < 800000) // GOG Galaxy fail-fast by size (all known offline installers are > ~800 KB)
+		//		return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
+		//
+		//	if(fileSize > 1500000) // Anything > 1.5 MB is wrong
+		//		return QObject::tr("Unknown installer selected");
+		//}
 
 		const QByteArray magicFile = file.read(magic.length());
 		if(!magicFile.startsWith(magic))
