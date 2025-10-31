@@ -597,22 +597,22 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 //        }
 
         // Extract
-        if(errorText.isEmpty())
-        {
-            overlay->setTitle(tr("Extracting installer..."));
-            overlay->setIndeterminate(false);
-            overlay->setRange(100);
-            overlay->setValue(0);
+		overlay->setTitle(tr("Extracting installer..."));
+		overlay->setIndeterminate(false);
+		overlay->setRange(100);
+		overlay->setValue(0);
 
-            logGlobal->info("Performing extraction using innoextract...");
+		logGlobal->info("Performing extraction using innoextract...");
 
-			errorText = Innoextract::extract(tmpFileExe, tempDir.path(), [overlayPtr = overlay.data()](float progress) {
-				overlayPtr->setValue(static_cast<int>(progress * 100));
-                qApp->processEvents();
-            });
+		QString errorText;
 
-            logGlobal->info("Extraction done!");
-        }
+		errorText = Innoextract::extract(tmpFileExe, tempDir.path(), [overlayPtr = overlay.data()](float progress) {
+			overlayPtr->setValue(static_cast<int>(progress * 100));
+			qApp->processEvents();
+		});
+
+		logGlobal->info("Extraction done!");
+
 
         // 5) Post-extract verification and error reporting
         QString hashError;
