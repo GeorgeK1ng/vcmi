@@ -336,7 +336,7 @@ void FirstLaunchView::extractGogData()
 		quint64 fileSize = static_cast<quint64>(fileInfo.size());
 		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
 
-		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive)){
+		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0){
 			if(fileSize > 1500000) // 1.5MB
 				return QObject::tr("Unknown installer selected");
 
