@@ -340,23 +340,25 @@ void FirstLaunchView::extractGogData()
 		return QString();
 	};
 
-	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
-	if(errorText.isEmpty())
+	QString errorText;
+	QFile file(fileExe);
+	
+	if(file.open(QIODevice::ReadOnly))
 	{
-		QFile file(fileExe);
-		if(file.open(QIODevice::ReadOnly))
-		{
-			QByteArray head = file.read(128 * 1024); // small read is enough
-			const QByteArray ascii = "GOG Galaxy";
+		QByteArray head = file.read(128 * 1024); // small read is enough
+		const QByteArray ascii = "GOG Galaxy";
 
-			constexpr std::u16string_view galaxyID = u"GOG Galaxy";
-			const char *galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
-			const QByteArray utf16 = QByteArray::fromRawData(galaxyIDBytes, static_cast<int>(galaxyID.size() * sizeof(decltype(galaxyID)::value_type)));
+		constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+		const char *galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+		const QByteArray utf16 = QByteArray::fromRawData(galaxyIDBytes, static_cast<int>(galaxyID.size() * sizeof(decltype(galaxyID)::value_type)));
 
-			if(head.contains(ascii) || head.contains(utf16))
-				errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
-		}
+		if(head.contains(ascii, Qt::CaseInsensitive) || head.contains(utf16))
+			errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
 	}
+
+
+	if(errorText.isEmpty())
+		errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
 
 	if(!errorText.isEmpty())
 	{
