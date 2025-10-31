@@ -339,7 +339,9 @@ void FirstLaunchView::extractGogData()
 
 		return QString();
 	};
-
+	
+	QString errorText;
+	
 	// GOG Offline Installer
 	errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
 
