@@ -340,7 +340,7 @@ void FirstLaunchView::extractGogData()
 			if(fileSize > 1500000) // 1.5MB
 				return QObject::tr("Unknown installer selected");
 
-			QByteArray data = file.readAll();
+			const QByteArray data = file.peek(fileSize);
 
 			constexpr std::u16string_view galaxyID = u"GOG Galaxy";
 			const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
@@ -350,10 +350,10 @@ void FirstLaunchView::extractGogData()
 				return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
 		}
 		
-		const QByteArray magicFile = file.read(magic.length());
+		const QByteArray magicFile = file.peek(magic.length());
 		if(!magicFile.startsWith(magic))
 			return QObject::tr("You need to select a %1 file!", "param is file extension").arg(filter);
-		
+
 		return QString();
 	};
 	
