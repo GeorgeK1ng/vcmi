@@ -324,13 +324,56 @@ void FirstLaunchView::extractGogData()
 	QString filterBin = tr("GOG data") + " (*.bin)";
 	QString filterExe = tr("GOG installer") + " (*.exe)";
 
-	QString fileBin = fileSelection(filterBin);
+	QString fileExe = fileSelection(filterExe);
+	if(fileExe.isEmpty())
+		return;
+
+	auto checkMagic = [](const QString &filename, const QString &filter, const QByteArray &magic) -> QString {
+		QFile file(filename);
+		if(!file.open(QIODevice::ReadOnly))
+			return QObject::tr("Failed to open file: %1").arg(file.errorString());
+
+		const QByteArray magicFile = file.read(magic.length());
+		if(!magicFile.startsWith(magic))
+			return QObject::tr("You have to select %1 file!", "param is file extension").arg(filter);
+
+		return QString();
+	};
+
+	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
+	if(errorText.isEmpty())
+	{
+		QFile file(fileExe);
+		if(file.open(QIODevice::ReadOnly))
+		{
+			QByteArray head = file.read(128 * 1024); // small read is enough
+			const QByteArray ascii = "GOG Galaxy";
+
+			constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+			const char *galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+			const QByteArray utf16 = QByteArray::fromRawData(galaxyIDBytes, static_cast<int>(galaxyID.size() * sizeof(decltype(galaxyID)::value_type)));
+
+			if(head.contains(ascii) || head.contains(utf16))
+				errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
+		}
+	}
+
+	if(!errorText.isEmpty())
+	{
+		QMessageBox::critical(this, tr("Invalid installer"), errorText);
+		return;
+	}
+
+	QString fileBin = fileSelection(filterBin, QFileInfo(fileExe).absolutePath());
 	if(fileBin.isEmpty())
 		return;
 
-	QString fileExe = fileSelection(filterExe, QFileInfo(fileBin).absolutePath());
-	if(fileExe.isEmpty())
+	errorText = checkMagic(fileBin, filterBin, QByteArray{"idska32"});
+	if(!errorText.isEmpty())
+	{
+		QMessageBox::critical(this, tr("Invalid data file"), errorText);
 		return;
+	}
 
 	QTimer::singleShot(100, this, [this, fileBin, fileExe](){ // background to make sure FileDialog is closed...
 		extractGogDataAsync(fileBin, fileExe);
@@ -491,67 +534,67 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
         Helper::performNativeCopy(filePathBin, tmpFileBin);
         logGlobal->info("Native copy completed");
 
-        // 3) Sanity checks
-        auto checkMagic = [](QString filename, QString filter, QByteArray magic)
-        {
-            logGlobal->info("Checking file %s", filename.toStdString());
-
-            QFile tmpFile(filename);
-            if(!tmpFile.open(QIODevice::ReadOnly))
-            {
-                logGlobal->info("File cannot be opened: %s", tmpFile.errorString().toStdString());
-                return tr("Failed to open file: %1").arg(tmpFile.errorString());
-            }
-
-            QByteArray magicFile = tmpFile.read(magic.length());
-            if(!magicFile.startsWith(magic))
-            {
-                logGlobal->info("Invalid file selected: %s", filter.toStdString());
-                return tr("You have to select %1 file!", "param is file extension").arg(filter);
-            }
-
-            logGlobal->info("Checking file %s", filename.toStdString());
-            return QString();
-        };
-
-        QString errorText;
-
-        if(errorText.isEmpty())
-            errorText = checkMagic(tmpFileBin, filterBin, QByteArray{"idska32"});
-
-        if(errorText.isEmpty())
-            errorText = checkMagic(tmpFileExe, filterExe, QByteArray{"MZ"});
-
-        logGlobal->info("Installing exe '%s' ('%s')", tmpFileExe.toStdString(), filePathExe.toStdString());
-        logGlobal->info("Installing bin '%s' ('%s')", tmpFileBin.toStdString(), filePathBin.toStdString());
-
-        auto isGogGalaxyExe = [](QString fileToTest) {
-            QFile file(fileToTest);
-            quint64 fileSize = file.size();
-
-            if(fileSize > 10 * 1024 * 1024)
-                return false; // avoid loading big files; Galaxy exe is smaller...
-
-            if(!file.open(QIODevice::ReadOnly))
-                return false;
-
-            QByteArray data = file.readAll();
-
-            constexpr std::u16string_view galaxyID = u"GOG Galaxy";
-            const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
-            const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
-
-            return data.contains(magicId);
-        };
-
-        if(errorText.isEmpty())
-        {
-            if(isGogGalaxyExe(tmpFileExe))
-            {
-                logGlobal->info("GOG Galaxy detected! Aborting...");
-                errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
-            }
-        }
+//        // 3) Sanity checks
+//        auto checkMagic = [](QString filename, QString filter, QByteArray magic)
+//        {
+//            logGlobal->info("Checking file %s", filename.toStdString());
+//
+//            QFile tmpFile(filename);
+//            if(!tmpFile.open(QIODevice::ReadOnly))
+//            {
+//                logGlobal->info("File cannot be opened: %s", tmpFile.errorString().toStdString());
+//                return tr("Failed to open file: %1").arg(tmpFile.errorString());
+//            }
+//
+//            QByteArray magicFile = tmpFile.read(magic.length());
+//            if(!magicFile.startsWith(magic))
+//            {
+//                logGlobal->info("Invalid file selected: %s", filter.toStdString());
+//                return tr("You have to select %1 file!", "param is file extension").arg(filter);
+//            }
+//
+//            logGlobal->info("Checking file %s", filename.toStdString());
+//            return QString();
+//        };
+//
+//        QString errorText;
+//
+//        if(errorText.isEmpty())
+//            errorText = checkMagic(tmpFileBin, filterBin, QByteArray{"idska32"});
+//
+//        if(errorText.isEmpty())
+//            errorText = checkMagic(tmpFileExe, filterExe, QByteArray{"MZ"});
+//
+//        logGlobal->info("Installing exe '%s' ('%s')", tmpFileExe.toStdString(), filePathExe.toStdString());
+//        logGlobal->info("Installing bin '%s' ('%s')", tmpFileBin.toStdString(), filePathBin.toStdString());
+//
+//        auto isGogGalaxyExe = [](QString fileToTest) {
+//            QFile file(fileToTest);
+//            quint64 fileSize = file.size();
+//
+//            if(fileSize > 10 * 1024 * 1024)
+//                return false; // avoid loading big files; Galaxy exe is smaller...
+//
+//            if(!file.open(QIODevice::ReadOnly))
+//                return false;
+//
+//            QByteArray data = file.readAll();
+//
+//            constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+//            const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+//            const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
+//
+//            return data.contains(magicId);
+//        };
+//
+//        if(errorText.isEmpty())
+//        {
+//            if(isGogGalaxyExe(tmpFileExe))
+//            {
+//                logGlobal->info("GOG Galaxy detected! Aborting...");
+//                errorText = tr("You've provided a GOG Galaxy installer! This file doesn't contain the game. Please download the offline backup game installer!");
+//            }
+//        }
 
         // Extract
         if(errorText.isEmpty())
