@@ -333,33 +333,23 @@ void FirstLaunchView::extractGogData()
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
 
 		QFileInfo fileInfo(filename);
-		quint64 fileSize = static_cast<quint64>(fileInfo.size());
+		quint64 fileSize = file.size();
 		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
-	
 
-		//quint64 fileSize = file.size();
+		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive)){
+			if(fileSize > 1500000) // 1.5MB
+				return QObject::tr("Unknown installer selected");
 
-		//if(fileSize > 10 * 1024 * 1024)
-		//	return false; // avoid loading big files; Galaxy exe is smaller...
+			QByteArray data = file.readAll();
 
-		QByteArray data = file.readAll();
+			constexpr std::u16string_view galaxyID = u"GOG Galaxy";
+			const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
+			const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
 
-		constexpr std::u16string_view galaxyID = u"GOG Galaxy";
-		const auto galaxyIDBytes = reinterpret_cast<const char*>(galaxyID.data());
-		const auto magicId = QByteArray::fromRawData(galaxyIDBytes, galaxyID.size() * sizeof(decltype(galaxyID)::value_type));
-
-		if(data.contains(magicId))
-			return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
-	
-		//if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0)
-		//{
-		//	if(fileSize < 800000) // GOG Galaxy fail-fast by size (all known offline installers are > ~800 KB)
-		//		return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
-		//
-		//	if(fileSize > 1500000) // Anything > 1.5 MB is wrong
-		//		return QObject::tr("Unknown installer selected");
-		//}
-
+			if(data.contains(magicId))
+				return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
+		}
+		
 		const QByteArray magicFile = file.read(magic.length());
 		if(!magicFile.startsWith(magic))
 			return QObject::tr("You need to select a %1 file!", "param is file extension").arg(filter);
