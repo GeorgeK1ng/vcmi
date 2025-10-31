@@ -309,7 +309,7 @@ QString FirstLaunchView::getHeroesInstallDir()
 void FirstLaunchView::extractGogData()
 {
 #ifdef ENABLE_INNOEXTRACT
-	auto fileSelection = [this](const QString &title, const QString &filter, const QString &startPath = {}) {
+	auto fileSelection = [this](const QString &title, const QString filter, const QString &startPath = {}) {
 #if defined(VCMI_MOBILE)
 		filter = tr("GOG file (*.*)");
 		QMessageBox::information(this, tr("File selection"), title);
