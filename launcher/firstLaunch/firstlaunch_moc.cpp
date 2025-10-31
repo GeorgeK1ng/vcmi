@@ -321,20 +321,27 @@ void FirstLaunchView::extractGogData()
 	};
 
 	QString filterExe = tr("GOG installer") + " (*.exe)";
-	QString titleExe  = tr("Please select the offline GOG installer (.exe)");
+	QString titleExe  = tr("Select offline GOG installer (.exe)");
 
 	QString fileExe = fileSelection(titleExe, filterExe);
 	if(fileExe.isEmpty())
 		return;
 
-	auto checkMagic = [](const QString &filename, const QString &filter, const QByteArray &magic) -> QString {
+	auto checkMagic = [](const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext) -> QString {
 		QFile file(filename);
 		if(!file.open(QIODevice::ReadOnly))
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
 
 		QFileInfo fileInfo(filename);
-		quint64 fileSize = static_cast<quint64>(fileInfo.size());
-		logGlobal->error("%s size: %llu", filename.toStdString(), fileSize);
+		quint64 fileSize = fileInfo.size();
+
+		logGlobal->error("Checking %s with size: %llu", filename.toStdString(), fileSize);
+		
+		// On mobile platforms is not possible to filter selection by extension in "File picker"
+#if defined(VCMI_MOBILE)
+			if(fileInfo.suffix().compare(ext, Qt::CaseInsensitive) != 0)
+				return QObject::tr("You need to select a %1 file!", "param is file extension").arg(ext);
+#endif
 
 		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0){
 			if(fileSize > 1500000) // 1.5MB
@@ -349,7 +356,7 @@ void FirstLaunchView::extractGogData()
 			if(data.contains(magicId))
 				return QObject::tr("You selected a GOG Galaxy installer. This file does not contain the game. Please download the offline backup game installer instead.");
 		}
-		
+
 		const QByteArray magicFile = file.peek(magic.length());
 		if(!magicFile.startsWith(magic))
 			return QObject::tr("You need to select a %1 file!", "param is file extension").arg(filter);
@@ -357,7 +364,7 @@ void FirstLaunchView::extractGogData()
 		return QString();
 	};
 	
-	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"});
+	QString errorText = checkMagic(fileExe, filterExe, QByteArray{"MZP"}, "EXE");
 
 	if(!errorText.isEmpty())
 	{
@@ -368,13 +375,13 @@ void FirstLaunchView::extractGogData()
 	QFileInfo exeInfo(fileExe);
 	QString expectedBinName = exeInfo.completeBaseName() + "-1.bin";
 	QString filterBin = tr("GOG data") + " (*.bin)";
-	QString titleBin = tr("Please select the GOG data file: %1", "param is file name").arg(expectedBinName);
+	QString titleBin = tr("Select GOG data file: %1", "param is file name").arg(expectedBinName);
 
 	QString fileBin = fileSelection(titleBin, filterBin, exeInfo.absolutePath());
 	if(fileBin.isEmpty())
 		return;
 
-	errorText = checkMagic(fileBin, filterBin, QByteArray{"idska32"});
+	errorText = checkMagic(fileBin, filterBin, QByteArray{"idska32"}, "BIN");
 	if(!errorText.isEmpty())
 	{
 		QMessageBox::critical(this, tr("Invalid data file"), errorText);
