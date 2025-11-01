@@ -359,11 +359,11 @@ void FirstLaunchView::extractGogData()
 		return;
 
 	auto checkMagic = [](const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext) -> QString {
-		QFile file(Helper::getRealPath(filename));
+		QFile file(filename);
 		if(!file.open(QIODevice::ReadOnly))
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
 
-		QFileInfo fileInfo(Helper::getRealPath(filename));
+		QFileInfo fileInfo(filename);
 		quint64 fileSize = fileInfo.size();
 
 		logGlobal->error("Checking %s with size: %llu", filename.toStdString(), fileSize);
@@ -456,7 +456,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
 		for(const QString &line : items)
 		{
 			const auto part = line.split('\t');
-			if(part.size() < 3 || part[1].compare("Data", Qt::CaseInsensitive) != 0)
+			if(part[1].compare("Data", Qt::CaseInsensitive) != 0)
 				continue;
 
 			const QString &name = part[2];
@@ -500,8 +500,6 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
     for(const QString &line : items)
 	{
         const auto part = line.split('\t');
-        if(part.size() < 3)
-			continue;
 
         const QString &src  = part[0];
         const QString &tgt  = part[1]; // Data / Maps / Mp3
