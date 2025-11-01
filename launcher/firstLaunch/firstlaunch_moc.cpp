@@ -359,26 +359,26 @@ void FirstLaunchView::extractGogData()
 		return;
 
 	auto checkMagic = [](const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext) -> QString {
-		QFile file(filename);
+		QFile file(Helper::getRealPath(filename));
 		if(!file.open(QIODevice::ReadOnly))
 			return QObject::tr("Failed to open file: %1").arg(file.errorString());
 
-		QFileInfo fileInfo(filename);
+		QFileInfo fileInfo(Helper::getRealPath(filename));
 		quint64 fileSize = fileInfo.size();
 
 		logGlobal->error("Checking %s with size: %llu", filename.toStdString(), fileSize);
 		
 		// On mobile platforms it is not possible to filter selection by extension in the file picker
 #if defined(VCMI_MOBILE)
-			if(fileInfo.suffix().compare(ext, Qt::CaseInsensitive) != 0)
-				return QObject::tr("You need to select a %1 file!", "param is file extension").arg(ext);
+		if(fileInfo.suffix().compare(ext, Qt::CaseInsensitive) != 0)
+			return QObject::tr("You need to select a %1 file!", "param is file extension").arg(ext);
 #endif
 
 		if(fileInfo.suffix().compare("exe", Qt::CaseInsensitive) == 0){
 			if(fileSize > 1500000) // 1.5MB
 			{
 				logGlobal->info("Unknown installer selected: %s", filename.toStdString());
-				return QObject::tr("Unknown installer selected.\nYou need to select the offline GOG installer (.exe).");
+				return QObject::tr("Unknown installer selected.\nYou need to select the offline GOG installer.");
 			}
 
 			const QByteArray data = file.peek(fileSize);
@@ -545,7 +545,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
 
 void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathExe)
 {
-    logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
+	logGlobal->info("Extracting gog data from '%s' and '%s'", filePathBin.toStdString(), filePathExe.toStdString());
 
 #ifdef ENABLE_INNOEXTRACT
     // Defer heavy work to next event-loop tick to ensure overlay is painted
@@ -557,31 +557,31 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		qApp->processEvents();
 
         // 1) Prepare temp dir
-        QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
-        if(tempDir.cd("tmp"))
+		QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
+		if(tempDir.cd("tmp"))
         {
-            logGlobal->info("Cleaning up old temp data");
-            tempDir.removeRecursively(); // remove if already exists (e.g. previous crash)
-            tempDir.cdUp();
-        }
-        tempDir.mkdir("tmp");
-        if(!tempDir.cd("tmp"))
-        {
-            return; // should not happen - but avoid deleting wrong folder in any case
-        }
+			logGlobal->info("Cleaning up old temp data");
+			tempDir.removeRecursively(); // remove if already exists (e.g. previous crash)
+			tempDir.cdUp();
+		}
+		tempDir.mkdir("tmp");
+		if(!tempDir.cd("tmp"))
+		{
+			return; // should not happen - but avoid deleting wrong folder in any case
+		}
 
-        logGlobal->info("Using '%s' as temporary directory", tempDir.path().toStdString());
+		logGlobal->info("Using '%s' as temporary directory", tempDir.path().toStdString());
 
-        const QString tmpFileExe = tempDir.filePath("h3_gog.exe");
-        const QString tmpFileBin = tempDir.filePath("h3_gog-1.bin");
+		const QString tmpFileExe = tempDir.filePath("h3_gog.exe");
+		const QString tmpFileBin = tempDir.filePath("h3_gog-1.bin");
 
-        // 2) Copy selected files into tmp
-        logGlobal->info("Performing native copy...");
-        Helper::performNativeCopy(filePathExe, tmpFileExe);
-        Helper::performNativeCopy(filePathBin, tmpFileBin);
-        logGlobal->info("Native copy completed");
+		// 2) Copy selected files into tmp
+		logGlobal->info("Performing native copy...");
+		Helper::performNativeCopy(filePathExe, tmpFileExe);
+		Helper::performNativeCopy(filePathBin, tmpFileBin);
+		logGlobal->info("Native copy completed");
 
-        // 3) Extract
+		// 3) Extract
 		overlay->setTitle(tr("Extracting installer..."));
 		overlay->setIndeterminate(false);
 		overlay->setRange(100);
@@ -598,44 +598,44 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 
 		logGlobal->info("Extraction done!");
 
-        // 4) Post-extract verification and error reporting
-        QString hashError;
-        if(!errorText.isEmpty())
-            hashError = Innoextract::getHashError(tmpFileExe, tmpFileBin, filePathExe, filePathBin);
+		// 4) Post-extract verification and error reporting
+		QString hashError;
+		if(!errorText.isEmpty())
+			hashError = Innoextract::getHashError(tmpFileExe, tmpFileBin, filePathExe, filePathBin);
 
-        QStringList dirData = tempDir.entryList({"data"}, QDir::Filter::Dirs);
-        if(!errorText.isEmpty() || dirData.empty() || QDir(tempDir.filePath(dirData.front())).entryList({"*.lod"}, QDir::Filter::Files).empty())
-        {
-            if(!errorText.isEmpty())
-            {
-                logGlobal->error("GOG installer extraction failure! Reason: %s", errorText.toStdString());
-                QMessageBox::critical(this, tr("Extracting error!"), errorText, QMessageBox::Ok, QMessageBox::Ok);
-                if(!hashError.isEmpty())
-                {
-                    logGlobal->error("Hash error: %s", hashError.toStdString());
-                    QMessageBox::critical(this, tr("Hash error!"), hashError, QMessageBox::Ok, QMessageBox::Ok);
-                }
-            }
-            else
-                QMessageBox::critical(this, tr("No Heroes III data!"), tr("Selected files do not contain Heroes III data!"), QMessageBox::Ok, QMessageBox::Ok);
-            tempDir.removeRecursively();
-            return;
-        }
+		QStringList dirData = tempDir.entryList({"data"}, QDir::Filter::Dirs);
+		if(!errorText.isEmpty() || dirData.empty() || QDir(tempDir.filePath(dirData.front())).entryList({"*.lod"}, QDir::Filter::Files).empty())
+		{
+			if(!errorText.isEmpty())
+			{
+				logGlobal->error("GOG installer extraction failure! Reason: %s", errorText.toStdString());
+				QMessageBox::critical(this, tr("Extracting error!"), errorText, QMessageBox::Ok, QMessageBox::Ok);
+				if(!hashError.isEmpty())
+				{
+					logGlobal->error("Hash error: %s", hashError.toStdString());
+					QMessageBox::critical(this, tr("Hash error!"), hashError, QMessageBox::Ok, QMessageBox::Ok);
+				}
+			}
+			else
+				QMessageBox::critical(this, tr("No Heroes III data!"), tr("Selected files do not contain Heroes III data!"), QMessageBox::Ok, QMessageBox::Ok);
+			tempDir.removeRecursively();
+			return;
+		}
 
-        logGlobal->info("Importing Heroes III data...");
+		logGlobal->info("Importing Heroes III data...");
 
-        // 5) Reuse overlay for copy phase
-        overlay->setTitle(tr("Importing Heroes III data..."));
-        overlay->setFileName({});
-        overlay->setRange(100); // performCopyFlow will reset to plan size internally
-        overlay->setValue(0);
+		// 5) Reuse overlay for copy phase
+		overlay->setTitle(tr("Importing Heroes III data..."));
+		overlay->setFileName({});
+		overlay->setRange(100); // performCopyFlow will reset to plan size internally
+		overlay->setValue(0);
 
-        if(performCopyFlow(tempDir.path(), overlay.data(), true))
-        {
-            if(heroesDataUpdate())
-                activateTabModPreset();
-        }
-    });
+		if(performCopyFlow(tempDir.path(), overlay.data(), true))
+		{
+			if(heroesDataUpdate())
+				activateTabModPreset();
+		}
+	});
 #endif
 }
 
