@@ -156,8 +156,7 @@ bool canUseFolderPicker()
 {
 #if defined(VCMI_ANDROID)
 	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
-	if(QtAndroid::androidSdkVersion() < 21)
-		return false;
+	// but there still be systems which don't have required component for Folder Picker - Google TV as example
 
     QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE");
     QAndroidJniObject intent("android/content/Intent", "(Ljava/lang/String;)V", action.object<jstring>());
