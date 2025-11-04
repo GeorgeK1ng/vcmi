@@ -158,13 +158,36 @@ bool canUseFolderPicker()
 	// selecting directory with ACTION_OPEN_DOCUMENT_TREE is available only since API level 21
 	// but there still be systems which don't have required component for Folder Picker - Google TV as example
 
+   // QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE");
+   // QAndroidJniObject intent("android/content/Intent", "(Ljava/lang/String;)V", action.object<jstring>());
+   //
+   // QAndroidJniObject manager = QtAndroid::androidContext().callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
+   // QAndroidJniObject resolve = intent.callObjectMethod("resolveActivity", "(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;", manager.object());
+
+    // Intent: ACTION_OPEN_DOCUMENT_TREE + DEFAULT
     QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE");
     QAndroidJniObject intent("android/content/Intent", "(Ljava/lang/String;)V", action.object<jstring>());
 
-    QAndroidJniObject manager = QtAndroid::androidContext().callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
-    QAndroidJniObject resolve = intent.callObjectMethod("resolveActivity", "(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;", manager.object());
+    // Intent.CATEGORY_DEFAULT
+    QAndroidJniObject catDefault = QAndroidJniObject::getStaticObjectField<jstring>("android/content/Intent", "CATEGORY_DEFAULT");
+    intent.callObjectMethod("addCategory", "(Ljava/lang/String;)Landroid/content/Intent;", catDefault.object<jstring>());
 
-    return resolve.isValid(); // Determine if system can use DocumentsUI
+    // PackageManager.MATCH_DEFAULT_ONLY
+    jint matchDefault = QAndroidJniObject::getStaticField<jint>("android/content/pm/PackageManager", "MATCH_DEFAULT_ONLY");
+
+    // pm.queryIntentActivities(intent, MATCH_DEFAULT_ONLY)
+    QAndroidJniObject ctx = QtAndroid::androidContext();
+    QAndroidJniObject pm  = ctx.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
+
+    QAndroidJniObject list = pm.callObjectMethod("queryIntentActivities", "(Landroid/content/Intent;I)Ljava/util/List;", intent.object<jobject>(), matchDefault );
+
+    if(!list.isValid())
+        return false;
+
+    jboolean empty = list.callMethod<jboolean>("isEmpty", "()Z");
+    return !empty;
+
+    //return resolve.isValid(); // Determine if system can use DocumentsUI
 
 #elif defined(VCMI_IOS)
 	// selecting directory through UIDocumentPickerViewController is available only since iOS 13
