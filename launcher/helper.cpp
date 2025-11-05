@@ -164,35 +164,19 @@ bool canUseFolderPicker()
    // QAndroidJniObject manager = QtAndroid::androidContext().callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
    // QAndroidJniObject resolve = intent.callObjectMethod("resolveActivity", "(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;", manager.object());
 
-    // ACTION_OPEN_DOCUMENT_TREE
-    QAndroidJniObject action = QAndroidJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE");
-    QAndroidJniObject intent("android/content/Intent", "(Ljava/lang/String;)V", action.object<jstring>());
-
     QAndroidJniObject ctx = QtAndroid::androidContext();
-    QAndroidJniObject pm  = ctx.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
+    QAndroidJniObject uiModeMgr = ctx.callObjectMethod(
+        "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;",
+        QAndroidJniObject::fromString("uimode").object<jstring>());
 
-    // 1) Primárně: PackageManager.resolveActivity(intent, 0)
-    QAndroidJniObject ri = pm.callObjectMethod(
-        "resolveActivity",
-        "(Landroid/content/Intent;I)Landroid/content/pm/ResolveInfo;",
-        intent.object<jobject>(),
-        jint(0)
-    );
-    if (ri.isValid())
-        return true;
-
-    // 2) Fallback: queryIntentActivities(intent, 0) – bez MATCH_DEFAULT_ONLY (Samsung-friendly)
-    QAndroidJniObject list = pm.callObjectMethod(
-        "queryIntentActivities",
-        "(Landroid/content/Intent;I)Ljava/util/List;",
-        intent.object<jobject>(),
-        jint(0)
-    );
-    if (!list.isValid())
-        return false;
-
-    jboolean empty = list.callMethod<jboolean>("isEmpty", "()Z");
-    return !empty;
+    if (uiModeMgr.isValid()) {
+        jint mode = uiModeMgr.callMethod<jint>("getCurrentModeType", "()I");
+        jint TV = QAndroidJniObject::getStaticField<jint>(
+            "android/content/res/Configuration", "UI_MODE_TYPE_TELEVISION");
+        if (mode == TV)
+            return false; // na TV picker typicky není / je zablokovaný
+    }
+    return true; // na telefonech/tabletech tlačítko vždy ukaž
 
     //return resolve.isValid(); // Determine if system can use DocumentsUI
 
