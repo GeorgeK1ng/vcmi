@@ -67,6 +67,14 @@ public:
 
 	// Tab Heroes III Data
 	bool heroesDataUpdate();
+    bool needPostCopyCheckExe = false;
+    bool needPostCopyCheckBin = false;
+
+    QString checkMagicFile(const QString &filename,
+                           const QString &filter,
+                           const QByteArray &magic,
+                           const QString &ext,
+                           bool &openFailed) const;
 
 public slots:
 
