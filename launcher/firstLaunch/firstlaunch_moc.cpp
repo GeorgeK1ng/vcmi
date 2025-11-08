@@ -456,7 +456,7 @@ void FirstLaunchView::extractGogData()
 		return;
 	}
 
-	QTimer::singleShot(100, this, [this, fileBin, fileExe](){ // background to make sure FileDialog is closed...
+	QTimer::singleShot(0, this, [this, fileBin, fileExe](){ // background to make sure FileDialog is closed...
 		extractGogDataAsync(fileBin, fileExe);
 		setEnabled(true);
 		heroesDataUpdate();
