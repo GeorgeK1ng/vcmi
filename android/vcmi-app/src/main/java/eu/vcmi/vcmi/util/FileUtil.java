@@ -139,31 +139,31 @@ public class FileUtil
 				return; // hotovo
 			}
 		}
-		catch (Throwable primary) {
-			// 2) fallback přes openFileDescriptor (někteří provideři ho mají stabilnější)
-			ParcelFileDescriptor pfd = null;
-			try {
-				pfd = context.getContentResolver().openFileDescriptor(uri, "r");
-				if (pfd == null) throw new IOException("openFileDescriptor returned null for " + sourceFileUri);
-				try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor());
-					 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
-					byte[] buf = new byte[64 * 1024];
-					int n;
-					while ((n = in.read(buf)) != -1) {
-						out.write(buf, 0, n);
-					}
-					out.flush();
-					out.getFD().sync();
-					return; // hotovo
-				}
-			}
-			catch (IOException fallbackEx) {
-				Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, fallbackEx);
-			}
-			finally {
-				if (pfd != null) try { pfd.close(); } catch (IOException ignore) {}
-			}
-		}
+		//catch (Throwable primary) {
+		//	// 2) fallback přes openFileDescriptor (někteří provideři ho mají stabilnější)
+		//	ParcelFileDescriptor pfd = null;
+		//	try {
+		//		pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+		//		if (pfd == null) throw new IOException("openFileDescriptor returned null for " + sourceFileUri);
+		//		try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor());
+		//			 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
+		//			byte[] buf = new byte[64 * 1024];
+		//			int n;
+		//			while ((n = in.read(buf)) != -1) {
+		//				out.write(buf, 0, n);
+		//			}
+		//			out.flush();
+		//			out.getFD().sync();
+		//			return; // hotovo
+		//		}
+		//	}
+		//	catch (IOException fallbackEx) {
+		//		Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, fallbackEx);
+		//	}
+		//	finally {
+		//		if (pfd != null) try { pfd.close(); } catch (IOException ignore) {}
+		//	}
+		//}
 	}
 
 
