@@ -67,8 +67,8 @@ public:
 
 	// Tab Heroes III Data
 	bool heroesDataUpdate();
-    bool needPostCopyCheckExe = false;
-    bool needPostCopyCheckBin = false;
+    bool needPostCopyCheckExe;
+    bool needPostCopyCheckBin;
 
     QString checkMagicFile(const QString &filename,
                            const QString &filter,
