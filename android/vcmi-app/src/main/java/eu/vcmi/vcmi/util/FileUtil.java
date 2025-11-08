@@ -119,21 +119,52 @@ public class FileUtil
         }
     }
 
-    @SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
-    private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
-    {
-        try
-        {
-            final InputStream inputStream = new FileInputStream(context.getContentResolver().openFileDescriptor(Uri.parse(sourceFileUri), "r").getFileDescriptor());
-            final OutputStream outputStream = new FileOutputStream(new File(destinationFile));
+	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
+	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
+	{
+		final Uri uri = Uri.parse(sourceFileUri);
 
-            copyStream(inputStream, outputStream);
-        }
-        catch (IOException e)
-        {
-            Log.e("copyFileFromUri failed: ", e);
-        }
-    }
+		// 1) pokus přes openInputStream (nejširší kompatibilita)
+		try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+			if (in == null) throw new IOException("openInputStream returned null for " + sourceFileUri);
+			try (FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
+				byte[] buf = new byte[64 * 1024];
+				int n;
+				while ((n = in.read(buf)) != -1) {
+					out.write(buf, 0, n);
+				}
+				out.flush();
+				out.getFD().sync(); // durable write
+				return; // hotovo
+			}
+		}
+		catch (Throwable primary) {
+			// 2) fallback přes openFileDescriptor (někteří provideři ho mají stabilnější)
+			ParcelFileDescriptor pfd = null;
+			try {
+				pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+				if (pfd == null) throw new IOException("openFileDescriptor returned null for " + sourceFileUri);
+				try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor());
+					 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
+					byte[] buf = new byte[64 * 1024];
+					int n;
+					while ((n = in.read(buf)) != -1) {
+						out.write(buf, 0, n);
+					}
+					out.flush();
+					out.getFD().sync();
+					return; // hotovo
+				}
+			}
+			catch (IOException fallbackEx) {
+				Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, fallbackEx);
+			}
+			finally {
+				if (pfd != null) try { pfd.close(); } catch (IOException ignore) {}
+			}
+		}
+	}
+
 
     @SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
     private static String getFilenameFromUri(String sourceFileUri, Context context)
