@@ -585,6 +585,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		overlay->raise();
 		qApp->processEvents();
 
+		QEventLoop ev;
+		QTimer::singleShot(0, &ev, &QEventLoop::quit);
+		ev.exec();
+
 		// 1) Prepare temp dir
 		QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
 		if(tempDir.cd("tmp"))
