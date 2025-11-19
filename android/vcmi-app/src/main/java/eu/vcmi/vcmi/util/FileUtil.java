@@ -123,71 +123,29 @@ public class FileUtil
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
 	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
 	{
-		try (InputStream in  = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri));
-			 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
-
-			if (in == null)
-				throw new IOException("openInputStream returned null for " + sourceFileUri);
-
-			byte[] buf = new byte[64 * 1024];
-			int n;
-			while ((n = in.read(buf)) != -1) {
-				out.write(buf, 0, n);
-			}
-			out.flush();
-			out.getFD().sync(); // durable write na Android boxech
-		}
-		catch (IOException e) {
-			Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
-		}
+	    try (InputStream in = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri))) {
+	
+	        if (in == null)
+	            throw new IOException("openInputStream returned null for " + sourceFileUri);
+	
+	        final File outFile = new File(destinationFile);
+	        // ensure parent directories exist (optional)
+	        final File parent = outFile.getParentFile();
+	        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+	            throw new IOException("Failed to create parent directories for " + destinationFile);
+	        }
+	
+	        try (FileOutputStream out = new FileOutputStream(outFile)) {
+	            copyStream(in, out);
+		        // ensure data is flushed and durably written
+	            out.flush();
+	            out.getFD().sync();
+	        }
+	    }
+	    catch (IOException e) {
+	        Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
+	    }
 	}
-
-//	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
-//	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
-//	{
-//		final Uri uri = Uri.parse(sourceFileUri);
-//
-//		// 1) pokus přes openInputStream (nejširší kompatibilita)
-//		try (InputStream in = context.getContentResolver().openInputStream(uri)) {
-//			if (in == null) throw new IOException("openInputStream returned null for " + sourceFileUri);
-//			try (FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
-//				byte[] buf = new byte[64 * 1024];
-//				int n;
-//				while ((n = in.read(buf)) != -1) {
-//					out.write(buf, 0, n);
-//				}
-//				out.flush();
-//				out.getFD().sync(); // durable write
-//				return; // hotovo
-//			}
-//		}
-//		//catch (Throwable primary) {
-//		//	// 2) fallback přes openFileDescriptor (někteří provideři ho mají stabilnější)
-//		//	ParcelFileDescriptor pfd = null;
-//		//	try {
-//		//		pfd = context.getContentResolver().openFileDescriptor(uri, "r");
-//		//		if (pfd == null) throw new IOException("openFileDescriptor returned null for " + sourceFileUri);
-//		//		try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor());
-//		//			 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
-//		//			byte[] buf = new byte[64 * 1024];
-//		//			int n;
-//		//			while ((n = in.read(buf)) != -1) {
-//		//				out.write(buf, 0, n);
-//		//			}
-//		//			out.flush();
-//		//			out.getFD().sync();
-//		//			return; // hotovo
-//		//		}
-//		//	}
-//		//	catch (IOException fallbackEx) {
-//		//		Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, fallbackEx);
-//		//	}
-//		//	finally {
-//		//		if (pfd != null) try { pfd.close(); } catch (IOException ignore) {}
-//		//	}
-//		//}
-//	}
-//
 
     @SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
     private static String getFilenameFromUri(String sourceFileUri, Context context)
