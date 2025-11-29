@@ -123,25 +123,19 @@ public class FileUtil
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
 	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
 	{
-	    try (InputStream in = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri))) {
+		try (InputStream in  = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri));
+			 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
+
+			if (in == null)
+				throw new IOException("openInputStream returned null for " + sourceFileUri);
 	
-	        if (in == null)
-	            throw new IOException("openInputStream returned null for " + sourceFileUri);
-	
-	        final File outFile = new File(destinationFile);
-	        // ensure parent directories exist (optional)
-	        final File parent = outFile.getParentFile();
-	        if (parent != null && !parent.exists() && !parent.mkdirs()) {
-	            throw new IOException("Failed to create parent directories for " + destinationFile);
-	        }
-	
-	        try (FileOutputStream out = new FileOutputStream(outFile)) {
+
 	            copyStream(in, out);
 		        // ensure data is flushed and durably written
 	            out.flush();
 	            out.getFD().sync();
 	        }
-	    }
+
 	    catch (IOException e) {
 	        Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
 	    }
