@@ -5,7 +5,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.provider.DocumentsContract;
 
@@ -131,7 +130,7 @@ public class FileUtil
 			copyStream(inputStream, outputStream);
 			// ensure data is flushed and durably written
 			outputStream.flush();
-			outputStream.getFD().sync();
+			//outputStream.getFD().sync();
 		}
 		catch (IOException e)
 		{
