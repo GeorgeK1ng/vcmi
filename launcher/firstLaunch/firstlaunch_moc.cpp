@@ -338,11 +338,7 @@ static QString defaultStartDirForOpen()
 }
 
 
-QString FirstLaunchView::checkMagicFile(const QString &filename,
-                                        const QString &filter,
-                                        const QByteArray &magic,
-                                        const QString &ext,
-                                        bool &openFailed) const
+QString FirstLaunchView::checkFileMagic(const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext, bool &openFailed) const
 {
     QFile file(filename);
     if(!file.open(QIODevice::ReadOnly))
@@ -421,7 +417,7 @@ void FirstLaunchView::extractGogData()
 	if(fileExe.isEmpty())
 		return;
 
-	QString errorText = checkMagicFile(fileExe, filterExe, QByteArray{"MZP"}, "EXE", needPostCopyCheckExe);
+	QString errorText = checkFileMagic(fileExe, filterExe, QByteArray{"MZP"}, "EXE", needPostCopyCheckExe);
 	if(!errorText.isEmpty())
 	{
 		QMessageBox::critical(this, tr("Invalid file selected"), errorText);
@@ -449,7 +445,7 @@ void FirstLaunchView::extractGogData()
 		return;
 
 
-	errorText = checkMagicFile(fileBin, filterBin, QByteArray{"idska32"}, "BIN", needPostCopyCheckBin);
+	errorText = checkFileMagic(fileBin, filterBin, QByteArray{"idska32"}, "BIN", needPostCopyCheckBin);
 	if(!errorText.isEmpty())
 	{
 		QMessageBox::critical(this, tr("Invalid data file"), errorText);
@@ -478,7 +474,7 @@ bool FirstLaunchView::performCopyFlow(const QString& path, ProgressOverlay* over
 
 	// 2) Validate signature
 	// TODO: Find proper way for pure SoD check in import or way to block pure RoE / AB
-	//	   Or prepare RoE / AB Ban mod and allow VCMI to with any H3 version
+	//	     Or prepare RoE / AB Ban mod and allow VCMI to go with any H3 version
 	auto validate = [](const QStringList &items)->QString {
 		bool anyLOD=false;
 		bool anySOD=false;
@@ -585,9 +581,10 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		overlay->raise();
 		qApp->processEvents();
 
-		QEventLoop ev;
-		QTimer::singleShot(0, &ev, &QEventLoop::quit);
-		ev.exec();
+		// Goole TV Tick
+		//QEventLoop ev;
+		//QTimer::singleShot(0, &ev, &QEventLoop::quit);
+		//ev.exec();
 
 		// 1) Prepare temp dir
 		QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
@@ -614,7 +611,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		
 		if(needPostCopyCheckExe)
 		{
-			const QString err = checkMagicFile(tmpFileExe, tr("GOG installer") + " (*.exe)", QByteArray{"MZP"}, "EXE", needPostCopyCheckExe);
+			const QString err = checkFileMagic(tmpFileExe, tr("GOG installer") + " (*.exe)", QByteArray{"MZP"}, "EXE", needPostCopyCheckExe);
 			if(!err.isEmpty())
 			{
 				QMessageBox::critical(this, tr("Invalid file selected"), err);
@@ -628,7 +625,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		
 		if(needPostCopyCheckBin)
 		{
-			const QString err = checkMagicFile(tmpFileBin, tr("GOG data") + " (*.bin)", QByteArray{"idska32"}, "BIN", needPostCopyCheckBin);
+			const QString err = checkFileMagic(tmpFileBin, tr("GOG data") + " (*.bin)", QByteArray{"idska32"}, "BIN", needPostCopyCheckBin);
 			if(!err.isEmpty())
 			{
 				QMessageBox::critical(this, tr("Invalid data file"), err);

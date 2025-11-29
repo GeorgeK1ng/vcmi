@@ -67,14 +67,11 @@ public:
 
 	// Tab Heroes III Data
 	bool heroesDataUpdate();
+
     bool needPostCopyCheckExe;
     bool needPostCopyCheckBin;
 
-    QString checkMagicFile(const QString &filename,
-                           const QString &filter,
-                           const QByteArray &magic,
-                           const QString &ext,
-                           bool &openFailed) const;
+    QString checkFileMagic(const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext, bool &openFailed) const;
 
 public slots:
 
