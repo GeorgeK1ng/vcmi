@@ -34,7 +34,8 @@ import eu.vcmi.vcmi.Storage;
  */
 public class FileUtil
 {
-	private static final int BUFFER_SIZE = 4096;
+	//private static final int BUFFER_SIZE = 4096;
+	private static final int BUFFER_SIZE = 64 * 1024;
 
 	public static boolean copyData(Uri folderToCopy, Activity activity)
 	{
@@ -119,25 +120,26 @@ public class FileUtil
 		}
 	}
 
-	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
-	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
-	{
-		try
-		{
-			final InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri));
-			final FileOutputStream outputStream = new FileOutputStream(new File(destinationFile)))
+    @SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
+    private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
+    {
+        try
+        {
+            final InputStream inputStream = new FileInputStream(context.getContentResolver().openFileDescriptor(Uri.parse(sourceFileUri), "r").getFileDescriptor());
+            final OutputStream outputStream = new FileOutputStream(new File(destinationFile));
 
-	            copyStream(inputStream, outputStream);
+	            copyStream(in, out);
 		        // ensure data is flushed and durably written
 	            outputStream.flush();
-	            outputStream.getFD().sync();
+	            //outputStream.getFD().sync();
 	        }
 
 	    catch (IOException e)
 		{
 	        Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
 	    }
-	}
+
+    }
 
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
 	private static String getFilenameFromUri(String sourceFileUri, Context context)
