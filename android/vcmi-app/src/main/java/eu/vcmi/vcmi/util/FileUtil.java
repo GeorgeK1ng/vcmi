@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.provider.DocumentsContract;
 
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Exception;
-import java.util.List;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
