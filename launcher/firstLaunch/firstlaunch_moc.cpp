@@ -582,9 +582,9 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		qApp->processEvents();
 
 		// Goole TV Tick
-		//QEventLoop ev;
-		//QTimer::singleShot(0, &ev, &QEventLoop::quit);
-		//ev.exec();
+		QEventLoop ev;
+		QTimer::singleShot(0, &ev, &QEventLoop::quit);
+		ev.exec();
 
 		// 1) Prepare temp dir
 		QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
