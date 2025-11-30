@@ -128,7 +128,7 @@ public class FileUtil
             final InputStream inputStream = new FileInputStream(context.getContentResolver().openFileDescriptor(Uri.parse(sourceFileUri), "r").getFileDescriptor());
             final OutputStream outputStream = new FileOutputStream(new File(destinationFile));
 
-	            copyStream(in, out);
+	            copyStream(inputStream, outputStream);
 		        // ensure data is flushed and durably written
 	            outputStream.flush();
 	            //outputStream.getFD().sync();
