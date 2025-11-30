@@ -120,26 +120,21 @@ public class FileUtil
 		}
 	}
 
-    @SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
-    private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
-    {
-        try
-        {
-            final InputStream inputStream = new FileInputStream(context.getContentResolver().openFileDescriptor(Uri.parse(sourceFileUri), "r").getFileDescriptor());
-            final OutputStream outputStream = new FileOutputStream(new File(destinationFile));
-
-	            copyStream(inputStream, outputStream);
+	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
+	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
+	{
+		try (InputStream in  = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri));
+			 FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
+	            copyStream(in, out);
 		        // ensure data is flushed and durably written
-	            outputStream.flush();
-	            //outputStream.getFD().sync();
+	            out.flush();
+	            out.getFD().sync();
 	        }
 
-	    catch (IOException e)
-		{
+	    catch (IOException e) {
 	        Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
 	    }
-
-    }
+	}
 
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
 	private static String getFilenameFromUri(String sourceFileUri, Context context)
