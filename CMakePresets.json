@@ -351,12 +351,13 @@
                 "ENABLE_DEBUG_CONSOLE": "OFF",
                 "ENABLE_EDITOR": "OFF",
                 "ENABLE_GITVERSION": "OFF",
-                "ENABLE_LAUNCHER": "OFF",
-                "ENABLE_SERVER": "OFF",
-                "ENABLE_TRANSLATIONS": "OFF",
+                "ENABLE_LAUNCHER": "ON",
+                "ENABLE_SERVER": "ON",
+                "ENABLE_TRANSLATIONS": "ON",
                 "FORCE_BUNDLED_FL": "ON",
                 "ENABLE_GOLDMASTER": "ON",
-                "VCMI_PORTMASTER": "ON"
+                "VCMI_PORTMASTER": "ON",
+                "ENABLE_STRICT_COMPILATION": "OFF"
             }
         }
     ],
