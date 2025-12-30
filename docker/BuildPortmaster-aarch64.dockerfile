@@ -35,6 +35,24 @@ RUN set -eux; \
   ln -sf /usr/local/lib/libonnxruntime_providers_shared.so /usr/local/lib64/libonnxruntime_providers_shared.so; \
   ldconfig
 
+
+RUN set -eux; \
+  wget -O /tmp/onnxruntime.tgz \
+    "https://sourceforge.net/projects/onnx-runtime.mirror/files/v1.23.1/onnxruntime-linux-aarch64-1.23.1.tgz/download"; \
+  mkdir -p /opt/onnxruntime; \
+  tar -xzf /tmp/onnxruntime.tgz -C /opt/onnxruntime --strip-components=1; \
+  \
+  # libs
+  cp -r /opt/onnxruntime/lib/* /usr/local/lib/; \
+  \
+  # headers (make sure the onnxruntime/ folder exists)
+  rm -rf /usr/local/include/onnxruntime; \
+  mkdir -p /usr/local/include; \
+  cp -r /opt/onnxruntime/include/onnxruntime /usr/local/include/; \
+  \
+  ldconfig; \
+  rm -f /tmp/onnxruntime.tgz
+
 ARG BOOST_VERSION=1.88.0
 ARG BOOST_DIR=boost_1_88_0
 RUN set -eux; \
