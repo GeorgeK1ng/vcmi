@@ -27,6 +27,14 @@ RUN set -eux; \
   ldconfig; \
   rm -f /tmp/onnxruntime.tgz
 
+RUN set -eux; \
+  mkdir -p /usr/local/lib64; \
+  ln -sf /usr/local/lib/libonnxruntime.so /usr/local/lib64/libonnxruntime.so; \
+  ln -sf /usr/local/lib/libonnxruntime.so.1 /usr/local/lib64/libonnxruntime.so.1; \
+  ln -sf /usr/local/lib/libonnxruntime.so.1.23.1 /usr/local/lib64/libonnxruntime.so.1.23.1; \
+  ln -sf /usr/local/lib/libonnxruntime_providers_shared.so /usr/local/lib64/libonnxruntime_providers_shared.so; \
+  ldconfig
+
 ARG BOOST_VERSION=1.88.0
 ARG BOOST_DIR=boost_1_88_0
 RUN set -eux; \
