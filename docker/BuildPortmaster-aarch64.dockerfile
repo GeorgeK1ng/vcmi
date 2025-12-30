@@ -13,6 +13,7 @@ RUN apt update && apt install -y --no-install-recommends \
     qtbase5-dev qttools5-dev libqt5svg5-dev \
     ninja-build libavformat-dev libswscale-dev \
     libluajit-5.1-dev libminizip-dev libsqlite3-dev \
+	onnxruntime libsquish-dev \
  && rm -rf /var/lib/apt/lists/*
 
 
