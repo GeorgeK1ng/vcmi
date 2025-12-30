@@ -13,8 +13,19 @@ RUN apt update && apt install -y --no-install-recommends \
     qtbase5-dev qttools5-dev libqt5svg5-dev \
     ninja-build libavformat-dev libswscale-dev \
     libluajit-5.1-dev libminizip-dev libsqlite3-dev \
-	libsquish-dev libonnxruntime-dev python3-pip \
+	libsquish-dev python3-pip \
  && rm -rf /var/lib/apt/lists/*
+
+ARG ORT_VER=1.23.1
+RUN set -eux; \
+  wget -O /tmp/onnxruntime.tgz \
+    "https://sourceforge.net/projects/onnx-runtime.mirror/files/v${ORT_VER}/onnxruntime-linux-aarch64-${ORT_VER}.tgz/download"; \
+  mkdir -p /opt/onnxruntime; \
+  tar -xzf /tmp/onnxruntime.tgz -C /opt/onnxruntime --strip-components=1; \
+  cp -r /opt/onnxruntime/include/* /usr/local/include/; \
+  cp -r /opt/onnxruntime/lib/* /usr/local/lib/; \
+  ldconfig; \
+  rm -f /tmp/onnxruntime.tgz
 
 ARG BOOST_VERSION=1.88.0
 ARG BOOST_DIR=boost_1_88_0
