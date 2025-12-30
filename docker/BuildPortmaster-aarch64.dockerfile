@@ -74,7 +74,7 @@ CMD ["sh", "-c", " \
     # switch to mounted dir
     cd /vcmi ; \
     # fix for wrong path of base image
-    ln -s /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so ; \
+    ln -sf /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so ; \
     # build
     cmake --preset portmaster-release ; \
     cmake --build --preset portmaster-release ; \
