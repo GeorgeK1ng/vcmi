@@ -925,7 +925,7 @@ void CModListView::installFiles(QStringList files)
 			if(QFile::exists(tmpPath))
 				QFile::remove(tmpPath);
 
-			logGlobal->warn("installFiles: open failed for '%s': %s. Copying to '%s'", realFilename.toStdString(), file.errorString().toStdString(), tmpPath.toStdString());
+			//logGlobal->warn("installFiles: open failed for '%s': %s. Copying to '%s'", realFilename.toStdString(), file.errorString().toStdString(), tmpPath.toStdString());
 			
 			// Work wit our temp copy
 			if(Helper::performNativeCopy(filename, tmpPath))
