@@ -914,6 +914,24 @@ void CModListView::installFiles(QStringList files)
 	{
 		QString realFilename = Helper::getRealPath(filename);
 
+		QFile filecheck(realFilename);
+		if(!filecheck.open(QIODevice::ReadOnly))
+		{
+			QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
+			if(!tempDir.exists("tmp"))
+				tempDir.mkdir("tmp");
+
+			QString tmpPath = tempDir.filePath(QFileInfo(realFilename).fileName());
+			if(QFile::exists(tmpPath))
+				QFile::remove(tmpPath);
+
+			logGlobal->warn("installFiles: open failed for '%s': %s. Copying to '%s'", realFilename.toStdString(), file.errorString().toStdString(), tmpPath.toStdString());
+			
+			// Work wit our temp copy
+			if(Helper::performNativeCopy(filename, tmpPath))
+				filename = tmpPath;
+		}
+		
 		if(realFilename.endsWith(".zip", Qt::CaseInsensitive))
 		{
 			try {
