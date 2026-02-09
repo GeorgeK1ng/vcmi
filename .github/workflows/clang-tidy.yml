@@ -1,0 +1,70 @@
+name: Clang-Tidy
+
+on:
+  pull_request:
+    paths:
+      - "**/*.cpp"
+      - "**/*.h"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  tidy:
+    name: Clang-Tidy (changed lines)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Fetch base branch
+        run: |
+          git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
+          git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+
+      # Reuse your existing dependency setup logic (Qt6 + deps)
+      - name: Prepare CI
+        run: |
+          source "${{ github.workspace }}/CI/before_install/linux_qt6.sh" ""
+
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 clang-tidy-18 clang-tidy-18-tools
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-18 100
+          sudo update-alternatives --install /usr/bin/clang-tidy-diff clang-tidy-diff /usr/bin/clang-tidy-diff-18.py 100
+
+      - name: Configure (generate compile_commands.json)
+        run: |
+          cmake -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
+                -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                --preset linux-clang-debug
+
+      - name: Analyze diff (clang-tidy-diff)
+        run: |
+          mkdir -p clang-tidy-result
+          base="upstream/${{ github.event.pull_request.base.ref }}"
+          git diff -U0 "$(git merge-base HEAD "$base")" \
+            | clang-tidy-diff -p1 -path "${{ github.workspace }}/out/build/linux-clang-debug" \
+                -export-fixes "clang-tidy-result/fixes.yml"
+
+      - name: Save PR metadata
+        run: |
+          echo "${{ github.event.number }}" > clang-tidy-result/pr-id.txt
+          echo "${{ github.event.pull_request.head.repo.full_name }}" > clang-tidy-result/pr-head-repo.txt
+          echo "${{ github.event.pull_request.head.sha }}" > clang-tidy-result/pr-head-sha.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v6
+        with:
+          name: clang-tidy-result
+          path: clang-tidy-result/
+          if-no-files-found: error
