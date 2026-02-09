@@ -5,6 +5,7 @@ on:
     paths:
       - "**/*.cpp"
       - "**/*.h"
+  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
