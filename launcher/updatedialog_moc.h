@@ -48,16 +48,39 @@ private slots:
 	void on_closeButton_clicked();
 
 private:
+	struct TestingBuildState
+	{
+		QString channel;
+		QString version;
+		QString commit;
+		QString buildDate;
+		QString downloadUrl;
+		QString changelog;
+		bool valid = false;
+	};
+
 	Ui::UpdateDialog *ui;
 	
 	std::string currentVersion;
 	std::string currentCommit;
 	
 	QNetworkAccessManager networkManager;
-	
+	TestingBuildState betaState;
+	TestingBuildState developState;
+	QString selectedTestingCommit;
+	QString selectedTestingBuildDate;
+	QString releaseCommit;
+	QString releaseBuildDate;
+	bool releaseOffer = false;
+	bool testingOffer = false;
+	bool releaseValid = false;
+
 	bool calledManually;
-	
-	void loadFromJson(const JsonNode & node, bool testing = false);
+
+	void loadFromJson(const JsonNode & node, bool testing = false, const QString &channel = QString());
 	void fetchChannel(const QString& channel);
+	void refreshTestingBuildFromNewest();
+	void updateAvailabilityNotice();
+	bool shouldPreferTesting() const;
 	void startDownloadToCacheAndRun(const QUrl& url, const QString& target = QString());
 };
