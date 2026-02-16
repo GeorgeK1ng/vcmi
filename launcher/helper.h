@@ -28,4 +28,5 @@ namespace Helper
 	void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb);
 	QStringList findFilesForCopy(const QString &treeUri);
 	void sendFileToApp(QString path);
+	bool isInstalledFromGooglePlay();
 }
