@@ -373,4 +373,22 @@ void sendFileToApp(QString path)
 #endif
 }
 
+bool isInstalledFromGooglePlay()
+{
+#if defined(VCMI_ANDROID)
+	if(!QtAndroid::androidContext().isValid())
+		return false;
+
+	const jboolean installedFromGooglePlay = QAndroidJniObject::callStaticMethod<jboolean>(
+		"eu/vcmi/vcmi/util/FileUtil",
+		"isInstalledFromGooglePlay",
+		"(Landroid/content/Context;)Z",
+		QtAndroid::androidContext().object()
+	);
+	return installedFromGooglePlay;
+#else
+	return false;
+#endif
+}
+
 }

@@ -390,6 +390,18 @@ void UpdateDialog::on_installButton_clicked()
 	    return;
 	}
 
+	#if defined(VCMI_ANDROID)
+	if(Helper::isInstalledFromGooglePlay())
+	{
+		const QUrl playStoreUrl(QStringLiteral("market://details?id=is.xyz.vcmi"));
+		if(!QDesktopServices::openUrl(playStoreUrl))
+		{
+			QDesktopServices::openUrl(QUrl(QStringLiteral("https://play.google.com/store/apps/details?id=is.xyz.vcmi")));
+		}
+		return;
+	}
+	#endif
+
 	#if defined(VCMI_MOBILE)
 	    // Always ask user where to save on mobile
 	    Helper::nativeFolderPicker(this, [this, url](QString picked){
