@@ -178,6 +178,7 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		testingUrl.clear();
 		selectedTestingCommit.clear();
 		selectedTestingBuildDate.clear();
+		selectedTestingChannel.clear();
 		testingOffer = false;
 		testingChannelAutoSelectPending = true;
 		updateAvailabilityNotice();
@@ -529,9 +530,10 @@ void UpdateDialog::applySelectedTestingChannel()
 	testingUrl = selected->downloadUrl;
 	selectedTestingCommit = selected->commit;
 	selectedTestingBuildDate = selected->buildDate;
+	selectedTestingChannel = selected->channel;
 
 	if(ui->testingVersion)
-		ui->testingVersion->setText(selected->version + tr(" (%1)").arg(selected->channel));
+		ui->testingVersion->setText(selected->version);
 
 	QStringList headerLines;
 	if(!selected->buildDate.isEmpty())
@@ -557,7 +559,9 @@ void UpdateDialog::updateAvailabilityNotice()
 {
 	const bool preferTesting = shouldPreferTesting();
 	const bool offer = preferTesting ? testingOffer : releaseOffer;
-	const QString version = preferTesting ? testingVersion : releaseVersion;
+	QString version = preferTesting ? testingVersion : releaseVersion;
+	if(preferTesting && offer && !selectedTestingChannel.isEmpty())
+		version += tr(" (%1)").arg(selectedTestingChannel);
 	ui->downloadLink->setText(availabilityLine(offer, version));
 }
 

@@ -69,6 +69,7 @@ private:
 	TestingBuildState developState;
 	QString selectedTestingCommit;
 	QString selectedTestingBuildDate;
+	QString selectedTestingChannel;
 	QString releaseCommit;
 	QString releaseBuildDate;
 	bool releaseOffer = false;
