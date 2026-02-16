@@ -174,7 +174,7 @@ void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 static QString platformKeyFromRuntime()
 {
 #if defined(VCMI_WINDOWS)
-	const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64","i386","arm64"
+	const auto arch = QSysInfo::buildCpuArchitecture(); // "x86_64","i386","arm64"
 	if(arch == "x86_64")
 		return "windows-x64";
 	if(arch == "i386" || arch == "i686")
@@ -185,7 +185,7 @@ static QString platformKeyFromRuntime()
 	return "windows-x64";
 
 #elif defined(VCMI_MAC)
-	const auto arch = QSysInfo::currentCpuArchitecture();
+	const auto arch = QSysInfo::buildCpuArchitecture();
 	if(arch == "arm64" || arch == "aarch64")
 		return "macos-arm";
 	if(arch == "x86_64")
@@ -194,7 +194,7 @@ static QString platformKeyFromRuntime()
 	return "macos-intel";
 
 #elif defined(VCMI_ANDROID)
-	const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64", "arm64-v8a","armeabi-v7a"
+	const auto arch = QSysInfo::buildCpuArchitecture(); // "x86_64", "arm64-v8a","armeabi-v7a"
 	if(arch == "x86_64")
 		return "android-x64";
 	if(arch == "arm64-v8a" || arch == "arm64" || arch == "aarch64")
@@ -208,7 +208,7 @@ static QString platformKeyFromRuntime()
 	return "ios-ios";
 
 #elif defined(VCMI_UNIX)
-	const auto arch = QSysInfo::currentCpuArchitecture();
+	const auto arch = QSysInfo::buildCpuArchitecture();
 	if(arch == "x86_64")
 		return "linux-x64";
 
