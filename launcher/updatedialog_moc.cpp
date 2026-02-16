@@ -49,6 +49,20 @@ static QString normalizeChannel(const QString& text)
 	return "stable";
 }
 
+static QString actionButtonTextForPlatform()
+{
+#if defined(VCMI_ANDROID)
+	if(!Helper::isInstalledFromGooglePlay())
+		return QObject::tr("Download");
+
+	return QObject::tr("Install");
+#elif defined(VCMI_MAC)
+	return QObject::tr("Download");
+#else
+	return QObject::tr("Install");
+#endif
+}
+
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	QDialog(parent),
 	ui(new Ui::UpdateDialog),
@@ -65,6 +79,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
 	ui->progressBar->setHidden(true);
+	ui->installButton->setText(actionButtonTextForPlatform());
 
 	if(calledManually)
 	{
