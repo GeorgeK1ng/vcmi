@@ -67,10 +67,11 @@ static QString availabilityLine(bool offer, const QString &version)
 {
 	if(offer)
 	{
-		if(!version.isEmpty())
-			return QObject::tr("New version %1 available").arg(version);
+		const QString label = !version.isEmpty()
+			? QObject::tr("New version %1 available").arg(version)
+			: QObject::tr("New version available");
 
-		return QObject::tr("New version available");
+		return QString("<span style=\"color:#1F9D55;font-weight:600;\">%1</span>").arg(label.toHtmlEscaped());
 	}
 
 	return QObject::tr("You are up to date");
@@ -157,6 +158,7 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 	// Additionally load the selected testing channel if enabled
 	if(testing)
 	{
+		testingChannelAutoSelectPending = true;
 		fetchChannel("beta");
 		fetchChannel("develop");
 
@@ -177,6 +179,7 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		selectedTestingCommit.clear();
 		selectedTestingBuildDate.clear();
 		testingOffer = false;
+		testingChannelAutoSelectPending = true;
 		updateAvailabilityNotice();
 		//changelogBox->setDisabled(true);
 	}
@@ -202,7 +205,7 @@ void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 	if(!ui->testingBuilds->isChecked())
 		return;
 
-	refreshTestingBuildFromNewest();
+	applySelectedTestingChannel();
 }
 
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
@@ -469,25 +472,55 @@ void UpdateDialog::refreshTestingBuildFromNewest()
 	if(!ui->testingBuilds->isChecked())
 		return;
 
-	const TestingBuildState *selected = nullptr;
+	const TestingBuildState *newest = nullptr;
 	if(betaState.valid && !developState.valid)
-		selected = &betaState;
+		newest = &betaState;
 	else if(developState.valid && !betaState.valid)
-		selected = &developState;
+		newest = &developState;
 	else if(betaState.valid && developState.valid)
 	{
 		const int versionCmp = cmpSemver(betaState.version, developState.version);
 		if(versionCmp > 0)
-			selected = &betaState;
+			newest = &betaState;
 		else if(versionCmp < 0)
-			selected = &developState;
+			newest = &developState;
 		else if(betaState.buildDate > developState.buildDate)
-			selected = &betaState;
+			newest = &betaState;
 		else if(betaState.buildDate < developState.buildDate)
-			selected = &developState;
+			newest = &developState;
 		else
-			selected = betaState.commit >= developState.commit ? &betaState : &developState;
+			newest = betaState.commit >= developState.commit ? &betaState : &developState;
 	}
+
+	if(!newest)
+		return;
+
+	if(testingChannelAutoSelectPending && ui->buildChannel)
+	{
+		const int selectedIndex = ui->buildChannel->findData(newest->channel);
+		if(selectedIndex >= 0 && selectedIndex != ui->buildChannel->currentIndex())
+			ui->buildChannel->setCurrentIndex(selectedIndex);
+		testingChannelAutoSelectPending = false;
+	}
+
+	applySelectedTestingChannel();
+}
+
+void UpdateDialog::applySelectedTestingChannel()
+{
+	if(!ui->testingBuilds->isChecked())
+		return;
+
+	const QString selectedChannel = ui->buildChannel ? normalizeChannel(ui->buildChannel->currentData().toString()) : QString("develop");
+	const TestingBuildState *selected = nullptr;
+	if(selectedChannel == "beta" && betaState.valid)
+		selected = &betaState;
+	else if(selectedChannel == "develop" && developState.valid)
+		selected = &developState;
+	else if(developState.valid)
+		selected = &developState;
+	else if(betaState.valid)
+		selected = &betaState;
 
 	if(!selected)
 		return;
@@ -499,13 +532,6 @@ void UpdateDialog::refreshTestingBuildFromNewest()
 
 	if(ui->testingVersion)
 		ui->testingVersion->setText(selected->version + tr(" (%1)").arg(selected->channel));
-
-	if(ui->buildChannel)
-	{
-		const int selectedIndex = ui->buildChannel->findData(selected->channel);
-		if(selectedIndex >= 0 && selectedIndex != ui->buildChannel->currentIndex())
-			ui->buildChannel->setCurrentIndex(selectedIndex);
-	}
 
 	QStringList headerLines;
 	if(!selected->buildDate.isEmpty())

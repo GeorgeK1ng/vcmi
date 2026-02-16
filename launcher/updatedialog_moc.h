@@ -74,12 +74,14 @@ private:
 	bool releaseOffer = false;
 	bool testingOffer = false;
 	bool releaseValid = false;
+	bool testingChannelAutoSelectPending = true;
 
 	bool calledManually;
 
 	void loadFromJson(const JsonNode & node, bool testing = false, const QString &channel = QString());
 	void fetchChannel(const QString& channel);
 	void refreshTestingBuildFromNewest();
+	void applySelectedTestingChannel();
 	void updateAvailabilityNotice();
 	bool shouldPreferTesting() const;
 	void startDownloadToCacheAndRun(const QUrl& url, const QString& target = QString());
