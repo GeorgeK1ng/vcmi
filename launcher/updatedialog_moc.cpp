@@ -20,6 +20,10 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
+#include <QEvent>
+#include <QTabBar>
+#include <QTabletEvent>
+
 #include <QSysInfo>
 #include <QTemporaryFile>
 #include <QProcess>
@@ -57,6 +61,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->setupUi(this);
 	ui->buildChannel->setItemData(0, "develop");
 	ui->buildChannel->setItemData(1, "beta");
+
+	ui->tabWidget->setCurrentIndex(0);
+	ui->tabWidget->tabBar()->installEventFilter(this);
 
 #ifdef VCMI_MOBILE
     setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
@@ -96,6 +103,27 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	}
 
 	fetchChannel("stable");
+}
+
+
+bool UpdateDialog::eventFilter(QObject * watched, QEvent * event)
+{
+	QTabBar * tabBar = ui ? ui->tabWidget->tabBar() : nullptr;
+	if(watched == tabBar && event)
+	{
+		if(event->type() == QEvent::TabletPress)
+		{
+			auto * tabletEvent = static_cast<QTabletEvent *>(event);
+			const int tabIndex = tabBar->tabAt(tabletEvent->pos());
+			if(tabIndex >= 0)
+			{
+				ui->tabWidget->setCurrentIndex(tabIndex);
+				return true;
+			}
+		}
+	}
+
+	return QDialog::eventFilter(watched, event);
 }
 
 UpdateDialog::~UpdateDialog()
