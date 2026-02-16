@@ -50,7 +50,6 @@ private slots:
 private:
 	Ui::UpdateDialog *ui;
 
-	bool eventFilter(QObject * watched, QEvent * event) override;
 	
 	std::string currentVersion;
 	std::string currentCommit;

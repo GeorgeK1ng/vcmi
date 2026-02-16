@@ -20,10 +20,6 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include <QEvent>
-#include <QTabBar>
-#include <QTabletEvent>
-
 #include <QSysInfo>
 #include <QTemporaryFile>
 #include <QProcess>
@@ -63,7 +59,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->buildChannel->setItemData(1, "beta");
 
 	ui->tabWidget->setCurrentIndex(0);
-	ui->tabWidget->tabBar()->installEventFilter(this);
 
 #ifdef VCMI_MOBILE
     setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
@@ -75,12 +70,11 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	if(calledManually)
 	{
-		#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
-		    setWindowModality(Qt::NonModal);
-		#else
-		    setWindowModality(Qt::ApplicationModal);
-		#endif
+		setWindowModality(Qt::ApplicationModal);
 		show();
+		raise();
+		activateWindow();
+		setFocus(Qt::ActiveWindowFocusReason);
 	}
 
 	if(settings["launcher"]["updateOnStartup"].Bool())
@@ -99,32 +93,11 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	if(ui->testingBuilds->isChecked())
 	{
 		fetchChannel(ui->buildChannel->currentData().toString());
-		ui->tabWidget->setCurrentIndex(1);
 	}
 
 	fetchChannel("stable");
 }
 
-
-bool UpdateDialog::eventFilter(QObject * watched, QEvent * event)
-{
-	QTabBar * tabBar = ui ? ui->tabWidget->tabBar() : nullptr;
-	if(watched == tabBar && event)
-	{
-		if(event->type() == QEvent::TabletPress)
-		{
-			auto * tabletEvent = static_cast<QTabletEvent *>(event);
-			const int tabIndex = tabBar->tabAt(tabletEvent->pos());
-			if(tabIndex >= 0)
-			{
-				ui->tabWidget->setCurrentIndex(tabIndex);
-				return true;
-			}
-		}
-	}
-
-	return QDialog::eventFilter(watched, event);
-}
 
 UpdateDialog::~UpdateDialog()
 {
@@ -403,8 +376,6 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 		this->show();
 		this->raise();
 		this->activateWindow();
-		if(testing)
-			ui->tabWidget->setCurrentIndex(1);
 	}
 }
 
