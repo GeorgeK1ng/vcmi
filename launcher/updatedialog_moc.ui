@@ -132,7 +132,7 @@
          <widget class="QComboBox" name="buildChannel">
           <item>
            <property name="text">
-            <string notr="true">Development</string>
+            <string notr="true">Develop</string>
            </property>
           </item>
           <item>
