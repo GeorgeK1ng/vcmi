@@ -36,17 +36,17 @@
 #include <QtAndroid>
 #endif
 
- // Helper to normalize channel text to Stable/Beta/Develop
+// Helper to normalize channel key to stable/beta/develop
 static QString normalizeChannel(const QString& text)
 {
 	const auto str = text.trimmed().toLower();
 	if(str.contains("beta"))
-		return "Beta";
+		return "beta";
 
 	if(str.contains("develop"))
-		return "Develop";
+		return "develop";
 
-	return "Stable";
+	return "stable";
 }
 
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
@@ -55,6 +55,8 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	calledManually(calledManually)
 {
 	ui->setupUi(this);
+	ui->buildChannel->setItemData(0, "develop");
+	ui->buildChannel->setItemData(1, "beta");
 
 #ifdef VCMI_MOBILE
     setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
@@ -89,11 +91,11 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	// Testing build info
 	if(ui->testingBuilds->isChecked())
 	{
-		fetchChannel(normalizeChannel(ui->testingBuilds->text()));
+		fetchChannel(ui->buildChannel->currentData().toString());
 		ui->tabWidget->setCurrentIndex(1);
 	}
 
-	fetchChannel("Stable");
+	fetchChannel("stable");
 }
 
 UpdateDialog::~UpdateDialog()
@@ -126,7 +128,7 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 	// Additionally load the selected testing channel if enabled
 	if(testing)
 	{
-		const QString channel = ui->buildChannel ? (ui->buildChannel->currentText()) : QString("Develop");
+		const QString channel = ui->buildChannel ? ui->buildChannel->currentData().toString() : QString("develop");
 		fetchChannel(channel);
 
 		ui->buildChannel->setEnabled(true);
@@ -165,7 +167,7 @@ void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 	if(!ui->testingBuilds->isChecked())
 		return;
 
-	fetchChannel(filenameForChannel(ui->buildChannel->currentText()));
+	fetchChannel(ui->buildChannel->currentData().toString());
 }
 
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
@@ -179,18 +181,28 @@ static QString platformKeyFromRuntime()
 		return "windows-x86";
 	if(arch == "arm64" || arch == "aarch64")
 		return "windows-arm64";
+	logGlobal->warn("Unknown Windows architecture '%s', falling back to windows-x64", arch.toStdString());
 	return "windows-x64";
 
 #elif defined(VCMI_MAC)
 	const auto arch = QSysInfo::currentCpuArchitecture();
-	return (arch == "arm64" || arch == "aarch64") ? "macos-arm" : "macos-intel";
+	if(arch == "arm64" || arch == "aarch64")
+		return "macos-arm";
+	if(arch == "x86_64")
+		return "macos-intel";
+	logGlobal->warn("Unknown macOS architecture '%s', falling back to macos-intel", arch.toStdString());
+	return "macos-intel";
 
 #elif defined(VCMI_ANDROID)
 	const auto arch = QSysInfo::currentCpuArchitecture(); // "x86_64", "arm64-v8a","armeabi-v7a"
 	if(arch == "x86_64")
 		return "android-x64";
-	else
-		return arch.contains("64") ? "android-arm64-v8a" : "android-armeabi-v7a";
+	if(arch == "arm64-v8a" || arch == "arm64" || arch == "aarch64")
+		return "android-arm64-v8a";
+	if(arch == "armeabi-v7a" || arch == "armv7" || arch == "arm")
+		return "android-armeabi-v7a";
+	logGlobal->warn("Unknown Android architecture '%s', falling back to android-arm64-v8a", arch.toStdString());
+	return "android-arm64-v8a";
 
 #elif defined(VCMI_IOS)
 	return "ios-ios";
@@ -203,6 +215,7 @@ static QString platformKeyFromRuntime()
 	if(arch == "arm64" || arch == "aarch64")
 		return "linux-arm64";
 
+	logGlobal->warn("Unknown Linux architecture '%s', falling back to linux-x64", arch.toStdString());
 	return "linux-x64";
 
 #else
@@ -212,14 +225,7 @@ static QString platformKeyFromRuntime()
 
 static QVersionNumber toVersion(QString version)
 {
-	// First "M.m.p" from string
-	static const QRegularExpression regExp(R"((\d+)\.(\d+)\.(\d+))");
-	const auto str = regExp.match(version);
-
-	if(!str.hasMatch())
-		return QVersionNumber(); // null
-
-	return QVersionNumber(str.captured(1).toInt(), str.captured(2).toInt(), str.captured(3).toInt());
+	return QVersionNumber::fromString(version);
 }
 
 inline int cmpSemver(QString a, QString b)
@@ -243,24 +249,9 @@ static QUrl joinBaseAndFile(const QString& base, const QString& file)
 // Pick best download URL from "download" object
 static QString pickDownloadUrl(const JsonNode &node)
 {
-    const auto prefer = platformKeyFromRuntime().toStdString();
-    if(node["download"][prefer].getType() == JsonNode::JsonType::DATA_STRING)
-        return QString::fromStdString(node["download"][prefer].String());
-
-#if defined(VCMI_WINDOWS)
-    const char* candidates[] = {"windows-x64","windows-arm64","windows-x86"};
-#elif defined(VCMI_MAC)
-    const char* candidates[] = {"macos-arm","macos-intel"};
-#elif defined(VCMI_ANDROID)
-    const char* candidates[] = {"android-arm64-v8a","android-armeabi-v7a","android-x64"};
-#elif defined(VCMI_IOS)
-    const char* candidates[] = {"ios-ios"};
-#else
-    const char* candidates[] = {"linux-x64","linux-arm64"};
-#endif
-    for(auto c : candidates)
-        if(node["download"][c].getType() == JsonNode::JsonType::DATA_STRING)
-            return QString::fromStdString(node["download"][c].String());
+    const auto platform = platformKeyFromRuntime().toStdString();
+    if(node["download"][platform].getType() == JsonNode::JsonType::DATA_STRING)
+        return QString::fromStdString(node["download"][platform].String());
 
     // last resort: first string in "download"
     for(const auto &kv : node["download"].Struct())
@@ -280,11 +271,11 @@ static std::string commitShort(const std::string &str)
 
 void UpdateDialog::fetchChannel(const QString& channel)
 {
-	const QString norm = normalizeChannel(channel);
-	const bool isTesting = (norm != "Stable"); // Beta/Develop -> testing area
+	const QString normalizedChannel = normalizeChannel(channel);
+	const bool isTesting = (normalizedChannel != "stable"); // beta/develop -> testing area
 
 	const QString base = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
-	const QUrl url = joinBaseAndFile(base, filenameForChannel(norm));
+	const QUrl url = joinBaseAndFile(base, filenameForChannel(normalizedChannel));
 
 	// Route the "loading" message to the correct changelog box
 	//(isTesting ? ui->testingChangelog : ui->releaseChangelog)->setPlainText(tr("Loading %1 …").arg(url.toString()));
@@ -427,31 +418,31 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 	{
         progress->setVisible(true);
         progress->setRange(0, 0);
-        connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 rec, qint64 tot) {
+        connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 received, qint64 total) {
             if(!progress)
                 return;
 
-            if(tot > 0)
+			if(total > 0)
 			{
-                progress->setRange(0, int(tot));
-                progress->setValue(int(rec));
+                progress->setRange(0, int(total));
+                progress->setValue(int(received));
             }
         });
     }
 
-    connect(rep, &QNetworkReply::finished, this, [this, rep, progress, target] {
-        rep->deleteLater();
-        if(rep->error() != QNetworkReply::NoError)
+    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target] {
+        reply->deleteLater();
+        if(reply->error() != QNetworkReply::NoError)
 		{
             if(progress)
 				progress->setVisible(false);
 
-            ui->downloadLink->setText(tr("Download failed: %1").arg(rep->errorString()));
+            ui->downloadLink->setText(tr("Download failed: %1").arg(reply->errorString()));
             return;
         }
 
         const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-        const QString fileName = QFileInfo(QUrl(rep->url()).path()).fileName();
+        const QString fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
         const QString fullPath = QDir(cacheDir).filePath(fileName);
 
         QSaveFile out(fullPath);
@@ -464,7 +455,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             return;
         }
 
-        const QByteArray data = rep->readAll();
+        const QByteArray data = reply->readAll();
         if (out.write(data) != data.size())
 		{
             if(progress)

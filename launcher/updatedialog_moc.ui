@@ -132,12 +132,12 @@
          <widget class="QComboBox" name="buildChannel">
           <item>
            <property name="text">
-            <string notr="true">Development</string>
+            <string>Daily builds (unstable)</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string notr="true">Beta</string>
+            <string>Beta versions</string>
            </property>
           </item>
          </widget>
