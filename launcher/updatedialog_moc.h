@@ -47,6 +47,7 @@ private slots:
 
 	void on_installButton_clicked();
 	void on_closeButton_clicked();
+	void on_infoButton_clicked();
 
 private:
 	struct TestingBuildState
