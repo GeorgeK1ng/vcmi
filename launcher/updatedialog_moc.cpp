@@ -185,6 +185,7 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		testingVersion.clear();
 		testingUrl.clear();
 		selectedTestingCommit.clear();
+		selectedTestingBuildDate.clear();
 		selectedTestingChannel.clear();
 		testingOffer = false;
 		testingChannelAutoSelectPending = true;
@@ -338,6 +339,32 @@ static int compareWithInstalled(const std::string &currentVersion, const std::st
 }
 
 
+static int compareCandidateBuilds(const QString &leftVersion, const QString &leftBuildDate, const QString &leftCommit, const QString &rightVersion, const QString &rightBuildDate, const QString &rightCommit)
+{
+	const int versionCmp = cmpSemver(leftVersion, rightVersion);
+	if(versionCmp != 0)
+		return versionCmp;
+
+	if(!leftBuildDate.isEmpty() && !rightBuildDate.isEmpty())
+	{
+		if(leftBuildDate > rightBuildDate)
+			return 1;
+		if(leftBuildDate < rightBuildDate)
+			return -1;
+	}
+
+	if(!leftCommit.isEmpty() && !rightCommit.isEmpty())
+	{
+		if(leftCommit > rightCommit)
+			return 1;
+		if(leftCommit < rightCommit)
+			return -1;
+	}
+
+	return 0;
+}
+
+
 void UpdateDialog::fetchChannel(const QString& channel)
 {
 	const QString normalizedChannel = normalizeChannel(channel);
@@ -439,6 +466,7 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	}
 	else
 	{
+		releaseBuildDate = QString::fromStdString(buildDate);
 		releaseOffer = offer;
 		updateAvailabilityNotice();
 	}
@@ -449,7 +477,16 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 		this->show();
 		this->raise();
 		this->activateWindow();
-		ui->tabWidget->setCurrentIndex(releaseOffer ? 0 : 1); // release has priority for recommendation
+
+		int recommendedTab = 0;
+		if(hasTestingOffer && !releaseOffer)
+			recommendedTab = 1;
+		else if(hasTestingOffer && releaseOffer)
+		{
+			const int candidateCmp = compareCandidateBuilds(testingVersion, selectedTestingBuildDate, selectedTestingCommit, releaseVersion, releaseBuildDate, QString());
+			recommendedTab = candidateCmp > 0 ? 1 : 0;
+		}
+		ui->tabWidget->setCurrentIndex(recommendedTab);
 	}
 }
 
@@ -465,17 +502,8 @@ void UpdateDialog::refreshTestingBuildFromNewest()
 		newest = &developState;
 	else if(betaState.valid && developState.valid)
 	{
-		const int versionCmp = cmpSemver(betaState.version, developState.version);
-		if(versionCmp > 0)
-			newest = &betaState;
-		else if(versionCmp < 0)
-			newest = &developState;
-		else if(betaState.buildDate > developState.buildDate)
-			newest = &betaState;
-		else if(betaState.buildDate < developState.buildDate)
-			newest = &developState;
-		else
-			newest = betaState.commit >= developState.commit ? &betaState : &developState;
+		const int candidateCmp = compareCandidateBuilds(betaState.version, betaState.buildDate, betaState.commit, developState.version, developState.buildDate, developState.commit);
+		newest = candidateCmp >= 0 ? &betaState : &developState;
 	}
 
 	if(!newest)
@@ -514,6 +542,7 @@ void UpdateDialog::applySelectedTestingChannel()
 	testingVersion = selected->version;
 	testingUrl = selected->downloadUrl;
 	selectedTestingCommit = selected->commit;
+	selectedTestingBuildDate = selected->buildDate;
 	selectedTestingChannel = selected->channel;
 
 	if(ui->testingVersion)

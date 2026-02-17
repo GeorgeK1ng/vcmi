@@ -68,7 +68,9 @@ private:
 	TestingBuildState betaState;
 	TestingBuildState developState;
 	QString selectedTestingCommit;
+	QString selectedTestingBuildDate;
 	QString selectedTestingChannel;
+	QString releaseBuildDate;
 	bool releaseOffer = false;
 	bool testingOffer = false;
 	bool testingChannelAutoSelectPending = true;
