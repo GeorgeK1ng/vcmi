@@ -31,7 +31,6 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QMessageBox>
-#include <QStyle>
 
 
 // Helper to normalize channel key to stable/beta/develop
@@ -112,11 +111,13 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->installButton->setText(actionButtonTextForPlatform());
 	if(ui->infoButton)
 	{
-		ui->infoButton->setIcon(style()->standardIcon(QStyle::SP_DialogHelpButton));
-		ui->infoButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-		ui->infoButton->setText(QString());
+		ui->infoButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+		ui->infoButton->setText(tr("?"));
+		QFont infoFont = ui->infoButton->font();
+		infoFont.setBold(true);
+		ui->infoButton->setFont(infoFont);
 		ui->infoButton->setCursor(Qt::PointingHandCursor);
-		ui->infoButton->setStyleSheet("QToolButton#infoButton { border: 1px solid palette(mid); border-radius: 14px; padding: 3px; background: palette(button); } QToolButton#infoButton:hover { background: palette(light); }");
+		ui->infoButton->setStyleSheet("QToolButton#infoButton { border: 1px solid palette(mid); border-radius: 14px; padding: 3px; background: palette(button); font-weight: 700; } QToolButton#infoButton:hover { background: palette(light); }");
 		ui->infoButton->raise();
 	}
 
