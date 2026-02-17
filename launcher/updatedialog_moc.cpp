@@ -75,10 +75,7 @@ static QString availabilityLine(int comparisonResult, const QString &version)
 {
 	if(comparisonResult > 0)
 	{
-		const QString label = !version.isEmpty()
-			? QObject::tr("New version %1 available").arg(version)
-			: QObject::tr("New version available");
-
+		const QString label = !version.isEmpty() ? QObject::tr("New version %1 available").arg(version) : QObject::tr("New version available");
 		return QString("<span style=\"color:#1F9D55;font-weight:600;\">%1</span>").arg(label.toHtmlEscaped());
 	}
 
@@ -139,8 +136,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
 
-
-	// Testing build info
+	// Testing builds info
 	if(ui->testingBuilds->isChecked())
 	{
 		fetchChannel("beta");
@@ -216,7 +212,6 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 			ui->tabWidget->setCurrentIndex(0);
 		fetchChannel("stable");
 		updateAvailabilityNotice();
-		//changelogBox->setDisabled(true);
 	}
 }
 
@@ -309,7 +304,6 @@ inline int cmpSemver(QString a, QString b)
 	return QVersionNumber::compare(va, vb);
 }
 
-
 // Join base URL (may or may not end with /) with filename.
 static QUrl joinBaseAndFile(const QString& base, const QString& file)
 {
@@ -318,7 +312,6 @@ static QUrl joinBaseAndFile(const QString& base, const QString& file)
 		b.append('/');
 	return QUrl(b + file);
 }
-
 
 // Pick best download URL from "download" object
 static QString pickDownloadUrl(const JsonNode &node)
@@ -343,7 +336,6 @@ static std::string commitShort(const std::string &str)
     return str.substr(0, 7);
 }
 
-
 static int compareWithInstalled(const std::string &currentVersion, const std::string &currentCommit, const QString &candidateVersion, const QString &candidateCommit, bool compareCommit)
 {
 	if(candidateVersion.isEmpty())
@@ -356,15 +348,14 @@ static int compareWithInstalled(const std::string &currentVersion, const std::st
 	if(!compareCommit)
 		return 0;
 
-	const std::string curSha = commitShort(currentCommit);
+	const std::string currentSha = commitShort(currentCommit);
 	const std::string candidateSha = commitShort(candidateCommit.toStdString());
-	if(curSha.empty() || candidateSha.empty() || curSha == candidateSha)
+	if(currentSha.empty() || candidateSha.empty() || currentSha == candidateSha)
 		return 0;
 
 	// For testing channels, any different commit with same version means different (newer) build candidate.
 	return 1;
 }
-
 
 static int compareCandidateBuilds(const QString &leftVersion, const QString &leftBuildDate, const QString &leftCommit, const QString &rightVersion, const QString &rightBuildDate, const QString &rightCommit)
 {
@@ -400,9 +391,6 @@ void UpdateDialog::fetchChannel(const QString& channel)
 	const QString base = QString::fromStdString(settings["launcher"]["updateConfigUrl"].String());
 	const QUrl url = joinBaseAndFile(base, filenameForChannel(normalizedChannel));
 
-	// Route the "loading" message to the correct changelog box
-	//(isTesting ? ui->testingChangelog : ui->releaseChangelog)->setPlainText(tr("Loading %1 …").arg(url.toString()));
-
 	QNetworkReply* response = networkManager.get(QNetworkRequest(url));
 
 	connect(response, &QNetworkReply::finished, [this, response, isTesting, normalizedChannel] {
@@ -424,9 +412,7 @@ void UpdateDialog::fetchChannel(const QString& channel)
 void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QString& channel)
 {
 	// Validate schema
-	if(node.getType() != JsonNode::JsonType::DATA_STRUCT ||
-		node["version"].getType() != JsonNode::JsonType::DATA_STRING ||
-		node["download"].getType() != JsonNode::JsonType::DATA_STRUCT)
+	if(node.getType() != JsonNode::JsonType::DATA_STRUCT || node["version"].getType() != JsonNode::JsonType::DATA_STRING || node["download"].getType() != JsonNode::JsonType::DATA_STRUCT)
 	{
 		//(testing ? ui->testingChangelog : ui->releaseChangelog)->setPlainText(tr("Invalid update JSON (missing 'version' or 'download')."));
 		return;
@@ -610,9 +596,7 @@ void UpdateDialog::updateAvailabilityNotice()
 			version += tr(" (Release)");
 	}
 
-	const int comparisonResult = selectedTesting
-		? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true)
-		: compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
+	const int comparisonResult = selectedTesting ? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true) : compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
 
 	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
 }
@@ -627,7 +611,7 @@ void UpdateDialog::on_infoButton_clicked()
 
 void UpdateDialog::on_installButton_clicked()
 {
-	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
+	const bool testingTabSelected = ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
 	if(testingTabSelected)
 		applySelectedTestingChannel(); // keep URL in sync with current dropdown choice
 
@@ -639,7 +623,7 @@ void UpdateDialog::on_installButton_clicked()
 	    return;
 	}
 
-	#if defined(VCMI_ANDROID)
+#if defined(VCMI_ANDROID)
 	if(Helper::isInstalledFromGooglePlay())
 	{
 		const QUrl playStoreUrl(QStringLiteral("market://details?id=is.xyz.vcmi"));
@@ -649,9 +633,9 @@ void UpdateDialog::on_installButton_clicked()
 		}
 		return;
 	}
-	#endif
+#endif
 
-	#if defined(VCMI_MOBILE)
+#if defined(VCMI_MOBILE)
 	    // Always ask user where to save on mobile
 	    Helper::nativeFolderPicker(this, [this, url](QString picked){
 	        if(picked.isEmpty())
@@ -659,10 +643,10 @@ void UpdateDialog::on_installButton_clicked()
 	        startDownloadToCacheAndRun(QUrl(url), picked);
 	    });
 	    return;
-	#else
+#else
 	    // Desktop: keep current behaviour (or adjust as you wish)
 	    startDownloadToCacheAndRun(QUrl(url));
-	#endif
+#endif
 }
 
 void UpdateDialog::on_closeButton_clicked()
@@ -674,14 +658,14 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 {
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    QNetworkReply* rep = networkManager.get(request);
+    QNetworkReply* reply = networkManager.get(request);
 
     QProgressBar* progress = ui->progressBar;
     if(progress)
 	{
         progress->setVisible(true);
         progress->setRange(0, 0);
-        connect(rep, &QNetworkReply::downloadProgress, this, [progress](qint64 received, qint64 total) {
+        connect(reply, &QNetworkReply::downloadProgress, this, [progress](qint64 received, qint64 total) {
             if(!progress)
                 return;
 
@@ -693,7 +677,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         });
     }
 
-    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target, requestedUrl = url] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, progress, target, requestedUrl = url] {
         reply->deleteLater();
         if(reply->error() != QNetworkReply::NoError)
 		{
@@ -737,7 +721,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             return;
         }
 
-        if (out.write(data) != data.size())
+        if(out.write(data) != data.size())
 		{
             if(progress)
 				progress->setVisible(false);
