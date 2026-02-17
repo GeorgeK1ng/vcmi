@@ -21,7 +21,6 @@
 #include <QNetworkRequest>
 
 #include <QSysInfo>
-#include <QTemporaryFile>
 #include <QProcess>
 #include <QDesktopServices>
 #include <QDir>
@@ -29,9 +28,6 @@
 #include <QVersionNumber>
 #include <QFileInfo>
 #include <QSaveFile>
-#include <QStandardPaths>
-#include <QMessageBox>
-
 
 // Helper to normalize channel key to stable/beta/develop
 static QString normalizeChannel(const QString& text)
