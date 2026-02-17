@@ -30,6 +30,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QRegularExpression>
 #include <QTabWidget>
 
 #ifdef VCMI_ANDROID
@@ -294,6 +295,22 @@ static QUrl joinBaseAndFile(const QString& base, const QString& file)
 	if (!b.endsWith('/'))
 		b.append('/');
 	return QUrl(b + file);
+}
+
+
+static QString filenameFromContentDisposition(const QString &header)
+{
+	const QRegularExpression quotedPattern(R"(filename\s*=\s*"([^"]+)")", QRegularExpression::CaseInsensitiveOption);
+	const QRegularExpressionMatch quotedMatch = quotedPattern.match(header);
+	if(quotedMatch.hasMatch())
+		return quotedMatch.captured(1).trimmed();
+
+	const QRegularExpression plainPattern(R"(filename\s*=\s*([^;]+))", QRegularExpression::CaseInsensitiveOption);
+	const QRegularExpressionMatch plainMatch = plainPattern.match(header);
+	if(plainMatch.hasMatch())
+		return plainMatch.captured(1).trimmed();
+
+	return {};
 }
 
 // Pick best download URL from "download" object
@@ -678,7 +695,16 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-        const QString fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
+        QString fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
+        if(fileName.isEmpty())
+        {
+            const QString disposition = reply->header(QNetworkRequest::ContentDispositionHeader).toString();
+            fileName = filenameFromContentDisposition(disposition);
+        }
+
+        if(fileName.isEmpty())
+            fileName = QStringLiteral("vcmi-update-package.bin");
+
         const QString fullPath = QDir(cacheDir).filePath(fileName);
 
         QSaveFile out(fullPath);
