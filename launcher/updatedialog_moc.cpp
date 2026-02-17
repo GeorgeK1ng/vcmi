@@ -30,6 +30,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QMessageBox>
 
 
 // Helper to normalize channel key to stable/beta/develop
@@ -56,6 +57,21 @@ static QString actionButtonTextForPlatform()
 	return QObject::tr("Download");
 #else
 	return QObject::tr("Install");
+#endif
+}
+
+static QString updateDialogPlatformInfo()
+{
+#if defined(VCMI_WINDOWS)
+	return QObject::tr("You are running Windows. Release, Beta and Stable can coexist, but they share the VCMI data directory unless you configure separate custom paths.");
+#elif defined(VCMI_ANDROID)
+	return QObject::tr("You are running Android. Release and Beta/Develop can be installed, but Beta/Develop builds overwrite each other as VCMI Daily. Release and Beta/Develop do not share the VCMI data directory.");
+#elif defined(VCMI_MAC)
+	return QObject::tr("You are running macOS. Multiple VCMI versions can be installed side by side. Depending on how they are launched, versions may still use shared user data.");
+#elif defined(VCMI_IOS)
+	return QObject::tr("You are running iOS. Usually only one VCMI app installation is active at a time, and installing another build typically replaces the previous app.");
+#else
+	return QObject::tr("You are running an unsupported or unknown operating system. Platform-specific coexistence details are currently unavailable.");
 #endif
 }
 
@@ -93,6 +109,17 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	ui->progressBar->setHidden(true);
 	ui->installButton->setText(actionButtonTextForPlatform());
+	if(ui->infoButton)
+	{
+		ui->infoButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+		ui->infoButton->setText(tr("?"));
+		QFont infoFont = ui->infoButton->font();
+		infoFont.setBold(true);
+		ui->infoButton->setFont(infoFont);
+		ui->infoButton->setCursor(Qt::PointingHandCursor);
+		ui->infoButton->setStyleSheet("QToolButton#infoButton { border: 1px solid palette(mid); border-radius: 14px; padding: 3px; background: palette(button); font-weight: 700; } QToolButton#infoButton:hover { background: palette(light); }");
+		ui->infoButton->raise();
+	}
 
 	if(calledManually)
 	{
@@ -592,6 +619,14 @@ void UpdateDialog::updateAvailabilityNotice()
 		: compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
 
 	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
+}
+
+
+void UpdateDialog::on_infoButton_clicked()
+{
+	const QString common = tr("On other operating systems, update channel installation and coexistence behavior may be different.");
+	const QString details = updateDialogPlatformInfo();
+	QMessageBox::information(this, tr("Update channels information"), details + "\n\n" + common);
 }
 
 void UpdateDialog::on_installButton_clicked()
