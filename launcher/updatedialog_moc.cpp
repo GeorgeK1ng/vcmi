@@ -603,15 +603,7 @@ void UpdateDialog::on_installButton_clicked()
 
 	if(url.isEmpty())
 	{
-		if(!testingTabSelected)
-		{
-			fetchChannel("stable");
-			ui->downloadLink->setText(tr("Loading release package information..."));
-		}
-		else
-		{
-			ui->downloadLink->setText(tr("No package to download."));
-		}
+		ui->downloadLink->setText(tr("No package to download."));
 	    return;
 	}
 
@@ -724,7 +716,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         QFile::setPermissions(fullPath, QFile::permissions(fullPath) | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
         QFileInfo file(fullPath);
-        if(!file.exists() || file.size() == 0)
+        if(!file.exists())
 		{
             if(progress)
 				progress->setVisible(false);
