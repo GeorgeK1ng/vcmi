@@ -31,10 +31,6 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 
-#ifdef VCMI_ANDROID
-#include <QAndroidJniObject>
-#include <QtAndroid>
-#endif
 
 // Helper to normalize channel key to stable/beta/develop
 static QString normalizeChannel(const QString& text)
@@ -768,40 +764,26 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             ui->downloadLink->setText(tr("Package saved to %1 — open it manually.").arg(fullPath));
 
 #elif defined(VCMI_ANDROID)
-        // Android: copy into the picked SAF folder (content:// tree)
-        if(target.startsWith("content://", Qt::CaseInsensitive))
-		{
-            QAndroidJniObject jTree = QAndroidJniObject::fromString(target);
-            QAndroidJniObject jName = QAndroidJniObject::fromString(fileName);
-            QAndroidJniObject jMime = QAndroidJniObject::fromString("application/octet-stream");
-            QAndroidJniObject jDst  = QAndroidJniObject::callStaticObjectMethod(
-                "eu/vcmi/vcmi/util/FileUtil",
-                "createFileInTree",
-                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)Ljava/lang/String;",
-                jTree.object<jstring>(),
-                jName.object<jstring>(),
-                jMime.object<jstring>(),
-                QtAndroid::androidContext().object()
-            );
+        const bool targetIsContent = target.startsWith("content://", Qt::CaseInsensitive);
+        const QString dstPath = Helper::createFile(target, fileName, QStringLiteral("application/octet-stream"));
+        const bool copyOk = !dstPath.isEmpty() && Helper::performNativeCopy(fullPath, dstPath);
 
-            const QString dstUri = jDst.isValid() ? jDst.toString() : QString();
-            if(!dstUri.isEmpty())
-			{
-                Helper::performNativeCopy(fullPath, dstUri); // src=file path, dst=content://
+        if(copyOk)
+        {
+            if(targetIsContent)
                 ui->downloadLink->setText(tr("Saved to selected folder, install it manually."));
-            }
-			else
-			{
-                ui->downloadLink->setText(tr("Saved to cache (failed to create destination file)."));
-            }
+            else
+                ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
-		else
-		{
-            // If user returned a filesystem path (rare on Android), copy directly
-            const QString dstPath = QDir(target).filePath(fileName);
-            Helper::performNativeCopy(fullPath, dstPath);
+        else if(targetIsContent)
+        {
+            ui->downloadLink->setText(tr("Saved to cache (failed to create destination file)."));
+        }
+        else
+        {
             ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
+
         if(progress)
 			progress->setVisible(false);
 
