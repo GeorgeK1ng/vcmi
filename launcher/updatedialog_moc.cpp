@@ -91,6 +91,10 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	calledManually(calledManually)
 {
 	ui->setupUi(this);
+	ui->releaseChangelog->setReadOnly(true);
+	ui->releaseChangelog->setOpenExternalLinks(true);
+	ui->testingChangelog->setReadOnly(true);
+	ui->testingChangelog->setOpenExternalLinks(true);
 	ui->buildChannel->setItemData(0, "develop");
 	ui->buildChannel->setItemData(1, "beta");
 
@@ -785,10 +789,22 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 
         if(copyOk)
         {
-            if(targetIsContent)
+            const bool isApk = fileName.endsWith(QStringLiteral(".apk"), Qt::CaseInsensitive);
+            const QString installSource = targetIsContent ? dstPath : QDir(target).filePath(fileName);
+            const QUrl installUrl = targetIsContent ? QUrl(installSource) : QUrl::fromLocalFile(installSource);
+
+            if(isApk && QDesktopServices::openUrl(installUrl))
+            {
+                ui->downloadLink->setText(tr("Saved and opened installer."));
+            }
+            else if(targetIsContent)
+            {
                 ui->downloadLink->setText(tr("Saved to selected folder, install it manually."));
+            }
             else
+            {
                 ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
+            }
         }
         else if(targetIsContent)
         {
