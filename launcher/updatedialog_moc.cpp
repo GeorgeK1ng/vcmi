@@ -30,7 +30,6 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
-#include <QRegularExpression>
 #include <QTabWidget>
 
 #ifdef VCMI_ANDROID
@@ -297,21 +296,6 @@ static QUrl joinBaseAndFile(const QString& base, const QString& file)
 	return QUrl(b + file);
 }
 
-
-static QString filenameFromContentDisposition(const QString &header)
-{
-	const QRegularExpression quotedPattern(R"(filename\s*=\s*"([^"]+)")", QRegularExpression::CaseInsensitiveOption);
-	const QRegularExpressionMatch quotedMatch = quotedPattern.match(header);
-	if(quotedMatch.hasMatch())
-		return quotedMatch.captured(1).trimmed();
-
-	const QRegularExpression plainPattern(R"(filename\s*=\s*([^;]+))", QRegularExpression::CaseInsensitiveOption);
-	const QRegularExpressionMatch plainMatch = plainPattern.match(header);
-	if(plainMatch.hasMatch())
-		return plainMatch.captured(1).trimmed();
-
-	return {};
-}
 
 // Pick best download URL from "download" object
 static QString pickDownloadUrl(const JsonNode &node)
@@ -695,18 +679,15 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-        QString fileName = QFileInfo(requestedUrl.path()).fileName();
-        if(fileName.isEmpty())
-            fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
-
+        const QString fileName = QFileInfo(requestedUrl.path()).fileName();
         if(fileName.isEmpty())
         {
-            const QString disposition = reply->header(QNetworkRequest::ContentDispositionHeader).toString();
-            fileName = filenameFromContentDisposition(disposition);
-        }
+            if(progress)
+                progress->setVisible(false);
 
-        if(fileName.isEmpty())
-            fileName = QStringLiteral("vcmi-update-package.bin");
+            ui->downloadLink->setText(tr("Download URL does not contain a filename."));
+            return;
+        }
 
         const QString fullPath = QDir(cacheDir).filePath(fileName);
 
