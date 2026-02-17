@@ -301,6 +301,15 @@ static QVersionNumber toVersion(QString version)
 	return QVersionNumber::fromString(version);
 }
 
+static QString versionStringForDisplay(const QString &version)
+{
+	const QVersionNumber parsedVersion = toVersion(version);
+	if(parsedVersion.isNull())
+		return version;
+
+	return parsedVersion.toString();
+}
+
 inline int cmpSemver(QString a, QString b)
 {
 	// normalize - remove end zero
@@ -591,8 +600,10 @@ void UpdateDialog::updateAvailabilityNotice()
 {
 	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
 	const bool selectedTesting = testingTabSelected && !testingVersion.isEmpty();
+	const QString comparedVersion = selectedTesting ? testingVersion : releaseVersion;
+	const QString currentVersionString = QString::fromStdString(currentVersion);
 
-	QString version = selectedTesting ? testingVersion : releaseVersion;
+	QString version = comparedVersion;
 	if(!version.isEmpty())
 	{
 		if(selectedTesting && !selectedTestingChannel.isEmpty())
@@ -602,6 +613,12 @@ void UpdateDialog::updateAvailabilityNotice()
 	}
 
 	const int comparisonResult = selectedTesting ? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true) : compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
+
+	const QString titleBase = tr("VCMI Updates Center");
+	if(comparedVersion.isEmpty())
+		setWindowTitle(tr("%1 (installed: %2)").arg(titleBase, versionStringForDisplay(currentVersionString)));
+	else
+		setWindowTitle(tr("%1 (installed: %2, compared: %3)").arg(titleBase, versionStringForDisplay(currentVersionString), versionStringForDisplay(comparedVersion)));
 
 	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
 }
