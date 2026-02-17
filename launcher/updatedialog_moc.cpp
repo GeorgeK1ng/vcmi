@@ -584,6 +584,9 @@ bool UpdateDialog::shouldPreferTesting() const
 void UpdateDialog::on_installButton_clicked()
 {
 	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
+	if(testingTabSelected)
+		applySelectedTestingChannel(); // keep URL in sync with current dropdown choice
+
 	const QString url = testingTabSelected ? testingUrl : releaseUrl;
 
 	if(url.isEmpty())
