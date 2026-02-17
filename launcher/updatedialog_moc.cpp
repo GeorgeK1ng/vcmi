@@ -30,6 +30,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QTabWidget>
 
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
@@ -61,6 +62,23 @@ static QString actionButtonTextForPlatform()
 #else
 	return QObject::tr("Install");
 #endif
+}
+
+static QString availabilityLine(int comparisonResult, const QString &version)
+{
+	if(comparisonResult > 0)
+	{
+		const QString label = !version.isEmpty()
+			? QObject::tr("New version %1 available").arg(version)
+			: QObject::tr("New version available");
+
+		return QString("<span style=\"color:#1F9D55;font-weight:600;\">%1</span>").arg(label.toHtmlEscaped());
+	}
+
+	if(comparisonResult < 0)
+		return QString("<span style=\"color:#C53030;font-weight:600;\">%1</span>").arg(QObject::tr("Selected version is older than installed one").toHtmlEscaped());
+
+	return QObject::tr("You are up to date");
 }
 
 UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
@@ -103,10 +121,15 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
 
+	connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int) {
+		updateAvailabilityNotice();
+	});
+
 	// Testing build info
 	if(ui->testingBuilds->isChecked())
 	{
-		fetchChannel(ui->buildChannel->currentData().toString());
+		fetchChannel("beta");
+		fetchChannel("develop");
 		ui->tabWidget->setCurrentIndex(1);
 	}
 
@@ -143,8 +166,9 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 	// Additionally load the selected testing channel if enabled
 	if(testing)
 	{
-		const QString channel = ui->buildChannel ? ui->buildChannel->currentData().toString() : QString("develop");
-		fetchChannel(channel);
+		testingChannelAutoSelectPending = true;
+		fetchChannel("beta");
+		fetchChannel("develop");
 
 		ui->buildChannel->setEnabled(true);
 		ui->titleTesting->setEnabled(true);
@@ -158,6 +182,17 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		ui->testingChangelogTitle->setDisabled(true);
 		versionLabel->setText("");
 		changelogBox->setMarkdown("");
+		testingVersion.clear();
+		testingUrl.clear();
+		selectedTestingCommit.clear();
+		selectedTestingBuildDate.clear();
+		selectedTestingChannel.clear();
+		testingOffer = false;
+		testingChannelAutoSelectPending = true;
+		if(ui->tabWidget)
+			ui->tabWidget->setCurrentIndex(0);
+		fetchChannel("stable");
+		updateAvailabilityNotice();
 		//changelogBox->setDisabled(true);
 	}
 }
@@ -182,7 +217,7 @@ void UpdateDialog::on_buildChannel_currentIndexChanged(int)
 	if(!ui->testingBuilds->isChecked())
 		return;
 
-	fetchChannel(ui->buildChannel->currentData().toString());
+	applySelectedTestingChannel();
 }
 
 // Map runtime OS/arch to JSON "download" key, e.g. "windows-x64"
@@ -261,6 +296,7 @@ static QUrl joinBaseAndFile(const QString& base, const QString& file)
 	return QUrl(b + file);
 }
 
+
 // Pick best download URL from "download" object
 static QString pickDownloadUrl(const JsonNode &node)
 {
@@ -284,6 +320,55 @@ static std::string commitShort(const std::string &str)
     return str.substr(0, 7);
 }
 
+
+static int compareWithInstalled(const std::string &currentVersion, const std::string &currentCommit, const QString &candidateVersion, const QString &candidateCommit, bool compareCommit)
+{
+	if(candidateVersion.isEmpty())
+		return 0;
+
+	const int versionCmp = cmpSemver(candidateVersion, QString::fromStdString(currentVersion));
+	if(versionCmp != 0)
+		return versionCmp;
+
+	if(!compareCommit)
+		return 0;
+
+	const std::string curSha = commitShort(currentCommit);
+	const std::string candidateSha = commitShort(candidateCommit.toStdString());
+	if(curSha.empty() || candidateSha.empty() || curSha == candidateSha)
+		return 0;
+
+	// For testing channels, any different commit with same version means different (newer) build candidate.
+	return 1;
+}
+
+
+static int compareCandidateBuilds(const QString &leftVersion, const QString &leftBuildDate, const QString &leftCommit, const QString &rightVersion, const QString &rightBuildDate, const QString &rightCommit)
+{
+	const int versionCmp = cmpSemver(leftVersion, rightVersion);
+	if(versionCmp != 0)
+		return versionCmp;
+
+	if(!leftBuildDate.isEmpty() && !rightBuildDate.isEmpty())
+	{
+		if(leftBuildDate > rightBuildDate)
+			return 1;
+		if(leftBuildDate < rightBuildDate)
+			return -1;
+	}
+
+	if(!leftCommit.isEmpty() && !rightCommit.isEmpty())
+	{
+		if(leftCommit > rightCommit)
+			return 1;
+		if(leftCommit < rightCommit)
+			return -1;
+	}
+
+	return 0;
+}
+
+
 void UpdateDialog::fetchChannel(const QString& channel)
 {
 	const QString normalizedChannel = normalizeChannel(channel);
@@ -297,7 +382,7 @@ void UpdateDialog::fetchChannel(const QString& channel)
 
 	QNetworkReply* response = networkManager.get(QNetworkRequest(url));
 
-	connect(response, &QNetworkReply::finished, [this, response, isTesting] {
+	connect(response, &QNetworkReply::finished, [this, response, isTesting, normalizedChannel] {
 		response->deleteLater();
 
 		if(response->error() != QNetworkReply::NoError)
@@ -308,12 +393,12 @@ void UpdateDialog::fetchChannel(const QString& channel)
 
 		const auto bytes = response->readAll();
 		JsonNode node(reinterpret_cast<const std::byte*>(bytes.constData()), bytes.size(), "<network packet from update url>");
-		loadFromJson(node, isTesting);
+		loadFromJson(node, isTesting, normalizedChannel);
 		}
 	);
 }
 
-void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
+void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QString& channel)
 {
 	// Validate schema
 	if(node.getType() != JsonNode::JsonType::DATA_STRUCT ||
@@ -336,22 +421,7 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 	const std::string changeLog = node["changeLog"].getType() == JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
 
 	// Decide if update is offered, but never early-return or close the dialog
-	const std::string curSha = commitShort(currentCommit);
-	const std::string jsonSha = commitShort(newCommit);
-
-	bool offer = false;
-	const int vcmp = cmpSemver(QString::fromStdString(currentVersion), QString::fromStdString(newVersion));
-
-	if(vcmp < 0)
-	{
-		offer = true; // New version available
-	}
-	else if (vcmp == 0)
-	{
-		// Same version number, decide by different commit
-		if(!curSha.empty() && !jsonSha.empty() && curSha != jsonSha)
-			offer = true;
-	}
+	const bool offer = compareWithInstalled(currentVersion, currentCommit, QString::fromStdString(newVersion), QString::fromStdString(newCommit), testing) > 0;
 
 	// Populate UI
 	if(versionLabel)
@@ -385,23 +455,155 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing)
 	if(link.isEmpty())
 		changelogBox->setMarkdown(tr("No download available for this platform."));
 
-	if(offer && !calledManually)
+	if(testing)
+	{
+		TestingBuildState &targetState = normalizeChannel(channel) == "beta" ? betaState : developState;
+		targetState.channel = normalizeChannel(channel);
+		targetState.version = QString::fromStdString(newVersion);
+		targetState.commit = QString::fromStdString(newCommit);
+		targetState.buildDate = QString::fromStdString(buildDate);
+		targetState.downloadUrl = link;
+		targetState.changelog = body;
+		targetState.valid = true;
+
+		refreshTestingBuildFromNewest();
+	}
+	else
+	{
+		releaseBuildDate = QString::fromStdString(buildDate);
+		releaseOffer = offer;
+		updateAvailabilityNotice();
+	}
+
+	const bool hasTestingOffer = ui->testingBuilds->isChecked() && testingOffer;
+	if((releaseOffer || hasTestingOffer) && !calledManually)
 	{
 		this->show();
 		this->raise();
 		this->activateWindow();
-		if(testing)
-			ui->tabWidget->setCurrentIndex(1);
+
+		int recommendedTab = 0;
+		if(hasTestingOffer && !releaseOffer)
+			recommendedTab = 1;
+		else if(hasTestingOffer && releaseOffer)
+		{
+			const int candidateCmp = compareCandidateBuilds(testingVersion, selectedTestingBuildDate, selectedTestingCommit, releaseVersion, releaseBuildDate, QString());
+			recommendedTab = candidateCmp > 0 ? 1 : 0;
+		}
+		ui->tabWidget->setCurrentIndex(recommendedTab);
 	}
+}
+
+void UpdateDialog::refreshTestingBuildFromNewest()
+{
+	if(!ui->testingBuilds->isChecked())
+		return;
+
+	const TestingBuildState *newest = nullptr;
+	if(betaState.valid && !developState.valid)
+		newest = &betaState;
+	else if(developState.valid && !betaState.valid)
+		newest = &developState;
+	else if(betaState.valid && developState.valid)
+	{
+		const int candidateCmp = compareCandidateBuilds(betaState.version, betaState.buildDate, betaState.commit, developState.version, developState.buildDate, developState.commit);
+		newest = candidateCmp >= 0 ? &betaState : &developState;
+	}
+
+	if(!newest)
+		return;
+
+	if(testingChannelAutoSelectPending && ui->buildChannel)
+	{
+		const int selectedIndex = ui->buildChannel->findData(newest->channel);
+		if(selectedIndex >= 0 && selectedIndex != ui->buildChannel->currentIndex())
+			ui->buildChannel->setCurrentIndex(selectedIndex);
+		testingChannelAutoSelectPending = false;
+	}
+
+	applySelectedTestingChannel();
+}
+
+void UpdateDialog::applySelectedTestingChannel()
+{
+	if(!ui->testingBuilds->isChecked())
+		return;
+
+	const QString selectedChannel = ui->buildChannel ? normalizeChannel(ui->buildChannel->currentData().toString()) : QString("develop");
+	const TestingBuildState *selected = nullptr;
+	if(selectedChannel == "beta" && betaState.valid)
+		selected = &betaState;
+	else if(selectedChannel == "develop" && developState.valid)
+		selected = &developState;
+	else if(developState.valid)
+		selected = &developState;
+	else if(betaState.valid)
+		selected = &betaState;
+
+	if(!selected)
+		return;
+
+	testingVersion = selected->version;
+	testingUrl = selected->downloadUrl;
+	selectedTestingCommit = selected->commit;
+	selectedTestingBuildDate = selected->buildDate;
+	selectedTestingChannel = selected->channel;
+
+	if(ui->testingVersion)
+		ui->testingVersion->setText(selected->version);
+
+	QStringList headerLines;
+	if(!selected->buildDate.isEmpty())
+		headerLines << tr("Build date: %1").arg(selected->buildDate);
+	if(!selected->commit.isEmpty())
+		headerLines << tr("Commit: %1").arg(QString::fromStdString(commitShort(selected->commit.toStdString())));
+
+	QString logText;
+	if(!headerLines.isEmpty())
+		logText = headerLines.join("\n\n");
+
+	logText += "<br/><br/>";
+	logText += selected->changelog;
+
+	if(ui->testingChangelog)
+		ui->testingChangelog->setMarkdown(logText);
+
+	testingOffer = compareWithInstalled(currentVersion, currentCommit, testingVersion, selected->commit, true) > 0;
+	updateAvailabilityNotice();
+}
+
+void UpdateDialog::updateAvailabilityNotice()
+{
+	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
+	const bool selectedTesting = testingTabSelected && !testingVersion.isEmpty();
+
+	QString version = selectedTesting ? testingVersion : releaseVersion;
+	if(!version.isEmpty())
+	{
+		if(selectedTesting && !selectedTestingChannel.isEmpty())
+			version += tr(" (%1)").arg(selectedTestingChannel);
+		else
+			version += tr(" (Release)");
+	}
+
+	const int comparisonResult = selectedTesting
+		? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true)
+		: compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
+
+	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
 }
 
 void UpdateDialog::on_installButton_clicked()
 {
-	const QString url = ui->testingBuilds->isChecked() && !testingUrl.isEmpty() ? testingUrl : releaseUrl;
+	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
+	if(testingTabSelected)
+		applySelectedTestingChannel(); // keep URL in sync with current dropdown choice
+
+	const QString url = testingTabSelected ? testingUrl : releaseUrl;
 
 	if(url.isEmpty())
 	{
-	    ui->downloadLink->setText(tr("No package to download."));
+		ui->downloadLink->setText(tr("No package to download."));
 	    return;
 	}
 
@@ -438,7 +640,9 @@ void UpdateDialog::on_closeButton_clicked()
 
 void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target)
 {
-    QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
+    QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    QNetworkReply* rep = networkManager.get(request);
 
     QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
     if(progress)
@@ -457,7 +661,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         });
     }
 
-    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target] {
+    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target, requestedUrl = url] {
         reply->deleteLater();
         if(reply->error() != QNetworkReply::NoError)
 		{
@@ -469,7 +673,16 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-        const QString fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
+        const QString fileName = QFileInfo(requestedUrl.path()).fileName();
+        if(fileName.isEmpty())
+        {
+            if(progress)
+                progress->setVisible(false);
+
+            ui->downloadLink->setText(tr("Download URL does not contain a filename."));
+            return;
+        }
+
         const QString fullPath = QDir(cacheDir).filePath(fileName);
 
         QSaveFile out(fullPath);
@@ -483,6 +696,15 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QByteArray data = reply->readAll();
+        if(data.isEmpty())
+        {
+            if(progress)
+                progress->setVisible(false);
+
+            ui->downloadLink->setText(tr("Downloaded file is empty."));
+            return;
+        }
+
         if (out.write(data) != data.size())
 		{
             if(progress)
@@ -505,7 +727,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         QFile::setPermissions(fullPath, QFile::permissions(fullPath) | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
         QFileInfo file(fullPath);
-        if(!file.exists() || file.size() == 0)
+        if(!file.exists())
 		{
             if(progress)
 				progress->setVisible(false);
@@ -561,7 +783,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             if(!dstUri.isEmpty())
 			{
                 Helper::performNativeCopy(fullPath, dstUri); // src=file path, dst=content://
-                ui->downloadLink->setText(tr("Saved to selected folder."));
+                ui->downloadLink->setText(tr("Saved to selected folder, install it manually."));
             }
 			else
 			{
@@ -573,7 +795,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             // If user returned a filesystem path (rare on Android), copy directly
             const QString dstPath = QDir(target).filePath(fileName);
             Helper::performNativeCopy(fullPath, dstPath);
-            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
         if(progress)
 			progress->setVisible(false);
@@ -584,7 +806,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             const QString dstPath = QDir(target).filePath(fileName);
             Helper::performNativeCopy(fullPath, dstPath);
             Helper::revealDirectoryInFileBrowser(target);
-            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
         if(progress)
 			progress->setVisible(false);
