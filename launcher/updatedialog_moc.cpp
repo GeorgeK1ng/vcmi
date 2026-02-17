@@ -30,6 +30,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QTabWidget>
 
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
@@ -63,9 +64,9 @@ static QString actionButtonTextForPlatform()
 #endif
 }
 
-static QString availabilityLine(bool offer, const QString &version)
+static QString availabilityLine(int comparisonResult, const QString &version)
 {
-	if(offer)
+	if(comparisonResult > 0)
 	{
 		const QString label = !version.isEmpty()
 			? QObject::tr("New version %1 available").arg(version)
@@ -73,6 +74,9 @@ static QString availabilityLine(bool offer, const QString &version)
 
 		return QString("<span style=\"color:#1F9D55;font-weight:600;\">%1</span>").arg(label.toHtmlEscaped());
 	}
+
+	if(comparisonResult < 0)
+		return QString("<span style=\"color:#C53030;font-weight:600;\">%1</span>").arg(QObject::tr("Selected version is older than installed one").toHtmlEscaped());
 
 	return QObject::tr("You are up to date");
 }
@@ -116,6 +120,10 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
+
+	connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int) {
+		updateAvailabilityNotice();
+	});
 
 	// Testing build info
 	if(ui->testingBuilds->isChecked())
@@ -177,7 +185,6 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		testingVersion.clear();
 		testingUrl.clear();
 		selectedTestingCommit.clear();
-		selectedTestingBuildDate.clear();
 		selectedTestingChannel.clear();
 		testingOffer = false;
 		testingChannelAutoSelectPending = true;
@@ -309,45 +316,25 @@ static std::string commitShort(const std::string &str)
 }
 
 
-static bool isUpdateOffered(const std::string &currentVersion, const std::string &currentCommit, const std::string &newVersion, const std::string &newCommit)
+static int compareWithInstalled(const std::string &currentVersion, const std::string &currentCommit, const QString &candidateVersion, const QString &candidateCommit, bool compareCommit)
 {
-	const std::string curSha = commitShort(currentCommit);
-	const std::string jsonSha = commitShort(newCommit);
+	if(candidateVersion.isEmpty())
+		return 0;
 
-	const int vcmp = cmpSemver(QString::fromStdString(currentVersion), QString::fromStdString(newVersion));
-	if(vcmp < 0)
-		return true;
-
-	if(vcmp == 0 && !curSha.empty() && !jsonSha.empty() && curSha != jsonSha)
-		return true;
-
-	return false;
-}
-
-
-static int compareBuildMetadata(const QString &leftVersion, const QString &leftBuildDate, const QString &leftCommit, const QString &rightVersion, const QString &rightBuildDate, const QString &rightCommit)
-{
-	const int versionCmp = cmpSemver(leftVersion, rightVersion);
+	const int versionCmp = cmpSemver(candidateVersion, QString::fromStdString(currentVersion));
 	if(versionCmp != 0)
 		return versionCmp;
 
-	if(!leftBuildDate.isEmpty() && !rightBuildDate.isEmpty())
-	{
-		if(leftBuildDate > rightBuildDate)
-			return 1;
-		if(leftBuildDate < rightBuildDate)
-			return -1;
-	}
+	if(!compareCommit)
+		return 0;
 
-	if(!leftCommit.isEmpty() && !rightCommit.isEmpty())
-	{
-		if(leftCommit > rightCommit)
-			return 1;
-		if(leftCommit < rightCommit)
-			return -1;
-	}
+	const std::string curSha = commitShort(currentCommit);
+	const std::string candidateSha = commitShort(candidateCommit.toStdString());
+	if(curSha.empty() || candidateSha.empty() || curSha == candidateSha)
+		return 0;
 
-	return 0;
+	// For testing channels, any different commit with same version means different (newer) build candidate.
+	return 1;
 }
 
 
@@ -403,7 +390,7 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	const std::string changeLog = node["changeLog"].getType() == JsonNode::JsonType::DATA_STRING ? node["changeLog"].String() : "";
 
 	// Decide if update is offered, but never early-return or close the dialog
-	const bool offer = isUpdateOffered(currentVersion, currentCommit, newVersion, newCommit);
+	const bool offer = compareWithInstalled(currentVersion, currentCommit, QString::fromStdString(newVersion), QString::fromStdString(newCommit), testing) > 0;
 
 	// Populate UI
 	if(versionLabel)
@@ -452,19 +439,17 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	}
 	else
 	{
-		releaseCommit = QString::fromStdString(newCommit);
-		releaseBuildDate = QString::fromStdString(buildDate);
 		releaseOffer = offer;
-		releaseValid = true;
 		updateAvailabilityNotice();
 	}
 
-	if((releaseOffer || testingOffer) && !calledManually)
+	const bool hasTestingOffer = ui->testingBuilds->isChecked() && testingOffer;
+	if((releaseOffer || hasTestingOffer) && !calledManually)
 	{
 		this->show();
 		this->raise();
 		this->activateWindow();
-		ui->tabWidget->setCurrentIndex(shouldPreferTesting() ? 1 : 0);
+		ui->tabWidget->setCurrentIndex(releaseOffer ? 0 : 1); // release has priority for recommendation
 	}
 }
 
@@ -529,7 +514,6 @@ void UpdateDialog::applySelectedTestingChannel()
 	testingVersion = selected->version;
 	testingUrl = selected->downloadUrl;
 	selectedTestingCommit = selected->commit;
-	selectedTestingBuildDate = selected->buildDate;
 	selectedTestingChannel = selected->channel;
 
 	if(ui->testingVersion)
@@ -551,34 +535,29 @@ void UpdateDialog::applySelectedTestingChannel()
 	if(ui->testingChangelog)
 		ui->testingChangelog->setMarkdown(logText);
 
-	testingOffer = isUpdateOffered(currentVersion, currentCommit, testingVersion.toStdString(), selected->commit.toStdString());
+	testingOffer = compareWithInstalled(currentVersion, currentCommit, testingVersion, selected->commit, true) > 0;
 	updateAvailabilityNotice();
 }
 
 void UpdateDialog::updateAvailabilityNotice()
 {
-	const bool preferTesting = shouldPreferTesting();
-	const bool offer = preferTesting ? testingOffer : releaseOffer;
-	QString version = preferTesting ? testingVersion : releaseVersion;
-	if(offer)
+	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
+	const bool selectedTesting = testingTabSelected && !testingVersion.isEmpty();
+
+	QString version = selectedTesting ? testingVersion : releaseVersion;
+	if(!version.isEmpty())
 	{
-		if(preferTesting && !selectedTestingChannel.isEmpty())
+		if(selectedTesting && !selectedTestingChannel.isEmpty())
 			version += tr(" (%1)").arg(selectedTestingChannel);
-		else if(!preferTesting)
+		else
 			version += tr(" (Release)");
 	}
-	ui->downloadLink->setText(availabilityLine(offer, version));
-}
 
-bool UpdateDialog::shouldPreferTesting() const
-{
-	if(!ui->testingBuilds->isChecked() || testingVersion.isEmpty())
-		return false;
+	const int comparisonResult = selectedTesting
+		? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true)
+		: compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
 
-	if(!releaseValid || releaseVersion.isEmpty())
-		return true;
-
-	return compareBuildMetadata(testingVersion, selectedTestingBuildDate, selectedTestingCommit, releaseVersion, releaseBuildDate, releaseCommit) > 0;
+	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
 }
 
 void UpdateDialog::on_installButton_clicked()

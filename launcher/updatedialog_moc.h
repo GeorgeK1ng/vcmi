@@ -68,13 +68,9 @@ private:
 	TestingBuildState betaState;
 	TestingBuildState developState;
 	QString selectedTestingCommit;
-	QString selectedTestingBuildDate;
 	QString selectedTestingChannel;
-	QString releaseCommit;
-	QString releaseBuildDate;
 	bool releaseOffer = false;
 	bool testingOffer = false;
-	bool releaseValid = false;
 	bool testingChannelAutoSelectPending = true;
 
 	bool calledManually;
@@ -84,6 +80,5 @@ private:
 	void refreshTestingBuildFromNewest();
 	void applySelectedTestingChannel();
 	void updateAvailabilityNotice();
-	bool shouldPreferTesting() const;
 	void startDownloadToCacheAndRun(const QUrl& url, const QString& target = QString());
 };
