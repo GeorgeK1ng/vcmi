@@ -63,15 +63,15 @@ static QString actionButtonTextForPlatform()
 static QString updateDialogPlatformInfo()
 {
 #if defined(VCMI_WINDOWS)
-	return QObject::tr("On Windows, Release, Beta and Stable can coexist. However, they share the VCMI data directory unless custom dir.json paths are configured to separate versions.");
+	return QObject::tr("You are running Windows. Release, Beta and Stable can coexist, but they share the VCMI data directory unless you configure separate custom paths.");
 #elif defined(VCMI_ANDROID)
-	return QObject::tr("On Android, Release and Beta/Develop can be installed. Beta/Develop builds overwrite each other as VCMI Daily. Release and Beta/Develop do not share the VCMI data directory.");
+	return QObject::tr("You are running Android. Release and Beta/Develop can be installed, but Beta/Develop builds overwrite each other as VCMI Daily. Release and Beta/Develop do not share the VCMI data directory.");
 #elif defined(VCMI_MAC)
-	return QObject::tr("On macOS, multiple VCMI versions can be installed side by side. Depending on how they are launched, versions may still use shared user data.");
+	return QObject::tr("You are running macOS. Multiple VCMI versions can be installed side by side. Depending on how they are launched, versions may still use shared user data.");
 #elif defined(VCMI_IOS)
-	return QObject::tr("On iOS, only one VCMI app installation is typically active at a time. Installing another build usually replaces the previous app while keeping iOS-managed app data behavior.");
+	return QObject::tr("You are running iOS. Usually only one VCMI app installation is active at a time, and installing another build typically replaces the previous app.");
 #else
-	return QObject::tr("Platform-specific coexistence details are currently unavailable for this operating system.");
+	return QObject::tr("You are running an unsupported or unknown operating system. Platform-specific coexistence details are currently unavailable.");
 #endif
 }
 
@@ -624,9 +624,9 @@ void UpdateDialog::updateAvailabilityNotice()
 
 void UpdateDialog::on_infoButton_clicked()
 {
-	const QString common = tr("Different update channels may have different installation and coexistence behavior depending on your operating system.");
+	const QString common = tr("On other operating systems, update channel installation and coexistence behavior may be different.");
 	const QString details = updateDialogPlatformInfo();
-	QMessageBox::information(this, tr("Update channels information"), common + "\n\n" + details);
+	QMessageBox::information(this, tr("Update channels information"), details + "\n\n" + common);
 }
 
 void UpdateDialog::on_installButton_clicked()
