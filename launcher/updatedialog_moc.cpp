@@ -121,9 +121,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
 
-	connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int) {
-		updateAvailabilityNotice();
-	});
 
 	// Testing build info
 	if(ui->testingBuilds->isChecked())
@@ -147,14 +144,22 @@ void UpdateDialog::showUpdateDialog(bool isManually)
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 }
 
+void UpdateDialog::on_tabWidget_currentChanged(int index)
+{
+	Q_UNUSED(index);
+	updateAvailabilityNotice();
+}
+
 void UpdateDialog::on_checkOnStartup_stateChanged(int state)
 {
+	Q_UNUSED(state);
 	Settings node = settings.write["launcher"]["updateOnStartup"];
 	node->Bool() = ui->checkOnStartup->isChecked();
 }
 
 void UpdateDialog::on_testingBuilds_stateChanged(int state)
 {
+	Q_UNUSED(state);
 	bool testing = ui->testingBuilds->isChecked();
 
 	Settings node = settings.write["launcher"]["testingBuilds"];
@@ -457,8 +462,9 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 
 	if(testing)
 	{
-		TestingBuildState &targetState = normalizeChannel(channel) == "beta" ? betaState : developState;
-		targetState.channel = normalizeChannel(channel);
+		const QString normalizedChannel = normalizeChannel(channel);
+		TestingBuildState &targetState = normalizedChannel == "beta" ? betaState : developState;
+		targetState.channel = normalizedChannel;
 		targetState.version = QString::fromStdString(newVersion);
 		targetState.commit = QString::fromStdString(newCommit);
 		targetState.buildDate = QString::fromStdString(buildDate);
@@ -644,7 +650,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     QNetworkReply* rep = networkManager.get(request);
 
-    QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
+    QProgressBar* progress = ui->progressBar;
     if(progress)
 	{
         progress->setVisible(true);
