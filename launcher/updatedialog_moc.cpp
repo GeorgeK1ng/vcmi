@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QProgressBar>
 #include <QVersionNumber>
+#include <QRegularExpression>
 #include <QFileInfo>
 #include <QSaveFile>
 
@@ -40,6 +41,15 @@ static QString normalizeChannel(const QString& text)
 		return "develop";
 
 	return "stable";
+}
+
+static QString preferredTestingChannelFromBranch(const std::string &branchName)
+{
+	const QString normalizedBranch = normalizeChannel(QString::fromStdString(branchName));
+	if(normalizedBranch == "beta" || normalizedBranch == "develop")
+		return normalizedBranch;
+
+	return {};
 }
 
 static QString actionButtonTextForPlatform()
@@ -137,6 +147,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	currentVersion = GameConstants::VCMI_VERSION;
 	currentCommit = GameConstants::VCMI_COMMIT;
+	currentBranch = GameConstants::VCMI_BRANCH;
 
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
@@ -301,15 +312,32 @@ static QString platformKeyFromRuntime()
 
 static QVersionNumber toVersion(QString version)
 {
-	return QVersionNumber::fromString(version);
+	// TODO: VCMI_VERSION vs VCMI_VERSION_STRING
+	const QVersionNumber direct = QVersionNumber::fromString(version);
+	if(!direct.isNull())
+		return direct;
+
+	static const QRegularExpression versionPattern(QStringLiteral(R"((\d+(?:\.\d+)+))"));
+	const QRegularExpressionMatch match = versionPattern.match(version);
+	if(!match.hasMatch())
+		return {};
+
+	return QVersionNumber::fromString(match.captured(1));
 }
 
 inline int cmpSemver(QString a, QString b)
 {
-	// normalize - remove end zero
-	const auto va = toVersion(a).normalized(); // example: 1.2.0 -> 1.2
-	const auto vb = toVersion(b).normalized();
-	return QVersionNumber::compare(va, vb);
+	const QVersionNumber verA = toVersion(a);
+	const QVersionNumber verB = toVersion(b);
+	if(verA.isNull() && verB.isNull())
+		return 0;
+	if(verA.isNull())
+		return -1;
+	if(verB.isNull())
+		return 1;
+
+	// normalize - remove trailing zeros, e.g. 1.2.0 -> 1.2
+	return QVersionNumber::compare(verA.normalized(), verB.normalized());
 }
 
 // Join base URL (may or may not end with /) with filename.
@@ -379,12 +407,11 @@ static int compareCandidateBuilds(const QString &leftVersion, const QString &lef
 			return -1;
 	}
 
-	if(!leftCommit.isEmpty() && !rightCommit.isEmpty())
+	if(!leftCommit.isEmpty() && !rightCommit.isEmpty() && leftCommit != rightCommit)
 	{
-		if(leftCommit > rightCommit)
-			return 1;
-		if(leftCommit < rightCommit)
-			return -1;
+		// Different commit hashes with identical version/date are unordered without extra metadata.
+		// Keep channels equivalent instead of using lexicographical SHA order.
+		return 0;
 	}
 
 	return 0;
@@ -531,9 +558,22 @@ void UpdateDialog::refreshTestingBuildFromNewest()
 	if(!newest)
 		return;
 
-	if(testingChannelAutoSelectPending && ui->buildChannel)
+	const QString preferredTestingChannel = preferredTestingChannelFromBranch(currentBranch);
+	const TestingBuildState *autoSelected = nullptr;
+#if defined(VCMI_ANDROID)
+	autoSelected = newest;
+#else
+	if(preferredTestingChannel == "beta" && betaState.valid)
+		autoSelected = &betaState;
+	else if(preferredTestingChannel == "develop" && developState.valid)
+		autoSelected = &developState;
+	else
+		autoSelected = newest;
+#endif
+
+	if(testingChannelAutoSelectPending && autoSelected)
 	{
-		const int selectedIndex = ui->buildChannel->findData(newest->channel);
+		const int selectedIndex = ui->buildChannel->findData(autoSelected->channel);
 		if(selectedIndex >= 0 && selectedIndex != ui->buildChannel->currentIndex())
 			ui->buildChannel->setCurrentIndex(selectedIndex);
 		testingChannelAutoSelectPending = false;
