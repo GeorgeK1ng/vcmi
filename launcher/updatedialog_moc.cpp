@@ -641,11 +641,7 @@ void UpdateDialog::on_closeButton_clicked()
 void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target)
 {
     QNetworkRequest request(url);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-#else
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
     QNetworkReply* rep = networkManager.get(request);
 
     QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
