@@ -43,6 +43,7 @@ private slots:
     void on_testingBuilds_stateChanged(int state);
 
 	void on_buildChannel_currentIndexChanged(int index);
+	void on_tabWidget_currentChanged(int index);
 
 	void on_installButton_clicked();
 	void on_closeButton_clicked();

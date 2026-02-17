@@ -121,9 +121,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
 
-	connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int) {
-		updateAvailabilityNotice();
-	});
 
 	// Testing build info
 	if(ui->testingBuilds->isChecked())
@@ -145,6 +142,12 @@ void UpdateDialog::showUpdateDialog(bool isManually)
 {
 	auto * dialog = new UpdateDialog(isManually, Helper::getMainWindow());
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
+}
+
+void UpdateDialog::on_tabWidget_currentChanged(int index)
+{
+	Q_UNUSED(index);
+	updateAvailabilityNotice();
 }
 
 void UpdateDialog::on_checkOnStartup_stateChanged(int state)
