@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QProgressBar>
 #include <QVersionNumber>
+#include <QRegularExpression>
 #include <QFileInfo>
 #include <QSaveFile>
 
@@ -298,15 +299,40 @@ static QString platformKeyFromRuntime()
 
 static QVersionNumber toVersion(QString version)
 {
-	return QVersionNumber::fromString(version);
+	const QVersionNumber direct = QVersionNumber::fromString(version);
+	if(!direct.isNull())
+		return direct;
+
+	static const QRegularExpression versionPattern(QStringLiteral(R"((\d+(?:\.\d+)+))"));
+	const QRegularExpressionMatch match = versionPattern.match(version);
+	if(!match.hasMatch())
+		return {};
+
+	return QVersionNumber::fromString(match.captured(1));
+}
+
+static QString versionStringForDisplay(const QString &version)
+{
+	const QVersionNumber parsedVersion = toVersion(version);
+	if(parsedVersion.isNull())
+		return version;
+
+	return parsedVersion.toString();
 }
 
 inline int cmpSemver(QString a, QString b)
 {
-	// normalize - remove end zero
-	const auto va = toVersion(a).normalized(); // example: 1.2.0 -> 1.2
-	const auto vb = toVersion(b).normalized();
-	return QVersionNumber::compare(va, vb);
+	const QVersionNumber va = toVersion(a);
+	const QVersionNumber vb = toVersion(b);
+	if(va.isNull() && vb.isNull())
+		return 0;
+	if(va.isNull())
+		return -1;
+	if(vb.isNull())
+		return 1;
+
+	// normalize - remove trailing zeros, e.g. 1.2.0 -> 1.2
+	return QVersionNumber::compare(va.normalized(), vb.normalized());
 }
 
 // Join base URL (may or may not end with /) with filename.
@@ -376,12 +402,11 @@ static int compareCandidateBuilds(const QString &leftVersion, const QString &lef
 			return -1;
 	}
 
-	if(!leftCommit.isEmpty() && !rightCommit.isEmpty())
+	if(!leftCommit.isEmpty() && !rightCommit.isEmpty() && leftCommit != rightCommit)
 	{
-		if(leftCommit > rightCommit)
-			return 1;
-		if(leftCommit < rightCommit)
-			return -1;
+		// Different commit hashes with identical version/date are unordered without extra metadata.
+		// Keep channels equivalent instead of using lexicographical SHA order.
+		return 0;
 	}
 
 	return 0;
@@ -591,8 +616,10 @@ void UpdateDialog::updateAvailabilityNotice()
 {
 	const bool testingTabSelected = ui->tabWidget && ui->tabWidget->currentIndex() == 1 && ui->testingBuilds->isChecked();
 	const bool selectedTesting = testingTabSelected && !testingVersion.isEmpty();
+	const QString comparedVersion = selectedTesting ? testingVersion : releaseVersion;
+	const QString currentVersionString = QString::fromStdString(currentVersion);
 
-	QString version = selectedTesting ? testingVersion : releaseVersion;
+	QString version = comparedVersion;
 	if(!version.isEmpty())
 	{
 		if(selectedTesting && !selectedTestingChannel.isEmpty())
@@ -602,6 +629,12 @@ void UpdateDialog::updateAvailabilityNotice()
 	}
 
 	const int comparisonResult = selectedTesting ? compareWithInstalled(currentVersion, currentCommit, testingVersion, selectedTestingCommit, true) : compareWithInstalled(currentVersion, currentCommit, releaseVersion, QString(), false);
+
+	const QString titleBase = tr("VCMI Updates Center");
+	if(comparedVersion.isEmpty())
+		setWindowTitle(tr("%1 (installed: %2)").arg(titleBase, versionStringForDisplay(currentVersionString)));
+	else
+		setWindowTitle(tr("%1 (installed: %2, compared: %3)").arg(titleBase, versionStringForDisplay(currentVersionString), versionStringForDisplay(comparedVersion)));
 
 	ui->downloadLink->setText(availabilityLine(comparisonResult, version));
 }
