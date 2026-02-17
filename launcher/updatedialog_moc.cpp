@@ -189,6 +189,9 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		selectedTestingChannel.clear();
 		testingOffer = false;
 		testingChannelAutoSelectPending = true;
+		if(ui->tabWidget)
+			ui->tabWidget->setCurrentIndex(0);
+		fetchChannel("stable");
 		updateAvailabilityNotice();
 		//changelogBox->setDisabled(true);
 	}
@@ -599,7 +602,15 @@ void UpdateDialog::on_installButton_clicked()
 
 	if(url.isEmpty())
 	{
-	    ui->downloadLink->setText(tr("No package to download."));
+		if(!testingTabSelected)
+		{
+			fetchChannel("stable");
+			ui->downloadLink->setText(tr("Loading release package information..."));
+		}
+		else
+		{
+			ui->downloadLink->setText(tr("No package to download."));
+		}
 	    return;
 	}
 
