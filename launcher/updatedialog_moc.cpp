@@ -640,7 +640,11 @@ void UpdateDialog::on_closeButton_clicked()
 
 void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target)
 {
-    QNetworkReply* rep = networkManager.get(QNetworkRequest(url));
+    QNetworkRequest request(url);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+#endif
+    QNetworkReply* rep = networkManager.get(request);
 
     QProgressBar* progress = this->findChild<QProgressBar*>("progressBar");
     if(progress)
@@ -694,6 +698,15 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QByteArray data = reply->readAll();
+        if(data.isEmpty())
+        {
+            if(progress)
+                progress->setVisible(false);
+
+            ui->downloadLink->setText(tr("Downloaded file is empty."));
+            return;
+        }
+
         if (out.write(data) != data.size())
 		{
             if(progress)
