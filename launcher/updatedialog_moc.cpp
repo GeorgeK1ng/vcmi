@@ -30,7 +30,6 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
-#include <QTabWidget>
 
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
@@ -733,7 +732,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         QFile::setPermissions(fullPath, QFile::permissions(fullPath) | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
         QFileInfo file(fullPath);
-        if(!file.exists())
+        if(!file.exists() || file.size() == 0)
 		{
             if(progress)
 				progress->setVisible(false);
