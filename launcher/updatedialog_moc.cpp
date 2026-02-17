@@ -683,7 +683,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         });
     }
 
-    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target] {
+    connect(rep, &QNetworkReply::finished, this, [this, reply = rep, progress, target, requestedUrl = url] {
         reply->deleteLater();
         if(reply->error() != QNetworkReply::NoError)
 		{
@@ -695,7 +695,10 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
 
         const QString cacheDir = pathToQString(VCMIDirs::get().userCachePath());
-        QString fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
+        QString fileName = QFileInfo(requestedUrl.path()).fileName();
+        if(fileName.isEmpty())
+            fileName = QFileInfo(QUrl(reply->url()).path()).fileName();
+
         if(fileName.isEmpty())
         {
             const QString disposition = reply->header(QNetworkRequest::ContentDispositionHeader).toString();
