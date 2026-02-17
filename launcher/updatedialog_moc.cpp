@@ -68,7 +68,7 @@ static QString updateDialogPlatformInfo()
 #elif defined(VCMI_ANDROID)
 	return QObject::tr("On Android, Release and Beta/Develop can be installed. Beta/Develop builds overwrite each other as VCMI Daily. Release and Beta/Develop do not share the VCMI data directory.");
 #elif defined(VCMI_MAC)
-	return QObject::tr("On macOS, multiple VCMI versions can be installed side by side. To avoid conflicts, use separate data directories via custom dir.json configuration.");
+	return QObject::tr("On macOS, multiple VCMI versions can be installed side by side. Depending on how they are launched, versions may still use shared user data.");
 #elif defined(VCMI_IOS)
 	return QObject::tr("On iOS, only one VCMI app installation is typically active at a time. Installing another build usually replaces the previous app while keeping iOS-managed app data behavior.");
 #else
@@ -112,8 +112,12 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->installButton->setText(actionButtonTextForPlatform());
 	if(ui->infoButton)
 	{
-		ui->infoButton->setIcon(style()->standardIcon(QStyle::SP_MessageBoxInformation));
-		ui->infoButton->setText(QString());
+		ui->infoButton->setIcon(style()->standardIcon(QStyle::SP_DialogHelpButton));
+		ui->infoButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+		ui->infoButton->setText(tr("?"));
+		QFont infoFont = ui->infoButton->font();
+		infoFont.setBold(true);
+		ui->infoButton->setFont(infoFont);
 	}
 
 	if(calledManually)
