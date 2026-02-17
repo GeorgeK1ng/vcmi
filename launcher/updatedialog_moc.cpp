@@ -43,6 +43,15 @@ static QString normalizeChannel(const QString& text)
 	return "stable";
 }
 
+static QString preferredTestingChannelFromBranch(const std::string &branchName)
+{
+	const QString normalizedBranch = normalizeChannel(QString::fromStdString(branchName));
+	if(normalizedBranch == "beta" || normalizedBranch == "develop")
+		return normalizedBranch;
+
+	return {};
+}
+
 static QString actionButtonTextForPlatform()
 {
 #if defined(VCMI_ANDROID)
@@ -138,6 +147,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	currentVersion = GameConstants::VCMI_VERSION;
 	currentCommit = GameConstants::VCMI_COMMIT;
+	currentBranch = GameConstants::VCMI_BRANCH;
 
 	setWindowTitle(tr("VCMI Updates Center"));
 	ui->title->setText(tr("VCMI Updates Center"));
@@ -553,9 +563,22 @@ void UpdateDialog::refreshTestingBuildFromNewest()
 	if(!newest)
 		return;
 
-	if(testingChannelAutoSelectPending && ui->buildChannel)
+	const QString preferredTestingChannel = preferredTestingChannelFromBranch(currentBranch);
+	const TestingBuildState *autoSelected = nullptr;
+#if defined(VCMI_ANDROID)
+	autoSelected = newest;
+#else
+	if(preferredTestingChannel == "beta" && betaState.valid)
+		autoSelected = &betaState;
+	else if(preferredTestingChannel == "develop" && developState.valid)
+		autoSelected = &developState;
+	else
+		autoSelected = newest;
+#endif
+
+	if(testingChannelAutoSelectPending && ui->buildChannel && autoSelected)
 	{
-		const int selectedIndex = ui->buildChannel->findData(newest->channel);
+		const int selectedIndex = ui->buildChannel->findData(autoSelected->channel);
 		if(selectedIndex >= 0 && selectedIndex != ui->buildChannel->currentIndex())
 			ui->buildChannel->setCurrentIndex(selectedIndex);
 		testingChannelAutoSelectPending = false;

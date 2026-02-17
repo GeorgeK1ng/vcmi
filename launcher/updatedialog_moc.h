@@ -65,6 +65,7 @@ private:
 	
 	std::string currentVersion;
 	std::string currentCommit;
+	std::string currentBranch;
 	
 	QNetworkAccessManager networkManager;
 	TestingBuildState betaState;
