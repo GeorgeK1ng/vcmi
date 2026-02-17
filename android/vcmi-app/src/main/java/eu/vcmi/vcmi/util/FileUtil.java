@@ -3,6 +3,7 @@ package eu.vcmi.vcmi.util;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.provider.DocumentsContract;
 
 import androidx.annotation.Keep;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
@@ -163,6 +165,46 @@ public class FileUtil
 
 		return fileName;
 	}
+
+	@Keep
+	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
+	public static boolean openApkInstaller(String sourcePathOrUri, Context context)
+	{
+		if (context == null || sourcePathOrUri == null || sourcePathOrUri.isEmpty())
+			return false;
+
+		try
+		{
+			final boolean isContentUri = sourcePathOrUri.startsWith("content://");
+			final Uri apkUri;
+
+			if (isContentUri)
+			{
+				apkUri = Uri.parse(sourcePathOrUri);
+			}
+			else
+			{
+				final File apkFile = new File(sourcePathOrUri);
+				if (!apkFile.exists())
+					return false;
+
+				apkUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", apkFile);
+			}
+
+			final Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			context.startActivity(intent);
+			return true;
+		}
+		catch (Exception e)
+		{
+			Log.e("FileUtil", "openApkInstaller failed for: " + sourcePathOrUri, e);
+			return false;
+		}
+	}
+
 
 	@Keep
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)

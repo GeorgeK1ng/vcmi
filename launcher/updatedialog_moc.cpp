@@ -791,9 +791,8 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         {
             const bool isApk = fileName.endsWith(QStringLiteral(".apk"), Qt::CaseInsensitive);
             const QString installSource = targetIsContent ? dstPath : QDir(target).filePath(fileName);
-            const QUrl installUrl = targetIsContent ? QUrl(installSource) : QUrl::fromLocalFile(installSource);
 
-            if(isApk && QDesktopServices::openUrl(installUrl))
+            if(isApk && Helper::openApkInstaller(installSource))
             {
                 ui->downloadLink->setText(tr("Saved and opened installer."));
             }

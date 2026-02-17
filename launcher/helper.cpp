@@ -399,6 +399,27 @@ void sendFileToApp(QString path)
 #endif
 }
 
+bool openApkInstaller(QString path)
+{
+#if defined(VCMI_ANDROID)
+	if(path.isEmpty() || !QtAndroid::androidContext().isValid())
+		return false;
+
+	const QAndroidJniObject jPath = QAndroidJniObject::fromString(path);
+	const jboolean opened = QAndroidJniObject::callStaticMethod<jboolean>(
+		"eu/vcmi/vcmi/util/FileUtil",
+		"openApkInstaller",
+		"(Ljava/lang/String;Landroid/content/Context;)Z",
+		jPath.object<jstring>(),
+		QtAndroid::androidContext().object()
+	);
+	return opened;
+#else
+	Q_UNUSED(path);
+	return false;
+#endif
+}
+
 bool isInstalledFromGooglePlay()
 {
 #if defined(VCMI_ANDROID)
