@@ -560,8 +560,13 @@ void UpdateDialog::updateAvailabilityNotice()
 	const bool preferTesting = shouldPreferTesting();
 	const bool offer = preferTesting ? testingOffer : releaseOffer;
 	QString version = preferTesting ? testingVersion : releaseVersion;
-	if(preferTesting && offer && !selectedTestingChannel.isEmpty())
-		version += tr(" (%1)").arg(selectedTestingChannel);
+	if(offer)
+	{
+		if(preferTesting && !selectedTestingChannel.isEmpty())
+			version += tr(" (%1)").arg(selectedTestingChannel);
+		else if(!preferTesting)
+			version += tr(" (Release)");
+	}
 	ui->downloadLink->setText(availabilityLine(offer, version));
 }
 
@@ -742,7 +747,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             if(!dstUri.isEmpty())
 			{
                 Helper::performNativeCopy(fullPath, dstUri); // src=file path, dst=content://
-                ui->downloadLink->setText(tr("Saved to selected folder."));
+                ui->downloadLink->setText(tr("Saved to selected folder, install it manually."));
             }
 			else
 			{
@@ -754,7 +759,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             // If user returned a filesystem path (rare on Android), copy directly
             const QString dstPath = QDir(target).filePath(fileName);
             Helper::performNativeCopy(fullPath, dstPath);
-            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
         if(progress)
 			progress->setVisible(false);
@@ -765,7 +770,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             const QString dstPath = QDir(target).filePath(fileName);
             Helper::performNativeCopy(fullPath, dstPath);
             Helper::revealDirectoryInFileBrowser(target);
-            ui->downloadLink->setText(tr("Saved to: %1").arg(target));
+            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
         if(progress)
 			progress->setVisible(false);
