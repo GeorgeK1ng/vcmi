@@ -192,9 +192,6 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 	Q_UNUSED(state);
 	bool testing = ui->testingBuilds->isChecked();
 
-	if(testing)
-		QMessageBox::warning(this, tr("Testing versions warning"), tr("Be careful with installing Beta / Develop versions, they may be unstable."));
-
 	Settings node = settings.write["launcher"]["testingBuilds"];
 	node->Bool() = testing;
 
@@ -232,6 +229,14 @@ void UpdateDialog::on_testingBuilds_stateChanged(int state)
 		fetchChannel("stable");
 		updateAvailabilityNotice();
 	}
+}
+
+void UpdateDialog::on_testingBuilds_clicked(bool checked)
+{
+	if(!checked)
+		return;
+
+	QMessageBox::warning(this, tr("Testing versions warning"), tr("Be careful with installing Beta / Develop versions, they may be unstable."));
 }
 
 // Build filename for the selected update channel.
