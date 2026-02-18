@@ -1120,8 +1120,7 @@ void CModListView::installMods(QStringList archives)
 			if (modStateModel->isModEnabled(mod))
 				modsToEnable.push_back(mod);
 
-			manager->uninstallMod(mod);
-			reload(mod);
+			doUninstallMod(mod, true);
 		}
 		else
 		{
@@ -1407,15 +1406,28 @@ void CModListView::doInstallMod(const QString & modName)
 	}
 }
 
-void CModListView::doUninstallMod(const QString & modName)
+void CModListView::doUninstallMod(const QString & modName, bool silent)
 {
-	if(modStateModel->isModExists(modName) && modStateModel->getMod(modName).isInstalled())
+	if(!modStateModel->isModExists(modName) || !modStateModel->getMod(modName).isInstalled())
+		return;
+
+	if(!silent)
 	{
-		if(modStateModel->isModEnabled(modName))
-			manager->disableMod(modName);
-		manager->uninstallMod(modName);
-		reload(modName);
+		int result = QMessageBox::question(
+			this,
+			tr("Uninstall"),
+			tr("Are you sure you want to uninstall mod: %1").arg(modStateModel->getMod(modName).getName()),
+			QMessageBox::Yes | QMessageBox::No,
+			QMessageBox::No
+		);
+		if(result != QMessageBox::Yes)
+			return;
 	}
+
+	if(modStateModel->isModEnabled(modName))
+		manager->disableMod(modName);
+	manager->uninstallMod(modName);
+	reload(modName);
 }
 
 bool CModListView::isModAvailable(const QString & modName)
