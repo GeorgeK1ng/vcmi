@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -36,10 +35,7 @@ public class VcmiSDLActivity extends SDLActivity
     boolean mIsServerServiceBound;
     private View mProgressBar;
 
-    private final Handler uiHandler = new Handler(Looper.getMainLooper());
-    private final Runnable restoreInputFocusRunnable = this::ensureInputFocusNow;
-
-    private final ServiceConnection mServerServiceConnection = new ServiceConnection()
+    private ServiceConnection mServerServiceConnection = new ServiceConnection()
     {
         public void onServiceConnected(ComponentName className,
                                        IBinder service)
@@ -74,7 +70,9 @@ public class VcmiSDLActivity extends SDLActivity
     public void displayProgress(final boolean show)
     {
         if (mProgressBar != null)
+        {
             mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override
@@ -84,15 +82,14 @@ public class VcmiSDLActivity extends SDLActivity
     }
 
     @Override
-    protected String[] getLibraries()
-    {
+    protected String[] getLibraries() {
         // app main library and SDL are loaded when launcher starts, no extra work to do
-        return new String[] {};
+        return new String[] {
+        };
     }
 
     @Override
-    protected String getMainSharedObject()
-    {
+    protected String getMainSharedObject() {
         return String.format("%s/lib%s.so", getContext().getApplicationInfo().nativeLibraryDir, LibsLoader.CLIENT_LIB);
     }
 
@@ -116,13 +113,13 @@ public class VcmiSDLActivity extends SDLActivity
         mLayout = layout;
 
         setContentView(outerLayout);
-        setWindowStyle(true); // set fullscreen
+
+        VcmiSDLActivity.this.setWindowStyle(true); // set fullscreen
     }
 
     @Override
     protected void onDestroy()
     {
-        uiHandler.removeCallbacks(restoreInputFocusRunnable);
         unbindServer();
 
         super.onDestroy();
@@ -130,6 +127,7 @@ public class VcmiSDLActivity extends SDLActivity
         finishAffinity();
         System.exit(0);
     }
+
 
     @Override
     protected void onResume()
@@ -148,12 +146,13 @@ public class VcmiSDLActivity extends SDLActivity
 
     private void scheduleInputFocusRestore()
     {
-        uiHandler.removeCallbacks(restoreInputFocusRunnable);
+        if (mSurface == null)
+            return;
 
         // Some devices restore lockscreen / immersive state asynchronously.
         // Retry a few times after resume/focus to make sure SDL input gets reattached.
         for (int attempt = 0; attempt < INPUT_FOCUS_RETRY_COUNT; ++attempt)
-            uiHandler.postDelayed(restoreInputFocusRunnable, INPUT_FOCUS_RETRY_DELAY_MS * attempt);
+            mSurface.postDelayed(this::ensureInputFocusNow, INPUT_FOCUS_RETRY_DELAY_MS * attempt);
     }
 
     private void ensureInputFocusNow()
@@ -161,7 +160,7 @@ public class VcmiSDLActivity extends SDLActivity
         if (mSurface == null)
             return;
 
-        setWindowStyle(true);
+        VcmiSDLActivity.this.setWindowStyle(true);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
 
         mSurface.setFocusable(true);
