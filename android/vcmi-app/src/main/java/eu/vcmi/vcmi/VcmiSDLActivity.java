@@ -12,6 +12,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import org.libsdl.app.SDLActivity;
 
@@ -120,6 +121,35 @@ public class VcmiSDLActivity extends SDLActivity
 
         finishAffinity();
         System.exit(0);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        ensureInputFocus();
+    }
+
+    @Override
+    public void onWindowFocusChanged(final boolean hasFocus)
+    {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus)
+            ensureInputFocus();
+    }
+
+    private void ensureInputFocus()
+    {
+        if (mSurface == null)
+            return;
+
+        // Some Android devices can lose SDL surface input focus after screen off/on.
+        // Re-applying window style and requesting focus restores touch/gamepad input.
+        setWindowStyle(true);
+        mSurface.setFocusable(true);
+        mSurface.setFocusableInTouchMode(true);
+        mSurface.requestFocus();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
     }
 
     private void initService()
