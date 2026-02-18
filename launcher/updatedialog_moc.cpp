@@ -902,8 +902,18 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 		const QString currentAppImage = qEnvironmentVariable("APPIMAGE");
 		if(currentAppImage.isEmpty())
 		{
-			logGlobal->warn("No APPIMAGE variable present, cannot apply in-place AppImage update");
+			logGlobal->warn("No AppImage found (APPIMAGE is empty)");
 			ui->downloadLink->setText(tr("AppImage runtime path is unavailable (APPIMAGE environment variable is empty)."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		QFileInfo currentFileInfo(currentAppImage);
+		if(!currentFileInfo.isWritable())
+		{
+			logGlobal->error("AppImage file is not writable (permissions issue): %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Current AppImage is not writable. Check file permissions."));
 			if(progress)
 				progress->setVisible(false);
 			return;
@@ -911,27 +921,8 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 
 		if(!QFile::exists(fullPath))
 		{
-			logGlobal->error("Downloaded AppImage does not exist: %s", fullPath.toStdString());
+			logGlobal->error("New AppImage does not exist: %s", fullPath.toStdString());
 			ui->downloadLink->setText(tr("Downloaded AppImage does not exist: %1").arg(fullPath));
-			if(progress)
-				progress->setVisible(false);
-			return;
-		}
-
-		QFileInfo currentFileInfo(currentAppImage);
-		if(!currentFileInfo.exists())
-		{
-			logGlobal->error("Current AppImage does not exist: %s", currentAppImage.toStdString());
-			ui->downloadLink->setText(tr("Current AppImage does not exist: %1").arg(currentAppImage));
-			if(progress)
-				progress->setVisible(false);
-			return;
-		}
-
-		if(!currentFileInfo.isWritable())
-		{
-			logGlobal->error("Current AppImage is not writable: %s", currentAppImage.toStdString());
-			ui->downloadLink->setText(tr("Current AppImage is not writable. Check file permissions."));
 			if(progress)
 				progress->setVisible(false);
 			return;
@@ -942,37 +933,29 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 			QFileDevice::ExeGroup | QFileDevice::ReadGroup |
 			QFileDevice::ExeOther | QFileDevice::ReadOther);
 
-		if(!QFile::remove(currentAppImage))
+		if(QFile::remove(currentAppImage))
 		{
-			logGlobal->error("Failed to remove old AppImage: %s", currentAppImage.toStdString());
-			ui->downloadLink->setText(tr("Failed to remove old AppImage. Check permissions."));
-			if(progress)
-				progress->setVisible(false);
-			return;
-		}
+			if(QFile::rename(fullPath, currentAppImage))
+			{
+				logGlobal->info("AppImage updated in-place and restarting: %s", currentAppImage.toStdString());
+				QProcess::startDetached(currentAppImage);
+				if(progress)
+					progress->setVisible(false);
+				QCoreApplication::quit();
+				return;
+			}
 
-		if(!QFile::rename(fullPath, currentAppImage))
-		{
-			logGlobal->error("Failed to rename downloaded AppImage from %s to %s", fullPath.toStdString(), currentAppImage.toStdString());
+			logGlobal->error("Failed to rename new AppImage: %s -> %s", fullPath.toStdString(), currentAppImage.toStdString());
 			ui->downloadLink->setText(tr("Failed to replace old AppImage with downloaded file."));
-			if(progress)
-				progress->setVisible(false);
-			return;
 		}
-
-		if(!QProcess::startDetached(currentAppImage))
+		else
 		{
-			logGlobal->error("Failed to restart AppImage after update: %s", currentAppImage.toStdString());
-			ui->downloadLink->setText(tr("Updated AppImage was installed, but automatic restart failed."));
-			if(progress)
-				progress->setVisible(false);
-			return;
+			logGlobal->error("Failed to remove old AppImage. Check permissions: %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Failed to remove old AppImage. Check permissions."));
 		}
 
-		logGlobal->info("AppImage updated in-place and restarted: %s", currentAppImage.toStdString());
 		if(progress)
 			progress->setVisible(false);
-		QCoreApplication::quit();
 		return;
 
 #else
