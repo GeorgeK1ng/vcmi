@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -16,6 +17,8 @@ import android.view.WindowManager;
 
 import org.libsdl.app.SDLActivity;
 
+import java.lang.reflect.Method;
+
 import eu.vcmi.vcmi.util.LibsLoader;
 import eu.vcmi.vcmi.util.Log;
 
@@ -23,12 +26,25 @@ public class VcmiSDLActivity extends SDLActivity
 {
     protected static final int COMMAND_USER = 0x8000;
 
+    private static final long INPUT_FOCUS_RETRY_DELAY_MS = 200;
+    private static final int INPUT_FOCUS_RETRY_COUNT = 4;
+
     final Messenger mClientMessenger = new Messenger(
             new IncomingServerMessageHandler(
                     new OnServerRegisteredCallback()));
     Messenger mServiceMessenger = null;
     boolean mIsServerServiceBound;
     private View mProgressBar;
+    private final Handler mUiHandler = new Handler(Looper.getMainLooper());
+
+    private final Runnable mRestoreInputFocusRunnable = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            ensureInputFocusNow();
+        }
+    };
 
     private ServiceConnection mServerServiceConnection = new ServiceConnection()
     {
@@ -115,6 +131,7 @@ public class VcmiSDLActivity extends SDLActivity
     @Override
     protected void onDestroy()
     {
+        mUiHandler.removeCallbacks(mRestoreInputFocusRunnable);
         unbindServer();
 
         super.onDestroy();
@@ -127,7 +144,7 @@ public class VcmiSDLActivity extends SDLActivity
     protected void onResume()
     {
         super.onResume();
-        ensureInputFocus();
+        scheduleInputFocusRestore();
     }
 
     @Override
@@ -135,21 +152,48 @@ public class VcmiSDLActivity extends SDLActivity
     {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus)
-            ensureInputFocus();
+            scheduleInputFocusRestore();
     }
 
-    private void ensureInputFocus()
+    private void scheduleInputFocusRestore()
+    {
+        mUiHandler.removeCallbacks(mRestoreInputFocusRunnable);
+
+        // Some devices restore lockscreen / immersive state asynchronously.
+        // Retry a few times after resume/focus to make sure SDL input gets reattached.
+        for (int attempt = 0; attempt < INPUT_FOCUS_RETRY_COUNT; ++attempt)
+            mUiHandler.postDelayed(mRestoreInputFocusRunnable, INPUT_FOCUS_RETRY_DELAY_MS * attempt);
+    }
+
+    private void ensureInputFocusNow()
     {
         if (mSurface == null)
             return;
 
         // Some Android devices can lose SDL surface input focus after screen off/on.
-        // Re-applying window style and requesting focus restores touch/gamepad input.
         setWindowStyle(true);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+
         mSurface.setFocusable(true);
         mSurface.setFocusableInTouchMode(true);
         mSurface.requestFocus();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+
+        // Explicitly notify SDL's native side about focus regain when available.
+        notifySdlFocusChanged();
+    }
+
+    private void notifySdlFocusChanged()
+    {
+        try
+        {
+            final Method onNativeFocusChanged = SDLActivity.class.getDeclaredMethod("onNativeFocusChanged", boolean.class);
+            onNativeFocusChanged.setAccessible(true);
+            onNativeFocusChanged.invoke(null, true);
+        }
+        catch (ReflectiveOperationException ignored)
+        {
+            // Older/newer SDL Java wrappers may not expose onNativeFocusChanged.
+        }
     }
 
     private void initService()
