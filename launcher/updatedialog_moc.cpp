@@ -28,6 +28,7 @@
 #include <QVersionNumber>
 #include <QRegularExpression>
 #include <QFileInfo>
+#include <QFile>
 #include <QSaveFile>
 #include <QSettings>
 
@@ -77,6 +78,8 @@ static QString updateDialogPlatformInfo()
 	return QObject::tr("You are running macOS. Multiple VCMI versions can be installed side by side. Depending on how they are launched, versions may still use shared user data.");
 #elif defined(VCMI_IOS)
 	return QObject::tr("You are running iOS. Usually only one VCMI app installation is active at a time, and installing another build typically replaces the previous app.");
+#elif defined(VCMI_UNIX)
+	return QObject::tr("You are running Linux. Updates are currently supported only for AppImage builds.");
 #else
 	return QObject::tr("You are running an unsupported or unknown operating system. Platform-specific coexistence details are currently unavailable.");
 #endif
@@ -303,13 +306,13 @@ static QString platformKeyFromRuntime()
 #elif defined(VCMI_UNIX)
 	const auto arch = QSysInfo::buildCpuArchitecture();
 	if(arch == "x86_64")
-		return "linux-x64";
+		return "linux-x86_64";
 
 	if(arch == "arm64" || arch == "aarch64")
 		return "linux-arm64";
 
-	logGlobal->warn("Unknown Linux architecture '%s', falling back to linux-x64", arch.toStdString());
-	return "linux-x64";
+	logGlobal->warn("Unknown Linux architecture '%s', falling back to linux-x86_64", arch.toStdString());
+	return "linux-x86_64";
 
 #else
 	return {};
@@ -830,8 +833,6 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 			exeArgs = QStringList({ "/SILENT", "/NORESTART", "/LAUNCH" });
 	
 		if(QProcess::startDetached(fullPath, exeArgs))
-
-		if(QProcess::startDetached(fullPath, exeArgs))
 		{
             if(progress)
 				progress->setVisible(false);
@@ -886,8 +887,93 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
             Helper::revealDirectoryInFileBrowser(target);
             ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
-        if(progress)
+		if(progress)
 			progress->setVisible(false);
+
+#elif defined(VCMI_UNIX)
+		if(!fileName.endsWith(".AppImage", Qt::CaseInsensitive))
+		{
+			ui->downloadLink->setText(tr("Linux update is supported only for AppImage packages."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		const QString currentAppImage = qEnvironmentVariable("APPIMAGE");
+		if(currentAppImage.isEmpty())
+		{
+			logGlobal->warn("No APPIMAGE variable present, cannot apply in-place AppImage update");
+			ui->downloadLink->setText(tr("AppImage runtime path is unavailable (APPIMAGE environment variable is empty)."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		if(!QFile::exists(fullPath))
+		{
+			logGlobal->error("Downloaded AppImage does not exist: %s", fullPath.toStdString());
+			ui->downloadLink->setText(tr("Downloaded AppImage does not exist: %1").arg(fullPath));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		QFileInfo currentFileInfo(currentAppImage);
+		if(!currentFileInfo.exists())
+		{
+			logGlobal->error("Current AppImage does not exist: %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Current AppImage does not exist: %1").arg(currentAppImage));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		if(!currentFileInfo.isWritable())
+		{
+			logGlobal->error("Current AppImage is not writable: %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Current AppImage is not writable. Check file permissions."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		QFile::setPermissions(fullPath,
+			QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser |
+			QFileDevice::ExeGroup | QFileDevice::ReadGroup |
+			QFileDevice::ExeOther | QFileDevice::ReadOther);
+
+		if(!QFile::remove(currentAppImage))
+		{
+			logGlobal->error("Failed to remove old AppImage: %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Failed to remove old AppImage. Check permissions."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		if(!QFile::rename(fullPath, currentAppImage))
+		{
+			logGlobal->error("Failed to rename downloaded AppImage from %s to %s", fullPath.toStdString(), currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Failed to replace old AppImage with downloaded file."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		if(!QProcess::startDetached(currentAppImage))
+		{
+			logGlobal->error("Failed to restart AppImage after update: %s", currentAppImage.toStdString());
+			ui->downloadLink->setText(tr("Updated AppImage was installed, but automatic restart failed."));
+			if(progress)
+				progress->setVisible(false);
+			return;
+		}
+
+		logGlobal->info("AppImage updated in-place and restarted: %s", currentAppImage.toStdString());
+		if(progress)
+			progress->setVisible(false);
+		QCoreApplication::quit();
+		return;
 
 #else
         // Fallback: just open or inform
