@@ -27,6 +27,7 @@
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
+#include "../gui/WindowHandler.h"
 #include "../battle/BattleInterface.h"
 
 #include "../../lib/CBonusTypeHandler.h"
@@ -153,8 +154,8 @@ public:
 				rankStack.getDefense(shooter),
 				rankStack.getMinDamage(shooter),
 				rankStack.getMaxDamage(shooter),
-				rankStack.getMaxHealth(),
-				rankStack.getMovementRange(),
+				static_cast<int>(rankStack.getMaxHealth()),
+				static_cast<int>(rankStack.getMovementRange()),
 				shooter ? rankStack.valOfBonuses(BonusType::SHOTS) : 0,
 				caster ? rankStack.valOfBonuses(BonusType::CASTS) : 0
 			};
@@ -1203,7 +1204,7 @@ std::string CStackWindow::generateStackExpDescription()
 		int mana;
 	};
 
-	auto getStatsForRank = [this, creature, tier, shooter, caster](int rankValue) -> RankStats
+	auto getStatsForRank = [creature, tier, shooter, caster](int rankValue) -> RankStats
 	{
 		CStackInstance rankStack(nullptr, creature->getId(), 1, true);
 		rankStack.giveAverageStackExperience(LIBRARY->creh->expRanks[tier][rankValue]);
@@ -1213,8 +1214,8 @@ std::string CStackWindow::generateStackExpDescription()
 			rankStack.getDefense(shooter),
 			rankStack.getMinDamage(shooter),
 			rankStack.getMaxDamage(shooter),
-			rankStack.getMaxHealth(),
-			rankStack.getMovementRange(),
+			static_cast<int>(rankStack.getMaxHealth()),
+			static_cast<int>(rankStack.getMovementRange()),
 			caster ? 0 : rankStack.valOfBonuses(BonusType::SHOTS),
 			caster ? rankStack.valOfBonuses(BonusType::CASTS) : 0
 		};
