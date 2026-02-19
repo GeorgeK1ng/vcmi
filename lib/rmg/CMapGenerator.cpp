@@ -183,7 +183,12 @@ MetaString CMapGenerator::getMapDescription() const
 	result.replaceNumber(map->levels());
 	result.replaceNumber(mapGenOptions.getHumanOrCpuPlayerCount());
 	const auto & playerSettings = mapGenOptions.getPlayersSettings();
-	const int computerPlayers = static_cast<int>(playerSettings.size()) - mapGenOptions.countHumanPlayers();
+	int computerPlayers = 0;
+	for(const auto & pair : playerSettings)
+	{
+		if(pair.second.getPlayerType() != EPlayerType::HUMAN)
+			computerPlayers++;
+	}
 	result.replaceNumber(computerPlayers);
 	result.replaceTextID(waterContent.at(mapGenOptions.getWaterContent()).get());
 	result.replaceTextID(monsterStrength.at(monsterStrengthIndex).get());
