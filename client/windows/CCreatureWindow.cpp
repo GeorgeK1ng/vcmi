@@ -524,15 +524,20 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 					{
 						parent->setSelection(skillID, icon);
 					};
+					std::string abilityDescription;
 					for(int i = 0; i < bonuses.size(); i++) 
 					{
 						icon->hoverText += stack->bonusToString(bonuses[i]);
+						if(!abilityDescription.empty())
+							abilityDescription += "\n";
+
+						abilityDescription += stack->bonusToString(bonuses[i]);
 					}
+					icon->hoverText = abilityDescription;
+					icon->text = abilityDescription;
 
 					return icon;
 				}
-				if(skillID >= 100)
-					index--;
 			}
 			return nullptr;
 		};
