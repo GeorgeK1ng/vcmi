@@ -131,18 +131,12 @@ class CStackExpTableWindow : public CWindowObject
 	std::shared_ptr<CButton> closeButton;
 
 public:
-	CStackExpTableWindow(const CStackInstance * stack, const CCreature * creature)
+	CStackExpTableWindow(const CCreature * creature, int tier, int currentRank, bool shooter, bool caster)
 		: CWindowObject(BORDERED)
 	{
 		OBJECT_CONSTRUCTION;
 
-		int tier = stack->getType()->getLevel();
-		if(!vstd::iswithin(tier, 1, 7))
-			tier = 0;
-		const int currentRank = stack->getExpRank();
 		const int maxRank = static_cast<int>(LIBRARY->creh->expRanks[tier].size()) - 1;
-		const bool shooter = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
-		const bool caster = stack->valOfBonuses(BonusType::CASTS);
 
 		auto getStatsForRank = [creature, tier, shooter, caster](int rankValue) -> StackExpRankStats
 		{
@@ -810,12 +804,19 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 		else
 		{
 			expRankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), stack->getExpRank(), 0, pos.x, pos.y - 2);
-			expArea = std::make_shared<LRClickableArea>(Rect(pos.x, pos.y, 44, 44), [stack, creature = parent->info->creature]()
+			int tier = stack->getType()->getLevel();
+			if(!vstd::iswithin(tier, 1, 7))
+				tier = 0;
+			const int currentRank = stack->getExpRank();
+			const bool shooter = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
+			const bool caster = stack->valOfBonuses(BonusType::CASTS);
+
+			expArea = std::make_shared<LRClickableArea>(Rect(pos.x, pos.y, 44, 44), [creature = parent->info->creature, tier, currentRank, shooter, caster]()
 			{
-				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(stack, creature));
-			}, [stack, creature = parent->info->creature]()
+				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(creature, tier, currentRank, shooter, caster));
+			}, [creature = parent->info->creature, tier, currentRank, shooter, caster]()
 			{
-				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(stack, creature));
+				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(creature, tier, currentRank, shooter, caster));
 			});
 		}
 		expLabel = std::make_shared<CLabel>(
