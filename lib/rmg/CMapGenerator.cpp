@@ -183,11 +183,19 @@ MetaString CMapGenerator::getMapDescription() const
 	result.replaceNumber(map->levels());
 	result.replaceNumber(mapGenOptions.getHumanOrCpuPlayerCount());
 	const auto & playerSettings = mapGenOptions.getPlayersSettings();
-	int computerPlayers = 0;
+	int humanPlayers = 0;
 	for(const auto & pair : playerSettings)
 	{
-		if(pair.second.getPlayerType() != EPlayerType::HUMAN)
-			computerPlayers++;
+		if(pair.second.getPlayerType() == EPlayerType::HUMAN)
+			humanPlayers++;
+	}
+
+	int computerPlayers = 0;
+	const int standardPlayers = mapGenOptions.getHumanOrCpuPlayerCount();
+	const int compOnlyPlayers = mapGenOptions.getCompOnlyPlayerCount();
+	if(standardPlayers >= 0 && compOnlyPlayers >= 0)
+	{
+		computerPlayers = std::max(standardPlayers + compOnlyPlayers - humanPlayers, 0);
 	}
 	result.replaceNumber(computerPlayers);
 	result.replaceTextID(waterContent.at(mapGenOptions.getWaterContent()).get());
