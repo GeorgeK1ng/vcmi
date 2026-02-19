@@ -60,8 +60,12 @@ CBonusTypeHandler::~CBonusTypeHandler() = default;
 
 std::string CBonusTypeHandler::bonusToString(const std::shared_ptr<Bonus> & bonus, const IBonusBearer * bearer) const
 {
+	(void)bearer;
 	const CBonusType & bt = *bonusTypes.at(vstd::to_underlying(bonus->type));
-	int bonusValue = bearer->valOfBonuses(bonus->type, bonus->subtype);
+	//int bonusValue = bearer->valOfBonuses(bonus->type, bonus->subtype);
+	// Description should represent this concrete bonus entry from config/mod data.
+	// Using aggregated valOfBonuses(...) can produce misleading values in UI (e.g. FEARFUL with OPPOSITE_SIDE limiter shown as 0%).
+	int bonusValue = bonus->val;
 	if(bt.hidden)
 		return "";
 
