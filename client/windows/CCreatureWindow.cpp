@@ -108,6 +108,139 @@ private:
 
 };
 
+namespace
+{
+struct StackExpRankStats
+{
+	int attack;
+	int defence;
+	int minDamage;
+	int maxDamage;
+	int health;
+	int speed;
+	int shots;
+	int mana;
+};
+
+class CStackExpTableWindow : public CWindowObject
+{
+	std::shared_ptr<CFilledTexture> background;
+	std::shared_ptr<GraphicalPrimitiveCanvas> grid;
+	std::vector<std::shared_ptr<CLabel>> labels;
+	std::shared_ptr<CButton> closeButton;
+
+public:
+	CStackExpTableWindow(const CStackInstance * stack, const CCreature * creature)
+		: CWindowObject(BORDERED)
+	{
+		OBJECT_CONSTRUCTION;
+
+		int tier = stack->getType()->getLevel();
+		if(!vstd::iswithin(tier, 1, 7))
+			tier = 0;
+		const int currentRank = stack->getExpRank();
+		const int maxRank = static_cast<int>(LIBRARY->creh->expRanks[tier].size()) - 1;
+		const bool shooter = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
+		const bool caster = stack->valOfBonuses(BonusType::CASTS);
+
+		auto getStatsForRank = [creature, tier, shooter, caster](int rankValue) -> StackExpRankStats
+		{
+			CStackInstance rankStack(nullptr, creature->getId(), 1, true);
+			rankStack.giveAverageStackExperience(LIBRARY->creh->expRanks[tier][rankValue]);
+
+			return {
+				rankStack.getAttack(shooter),
+				rankStack.getDefense(shooter),
+				rankStack.getMinDamage(shooter),
+				rankStack.getMaxDamage(shooter),
+				rankStack.getMaxHealth(),
+				rankStack.getMovementRange(),
+				shooter ? rankStack.valOfBonuses(BonusType::SHOTS) : 0,
+				caster ? rankStack.valOfBonuses(BonusType::CASTS) : 0
+			};
+		};
+
+		std::vector<StackExpRankStats> rankStats;
+		rankStats.reserve(maxRank + 1);
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+			rankStats.push_back(getStatsForRank(rankValue));
+
+		pos.w = 615;
+		pos.h = 360;
+		pos = center(pos);
+		background = std::make_shared<CFilledTexture>(ImagePath::builtin("DIBOXBCK"), pos);
+
+		labels.push_back(std::make_shared<CLabel>(pos.x + pos.w / 2, pos.y + 18, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, "Stack Experience"));
+		labels.push_back(std::make_shared<CLabel>(pos.x + 18, pos.y + 42, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, creature->getNamePluralTranslated()));
+
+		const int tableX = pos.x + 18;
+		const int tableY = pos.y + 64;
+		const int rowHeight = 22;
+		const int nameColWidth = 120;
+		const int colWidth = 42;
+
+		std::vector<std::pair<std::string, std::vector<std::string>>> rows;
+		rows.emplace_back("Rank", std::vector<std::string>());
+		rows.emplace_back("ReqExp", std::vector<std::string>());
+		rows.emplace_back("Attack", std::vector<std::string>());
+		rows.emplace_back("Defence", std::vector<std::string>());
+		rows.emplace_back("Min Damage", std::vector<std::string>());
+		rows.emplace_back("Max Damage", std::vector<std::string>());
+		rows.emplace_back("Health", std::vector<std::string>());
+		rows.emplace_back("Speed", std::vector<std::string>());
+		if(shooter)
+			rows.emplace_back("Shots", std::vector<std::string>());
+		if(caster)
+			rows.emplace_back("Casts", std::vector<std::string>());
+
+		auto deltaString = [](int baseValue, int currentValue)
+		{
+			const int delta = currentValue - baseValue;
+			return (delta >= 0 ? "+" : "") + std::to_string(delta);
+		};
+
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		{
+			rows[0].second.push_back(std::to_string(rankValue));
+			rows[1].second.push_back(std::to_string(LIBRARY->creh->expRanks[tier][rankValue]));
+			rows[2].second.push_back(deltaString(rankStats[0].attack, rankStats[rankValue].attack));
+			rows[3].second.push_back(deltaString(rankStats[0].defence, rankStats[rankValue].defence));
+			rows[4].second.push_back(deltaString(rankStats[0].minDamage, rankStats[rankValue].minDamage));
+			rows[5].second.push_back(deltaString(rankStats[0].maxDamage, rankStats[rankValue].maxDamage));
+			rows[6].second.push_back(deltaString(rankStats[0].health, rankStats[rankValue].health));
+			rows[7].second.push_back(deltaString(rankStats[0].speed, rankStats[rankValue].speed));
+			if(shooter)
+				rows[8].second.push_back(deltaString(rankStats[0].shots, rankStats[rankValue].shots));
+			if(caster)
+				rows[shooter ? 9 : 8].second.push_back(deltaString(rankStats[0].mana, rankStats[rankValue].mana));
+		}
+
+		const int tableWidth = nameColWidth + colWidth * (maxRank + 1);
+		const int tableHeight = rowHeight * static_cast<int>(rows.size());
+		grid = std::make_shared<GraphicalPrimitiveCanvas>(Rect(tableX, tableY, tableWidth, tableHeight));
+		for(int i = 0; i <= static_cast<int>(rows.size()); ++i)
+			grid->addLine(Point(0, i * rowHeight), Point(tableWidth, i * rowHeight), Colors::METALLIC_GOLD);
+		grid->addLine(Point(nameColWidth, 0), Point(nameColWidth, tableHeight), Colors::METALLIC_GOLD);
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+			grid->addLine(Point(nameColWidth + colWidth * (rankValue + 1), 0), Point(nameColWidth + colWidth * (rankValue + 1), tableHeight), Colors::METALLIC_GOLD);
+		grid->addBox(Point(nameColWidth + currentRank * colWidth, 0), Point(colWidth, tableHeight), Colors::YELLOW);
+
+		for(int rowIndex = 0; rowIndex < static_cast<int>(rows.size()); ++rowIndex)
+		{
+			labels.push_back(std::make_shared<CLabel>(tableX + 6, tableY + rowIndex * rowHeight + 4, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, rows[rowIndex].first));
+			for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+			{
+				labels.push_back(std::make_shared<CLabel>(tableX + nameColWidth + rankValue * colWidth + colWidth / 2, tableY + rowIndex * rowHeight + 4, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, rows[rowIndex].second[rankValue]));
+			}
+		}
+
+		closeButton = std::make_shared<CButton>(Point(pos.x + pos.w / 2 - 32, pos.y + pos.h - 44), AnimationPath::builtin("IOKAY.DEF"), CButton::tooltip(), [this](){ close(); });
+		closeButton->setBorderColor(Colors::METALLIC_GOLD);
+	}
+};
+}
+
+
 CCommanderSkillIcon::CCommanderSkillIcon(std::shared_ptr<CIntObject> object_, bool isMasterAbility_, std::function<void()> callback)
 	: object(),
 	  isMasterAbility(isMasterAbility_),
@@ -676,8 +809,13 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 		else
 		{
 			expRankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), stack->getExpRank(), 0, pos.x, pos.y - 2);
-			expArea = std::make_shared<LRClickableAreaWText>(Rect(pos.x, pos.y, 44, 44));
-			expArea->text = parent->generateStackExpDescription();
+			expArea = std::make_shared<LRClickableArea>(Rect(pos.x, pos.y, 44, 44), [stack, creature = parent->info->creature]()
+			{
+				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(stack, creature));
+			}, [stack, creature = parent->info->creature]()
+			{
+				ENGINE->windows().pushWindow(std::make_shared<CStackExpTableWindow>(stack, creature));
+			});
 		}
 		expLabel = std::make_shared<CLabel>(
 				pos.x + 21, pos.y + 55, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE,
@@ -1036,37 +1174,152 @@ std::string CStackWindow::generateStackExpDescription()
 	if (!vstd::iswithin(tier, 1, 7))
 		tier = 0;
 	int number;
-	std::string expText = LIBRARY->generaltexth->translate("vcmi.stackExperience.description");
-	boost::replace_first(expText, "%s", creature->getNamePluralTranslated());
-	boost::replace_first(expText, "%s", LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
-	boost::replace_first(expText, "%i", std::to_string(rank));
-	boost::replace_first(expText, "%i", std::to_string(stack->getAverageExperience()));
+
 	number = static_cast<int>(LIBRARY->creh->expRanks[tier][rank] - stack->getAverageExperience());
-	boost::replace_first(expText, "%i", std::to_string(number));
+	int expToNextRank = std::max(number, 0);
+	int maxExpPercent = LIBRARY->creh->maxExpPerBattle[tier];
+	int maxExpAmount = maxExpPercent * static_cast<int>(LIBRARY->creh->expRanks[tier].back()) / 100;
 
-	number = LIBRARY->creh->maxExpPerBattle[tier]; //percent
-	boost::replace_first(expText, "%i%", std::to_string(number));
-	number *= LIBRARY->creh->expRanks[tier].back() / 100; //actual amount
-	boost::replace_first(expText, "%i", std::to_string(number));
+	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank - 1, 0)], static_cast<ui32>(1));
+	int maxRecruitsCurrentRank = static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount());
 
-	boost::replace_first(expText, "%i", std::to_string(stack->getCount())); //Number of Creatures in stack
+	int expAtRank10Min = LIBRARY->creh->expRanks[tier][9];
+	int expAtRank10Max = LIBRARY->creh->expRanks[tier][10];
+	int expAfterRank10 = expAtRank10Max - expAtRank10Min;
+	int maxRecruitsAtRank10 = (stack->getCount() * expAfterRank10) / expAtRank10Min;
 
-	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank-1, 0)], (ui32)1);
-	number = stack->getTotalExperience() / expmin - stack->getCount(); //Maximum New Recruits without losing current Rank
-	boost::replace_first(expText, "%i", std::to_string(number)); //TODO
+	const bool shooter = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
+	const bool caster = stack->valOfBonuses(BonusType::CASTS);
 
-	boost::replace_first(expText, "%.2f", std::to_string(1)); //TODO Experience Multiplier
-	number = LIBRARY->creh->expAfterUpgrade;
-	boost::replace_first(expText, "%.2f", std::to_string(number) + "%"); //Upgrade Multiplier
+	struct RankStats
+	{
+		int attack;
+		int defence;
+		int minDamage;
+		int maxDamage;
+		int health;
+		int speed;
+		int shots;
+		int mana;
+	};
 
-	expmin = LIBRARY->creh->expRanks[tier][9];
-	int expmax = LIBRARY->creh->expRanks[tier][10];
-	number = expmax - expmin;
-	boost::replace_first(expText, "%i", std::to_string(number)); //Experience after Rank 10
-	number = (stack->getCount() * (expmax - expmin)) / expmin;
-	boost::replace_first(expText, "%i", std::to_string(number)); //Maximum New Recruits to remain at Rank 10 if at Maximum Experience
+	auto getStatsForRank = [this, creature, tier, shooter, caster](int rankValue) -> RankStats
+	{
+		CStackInstance rankStack(nullptr, creature->getId(), 1, true);
+		rankStack.giveAverageStackExperience(LIBRARY->creh->expRanks[tier][rankValue]);
 
-	return expText;
+		return {
+			rankStack.getAttack(shooter),
+			rankStack.getDefense(shooter),
+			rankStack.getMinDamage(shooter),
+			rankStack.getMaxDamage(shooter),
+			rankStack.getMaxHealth(),
+			rankStack.getMovementRange(),
+			caster ? 0 : rankStack.valOfBonuses(BonusType::SHOTS),
+			caster ? rankStack.valOfBonuses(BonusType::CASTS) : 0
+		};
+	};
+
+	const int maxRank = static_cast<int>(LIBRARY->creh->expRanks[tier].size()) - 1;
+	std::vector<RankStats> rankStats;
+	rankStats.reserve(maxRank + 1);
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		rankStats.push_back(getStatsForRank(rankValue));
+
+	auto appendRow = [rank, maxRank](std::ostringstream & out, const std::string & name, const std::vector<std::string> & values)
+	{
+		out << std::left << std::setw(10) << name;
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		{
+			const std::string marker = (rankValue == rank) ? "*" : " ";
+			out << "|" << marker << std::setw(5) << values[rankValue];
+		}
+		out << "\n";
+	};
+
+	auto deltaString = [](int baseValue, int currentValue)
+	{
+		const int delta = currentValue - baseValue;
+		if(delta >= 0)
+			return std::string("+") + std::to_string(delta);
+		return std::to_string(delta);
+	};
+
+	std::ostringstream expText;
+	expText << "Stack Experience Details\n\n";
+	expText << "Creature Type: " << creature->getNamePluralTranslated() << "\n";
+	expText << "Experience Rank: " << LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank) << " (" << rank << ")\n";
+	expText << "Experience Points: " << stack->getAverageExperience() << "\n";
+	expText << "Experience Points to Next Rank: " << expToNextRank << "\n";
+	expText << "Maximum Experience per Battle: " << maxExpPercent << "% (" << maxExpAmount << ")\n";
+	expText << "Number of Creatures in stack: " << stack->getCount() << "\n";
+	expText << "Maximum New Recruits without losing current Rank: " << maxRecruitsCurrentRank << "\n";
+	expText << "Experience after Rank 10: " << expAfterRank10 << "\n";
+	expText << "Maximum New Recruits to remain at Rank 10 if at Maximum Experience: " << maxRecruitsAtRank10 << "\n\n";
+	expText << "Progression table (* marks current rank column)\n";
+
+	std::vector<std::string> rankHeader;
+	std::vector<std::string> expValues;
+	rankHeader.reserve(maxRank + 1);
+	expValues.reserve(maxRank + 1);
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+	{
+		rankHeader.push_back(std::to_string(rankValue));
+		expValues.push_back(std::to_string(LIBRARY->creh->expRanks[tier][rankValue]));
+	}
+
+	appendRow(expText, "Rank", rankHeader);
+	appendRow(expText, "ReqExp", expValues);
+
+	std::vector<std::string> values;
+	values.reserve(maxRank + 1);
+
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].attack, rankStats[rankValue].attack));
+	appendRow(expText, "Attack", values);
+
+	values.clear();
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].defence, rankStats[rankValue].defence));
+	appendRow(expText, "Defence", values);
+
+	values.clear();
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].minDamage, rankStats[rankValue].minDamage));
+	appendRow(expText, "MinDmg", values);
+
+	values.clear();
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].maxDamage, rankStats[rankValue].maxDamage));
+	appendRow(expText, "MaxDmg", values);
+
+	values.clear();
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].health, rankStats[rankValue].health));
+	appendRow(expText, "Health", values);
+
+	values.clear();
+	for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+		values.push_back(deltaString(rankStats[0].speed, rankStats[rankValue].speed));
+	appendRow(expText, "Speed", values);
+
+	if(shooter)
+	{
+		values.clear();
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+			values.push_back(deltaString(rankStats[0].shots, rankStats[rankValue].shots));
+		appendRow(expText, "Shots", values);
+	}
+
+	if(caster)
+	{
+		values.clear();
+		for(int rankValue = 0; rankValue <= maxRank; ++rankValue)
+			values.push_back(deltaString(rankStats[0].mana, rankStats[rankValue].mana));
+		appendRow(expText, "Casts", values);
+	}
+
+	return expText.str();
 }
 
 std::string CStackWindow::getCommanderSkillDescription(int skillIndex, int skillLevel)

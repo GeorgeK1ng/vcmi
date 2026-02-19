@@ -146,7 +146,7 @@ class CStackWindow : public CWindowObject
 		std::vector<std::shared_ptr<CLabel>> stats;
 
 		std::shared_ptr<CAnimImage> expRankIcon;
-		std::shared_ptr<LRClickableAreaWText> expArea;
+		std::shared_ptr<CIntObject> expArea;
 		std::shared_ptr<CLabel> expLabel;
 
 		void addStatLabel(EStat index, int64_t value1, int64_t value2);
