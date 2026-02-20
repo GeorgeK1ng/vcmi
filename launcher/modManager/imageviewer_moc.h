@@ -11,6 +11,8 @@
 
 #include <QDialog>
 
+class QShortcut;
+
 namespace Ui
 {
 class ImageViewer;
@@ -21,19 +23,40 @@ class ImageViewer : public QDialog
 	Q_OBJECT
 
 	void changeEvent(QEvent *event) override;
+	bool event(QEvent * event) override;
 public:
 	explicit ImageViewer(QWidget * parent = nullptr);
 	~ImageViewer();
 
-	void setPixmap(QPixmap & pixmap);
+	void setImages(const QStringList & imagePaths, int startIndex);
 
-	static void showPixmap(QPixmap & pixmap, QWidget * parent = nullptr);
+	static void showImages(const QStringList & imagePaths, int startIndex, QWidget * parent = nullptr);
 
 protected:
-	void mousePressEvent(QMouseEvent * event) override;
 	void keyPressEvent(QKeyEvent * event) override;
+	void resizeEvent(QResizeEvent * event) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseReleaseEvent(QMouseEvent * event) override;
 	QSize calculateWindowSize();
 
 private:
+	void showCurrentImage();
+	void showPreviousImage();
+	void showNextImage();
+	void updateDisplayedPixmap();
+	void handleSwipeDelta(int deltaX);
+	void applyZoomStep(qreal zoomStep);
+
 	Ui::ImageViewer * ui;
+	QShortcut * shortcutPrevious = nullptr;
+	QShortcut * shortcutNext = nullptr;
+	QShortcut * shortcutClose = nullptr;
+	QStringList images;
+	QPixmap currentPixmap;
+	int currentImageIndex = -1;
+	int touchStartX = 0;
+	int mouseStartX = 0;
+	qreal zoomFactor = 1.0;
+	bool touchSwipeActive = false;
+	bool suppressTouchSwipe = false;
 };
