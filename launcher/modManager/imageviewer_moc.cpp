@@ -80,21 +80,6 @@ ImageViewer::ImageViewer(QWidget * parent)
 	connect(ui->buttonNext, &QPushButton::clicked, this, &ImageViewer::showNextImage);
 	connect(ui->buttonClose, &QPushButton::clicked, this, &ImageViewer::close);
 
-#ifdef VCMI_MOBILE
-	auto * layout = ui->gridLayout;
-	layout->removeWidget(ui->buttonPrevious);
-	layout->removeWidget(ui->buttonNext);
-	layout->removeWidget(ui->buttonClose);
-	layout->removeWidget(ui->label);
-	layout->addWidget(ui->label, 0, 0, 3, 3);
-
-	ui->buttonPrevious->setParent(this);
-	ui->buttonNext->setParent(this);
-	ui->buttonClose->setParent(this);
-	ui->buttonPrevious->raise();
-	ui->buttonNext->raise();
-	ui->buttonClose->raise();
-#endif
 }
 
 void ImageViewer::changeEvent(QEvent *event)
@@ -225,7 +210,6 @@ void ImageViewer::showCurrentImage()
 	ui->buttonNext->setVisible(images.size() > 1);
 	#ifdef VCMI_MOBILE
 	ui->buttonClose->setVisible(true);
-	updateMobileButtonsGeometry();
 	#else
 	ui->buttonClose->setVisible(false);
 	#endif
@@ -292,21 +276,8 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 {
 	QDialog::resizeEvent(event);
 	updateDisplayedPixmap();
-	updateMobileButtonsGeometry();
 }
 
-void ImageViewer::updateMobileButtonsGeometry()
-{
-#ifdef VCMI_MOBILE
-	constexpr int margin = 12;
-	const int buttonSize = ui->buttonPrevious->width();
-	const int middleY = (height() - buttonSize) / 2;
-
-	ui->buttonPrevious->move(margin, middleY);
-	ui->buttonNext->move(width() - buttonSize - margin, middleY);
-	ui->buttonClose->move(width() - buttonSize - margin, margin);
-#endif
-}
 
 void ImageViewer::mousePressEvent(QMouseEvent * event)
 {
