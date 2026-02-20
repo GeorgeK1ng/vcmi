@@ -22,6 +22,7 @@ target_include_directories(vcmiserver
 )
 
 if(WIN32)
+	target_sources(vcmiserver PRIVATE "VCMI_server.rc")
 	set_target_properties(vcmiserver
 		PROPERTIES
 			OUTPUT_NAME "VCMI_server"
