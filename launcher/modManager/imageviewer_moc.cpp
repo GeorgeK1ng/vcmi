@@ -198,9 +198,11 @@ void ImageViewer::showCurrentImage()
 	currentPixmap = pixmap;
 	zoomFactor = 1.0;
 
+	#ifndef VCMI_MOBILE
 	QSize windowSize = currentPixmap.size();
 	windowSize.scale(calculateWindowSize(), Qt::KeepAspectRatio);
 	resize(windowSize);
+	#endif
 	updateDisplayedPixmap();
 
 	ui->buttonPrevious->setVisible(images.size() > 1);
@@ -239,7 +241,11 @@ void ImageViewer::updateDisplayedPixmap()
 	if(labelSize.isEmpty())
 		return;
 
-	QSize targetSize = labelSize * zoomFactor;
+	QSize targetSize = currentPixmap.size();
+	if(targetSize.width() > labelSize.width() || targetSize.height() > labelSize.height())
+		targetSize.scale(labelSize, Qt::KeepAspectRatio);
+
+	targetSize = targetSize * zoomFactor;
 	targetSize = targetSize.boundedTo(calculateWindowSize() * 2);
 
 	const auto scaledPixmap = currentPixmap.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
