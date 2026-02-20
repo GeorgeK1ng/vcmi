@@ -93,8 +93,8 @@ QPushButton:pressed {
      <property name="scaledContents">
       <bool>false</bool>
      </property>
-    </widget>
-   </item>
+   </widget>
+  </item>
    <item row="0" column="2">
     <widget class="QPushButton" name="buttonNext">
      <property name="minimumSize">
@@ -130,6 +130,44 @@ QPushButton:pressed {
      </property>
      <property name="text">
       <string>&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="buttonClose">
+     <property name="minimumSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
+     </property>
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	background-color: rgba(0, 0, 0, 170);
+	color: white;
+	border: 2px solid white;
+	border-radius: 24px;
+	font-size: 20px;
+	font-weight: bold;
+}
+QPushButton:hover {
+	background-color: rgba(0, 0, 0, 215);
+}
+QPushButton:pressed {
+	background-color: rgba(0, 0, 0, 255);
+}</string>
+     </property>
+     <property name="text">
+      <string>✕</string>
      </property>
     </widget>
    </item>

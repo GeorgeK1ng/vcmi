@@ -45,6 +45,7 @@ private:
 	void showNextImage();
 	void updateDisplayedPixmap();
 	void handleSwipeDelta(int deltaX);
+	void applyZoomStep(qreal zoomStep);
 
 	Ui::ImageViewer * ui;
 	QShortcut * shortcutPrevious = nullptr;
@@ -55,4 +56,6 @@ private:
 	int currentImageIndex = -1;
 	int touchStartX = 0;
 	int mouseStartX = 0;
+	qreal zoomFactor = 1.0;
+	bool touchSwipeActive = false;
 };

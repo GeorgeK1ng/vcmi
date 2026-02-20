@@ -11,6 +11,7 @@
 
 #include <QGuiApplication>
 #include <QGestureEvent>
+#include <QPinchGesture>
 #include <QShortcut>
 #include <QSwipeGesture>
 #include <QTouchEvent>
@@ -33,6 +34,19 @@ int touchEventX(const QTouchEvent * touchEvent)
 #endif
 }
 
+QPointF touchEventPos(const QTouchEvent * touchEvent)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	if(touchEvent->points().empty())
+		return QPointF{};
+	return touchEvent->points().first().position();
+#else
+	if(touchEvent->touchPoints().empty())
+		return QPointF{};
+	return touchEvent->touchPoints().first().pos();
+#endif
+}
+
 int mouseEventX(const QMouseEvent * mouseEvent)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -52,6 +66,7 @@ ImageViewer::ImageViewer(QWidget * parent)
 	setAttribute(Qt::WA_AcceptTouchEvents, true);
 	ui->label->setAttribute(Qt::WA_AcceptTouchEvents, true);
 	grabGesture(Qt::SwipeGesture);
+	grabGesture(Qt::PinchGesture);
 
 	shortcutPrevious = new QShortcut(QKeySequence(Qt::Key_Left), this);
 	shortcutNext = new QShortcut(QKeySequence(Qt::Key_Right), this);
@@ -63,6 +78,7 @@ ImageViewer::ImageViewer(QWidget * parent)
 
 	connect(ui->buttonPrevious, &QPushButton::clicked, this, &ImageViewer::showPreviousImage);
 	connect(ui->buttonNext, &QPushButton::clicked, this, &ImageViewer::showNextImage);
+	connect(ui->buttonClose, &QPushButton::clicked, this, &ImageViewer::close);
 }
 
 void ImageViewer::changeEvent(QEvent *event)
@@ -79,6 +95,13 @@ bool ImageViewer::event(QEvent * event)
 	if(event->type() == QEvent::Gesture)
 	{
 		auto * gestureEvent = static_cast<QGestureEvent *>(event);
+		if(auto * pinch = static_cast<QPinchGesture *>(gestureEvent->gesture(Qt::PinchGesture)))
+		{
+			if(pinch->state() == Qt::GestureUpdated)
+				applyZoomStep(pinch->scaleFactor());
+			return true;
+		}
+
 		if(auto * swipe = static_cast<QSwipeGesture *>(gestureEvent->gesture(Qt::SwipeGesture)))
 		{
 			if(swipe->state() == Qt::GestureFinished)
@@ -95,15 +118,28 @@ bool ImageViewer::event(QEvent * event)
 	if(event->type() == QEvent::TouchBegin)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
-		touchStartX = touchEventX(touchEvent);
+		const auto pos = touchEventPos(touchEvent);
+		if(pos.isNull())
+			return QDialog::event(event);
+
+		auto * touched = childAt(pos.toPoint());
+		if(touched == ui->buttonPrevious || touched == ui->buttonNext || touched == ui->buttonClose)
+			return QDialog::event(event);
+
+		touchStartX = static_cast<int>(pos.x());
+		touchSwipeActive = true;
 		return true;
 	}
 
 	if(event->type() == QEvent::TouchEnd)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
+		if(!touchSwipeActive)
+			return QDialog::event(event);
+
 		const int touchEndX = touchEventX(touchEvent);
 		handleSwipeDelta(touchEndX - touchStartX);
+		touchSwipeActive = false;
 		return true;
 	}
 
@@ -117,7 +153,11 @@ ImageViewer::~ImageViewer()
 
 QSize ImageViewer::calculateWindowSize()
 {
+#ifdef VCMI_MOBILE
+	return QGuiApplication::primaryScreen()->availableGeometry().size();
+#else
 	return QGuiApplication::primaryScreen()->availableGeometry().size() * 0.8;
+#endif
 }
 
 void ImageViewer::showImages(const QStringList & imagePaths, int startIndex, QWidget * parent)
@@ -129,7 +169,11 @@ void ImageViewer::showImages(const QStringList & imagePaths, int startIndex, QWi
 	iw->setImages(imagePaths, startIndex);
 	iw->setAttribute(Qt::WA_DeleteOnClose, true);
 	iw->setModal(Qt::WindowModal);
+#ifdef VCMI_MOBILE
+	iw->showFullScreen();
+#else
 	iw->show();
+#endif
 	iw->setFocus();
 }
 
@@ -152,6 +196,7 @@ void ImageViewer::showCurrentImage()
 		return;
 
 	currentPixmap = pixmap;
+	zoomFactor = 1.0;
 
 	QSize windowSize = currentPixmap.size();
 	windowSize.scale(calculateWindowSize(), Qt::KeepAspectRatio);
@@ -160,6 +205,11 @@ void ImageViewer::showCurrentImage()
 
 	ui->buttonPrevious->setVisible(images.size() > 1);
 	ui->buttonNext->setVisible(images.size() > 1);
+	#ifdef VCMI_MOBILE
+	ui->buttonClose->setVisible(true);
+	#else
+	ui->buttonClose->setVisible(false);
+	#endif
 }
 
 void ImageViewer::showPreviousImage()
@@ -189,8 +239,21 @@ void ImageViewer::updateDisplayedPixmap()
 	if(labelSize.isEmpty())
 		return;
 
-	const auto scaledPixmap = currentPixmap.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	QSize targetSize = labelSize * zoomFactor;
+	targetSize = targetSize.boundedTo(calculateWindowSize() * 2);
+
+	const auto scaledPixmap = currentPixmap.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	ui->label->setPixmap(scaledPixmap);
+}
+
+void ImageViewer::applyZoomStep(qreal zoomStep)
+{
+	if(zoomStep <= 0.0)
+		return;
+
+	zoomFactor *= zoomStep;
+	zoomFactor = std::clamp(zoomFactor, 0.5, 3.0);
+	updateDisplayedPixmap();
 }
 
 void ImageViewer::handleSwipeDelta(int deltaX)
