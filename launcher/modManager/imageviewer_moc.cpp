@@ -18,6 +18,31 @@
 #include "imageviewer_moc.h"
 #include "ui_imageviewer_moc.h"
 
+namespace
+{
+int touchEventX(const QTouchEvent * touchEvent)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	if(touchEvent->points().empty())
+		return 0;
+	return static_cast<int>(touchEvent->points().first().position().x());
+#else
+	if(touchEvent->touchPoints().empty())
+		return 0;
+	return static_cast<int>(touchEvent->touchPoints().first().pos().x());
+#endif
+}
+
+int mouseEventX(const QMouseEvent * mouseEvent)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	return static_cast<int>(mouseEvent->position().x());
+#else
+	return static_cast<int>(mouseEvent->localPos().x());
+#endif
+}
+}
+
 ImageViewer::ImageViewer(QWidget * parent)
 	: QDialog(parent), ui(new Ui::ImageViewer)
 {
@@ -70,19 +95,15 @@ bool ImageViewer::event(QEvent * event)
 	if(event->type() == QEvent::TouchBegin)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
-		if(!touchEvent->points().empty())
-			touchStartX = static_cast<int>(touchEvent->points().first().position().x());
+		touchStartX = touchEventX(touchEvent);
 		return true;
 	}
 
 	if(event->type() == QEvent::TouchEnd)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
-		if(!touchEvent->points().empty())
-		{
-			const int touchEndX = static_cast<int>(touchEvent->points().first().position().x());
-			handleSwipeDelta(touchEndX - touchStartX);
-		}
+		const int touchEndX = touchEventX(touchEvent);
+		handleSwipeDelta(touchEndX - touchStartX);
 		return true;
 	}
 
@@ -190,13 +211,13 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 
 void ImageViewer::mousePressEvent(QMouseEvent * event)
 {
-	mouseStartX = static_cast<int>(event->position().x());
+	mouseStartX = mouseEventX(event);
 	QDialog::mousePressEvent(event);
 }
 
 void ImageViewer::mouseReleaseEvent(QMouseEvent * event)
 {
-	const int mouseEndX = static_cast<int>(event->position().x());
+	const int mouseEndX = mouseEventX(event);
 	handleSwipeDelta(mouseEndX - mouseStartX);
 	QDialog::mouseReleaseEvent(event);
 }
