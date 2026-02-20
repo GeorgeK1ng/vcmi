@@ -46,6 +46,7 @@ private:
 	void updateDisplayedPixmap();
 	void handleSwipeDelta(int deltaX);
 	void applyZoomStep(qreal zoomStep);
+	void updateMobileButtonsGeometry();
 
 	Ui::ImageViewer * ui;
 	QShortcut * shortcutPrevious = nullptr;
