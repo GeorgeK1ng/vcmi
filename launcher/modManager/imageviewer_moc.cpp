@@ -12,6 +12,7 @@
 #include <QGuiApplication>
 #include <QGestureEvent>
 #include <QPinchGesture>
+#include <QScreen>
 #include <QShortcut>
 #include <QSwipeGesture>
 #include <QTouchEvent>
@@ -56,6 +57,8 @@ QPointF touchEventPos(const QTouchEvent * touchEvent)
 #endif
 }
 
+constexpr int sideButtonSize = 48;
+
 int mouseEventX(const QMouseEvent * mouseEvent)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -70,14 +73,8 @@ ImageViewer::ImageViewer(QWidget * parent)
 	: QDialog(parent), ui(new Ui::ImageViewer)
 {
 	ui->setupUi(this);
-
 	ui->label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	ui->label->setMinimumSize(0, 0);
-
-#ifdef VCMI_MOBILE
-	ui->gridLayout->setContentsMargins(4, 4, 4, 4);
-	ui->gridLayout->setSpacing(4);
-#endif
 
 	setFocusPolicy(Qt::StrongFocus);
 	setAttribute(Qt::WA_AcceptTouchEvents, true);
@@ -97,6 +94,7 @@ ImageViewer::ImageViewer(QWidget * parent)
 	connect(ui->buttonNext, &QPushButton::clicked, this, &ImageViewer::showNextImage);
 	connect(ui->buttonClose, &QPushButton::clicked, this, &ImageViewer::close);
 
+	updateResponsiveLayout(size());
 }
 
 void ImageViewer::changeEvent(QEvent *event)
@@ -207,7 +205,8 @@ void ImageViewer::showImages(const QStringList & imagePaths, int startIndex, QWi
 	viewer->setAttribute(Qt::WA_DeleteOnClose, true);
 	viewer->setModal(Qt::WindowModal);
 #ifdef VCMI_MOBILE
-	viewer->showFullScreen();
+	viewer->setGeometry(QGuiApplication::primaryScreen()->availableGeometry());
+	viewer->show();
 #else
 	viewer->show();
 #endif
@@ -316,9 +315,38 @@ void ImageViewer::handleSwipeDelta(int deltaX)
 void ImageViewer::resizeEvent(QResizeEvent * event)
 {
 	QDialog::resizeEvent(event);
+	updateResponsiveLayout(event->size());
 	updateDisplayedPixmap();
 }
 
+void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
+{
+#ifdef VCMI_MOBILE
+	const int shortestSide = std::min(windowSize.width(), windowSize.height());
+	const bool compactLayout = shortestSide < 560;
+	const int spacing = compactLayout ? 2 : 4;
+	const int margin = compactLayout ? 2 : 4;
+	const int buttonSize = compactLayout ? 40 : sideButtonSize;
+
+	ui->gridLayout->setContentsMargins(margin, margin, margin, margin);
+	ui->gridLayout->setHorizontalSpacing(spacing);
+	ui->gridLayout->setVerticalSpacing(spacing);
+
+	ui->buttonPrevious->setMinimumSize(buttonSize, buttonSize);
+	ui->buttonPrevious->setMaximumSize(buttonSize, buttonSize);
+	ui->buttonNext->setMinimumSize(buttonSize, buttonSize);
+	ui->buttonNext->setMaximumSize(buttonSize, buttonSize);
+	ui->buttonClose->setMinimumSize(buttonSize, buttonSize);
+	ui->buttonClose->setMaximumSize(buttonSize, buttonSize);
+
+	const int reservedWidth = (buttonSize * 2) + (margin * 2) + spacing;
+	const int minimumLabelWidth = std::max(0, windowSize.width() - reservedWidth);
+	ui->label->setMaximumWidth(minimumLabelWidth);
+	ui->label->setMinimumWidth(0);
+#else
+	Q_UNUSED(windowSize);
+#endif
+}
 
 void ImageViewer::mousePressEvent(QMouseEvent * event)
 {
