@@ -194,16 +194,16 @@ void ImageViewer::showImages(const QStringList & imagePaths, int startIndex, QWi
 	if(imagePaths.empty())
 		return;
 
-	auto * iw = new ImageViewer(parent);
-	iw->setImages(imagePaths, startIndex);
-	iw->setAttribute(Qt::WA_DeleteOnClose, true);
-	iw->setModal(Qt::WindowModal);
+	auto * viewer = new ImageViewer(parent);
+	viewer->setImages(imagePaths, startIndex);
+	viewer->setAttribute(Qt::WA_DeleteOnClose, true);
+	viewer->setModal(Qt::WindowModal);
 #ifdef VCMI_MOBILE
-	iw->showFullScreen();
+	viewer->showFullScreen();
 #else
-	iw->show();
+	viewer->show();
 #endif
-	iw->setFocus();
+	viewer->setFocus();
 }
 
 void ImageViewer::setImages(const QStringList & imagePaths, int startIndex)
@@ -227,20 +227,20 @@ void ImageViewer::showCurrentImage()
 	currentPixmap = pixmap;
 	zoomFactor = 1.0;
 
-	#ifndef VCMI_MOBILE
+#ifndef VCMI_MOBILE
 	QSize windowSize = currentPixmap.size();
 	windowSize.scale(calculateWindowSize(), Qt::KeepAspectRatio);
 	resize(windowSize);
-	#endif
+#endif
 	updateDisplayedPixmap();
 
 	ui->buttonPrevious->setVisible(images.size() > 1);
 	ui->buttonNext->setVisible(images.size() > 1);
-	#ifdef VCMI_MOBILE
+#ifdef VCMI_MOBILE
 	ui->buttonClose->setVisible(true);
-	#else
+#else
 	ui->buttonClose->setVisible(false);
-	#endif
+#endif
 }
 
 void ImageViewer::showPreviousImage()
@@ -287,7 +287,12 @@ void ImageViewer::applyZoomStep(qreal zoomStep)
 		return;
 
 	zoomFactor *= zoomStep;
-	zoomFactor = std::clamp(zoomFactor, 0.5, 3.0);
+#ifdef VCMI_MOBILE
+	constexpr qreal minZoomFactor = 1.0;
+#else
+	constexpr qreal minZoomFactor = 0.5;
+#endif
+	zoomFactor = std::clamp(zoomFactor, minZoomFactor, 3.0);
 	updateDisplayedPixmap();
 }
 
