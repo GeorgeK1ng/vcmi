@@ -71,6 +71,14 @@ ImageViewer::ImageViewer(QWidget * parent)
 {
 	ui->setupUi(this);
 
+	ui->label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+	ui->label->setMinimumSize(0, 0);
+
+#ifdef VCMI_MOBILE
+	ui->gridLayout->setContentsMargins(4, 4, 4, 4);
+	ui->gridLayout->setSpacing(4);
+#endif
+
 	setFocusPolicy(Qt::StrongFocus);
 	setAttribute(Qt::WA_AcceptTouchEvents, true);
 	ui->label->setAttribute(Qt::WA_AcceptTouchEvents, true);
