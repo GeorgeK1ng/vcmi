@@ -41,9 +41,6 @@
    <property name="verticalSpacing">
     <number>8</number>
    </property>
-   <property name="rowStretch">
-    <string>0,1,0</string>
-   </property>
    <item row="0" column="2" alignment="Qt::AlignRight|Qt::AlignTop">
     <widget class="QPushButton" name="buttonClose">
      <property name="minimumSize">
