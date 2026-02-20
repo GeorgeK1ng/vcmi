@@ -58,4 +58,5 @@ private:
 	int mouseStartX = 0;
 	qreal zoomFactor = 1.0;
 	bool touchSwipeActive = false;
+	bool suppressTouchSwipe = false;
 };

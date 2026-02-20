@@ -21,6 +21,15 @@
 
 namespace
 {
+int touchPointsCount(const QTouchEvent * touchEvent)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	return static_cast<int>(touchEvent->points().size());
+#else
+	return touchEvent->touchPoints().size();
+#endif
+}
+
 int touchEventX(const QTouchEvent * touchEvent)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -98,6 +107,11 @@ bool ImageViewer::event(QEvent * event)
 		auto * gestureEvent = static_cast<QGestureEvent *>(event);
 		if(auto * pinch = static_cast<QPinchGesture *>(gestureEvent->gesture(Qt::PinchGesture)))
 		{
+			if(pinch->state() == Qt::GestureStarted || pinch->state() == Qt::GestureUpdated)
+			{
+				suppressTouchSwipe = true;
+				touchSwipeActive = false;
+			}
 			if(pinch->state() == Qt::GestureUpdated)
 				applyZoomStep(pinch->scaleFactor());
 			return true;
@@ -119,6 +133,13 @@ bool ImageViewer::event(QEvent * event)
 	if(event->type() == QEvent::TouchBegin)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
+		if(touchPointsCount(touchEvent) > 1)
+		{
+			suppressTouchSwipe = true;
+			touchSwipeActive = false;
+			return true;
+		}
+
 		const auto pos = touchEventPos(touchEvent);
 		if(pos.isNull())
 			return QDialog::event(event);
@@ -135,6 +156,13 @@ bool ImageViewer::event(QEvent * event)
 	if(event->type() == QEvent::TouchEnd)
 	{
 		auto * touchEvent = static_cast<QTouchEvent *>(event);
+		if(suppressTouchSwipe)
+		{
+			suppressTouchSwipe = false;
+			touchSwipeActive = false;
+			return true;
+		}
+
 		if(!touchSwipeActive)
 			return QDialog::event(event);
 
