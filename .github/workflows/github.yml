@@ -718,18 +718,6 @@ jobs:
         mkdir artifact/extracted
         unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
 
-    - name: Sign Windows binaries
-      if: ${{ github.event.number == '' && secrets.WINDOWS_SIGNING_CERTIFICATE != '' && secrets.WINDOWS_SIGNING_PASSWORD != '' }}
-      shell: pwsh
-      run: |
-        $certPath = Join-Path $env:RUNNER_TEMP 'vcmi-signing-cert.pfx'
-        [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String('${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}'))
-
-        CI/wininstaller/sign-windows-files.ps1 `
-          -CertificatePath $certPath `
-          -CertificatePassword '${{ secrets.WINDOWS_SIGNING_PASSWORD }}' `
-          -Paths @('${{ github.workspace }}\artifact\extracted')
-
     - name: Ensure Inno Setup is installed
       run: |
         if [ ! -f "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ] && [ ! -f "/c/ProgramData/Chocolatey/bin/ISCC.exe" ]; then
@@ -747,20 +735,6 @@ jobs:
         "${{ github.workspace }}\artifact\extracted"
         "${{ github.workspace }}\ucrt"
       shell: cmd
-
-    - name: Sign installer executable
-      if: ${{ github.event.number == '' && secrets.WINDOWS_SIGNING_CERTIFICATE != '' && secrets.WINDOWS_SIGNING_PASSWORD != '' }}
-      shell: pwsh
-      run: |
-        $certPath = Join-Path $env:RUNNER_TEMP 'vcmi-signing-cert.pfx'
-        if (-not (Test-Path $certPath)) {
-          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String('${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}'))
-        }
-
-        CI/wininstaller/sign-windows-files.ps1 `
-          -CertificatePath $certPath `
-          -CertificatePassword '${{ secrets.WINDOWS_SIGNING_PASSWORD }}' `
-          -Paths @('${{ github.workspace }}\CI\wininstaller\Output')
 
     - name: Upload VCMI Installer Artifacts
       id: upload_installer
