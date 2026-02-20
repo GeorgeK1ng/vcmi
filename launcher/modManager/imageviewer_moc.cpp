@@ -18,6 +18,9 @@ ImageViewer::ImageViewer(QWidget * parent)
 	: QDialog(parent), ui(new Ui::ImageViewer)
 {
 	ui->setupUi(this);
+
+	connect(ui->buttonPrevious, &QPushButton::clicked, this, &ImageViewer::showPreviousImage);
+	connect(ui->buttonNext, &QPushButton::clicked, this, &ImageViewer::showNextImage);
 }
 
 void ImageViewer::changeEvent(QEvent *event)
@@ -39,33 +42,76 @@ QSize ImageViewer::calculateWindowSize()
 	return QGuiApplication::primaryScreen()->availableGeometry().size() * 0.8;
 }
 
-void ImageViewer::showPixmap(QPixmap & pixmap, QWidget * parent)
+void ImageViewer::showImages(const QStringList & imagePaths, int startIndex, QWidget * parent)
 {
-	assert(!pixmap.isNull());
+	if(imagePaths.empty())
+		return;
 
 	auto * iw = new ImageViewer(parent);
-
-	QSize size = pixmap.size();
-	size.scale(iw->calculateWindowSize(), Qt::KeepAspectRatio);
-	iw->resize(size);
-
-	iw->setPixmap(pixmap);
+	iw->setImages(imagePaths, startIndex);
 	iw->setAttribute(Qt::WA_DeleteOnClose, true);
 	iw->setModal(Qt::WindowModal);
 	iw->show();
 }
 
-void ImageViewer::setPixmap(QPixmap & pixmap)
+void ImageViewer::setImages(const QStringList & imagePaths, int startIndex)
 {
-	ui->label->setPixmap(pixmap);
+	assert(!imagePaths.empty());
+
+	images = imagePaths;
+	currentImageIndex = std::clamp(startIndex, 0, images.size() - 1);
+	showCurrentImage();
 }
 
-void ImageViewer::mousePressEvent(QMouseEvent * event)
+void ImageViewer::showCurrentImage()
 {
-	close();
+	assert(!images.empty());
+
+	QPixmap pixmap(images.at(currentImageIndex));
+	assert(!pixmap.isNull());
+
+	QSize size = pixmap.size();
+	size.scale(calculateWindowSize(), Qt::KeepAspectRatio);
+	resize(size);
+
+	ui->label->setPixmap(pixmap);
+	ui->buttonPrevious->setVisible(images.size() > 1);
+	ui->buttonNext->setVisible(images.size() > 1);
+}
+
+void ImageViewer::showPreviousImage()
+{
+	if(images.size() <= 1)
+		return;
+
+	currentImageIndex = (currentImageIndex - 1 + images.size()) % images.size();
+	showCurrentImage();
+}
+
+void ImageViewer::showNextImage()
+{
+	if(images.size() <= 1)
+		return;
+
+	currentImageIndex = (currentImageIndex + 1) % images.size();
+	showCurrentImage();
 }
 
 void ImageViewer::keyPressEvent(QKeyEvent * event)
 {
-	close(); // FIXME: it also closes on pressing modifiers (e.g. Ctrl/Alt). Not exactly expected
+	switch(event->key())
+	{
+	case Qt::Key_Left:
+		showPreviousImage();
+		break;
+	case Qt::Key_Right:
+		showNextImage();
+		break;
+	case Qt::Key_Escape:
+		close();
+		break;
+	default:
+		QDialog::keyPressEvent(event);
+		break;
+	}
 }

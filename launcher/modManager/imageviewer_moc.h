@@ -25,15 +25,20 @@ public:
 	explicit ImageViewer(QWidget * parent = nullptr);
 	~ImageViewer();
 
-	void setPixmap(QPixmap & pixmap);
+	void setImages(const QStringList & imagePaths, int startIndex);
 
-	static void showPixmap(QPixmap & pixmap, QWidget * parent = nullptr);
+	static void showImages(const QStringList & imagePaths, int startIndex, QWidget * parent = nullptr);
 
 protected:
-	void mousePressEvent(QMouseEvent * event) override;
 	void keyPressEvent(QKeyEvent * event) override;
 	QSize calculateWindowSize();
 
 private:
+	void showCurrentImage();
+	void showPreviousImage();
+	void showNextImage();
+
 	Ui::ImageViewer * ui;
+	QStringList images;
+	int currentImageIndex = -1;
 };
