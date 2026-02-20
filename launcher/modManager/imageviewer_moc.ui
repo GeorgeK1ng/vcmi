@@ -24,16 +24,19 @@
     <enum>QLayout::SetNoConstraint</enum>
    </property>
    <property name="leftMargin">
-    <number>0</number>
+    <number>12</number>
    </property>
    <property name="topMargin">
-    <number>0</number>
+    <number>12</number>
    </property>
    <property name="rightMargin">
-    <number>0</number>
+    <number>12</number>
    </property>
    <property name="bottomMargin">
-    <number>0</number>
+    <number>12</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>8</number>
    </property>
    <item row="0" column="0">
     <widget class="QPushButton" name="buttonPrevious">
@@ -54,7 +57,7 @@
      </property>
      <property name="styleSheet">
       <string notr="true">QPushButton {
-	background-color: transparent;
+	background-color: rgba(0, 0, 0, 170);
 	color: white;
 	border: 2px solid white;
 	border-radius: 24px;
@@ -62,11 +65,14 @@
 	font-weight: bold;
 }
 QPushButton:hover {
-	background-color: rgba(255, 255, 255, 35);
+	background-color: rgba(0, 0, 0, 215);
+}
+QPushButton:pressed {
+	background-color: rgba(0, 0, 0, 255);
 }</string>
      </property>
      <property name="text">
-      <string>◀</string>
+      <string>&lt;</string>
      </property>
     </widget>
    </item>
@@ -81,8 +87,11 @@ QPushButton:hover {
      <property name="text">
       <string/>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
      <property name="scaledContents">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -105,7 +114,7 @@ QPushButton:hover {
      </property>
      <property name="styleSheet">
       <string notr="true">QPushButton {
-	background-color: transparent;
+	background-color: rgba(0, 0, 0, 170);
 	color: white;
 	border: 2px solid white;
 	border-radius: 24px;
@@ -113,11 +122,14 @@ QPushButton:hover {
 	font-weight: bold;
 }
 QPushButton:hover {
-	background-color: rgba(255, 255, 255, 35);
+	background-color: rgba(0, 0, 0, 215);
+}
+QPushButton:pressed {
+	background-color: rgba(0, 0, 0, 255);
 }</string>
      </property>
      <property name="text">
-      <string>▶</string>
+      <string>&gt;</string>
      </property>
     </widget>
    </item>
