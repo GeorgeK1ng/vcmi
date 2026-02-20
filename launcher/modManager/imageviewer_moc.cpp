@@ -59,7 +59,8 @@ void ImageViewer::setImages(const QStringList & imagePaths, int startIndex)
 	assert(!imagePaths.empty());
 
 	images = imagePaths;
-	currentImageIndex = std::clamp(startIndex, 0, images.size() - 1);
+	const int lastImageIndex = static_cast<int>(images.size() - 1);
+	currentImageIndex = std::clamp(startIndex, 0, lastImageIndex);
 	showCurrentImage();
 }
 
