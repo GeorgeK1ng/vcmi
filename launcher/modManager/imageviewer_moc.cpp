@@ -57,7 +57,9 @@ QPointF touchEventPos(const QTouchEvent * touchEvent)
 #endif
 }
 
+#ifdef VCMI_MOBILE
 constexpr int sideButtonSize = 48;
+#endif
 
 int mouseEventX(const QMouseEvent * mouseEvent)
 {
