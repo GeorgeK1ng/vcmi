@@ -280,8 +280,12 @@ void ImageViewer::updateDisplayedPixmap()
 		return;
 
 	QSize targetSize = currentPixmap.size();
+#ifdef VCMI_MOBILE
+	targetSize.scale(labelSize, Qt::KeepAspectRatio);
+#else
 	if(targetSize.width() > labelSize.width() || targetSize.height() > labelSize.height())
 		targetSize.scale(labelSize, Qt::KeepAspectRatio);
+#endif
 
 	targetSize = targetSize * zoomFactor;
 	targetSize = targetSize.boundedTo(calculateWindowSize() * 2);
@@ -341,9 +345,12 @@ void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
 	ui->buttonClose->setMinimumSize(buttonSize, buttonSize);
 	ui->buttonClose->setMaximumSize(buttonSize, buttonSize);
 
-	const int reservedWidth = (buttonSize * 2) + (margin * 2) + spacing;
-	const int minimumLabelWidth = std::max(0, windowSize.width() - reservedWidth);
-	ui->label->setMaximumWidth(minimumLabelWidth);
+	ui->gridLayout->setColumnStretch(0, 0);
+	ui->gridLayout->setColumnStretch(1, 1);
+	ui->gridLayout->setColumnStretch(2, 0);
+	ui->gridLayout->setColumnMinimumWidth(0, buttonSize);
+	ui->gridLayout->setColumnMinimumWidth(2, buttonSize);
+	ui->label->setMaximumWidth(QWIDGETSIZE_MAX);
 	ui->label->setMinimumWidth(0);
 #else
 	Q_UNUSED(windowSize);
