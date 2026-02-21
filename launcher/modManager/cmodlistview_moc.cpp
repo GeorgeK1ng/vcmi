@@ -1378,11 +1378,15 @@ void CModListView::loadScreenshots()
 		};
 
 		QPixmap pixmap;
+		QString loadedPath;
 		for(const auto & fullPath : fullPaths)
 		{
 			pixmap.load(fullPath);
 			if(!pixmap.isNull())
+			{
+				loadedPath = fullPath;
 				break;
+			}
 		}
 		if(pixmap.isNull())
 		{
@@ -1394,7 +1398,7 @@ void CModListView::loadScreenshots()
 			// managed to load cached image
 			QIcon icon(pixmap);
 			auto * item = new QListWidgetItem(icon, QString(tr("Screenshot %1")).arg(ui->screenshotsList->count() + 1));
-			item->setData(Qt::UserRole, fullPath);
+			item->setData(Qt::UserRole, loadedPath);
 			ui->screenshotsList->addItem(item);
 		}
 	}
