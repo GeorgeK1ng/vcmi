@@ -74,6 +74,9 @@ ImageViewer::ImageViewer(QWidget * parent)
 	: QDialog(parent), ui(new Ui::ImageViewer)
 {
 	ui->setupUi(this);
+
+	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+
 	ui->label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	ui->label->setMinimumSize(0, 0);
 
