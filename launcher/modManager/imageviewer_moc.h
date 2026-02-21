@@ -36,7 +36,9 @@ protected:
 	void keyPressEvent(QKeyEvent * event) override;
 	void resizeEvent(QResizeEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
 	void mouseReleaseEvent(QMouseEvent * event) override;
+	void wheelEvent(QWheelEvent * event) override;
 	QSize calculateWindowSize();
 	void updateResponsiveLayout(const QSize & windowSize);
 
@@ -47,6 +49,7 @@ private:
 	void updateDisplayedPixmap();
 	void handleSwipeDelta(int deltaX);
 	void applyZoomStep(qreal zoomStep);
+	void panImage(const QPointF & delta);
 
 	Ui::ImageViewer * ui;
 	QShortcut * shortcutPrevious = nullptr;
@@ -58,6 +61,11 @@ private:
 	int touchStartX = 0;
 	int mouseStartX = 0;
 	qreal zoomFactor = 1.0;
+	QPointF panOffset;
+	QPointF lastPointerPosition;
 	bool touchSwipeActive = false;
+	bool touchPanActive = false;
+	bool mousePanActive = false;
 	bool suppressTouchSwipe = false;
+	bool desktopWindowInitialized = false;
 };
