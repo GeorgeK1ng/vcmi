@@ -120,11 +120,15 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 	{
 		const QRect available = screen->availableGeometry();
-		QSize dialogSize = sizeHint().expandedTo(minimumSize());
-		dialogSize.setWidth(std::min(dialogSize.width(), available.width()));
-		dialogSize.setHeight(std::min(dialogSize.height(), available.height()));
-		const QPoint topLeft = available.center() - QPoint(dialogSize.width() / 2, dialogSize.height() / 2);
-		setGeometry(QRect(topLeft, dialogSize));
+		QRect dialogRect = geometry();
+		if(!dialogRect.isValid())
+			dialogRect = QRect(QPoint(0, 0), size());
+
+		QPoint topLeft = available.center() - QPoint(dialogRect.width() / 2, dialogRect.height() / 2);
+		topLeft.setX(std::clamp(topLeft.x(), available.left(), available.right() - dialogRect.width() + 1));
+		topLeft.setY(std::clamp(topLeft.y(), available.top(), available.bottom() - dialogRect.height() + 1));
+		dialogRect.moveTopLeft(topLeft);
+		setGeometry(dialogRect);
 	}
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
