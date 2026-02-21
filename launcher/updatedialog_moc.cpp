@@ -26,6 +26,7 @@
 #include <QGuiApplication>
 #include <QDir>
 #include <QProgressBar>
+#include <QLayout>
 #include <QVersionNumber>
 #include <QRegularExpression>
 #include <QFileInfo>
@@ -118,17 +119,12 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
-	{
-		const QRect available = screen->availableGeometry();
-		QRect dialogRect = geometry();
-		if(!dialogRect.isValid())
-			dialogRect = QRect(QPoint(0, 0), size());
+		setGeometry(screen->availableGeometry());
 
-		QPoint topLeft = available.center() - QPoint(dialogRect.width() / 2, dialogRect.height() / 2);
-		topLeft.setX(std::clamp(topLeft.x(), available.left(), available.right() - dialogRect.width() + 1));
-		topLeft.setY(std::clamp(topLeft.y(), available.top(), available.bottom() - dialogRect.height() + 1));
-		dialogRect.moveTopLeft(topLeft);
-		setGeometry(dialogRect);
+	if(layout())
+	{
+		layout()->setSizeConstraint(QLayout::SetFixedSize);
+		layout()->setAlignment(Qt::AlignCenter);
 	}
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
