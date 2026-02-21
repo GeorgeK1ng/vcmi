@@ -1362,15 +1362,28 @@ void CModListView::loadScreenshots()
 	ui->screenshotsList->clear();
 	QString modName = ui->allModsView->currentIndex().data(ModRoles::ModNameRole).toString();
 	assert(modStateModel->isModExists(modName)); //should be filtered out by check above
+	const auto localScreenshotsPath = QString{QLatin1String{"%1/%2/screenshots"}}.arg(CLauncherDirs::modsPath(), modName);
 
 	for(QString url : modStateModel->getMod(modName).getScreenshots())
 	{
 		// URL must be encoded to something else to get rid of symbols illegal in file names
 		const auto hashed = QCryptographicHash::hash(url.toUtf8(), QCryptographicHash::Md5);
 		const auto fileName = QString{QLatin1String{"%1.png"}}.arg(QLatin1String{hashed.toHex()});
+		const auto originalFileName = QUrl{url}.fileName(QUrl::FullyDecoded);
 
-		const auto fullPath = QString{QLatin1String{"%1/%2"}}.arg(CLauncherDirs::downloadsPath(), fileName);
-		QPixmap pixmap(fullPath);
+		const QStringList fullPaths = {
+			QString{QLatin1String{"%1/%2"}}.arg(localScreenshotsPath, originalFileName),
+			QString{QLatin1String{"%1/%2"}}.arg(localScreenshotsPath, fileName),
+			QString{QLatin1String{"%1/%2"}}.arg(CLauncherDirs::downloadsPath(), fileName)
+		};
+
+		QPixmap pixmap;
+		for(const auto & fullPath : fullPaths)
+		{
+			pixmap.load(fullPath);
+			if(!pixmap.isNull())
+				break;
+		}
 		if(pixmap.isNull())
 		{
 			// image file not exists or corrupted - try to redownload
