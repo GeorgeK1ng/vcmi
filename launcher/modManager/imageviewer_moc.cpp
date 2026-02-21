@@ -11,6 +11,7 @@
 
 #include <QGuiApplication>
 #include <QGestureEvent>
+#include <QPainter>
 #include <QPinchGesture>
 #include <QScreen>
 #include <QShortcut>
@@ -143,6 +144,7 @@ bool ImageViewer::event(QEvent * event)
 		{
 			suppressTouchSwipe = true;
 			touchSwipeActive = false;
+			touchPanActive = false;
 			return true;
 		}
 
@@ -154,8 +156,25 @@ bool ImageViewer::event(QEvent * event)
 		if(touched == ui->buttonPrevious || touched == ui->buttonNext || touched == ui->buttonClose)
 			return QDialog::event(event);
 
+		lastPointerPosition = pos;
 		touchStartX = static_cast<int>(pos.x());
-		touchSwipeActive = true;
+		touchPanActive = zoomFactor > 1.0;
+		touchSwipeActive = !touchPanActive;
+		return true;
+	}
+
+	if(event->type() == QEvent::TouchUpdate)
+	{
+		auto * touchEvent = static_cast<QTouchEvent *>(event);
+		if(!touchPanActive)
+			return QDialog::event(event);
+
+		const auto pos = touchEventPos(touchEvent);
+		if(pos.isNull())
+			return true;
+
+		panImage(pos - lastPointerPosition);
+		lastPointerPosition = pos;
 		return true;
 	}
 
@@ -166,6 +185,13 @@ bool ImageViewer::event(QEvent * event)
 		{
 			suppressTouchSwipe = false;
 			touchSwipeActive = false;
+			touchPanActive = false;
+			return true;
+		}
+
+		if(touchPanActive)
+		{
+			touchPanActive = false;
 			return true;
 		}
 
@@ -233,19 +259,24 @@ void ImageViewer::showCurrentImage()
 
 	currentPixmap = pixmap;
 	zoomFactor = 1.0;
+	panOffset = QPointF{};
 
 #ifndef VCMI_MOBILE
-	const QSize availableWindowSize = calculateWindowSize();
-	const int desktopMargin = 12;
-	const int desktopSpacing = 8;
-	const int reservedWidth = (sideButtonSize * 2) + (desktopMargin * 2) + desktopSpacing;
-	const int reservedHeight = desktopMargin * 2;
-	const int maxLabelWidth = std::max(1, std::min(availableWindowSize.width() - reservedWidth, availableWindowSize.height()));
-	const int maxLabelHeight = std::max(1, availableWindowSize.height() - reservedHeight);
+	if(!desktopWindowInitialized)
+	{
+		const QSize availableWindowSize = calculateWindowSize();
+		const int desktopMargin = 12;
+		const int desktopSpacing = 8;
+		const int reservedWidth = (sideButtonSize * 2) + (desktopMargin * 2) + desktopSpacing;
+		const int reservedHeight = desktopMargin * 2;
+		const int maxLabelWidth = std::max(1, std::min(availableWindowSize.width() - reservedWidth, availableWindowSize.height()));
+		const int maxLabelHeight = std::max(1, availableWindowSize.height() - reservedHeight);
 
-	QSize labelTargetSize = currentPixmap.size();
-	labelTargetSize.scale(QSize(maxLabelWidth, maxLabelHeight), Qt::KeepAspectRatio);
-	resize(labelTargetSize.width() + reservedWidth, labelTargetSize.height() + reservedHeight);
+		QSize labelTargetSize = currentPixmap.size();
+		labelTargetSize.scale(QSize(maxLabelWidth, maxLabelHeight), Qt::KeepAspectRatio);
+		resize(labelTargetSize.width() + reservedWidth, labelTargetSize.height() + reservedHeight);
+		desktopWindowInitialized = true;
+	}
 #endif
 	updateDisplayedPixmap();
 
@@ -287,12 +318,23 @@ void ImageViewer::updateDisplayedPixmap()
 
 	QSize targetSize = currentPixmap.size();
 	targetSize.scale(labelSize, Qt::KeepAspectRatio);
-
 	targetSize = targetSize * zoomFactor;
 	targetSize = targetSize.boundedTo(calculateWindowSize() * 2);
 
 	const auto scaledPixmap = currentPixmap.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-	ui->label->setPixmap(scaledPixmap);
+	const int maxPanX = std::max(0, (scaledPixmap.width() - labelSize.width()) / 2);
+	const int maxPanY = std::max(0, (scaledPixmap.height() - labelSize.height()) / 2);
+	panOffset.setX(std::clamp(panOffset.x(), static_cast<qreal>(-maxPanX), static_cast<qreal>(maxPanX)));
+	panOffset.setY(std::clamp(panOffset.y(), static_cast<qreal>(-maxPanY), static_cast<qreal>(maxPanY)));
+
+	QPixmap canvas(labelSize);
+	canvas.fill(palette().color(QPalette::Window));
+	QPainter painter(&canvas);
+	const QPoint drawPos((labelSize.width() - scaledPixmap.width()) / 2 + static_cast<int>(panOffset.x()),
+		(labelSize.height() - scaledPixmap.height()) / 2 + static_cast<int>(panOffset.y()));
+	painter.drawPixmap(drawPos, scaledPixmap);
+	painter.end();
+	ui->label->setPixmap(canvas);
 }
 
 void ImageViewer::applyZoomStep(qreal zoomStep)
@@ -307,6 +349,17 @@ void ImageViewer::applyZoomStep(qreal zoomStep)
 	constexpr qreal minZoomFactor = 0.5;
 #endif
 	zoomFactor = std::clamp(zoomFactor, minZoomFactor, 3.0);
+	if(zoomFactor <= 1.0)
+		panOffset = QPointF{};
+	updateDisplayedPixmap();
+}
+
+void ImageViewer::panImage(const QPointF & delta)
+{
+	if(zoomFactor <= 1.0)
+		return;
+
+	panOffset += delta;
 	updateDisplayedPixmap();
 }
 
@@ -364,15 +417,66 @@ void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
 
 void ImageViewer::mousePressEvent(QMouseEvent * event)
 {
+	if(event->button() == Qt::LeftButton && zoomFactor > 1.0)
+	{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		lastPointerPosition = event->position();
+#else
+		lastPointerPosition = event->localPos();
+#endif
+		mousePanActive = true;
+		event->accept();
+		return;
+	}
+
 	mouseStartX = mouseEventX(event);
 	QDialog::mousePressEvent(event);
 }
 
+void ImageViewer::mouseMoveEvent(QMouseEvent * event)
+{
+	if(!mousePanActive)
+	{
+		QDialog::mouseMoveEvent(event);
+		return;
+	}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	const QPointF currentPosition = event->position();
+#else
+	const QPointF currentPosition = event->localPos();
+#endif
+	panImage(currentPosition - lastPointerPosition);
+	lastPointerPosition = currentPosition;
+	event->accept();
+}
+
 void ImageViewer::mouseReleaseEvent(QMouseEvent * event)
 {
+	if(mousePanActive && event->button() == Qt::LeftButton)
+	{
+		mousePanActive = false;
+		event->accept();
+		return;
+	}
+
 	const int mouseEndX = mouseEventX(event);
 	handleSwipeDelta(mouseEndX - mouseStartX);
 	QDialog::mouseReleaseEvent(event);
+}
+
+void ImageViewer::wheelEvent(QWheelEvent * event)
+{
+	const QPoint numDegrees = event->angleDelta() / 8;
+	if(numDegrees.y() == 0)
+	{
+		QDialog::wheelEvent(event);
+		return;
+	}
+
+	const qreal zoomStep = numDegrees.y() > 0 ? 1.1 : (1.0 / 1.1);
+	applyZoomStep(zoomStep);
+	event->accept();
 }
 
 void ImageViewer::keyPressEvent(QKeyEvent * event)
