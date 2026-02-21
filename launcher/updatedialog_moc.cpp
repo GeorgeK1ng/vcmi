@@ -115,8 +115,18 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->testingChangelog->setOpenExternalLinks(true);
 
 #ifdef VCMI_MOBILE
-	setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
+	setAttribute(Qt::WA_TranslucentBackground, true);
+	setStyleSheet("QDialog { background: transparent; } QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+
+	if(ui->contentPanel && ui->hostLayout)
+	{
+		const QSize panelSize = ui->contentPanel->sizeHint().expandedTo(ui->contentPanel->minimumSizeHint());
+		ui->contentPanel->setMinimumSize(panelSize);
+		ui->contentPanel->setMaximumSize(panelSize);
+		ui->hostLayout->setAlignment(ui->contentPanel, Qt::AlignCenter);
+	}
+
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
 #else
