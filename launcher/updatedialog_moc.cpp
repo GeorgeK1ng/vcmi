@@ -23,6 +23,7 @@
 #include <QSysInfo>
 #include <QProcess>
 #include <QDesktopServices>
+#include <QGuiApplication>
 #include <QDir>
 #include <QProgressBar>
 #include <QVersionNumber>
@@ -30,6 +31,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QSettings>
+#include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
 static QString normalizeChannel(const QString& text)
@@ -115,6 +117,15 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 #ifdef VCMI_MOBILE
 	setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+	if(const QScreen * screen = QGuiApplication::primaryScreen())
+	{
+		const QRect available = screen->availableGeometry();
+		QSize dialogSize = sizeHint().expandedTo(minimumSize());
+		dialogSize.setWidth(std::min(dialogSize.width(), available.width()));
+		dialogSize.setHeight(std::min(dialogSize.height(), available.height()));
+		const QPoint topLeft = available.center() - QPoint(dialogSize.width() / 2, dialogSize.height() / 2);
+		setGeometry(QRect(topLeft, dialogSize));
+	}
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 #endif
