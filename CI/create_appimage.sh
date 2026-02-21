@@ -82,6 +82,10 @@ fi
 export VERSION
 export UPD_INFO="gh-releases-zsync|vcmi|vcmi|continuous|VCMI-*$ARCH.AppImage.zsync"
 
+# Prefer denser compression for smaller AppImage size (can be overridden from env)
+export APPIMAGE_COMPRESS="${APPIMAGE_COMPRESS:-zstd}"
+export APPIMAGE_COMPRESS_LEVEL="${APPIMAGE_COMPRESS_LEVEL:-22}"
+
 if [ -z "$QMAKE" ]; then
     if command -v qmake6 &> /dev/null; then
         export QMAKE=qmake6
