@@ -118,8 +118,13 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	const QSize originalDialogSize = size();
 	setAttribute(Qt::WA_TranslucentBackground, true);
 	setAttribute(Qt::WA_NoSystemBackground, true);
+	setAttribute(Qt::WA_OpaquePaintEvent, false);
+	setAttribute(Qt::WA_StyledBackground, false);
 	setAutoFillBackground(false);
-	setStyleSheet("QDialog { background-color: rgba(0,0,0,0); border: none; } QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
+	QPalette transparentPalette = palette();
+	transparentPalette.setColor(QPalette::Window, Qt::transparent);
+	setPalette(transparentPalette);
+	setStyleSheet("QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 
 	if(ui->contentPanel && ui->hostLayout)
