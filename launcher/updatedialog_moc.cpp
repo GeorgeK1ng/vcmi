@@ -23,6 +23,7 @@
 #include <QSysInfo>
 #include <QProcess>
 #include <QDesktopServices>
+#include <QGuiApplication>
 #include <QDir>
 #include <QProgressBar>
 #include <QVersionNumber>
@@ -30,6 +31,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QSettings>
+#include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
 static QString normalizeChannel(const QString& text)
@@ -113,10 +115,12 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->testingChangelog->setOpenExternalLinks(true);
 
 #ifdef VCMI_MOBILE
-    setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
-#endif
-
+	setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
+	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+	setGeometry(QGuiApplication::primaryScreen()->availableGeometry());
+#else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+#endif
 
 	ui->progressBar->setHidden(true);
 	ui->installButton->setText(actionButtonTextForPlatform());
