@@ -26,7 +26,6 @@
 #include <QGuiApplication>
 #include <QDir>
 #include <QProgressBar>
-#include <QLayout>
 #include <QVersionNumber>
 #include <QRegularExpression>
 #include <QFileInfo>
@@ -120,12 +119,6 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
-
-	if(layout())
-	{
-		layout()->setSizeConstraint(QLayout::SetFixedSize);
-		layout()->setAlignment(Qt::AlignCenter);
-	}
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 #endif
