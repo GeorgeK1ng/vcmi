@@ -25,7 +25,6 @@
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QDir>
-#include <QGridLayout>
 #include <QProgressBar>
 #include <QVersionNumber>
 #include <QRegularExpression>
@@ -116,30 +115,8 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->testingChangelog->setOpenExternalLinks(true);
 
 #ifdef VCMI_MOBILE
+	setStyleSheet("QDialog { border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-	setAttribute(Qt::WA_TranslucentBackground, true);
-
-	if(QLayout * originalLayout = layout())
-	{
-		originalLayout->setParent(nullptr);
-		auto * contentWidget = new QWidget(this);
-		contentWidget->setObjectName("mobileDialogPanel");
-		contentWidget->setLayout(originalLayout);
-
-		auto * overlayLayout = new QGridLayout(this);
-		overlayLayout->setContentsMargins(12, 12, 12, 12);
-		overlayLayout->setRowStretch(0, 1);
-		overlayLayout->setRowStretch(1, 0);
-		overlayLayout->setRowStretch(2, 1);
-		overlayLayout->setColumnStretch(0, 1);
-		overlayLayout->setColumnStretch(1, 0);
-		overlayLayout->setColumnStretch(2, 1);
-		overlayLayout->addWidget(contentWidget, 1, 1, Qt::AlignCenter);
-		setLayout(overlayLayout);
-	}
-
-	setStyleSheet("QDialog { background: transparent; } QWidget#mobileDialogPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
-
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
 #else
