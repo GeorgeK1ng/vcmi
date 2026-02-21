@@ -57,9 +57,7 @@ QPointF touchEventPos(const QTouchEvent * touchEvent)
 #endif
 }
 
-#ifdef VCMI_MOBILE
 constexpr int sideButtonSize = 48;
-#endif
 
 int mouseEventX(const QMouseEvent * mouseEvent)
 {
@@ -237,9 +235,17 @@ void ImageViewer::showCurrentImage()
 	zoomFactor = 1.0;
 
 #ifndef VCMI_MOBILE
-	QSize windowSize = currentPixmap.size();
-	windowSize.scale(calculateWindowSize(), Qt::KeepAspectRatio);
-	resize(windowSize);
+	const QSize availableWindowSize = calculateWindowSize();
+	const int desktopMargin = 12;
+	const int desktopSpacing = 8;
+	const int reservedWidth = (sideButtonSize * 2) + (desktopMargin * 2) + desktopSpacing;
+	const int reservedHeight = desktopMargin * 2;
+	const int maxLabelWidth = std::max(1, std::min(availableWindowSize.width() - reservedWidth, availableWindowSize.height()));
+	const int maxLabelHeight = std::max(1, availableWindowSize.height() - reservedHeight);
+
+	QSize labelTargetSize = currentPixmap.size();
+	labelTargetSize.scale(QSize(maxLabelWidth, maxLabelHeight), Qt::KeepAspectRatio);
+	resize(labelTargetSize.width() + reservedWidth, labelTargetSize.height() + reservedHeight);
 #endif
 	updateDisplayedPixmap();
 
@@ -280,12 +286,7 @@ void ImageViewer::updateDisplayedPixmap()
 		return;
 
 	QSize targetSize = currentPixmap.size();
-#ifdef VCMI_MOBILE
 	targetSize.scale(labelSize, Qt::KeepAspectRatio);
-#else
-	if(targetSize.width() > labelSize.width() || targetSize.height() > labelSize.height())
-		targetSize.scale(labelSize, Qt::KeepAspectRatio);
-#endif
 
 	targetSize = targetSize * zoomFactor;
 	targetSize = targetSize.boundedTo(calculateWindowSize() * 2);
@@ -333,6 +334,12 @@ void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
 	const int spacing = compactLayout ? 2 : 4;
 	const int margin = compactLayout ? 2 : 4;
 	const int buttonSize = compactLayout ? 40 : sideButtonSize;
+#else
+	Q_UNUSED(windowSize);
+	const int spacing = 8;
+	const int margin = 12;
+	const int buttonSize = sideButtonSize;
+#endif
 
 	ui->gridLayout->setContentsMargins(margin, margin, margin, margin);
 	ui->gridLayout->setHorizontalSpacing(spacing);
@@ -352,10 +359,8 @@ void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
 	ui->gridLayout->setColumnMinimumWidth(2, buttonSize);
 	ui->label->setMaximumWidth(QWIDGETSIZE_MAX);
 	ui->label->setMinimumWidth(0);
-#else
-	Q_UNUSED(windowSize);
-#endif
 }
+
 
 void ImageViewer::mousePressEvent(QMouseEvent * event)
 {
