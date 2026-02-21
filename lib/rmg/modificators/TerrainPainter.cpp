@@ -60,9 +60,10 @@ void TerrainPainter::initTerrainType()
 	{
 		if(zone.isMatchTerrainToTown() && zone.getTownType() != ETownType::NEUTRAL)
 		{
-			auto terrainType = (*LIBRARY->townh)[zone.getTownType()]->nativeTerrain;
+			auto nativeTerrains = (*LIBRARY->townh)[zone.getTownType()]->getNativeTerrains();
+			auto terrainType = nativeTerrains.empty() ? TerrainId(ETerrainId::NONE) : *RandomGeneratorUtil::nextItem(nativeTerrains, zone.getRand());
 
-			if (terrainType <= ETerrainId::NONE)
+			if(terrainType <= ETerrainId::NONE)
 			{
 				logGlobal->warn("Town %s has invalid terrain type: %d", zone.getTownType(), terrainType);
 				zone.setTerrainType(ETerrainId::DIRT);

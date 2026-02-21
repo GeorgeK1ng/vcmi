@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <vector>
+
 VCMI_LIB_NAMESPACE_BEGIN
 
 class IBonusBearer;
@@ -26,6 +28,7 @@ class DLL_LINKAGE INativeTerrainProvider
 {
 public:
 	virtual TerrainId getNativeTerrain() const = 0;
+	virtual std::vector<TerrainId> getNativeTerrains() const;
 	virtual FactionID getFactionID() const = 0;
 	virtual bool isNativeTerrain(TerrainId terrain) const;
 };

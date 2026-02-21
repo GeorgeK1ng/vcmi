@@ -257,6 +257,14 @@ TerrainId CStackInstance::getNativeTerrain() const
 	return getFactionID().toEntity(LIBRARY)->getNativeTerrain();
 }
 
+std::vector<TerrainId> CStackInstance::getNativeTerrains() const
+{
+	if(nativeTerrain.hasBonus())
+		return {TerrainId::ANY_TERRAIN};
+
+	return getFactionID().toEntity(LIBRARY)->getNativeTerrains();
+}
+
 TerrainId CStackInstance::getCurrentTerrain() const
 {
 	if (armyInstance)

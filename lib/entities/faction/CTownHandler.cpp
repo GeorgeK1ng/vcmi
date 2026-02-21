@@ -795,13 +795,44 @@ std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, 
 	// Towns without one are exceptions. So, vcmi requires nativeTerrain to be defined
 	// But allows it to be defined with explicit value of "none" if town should not have native terrain
 	// This is better than allowing such terrain-less towns silently, leading to issues with RMG
-	faction->nativeTerrain = ETerrainId::NONE;
-	if (!source["nativeTerrain"].isNull() && source["nativeTerrain"].String() != "none")
+	faction->nativeTerrains = {ETerrainId::NONE};
+	if(!source["nativeTerrain"].isNull())
 	{
-		LIBRARY->identifiers()->requestIdentifier("terrain", source["nativeTerrain"], [=](int32_t index){
-			faction->nativeTerrain = TerrainId(index);
-		});
+		bool hasNativeTerrainDefinition = false;
+
+		if(source["nativeTerrain"].getType() == JsonNode::JsonType::DATA_STRING)
+		{
+			if(source["nativeTerrain"].String() != "none")
+			{
+				hasNativeTerrainDefinition = true;
+				faction->nativeTerrains.clear();
+				LIBRARY->identifiers()->requestIdentifier("terrain", source["nativeTerrain"], [=](int32_t index)
+				{
+					faction->nativeTerrains.push_back(TerrainId(index));
+				});
+			}
+		}
+		else if(source["nativeTerrain"].getType() == JsonNode::JsonType::DATA_VECTOR)
+		{
+			for(const auto & nativeTerrainNode : source["nativeTerrain"].Vector())
+			{
+				if(nativeTerrainNode.String() == "none")
+					continue;
+
+				if(!hasNativeTerrainDefinition)
+				{
+					hasNativeTerrainDefinition = true;
+					faction->nativeTerrains.clear();
+				}
+
+				LIBRARY->identifiers()->requestIdentifier("terrain", nativeTerrainNode, [=](int32_t index)
+				{
+					faction->nativeTerrains.push_back(TerrainId(index));
+				});
+			}
+		}
 	}
+
 
 	if (!source["town"].isNull())
 	{

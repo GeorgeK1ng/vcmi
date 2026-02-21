@@ -92,18 +92,36 @@ const IBonusBearer* CGHeroInstance::getBonusBearer() const
 
 TerrainId CGHeroInstance::getNativeTerrain() const
 {
-	TerrainId nativeTerrain = ETerrainId::ANY_TERRAIN;
+	auto nativeTerrains = getNativeTerrains();
+	if(nativeTerrains.empty())
+		return ETerrainId::NONE;
+
+	return nativeTerrains.front();
+}
+
+std::vector<TerrainId> CGHeroInstance::getNativeTerrains() const
+{
+	std::vector<TerrainId> nativeTerrains = {ETerrainId::ANY_TERRAIN};
 
 	for(const auto & stack : stacks)
 	{
-		TerrainId stackNativeTerrain = stack.second->getNativeTerrain(); //consider terrain bonuses e.g. Lodestar.
+		auto stackNativeTerrains = stack.second->getNativeTerrains();
+		if(vstd::contains(stackNativeTerrains, TerrainId(ETerrainId::ANY_TERRAIN)))
+			continue;
 
-		if(nativeTerrain == ETerrainId::ANY_TERRAIN)
-			nativeTerrain = stackNativeTerrain;
-		else if(nativeTerrain != stackNativeTerrain)
-			return ETerrainId::NONE;
+		if(vstd::contains(nativeTerrains, TerrainId(ETerrainId::ANY_TERRAIN)))
+			nativeTerrains = stackNativeTerrains;
+		else
+			vstd::erase_if(nativeTerrains, [&](const TerrainId & terrain) -> bool
+			{
+				return !vstd::contains(stackNativeTerrains, terrain);
+			});
+
+		if(nativeTerrains.empty())
+			return {ETerrainId::NONE};
 	}
-	return nativeTerrain;
+
+	return nativeTerrains;
 }
 
 bool CGHeroInstance::isCoastVisitable() const

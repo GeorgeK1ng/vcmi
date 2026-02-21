@@ -24,10 +24,20 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+std::vector<TerrainId> INativeTerrainProvider::getNativeTerrains() const
+{
+	return {getNativeTerrain()};
+}
+
 bool INativeTerrainProvider::isNativeTerrain(TerrainId terrain) const
 {
-	auto native = getNativeTerrain();
-	return native == terrain || native == ETerrainId::ANY_TERRAIN;
+	for(const auto & nativeTerrain : getNativeTerrains())
+	{
+		if(nativeTerrain == terrain || nativeTerrain == ETerrainId::ANY_TERRAIN)
+			return true;
+	}
+
+	return false;
 }
 
 TerrainId AFactionMember::getNativeTerrain() const

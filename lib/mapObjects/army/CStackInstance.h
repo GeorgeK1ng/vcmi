@@ -96,6 +96,7 @@ public:
 	const IBonusBearer * getBonusBearer() const override;
 	//INativeTerrainProvider
 	FactionID getFactionID() const override;
+	std::vector<TerrainId> getNativeTerrains() const override;
 
 	virtual ui64 getPower() const;
 	/// Returns total market value of resources needed to recruit this unit

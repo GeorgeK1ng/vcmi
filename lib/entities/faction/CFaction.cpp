@@ -108,7 +108,15 @@ BoatId CFaction::getBoatType() const
 
 TerrainId CFaction::getNativeTerrain() const
 {
-	return nativeTerrain;
+	if(nativeTerrains.empty())
+		return TerrainId::NONE;
+
+	return nativeTerrains.front();
+}
+
+std::vector<TerrainId> CFaction::getNativeTerrains() const
+{
+	return nativeTerrains;
 }
 
 void CFaction::updateFrom(const JsonNode & data)

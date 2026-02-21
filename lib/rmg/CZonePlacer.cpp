@@ -523,16 +523,26 @@ void CZonePlacer::prepareZones(TZoneMap &zones, TZoneVector &zonesVector, const 
 				zonesToPlace.push_back(zone);
 			else
 			{
-				auto & tt = (*LIBRARY->townh)[faction]->nativeTerrain;
-				if(tt == ETerrainId::NONE)
+				auto nativeTerrains = (*LIBRARY->townh)[faction]->getNativeTerrains();
+				if(nativeTerrains.empty() || vstd::contains(nativeTerrains, TerrainId(ETerrainId::NONE)))
 				{
 					//any / random
 					zonesToPlace.push_back(zone);
 				}
 				else
 				{
-					const auto & terrainType = LIBRARY->terrainTypeHandler->getById(tt);
-					if(terrainType->isUnderground() && !terrainType->isSurface())
+					bool undergroundOnly = true;
+					for(const auto & nativeTerrain : nativeTerrains)
+					{
+						const auto & terrainType = LIBRARY->terrainTypeHandler->getById(nativeTerrain);
+						if(terrainType->isSurface())
+						{
+							undergroundOnly = false;
+							break;
+						}
+					}
+
+					if(undergroundOnly)
 					{
 						//underground only
 						zonesOnLevel[1]++;
