@@ -11,6 +11,7 @@
 #include <QDialog>
 #include <QNetworkAccessManager>
 #include <QUrl>
+#include <QPixmap>
 
 class QResizeEvent;
 
@@ -85,6 +86,7 @@ private:
 	bool testingChannelAutoSelectPending = true;
 
 	bool calledManually;
+	QPixmap mobileBackdrop;
 
 	void loadFromJson(const JsonNode & node, bool testing = false, const QString &channel = QString());
 	void fetchChannel(const QString& channel);

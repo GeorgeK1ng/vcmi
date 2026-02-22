@@ -31,7 +31,6 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QSettings>
-#include <QTimer>
 #include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
@@ -117,16 +116,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 #ifdef VCMI_MOBILE
 	const QSize originalDialogSize = size();
-	setAttribute(Qt::WA_TranslucentBackground, true);
-	setAttribute(Qt::WA_NoSystemBackground, true);
-	setAttribute(Qt::WA_OpaquePaintEvent, false);
-	setAttribute(Qt::WA_StyledBackground, false);
-	setAutoFillBackground(false);
-	QPalette transparentPalette = palette();
-	transparentPalette.setColor(QPalette::Window, Qt::transparent);
-	setPalette(transparentPalette);
-	setStyleSheet("QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+	setAutoFillBackground(true);
+	setStyleSheet("QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 
 	if(ui->contentPanel && ui->hostLayout)
 	{
@@ -142,11 +134,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
 
-	QTimer::singleShot(0, this, [this]()
-	{
-		if(ui && ui->contentPanel)
-			setMask(QRegion(ui->contentPanel->geometry()));
-	});
+	updateMobileBackdrop();
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 #endif
@@ -208,8 +196,25 @@ void UpdateDialog::resizeEvent(QResizeEvent * event)
 {
 	QDialog::resizeEvent(event);
 #ifdef VCMI_MOBILE
-	if(ui && ui->contentPanel)
-		setMask(QRegion(ui->contentPanel->geometry()));
+	updateMobileBackdrop();
+#endif
+}
+
+void UpdateDialog::updateMobileBackdrop()
+{
+#ifdef VCMI_MOBILE
+	if(mobileBackdrop.isNull())
+	{
+		if(QWidget * mainWindow = Helper::getMainWindow())
+			mobileBackdrop = mainWindow->grab();
+	}
+
+	if(mobileBackdrop.isNull())
+		return;
+
+	QPalette backgroundPalette = palette();
+	backgroundPalette.setBrush(QPalette::Window, QBrush(mobileBackdrop.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+	setPalette(backgroundPalette);
 #endif
 }
 
