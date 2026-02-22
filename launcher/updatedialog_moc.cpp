@@ -161,6 +161,13 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	{
 		#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
 		    setWindowModality(Qt::NonModal);
+			#ifdef VCMI_MOBILE
+			if(mobileBackdrop.isNull())
+			{
+				if(QWidget * mainWindow = Helper::getMainWindow())
+					mobileBackdrop = mainWindow->grab();
+			}
+			#endif
 		#else
 		    setWindowModality(Qt::ApplicationModal);
 		#endif
@@ -602,6 +609,13 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	const bool hasTestingOffer = ui->testingBuilds->isChecked() && testingOffer;
 	if((releaseOffer || hasTestingOffer) && !calledManually)
 	{
+		#ifdef VCMI_MOBILE
+		if(mobileBackdrop.isNull())
+		{
+			if(QWidget * mainWindow = Helper::getMainWindow())
+				mobileBackdrop = mainWindow->grab();
+		}
+		#endif
 		this->show();
 		this->raise();
 		this->activateWindow();
