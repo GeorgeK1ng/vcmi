@@ -32,6 +32,7 @@
 #include <QSaveFile>
 #include <QSettings>
 #include <QPainter>
+#include <QTimer>
 #include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
@@ -132,7 +133,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 		ui->hostLayout->setAlignment(ui->contentPanel, Qt::AlignCenter);
 	}
 
-	if(const QScreen * screen = QGuiApplication::primaryScreen())
+	if(QWidget * mainWindow = Helper::getMainWindow())
+		setGeometry(mainWindow->geometry());
+	else if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
 
 	updateMobileBackdrop();
@@ -204,11 +207,22 @@ void UpdateDialog::resizeEvent(QResizeEvent * event)
 void UpdateDialog::updateMobileBackdrop()
 {
 #ifdef VCMI_MOBILE
-	if(!mobileBackdrop.isNull())
+	if(!mobileBackdrop.isNull() || mobileBackdropCaptureScheduled || !isVisible())
 		return;
 
-	if(QWidget * mainWindow = Helper::getMainWindow())
-		mobileBackdrop = mainWindow->grab();
+	mobileBackdropCaptureScheduled = true;
+	QTimer::singleShot(0, this, [this]()
+	{
+		mobileBackdropCaptureScheduled = false;
+		if(!isVisible() || !mobileBackdrop.isNull())
+			return;
+
+		if(QWidget * mainWindow = Helper::getMainWindow())
+		{
+			mobileBackdrop = mainWindow->grab();
+			update();
+		}
+	});
 #endif
 }
 
@@ -219,11 +233,19 @@ void UpdateDialog::paintEvent(QPaintEvent * event)
 	if(!mobileBackdrop.isNull())
 	{
 		QPainter painter(this);
-		painter.drawPixmap(rect(), mobileBackdrop);
+		painter.drawPixmap(QPoint(0, 0), mobileBackdrop);
 	}
 	return;
 #else
 	QDialog::paintEvent(event);
+#endif
+}
+
+void UpdateDialog::showEvent(QShowEvent * event)
+{
+	QDialog::showEvent(event);
+#ifdef VCMI_MOBILE
+	updateMobileBackdrop();
 #endif
 }
 
