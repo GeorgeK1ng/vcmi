@@ -14,6 +14,7 @@
 #include <QPixmap>
 
 class QResizeEvent;
+class QPaintEvent;
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -43,6 +44,7 @@ public:
 
 protected:
 	void resizeEvent(QResizeEvent * event) override;
+	void paintEvent(QPaintEvent * event) override;
 
 private slots:
     void on_checkOnStartup_stateChanged(int state);

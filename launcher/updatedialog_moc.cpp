@@ -31,6 +31,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QSettings>
+#include <QPainter>
 #include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
@@ -117,7 +118,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 #ifdef VCMI_MOBILE
 	const QSize originalDialogSize = size();
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-	setAutoFillBackground(true);
+	setAutoFillBackground(false);
 	setStyleSheet("QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }");
 
 	if(ui->contentPanel && ui->hostLayout)
@@ -203,18 +204,26 @@ void UpdateDialog::resizeEvent(QResizeEvent * event)
 void UpdateDialog::updateMobileBackdrop()
 {
 #ifdef VCMI_MOBILE
-	if(mobileBackdrop.isNull())
-	{
-		if(QWidget * mainWindow = Helper::getMainWindow())
-			mobileBackdrop = mainWindow->grab();
-	}
-
-	if(mobileBackdrop.isNull())
+	if(!mobileBackdrop.isNull())
 		return;
 
-	QPalette backgroundPalette = palette();
-	backgroundPalette.setBrush(QPalette::Window, QBrush(mobileBackdrop.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
-	setPalette(backgroundPalette);
+	if(QWidget * mainWindow = Helper::getMainWindow())
+		mobileBackdrop = mainWindow->grab();
+#endif
+}
+
+void UpdateDialog::paintEvent(QPaintEvent * event)
+{
+#ifdef VCMI_MOBILE
+	Q_UNUSED(event);
+	if(!mobileBackdrop.isNull())
+	{
+		QPainter painter(this);
+		painter.drawPixmap(rect(), mobileBackdrop);
+	}
+	return;
+#else
+	QDialog::paintEvent(event);
 #endif
 }
 
