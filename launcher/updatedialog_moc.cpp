@@ -155,20 +155,16 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	if(calledManually)
 	{
-		#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
-		    setWindowModality(Qt::NonModal);
-			#ifdef VCMI_MOBILE
-			if(mobileBackdrop.isNull())
-			{
-				if(QWidget * mainWindow = Helper::getMainWindow())
-					mobileBackdrop = mainWindow->grab();
-			}
-			#endif
-		#else
-		    setWindowModality(Qt::ApplicationModal);
-		#endif
 		#ifdef VCMI_MOBILE
+		setWindowModality(Qt::NonModal);
+		if(mobileBackdrop.isNull())
+		{
+			if(QWidget * mainWindow = Helper::getMainWindow())
+				mobileBackdrop = mainWindow->grab();
+		}
 		updateMobileHostGeometry();
+		#else
+		setWindowModality(Qt::ApplicationModal);
 		#endif
 		show();
 	}
