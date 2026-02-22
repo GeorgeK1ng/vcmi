@@ -105,6 +105,7 @@ private slots:
 private:
 	Ui::CSettingsView * ui;
 
+
 	void fillValidRenderers();
 	void fillValidResolutionsForScreen(int screenIndex);
 	void fillValidScalingRange();
