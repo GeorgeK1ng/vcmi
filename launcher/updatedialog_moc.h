@@ -12,6 +12,8 @@
 #include <QNetworkAccessManager>
 #include <QUrl>
 
+class QResizeEvent;
+
 VCMI_LIB_NAMESPACE_BEGIN
 
 class JsonNode;
@@ -37,6 +39,9 @@ public:
 	QString releaseVersion;
 	QString testingVersion;
 
+
+protected:
+	void resizeEvent(QResizeEvent * event) override;
 
 private slots:
     void on_checkOnStartup_stateChanged(int state);

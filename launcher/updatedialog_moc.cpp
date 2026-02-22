@@ -31,6 +31,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QSettings>
+#include <QTimer>
 #include <QScreen>
 
 // Helper to normalize channel key to stable/beta/develop
@@ -140,6 +141,12 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	if(const QScreen * screen = QGuiApplication::primaryScreen())
 		setGeometry(screen->availableGeometry());
+
+	QTimer::singleShot(0, this, [this]()
+	{
+		if(ui && ui->contentPanel)
+			setMask(QRegion(ui->contentPanel->geometry()));
+	});
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 #endif
@@ -195,6 +202,15 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 UpdateDialog::~UpdateDialog()
 {
 	delete ui;
+}
+
+void UpdateDialog::resizeEvent(QResizeEvent * event)
+{
+	QDialog::resizeEvent(event);
+#ifdef VCMI_MOBILE
+	if(ui && ui->contentPanel)
+		setMask(QRegion(ui->contentPanel->geometry()));
+#endif
 }
 
 void UpdateDialog::showUpdateDialog(bool isManually)
