@@ -116,7 +116,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	ui->testingChangelog->setReadOnly(true);
 	ui->testingChangelog->setOpenExternalLinks(true);
 
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	const QSize originalDialogSize = size();
 	setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 	setAutoFillBackground(false);
@@ -155,13 +155,13 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 
 	if(calledManually)
 	{
-		#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 		setWindowModality(Qt::NonModal);
 		ensureMobileBackdropCaptured();
 		updateMobileHostGeometry();
-		#else
+#else
 		setWindowModality(Qt::ApplicationModal);
-		#endif
+#endif
 		show();
 	}
 
@@ -197,14 +197,14 @@ UpdateDialog::~UpdateDialog()
 void UpdateDialog::resizeEvent(QResizeEvent * event)
 {
 	QDialog::resizeEvent(event);
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	updateMobileBackdrop();
 #endif
 }
 
 void UpdateDialog::updateMobileHostGeometry()
 {
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	if(QWidget * mainWindow = Helper::getMainWindow())
 	{
 		setGeometry(mainWindow->geometry());
@@ -218,7 +218,7 @@ void UpdateDialog::updateMobileHostGeometry()
 
 void UpdateDialog::ensureMobileBackdropCaptured()
 {
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	if(!mobileBackdrop.isNull())
 		return;
 
@@ -229,7 +229,7 @@ void UpdateDialog::ensureMobileBackdropCaptured()
 
 void UpdateDialog::updateMobileBackdrop()
 {
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	if(!mobileBackdrop.isNull() || mobileBackdropCaptureScheduled || !isVisible())
 		return;
 
@@ -249,7 +249,7 @@ void UpdateDialog::updateMobileBackdrop()
 
 void UpdateDialog::paintEvent(QPaintEvent * event)
 {
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	Q_UNUSED(event);
 	if(!mobileBackdrop.isNull())
 	{
@@ -265,7 +265,7 @@ void UpdateDialog::paintEvent(QPaintEvent * event)
 void UpdateDialog::showEvent(QShowEvent * event)
 {
 	QDialog::showEvent(event);
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 	updateMobileBackdrop();
 #endif
 }
@@ -623,12 +623,12 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	const bool hasTestingOffer = ui->testingBuilds->isChecked() && testingOffer;
 	if((releaseOffer || hasTestingOffer) && !calledManually)
 	{
-		#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE)
 		ensureMobileBackdropCaptured();
-		#endif
-		#ifdef VCMI_MOBILE
+#endif
+#if defined(VCMI_MOBILE)
 		updateMobileHostGeometry();
-		#endif
+#endif
 		this->show();
 		this->raise();
 		this->activateWindow();
