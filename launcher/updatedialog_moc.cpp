@@ -133,11 +133,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 		ui->hostLayout->setAlignment(ui->contentPanel, Qt::AlignCenter);
 	}
 
-	if(QWidget * mainWindow = Helper::getMainWindow())
-		setGeometry(mainWindow->geometry());
-	else if(const QScreen * screen = QGuiApplication::primaryScreen())
-		setGeometry(screen->availableGeometry());
-
+	updateMobileHostGeometry();
 	updateMobileBackdrop();
 #else
 	setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -170,6 +166,9 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 			#endif
 		#else
 		    setWindowModality(Qt::ApplicationModal);
+		#endif
+		#ifdef VCMI_MOBILE
+		updateMobileHostGeometry();
 		#endif
 		show();
 	}
@@ -208,6 +207,20 @@ void UpdateDialog::resizeEvent(QResizeEvent * event)
 	QDialog::resizeEvent(event);
 #ifdef VCMI_MOBILE
 	updateMobileBackdrop();
+#endif
+}
+
+void UpdateDialog::updateMobileHostGeometry()
+{
+#ifdef VCMI_MOBILE
+	if(QWidget * mainWindow = Helper::getMainWindow())
+	{
+		setGeometry(mainWindow->geometry());
+		return;
+	}
+
+	if(const QScreen * screen = QGuiApplication::primaryScreen())
+		setGeometry(screen->availableGeometry());
 #endif
 }
 
@@ -615,6 +628,9 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 			if(QWidget * mainWindow = Helper::getMainWindow())
 				mobileBackdrop = mainWindow->grab();
 		}
+		#endif
+		#ifdef VCMI_MOBILE
+		updateMobileHostGeometry();
 		#endif
 		this->show();
 		this->raise();
