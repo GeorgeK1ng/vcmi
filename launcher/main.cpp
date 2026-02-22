@@ -49,6 +49,7 @@ int MAIN_EXPORT main(int argc, char * argv[])
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
+	QApplication::setAttribute(Qt::AA_SynthesizeMouseForUnhandledTabletEvents, true);
 	QApplication vcmilauncher(argc, argv);
 
 	// use system proxy
