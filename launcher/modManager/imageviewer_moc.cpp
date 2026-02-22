@@ -408,6 +408,36 @@ void ImageViewer::updateResponsiveLayout(const QSize & windowSize)
 	ui->buttonClose->setMinimumSize(buttonSize, buttonSize);
 	ui->buttonClose->setMaximumSize(buttonSize, buttonSize);
 
+	const int buttonRadius = buttonSize / 2;
+	const QString navigationButtonStyle = QStringLiteral(
+		"QPushButton#buttonPrevious, QPushButton#buttonNext {"
+		" border: 1px solid palette(mid);"
+		" border-radius: %1px;"
+		" padding: 3px;"
+		" background: palette(button);"
+		" font-size: 24px;"
+		" font-weight: 700;"
+		" }"
+		"QPushButton#buttonPrevious:hover, QPushButton#buttonNext:hover {"
+		" background: palette(light);"
+		" }").arg(buttonRadius);
+	const QString closeButtonStyle = QStringLiteral(
+		"QPushButton#buttonClose {"
+		" border: 1px solid palette(mid);"
+		" border-radius: %1px;"
+		" padding: 3px;"
+		" background: palette(button);"
+		" font-size: 28px;"
+		" font-weight: 700;"
+		" }"
+		"QPushButton#buttonClose:hover {"
+		" background: palette(light);"
+		" }").arg(buttonRadius);
+
+	ui->buttonPrevious->setStyleSheet(navigationButtonStyle);
+	ui->buttonNext->setStyleSheet(navigationButtonStyle);
+	ui->buttonClose->setStyleSheet(closeButtonStyle);
+
 	ui->gridLayout->setColumnStretch(0, 0);
 	ui->gridLayout->setColumnStretch(1, 1);
 	ui->gridLayout->setColumnStretch(2, 0);
