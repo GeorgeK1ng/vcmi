@@ -488,7 +488,13 @@ CSettingsView::CSettingsView(QWidget * parent)
 	: QWidget(parent), ui(new Ui::CSettingsView)
 {
 	ui->setupUi(this);
-	Helper::enableScrollBySwiping(ui->settingsScrollArea);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaGeneral);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaVideo);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaAudio);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaInput);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaAi);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaNetwork);
+	Helper::enableScrollBySwiping(ui->settingsScrollAreaMisc);
 
 	loadSettings();
 }
