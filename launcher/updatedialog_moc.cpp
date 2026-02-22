@@ -157,11 +157,7 @@ UpdateDialog::UpdateDialog(bool calledManually, QWidget *parent):
 	{
 		#ifdef VCMI_MOBILE
 		setWindowModality(Qt::NonModal);
-		if(mobileBackdrop.isNull())
-		{
-			if(QWidget * mainWindow = Helper::getMainWindow())
-				mobileBackdrop = mainWindow->grab();
-		}
+		ensureMobileBackdropCaptured();
 		updateMobileHostGeometry();
 		#else
 		setWindowModality(Qt::ApplicationModal);
@@ -220,6 +216,17 @@ void UpdateDialog::updateMobileHostGeometry()
 #endif
 }
 
+void UpdateDialog::ensureMobileBackdropCaptured()
+{
+#ifdef VCMI_MOBILE
+	if(!mobileBackdrop.isNull())
+		return;
+
+	if(QWidget * mainWindow = Helper::getMainWindow())
+		mobileBackdrop = mainWindow->grab();
+#endif
+}
+
 void UpdateDialog::updateMobileBackdrop()
 {
 #ifdef VCMI_MOBILE
@@ -233,11 +240,9 @@ void UpdateDialog::updateMobileBackdrop()
 		if(!isVisible() || !mobileBackdrop.isNull())
 			return;
 
-		if(QWidget * mainWindow = Helper::getMainWindow())
-		{
-			mobileBackdrop = mainWindow->grab();
+		ensureMobileBackdropCaptured();
+		if(!mobileBackdrop.isNull())
 			update();
-		}
 	});
 #endif
 }
@@ -619,11 +624,7 @@ void UpdateDialog::loadFromJson(const JsonNode& node, bool testing, const QStrin
 	if((releaseOffer || hasTestingOffer) && !calledManually)
 	{
 		#ifdef VCMI_MOBILE
-		if(mobileBackdrop.isNull())
-		{
-			if(QWidget * mainWindow = Helper::getMainWindow())
-				mobileBackdrop = mainWindow->grab();
-		}
+		ensureMobileBackdropCaptured();
 		#endif
 		#ifdef VCMI_MOBILE
 		updateMobileHostGeometry();
@@ -773,7 +774,7 @@ void UpdateDialog::on_installButton_clicked()
 	if(url.isEmpty())
 	{
 		ui->downloadLink->setText(tr("No package to download."));
-	    return;
+		return;
 	}
 
 #if defined(VCMI_ANDROID)
@@ -789,16 +790,17 @@ void UpdateDialog::on_installButton_clicked()
 #endif
 
 #if defined(VCMI_MOBILE)
-	    // Always ask user where to save on mobile
-	    Helper::nativeFolderPicker(this, [this, url](QString picked){
-	        if(picked.isEmpty())
-	            return; // user cancelled
-	        startDownloadToCacheAndRun(QUrl(url), picked);
-	    });
-	    return;
+	// Always ask user where to save on mobile
+	Helper::nativeFolderPicker(this, [this, url](QString picked)
+	{
+		if(picked.isEmpty())
+			return; // user cancelled
+		startDownloadToCacheAndRun(QUrl(url), picked);
+	});
+	return;
 #else
-	    // Desktop: keep current behaviour (or adjust as you wish)
-	    startDownloadToCacheAndRun(QUrl(url));
+	// Desktop: keep current behaviour (or adjust as you wish)
+	startDownloadToCacheAndRun(QUrl(url));
 #endif
 }
 

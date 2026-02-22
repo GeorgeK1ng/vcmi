@@ -100,5 +100,6 @@ private:
 	void updateAvailabilityNotice();
 	void startDownloadToCacheAndRun(const QUrl& url, const QString& target = QString());
 	void updateMobileBackdrop();
+	void ensureMobileBackdropCaptured();
 	void updateMobileHostGeometry();
 };
