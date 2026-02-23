@@ -906,7 +906,7 @@ jobs:
           copy_one "*x64*.zip" "release-assets/final/VCMI-Windows-x64.zip"
           copy_one "*x86*.exe" "release-assets/final/VCMI-Windows-x86.exe"
           copy_one "*x86*.zip" "release-assets/final/VCMI-Windows-x86.zip"
-          copy_one "*linux*x86_64*.AppImage" "release-assets/final/VCMI-Linux-x64.AppImage"
+          copy_one "*linux*x64*.AppImage" "release-assets/final/VCMI-Linux-x64.AppImage"
           copy_one "*linux*arm64*.AppImage" "release-assets/final/VCMI-Linux-arm64.AppImage"
 
       - name: Publish prerelease
