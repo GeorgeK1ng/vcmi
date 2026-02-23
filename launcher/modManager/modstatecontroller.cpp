@@ -26,22 +26,28 @@
 
 #include <future>
 
-#include <QDirIterator>
-
 namespace
 {
-bool extractModContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
 {
-	QDirIterator it(modPath, QDir::Files, QDirIterator::Subdirectories);
-	QVector<QString> archives;
-	while(it.hasNext())
+	const QFileInfoList entries = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+	for(const QFileInfo & entry : entries)
 	{
-		const QString archivePath = it.next();
-		if(it.fileName().compare("content.zip", Qt::CaseInsensitive) != 0)
+		if(entry.isDir())
+		{
+			findContentArchives(QDir(entry.absoluteFilePath()), archives);
 			continue;
+		}
 
-		archives.push_back(archivePath);
+		if(entry.fileName().compare("content.zip", Qt::CaseInsensitive) == 0)
+			archives.push_back(entry.absoluteFilePath());
 	}
+}
+
+bool extractContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+{
+	QVector<QString> archives;
+	findContentArchives(QDir(modPath), archives);
 
 	for(qint64 archiveIndex = 0; archiveIndex < archives.size(); ++archiveIndex)
 	{
@@ -79,6 +85,19 @@ bool extractModContentArchives(ModStateController * controller, const QString & 
 	controller->contentExtractionProgress(modName, archives.size(), archives.size());
 	qApp->processEvents();
 	return true;
+}
+
+bool extractNestedModArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+{
+	try
+	{
+		return extractContentArchives(controller, modName, modPath);
+	}
+	catch(const std::runtime_error & e)
+	{
+		logGlobal->error("Failed to extract nested mod archive. Reason: %s", e.what());
+		return false;
+	}
 }
 
 QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
@@ -297,19 +316,8 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 	if(upperLevel != modDirName)
 		removeModDir(destDir + upperLevel);
 
-	if(settings["launcher"]["fullModExtraction"].Bool())
-	{
-		try
-		{
-			if(!extractModContentArchives(this, modname, extractedDir.path()))
-				return addError(modname, tr("Failed to extract mod data"));
-		}
-		catch (const std::runtime_error & e)
-		{
-			logGlobal->error("Failed to extract nested mod archive. Reason: %s", e.what());
-			return addError(modname, tr("Failed to extract mod data"));
-		}
-	}
+	if(settings["launcher"]["fullModExtraction"].Bool() && !extractNestedModArchives(this, modname, extractedDir.path()))
+		return addError(modname, tr("Failed to extract mod data"));
 
 	return true;
 }

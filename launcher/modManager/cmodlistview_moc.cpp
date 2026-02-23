@@ -864,8 +864,10 @@ void CModListView::extractionProgress(qint64 current, qint64 max)
 
 void CModListView::contentExtractionProgress(QString modName, qint64 current, qint64 max)
 {
+	const QString modDisplayName = modStateModel->isModExists(modName) ? modStateModel->getMod(modName).getName() : modName;
+
 	ui->progressBar->setVisible(true);
-	ui->progressBar->setFormat(tr("Extracting %1/%2 content.zip from %3").arg(current).arg(max).arg(modName));
+	ui->progressBar->setFormat(tr("Extracting content.zip (%1/%2) for %3").arg(current).arg(max).arg(modDisplayName));
 	ui->progressBar->setMaximum(max);
 	ui->progressBar->setValue(current);
 }
