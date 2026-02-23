@@ -424,6 +424,12 @@ jobs:
       run: |
         unzip "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"
 
+        # Remove selected MSVC/UCRT runtime binaries before sending artifact for signing
+        rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/msvcp1*.dll
+        rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/d3dcompiler_47.dll
+        rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/concrt140.dll
+        rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/vcruntime1*.dll
+
     - name: Upload Windows artifact
       id: upload_artifact_windows
       if: ${{ startsWith(matrix.platform, 'msvc') }}
