@@ -13,6 +13,7 @@
 #include "modstatemodel.h"
 
 #include "../../lib/VCMIDirs.h"
+#include "../../lib/CConfigHandler.h"
 #include "../../lib/filesystem/Filesystem.h"
 #include "../../lib/filesystem/CZipLoader.h"
 #include "../../lib/modding/CModHandler.h"
