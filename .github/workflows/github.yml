@@ -909,13 +909,45 @@ jobs:
           copy_one "*x86_64*.AppImage" "release-assets/final/VCMI-Linux-x64.AppImage"
           copy_one "*arm64*.AppImage" "release-assets/final/VCMI-Linux-arm64.AppImage"
 
+      - name: Generate release description
+        run: |
+          set -euo pipefail
+
+          file_path="${GITHUB_WORKSPACE}/cmake_modules/VersionDefinition.cmake"
+
+          major=$(grep -m 1 "VCMI_VERSION_MAJOR" "$file_path" | tr -d -c 0-9)
+          minor=$(grep -m 1 "VCMI_VERSION_MINOR" "$file_path" | tr -d -c 0-9)
+          patch=$(grep -m 1 "VCMI_VERSION_PATCH" "$file_path" | tr -d -c 0-9)
+
+          current_version="${major}.${minor}.${patch}"
+          echo "current_version=${current_version}" >> "$GITHUB_ENV"
+
+          if [ "$patch" -gt 0 ]; then
+            previous_version="${major}.${minor}.$((patch - 1))"
+          elif [ "$minor" -gt 0 ]; then
+            previous_version="${major}.$((minor - 1)).0"
+          elif [ "$major" -gt 0 ]; then
+            previous_version="$((major - 1)).0.0"
+          else
+            previous_version="0.0.0"
+          fi
+
+          changelog_anchor="${previous_version//./}---${current_version//./}"
+
+          sed \
+            -e "s/__PREVIOUS_VERSION__/${previous_version}/g" \
+            -e "s/__CURRENT_VERSION__/${current_version}/g" \
+            -e "s/__CHANGELOG_ANCHOR__/${changelog_anchor}/g" \
+            .github/release/description.md > .github/release/release-description.md
+
       - name: Publish prerelease
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: prerelease-${{ github.run_id }}
-          name: VCMI prerelease ${{ github.run_number }}
+          tag_name: ${{ env.current_version }}
+          name: VCMI ${{ env.current_version }}
           prerelease: true
           target_commitish: ${{ github.sha }}
+          body_path: .github/release/release-description.md
           files: |
             release-assets/final/*
 
