@@ -1,0 +1,12 @@
+Note: saved games from 1.6 release can be loaded in 1.7
+
+### Changelog
+- Player Changelog: [__PREVIOUS_VERSION__ -> __CURRENT_VERSION__](https://github.com/vcmi/vcmi/blob/master/ChangeLog.md#__CHANGELOG_ANCHOR__)
+- Full Changelog: [__PREVIOUS_VERSION__ -> __CURRENT_VERSION__](https://github.com/vcmi/vcmi/compare/__PREVIOUS_VERSION__..__CURRENT_VERSION__)
+
+### Additional builds
+- Android release is available on [Google Play](https://play.google.com/store/apps/details?id=is.xyz.vcmi)
+- iOS release is available on [TestFlight](https://testflight.apple.com/join/pJWHSbmu) (AppStore version coming soon)
+- Linux release is available on [Flathub](https://flathub.org/apps/eu.vcmi.VCMI)
+- Ubuntu release is available on [VCMI PPA](https://launchpad.net/~vcmi/+archive/ubuntu/ppa)
+- macOS release can be installed via Homebrew: `brew install --cask vcmi/vcmi/vcmi`
