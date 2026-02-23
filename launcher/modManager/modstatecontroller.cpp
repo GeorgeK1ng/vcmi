@@ -46,6 +46,7 @@ bool extractModContentArchives(ModStateController * controller, const QString & 
 	for(qint64 archiveIndex = 0; archiveIndex < archives.size(); ++archiveIndex)
 	{
 		controller->contentExtractionProgress(modName, archiveIndex + 1, archives.size());
+		qApp->processEvents();
 
 		const QString archivePath = archives[archiveIndex];
 		const QFileInfo archiveInfo(archivePath);
@@ -76,6 +77,7 @@ bool extractModContentArchives(ModStateController * controller, const QString & 
 	}
 
 	controller->contentExtractionProgress(modName, archives.size(), archives.size());
+	qApp->processEvents();
 	return true;
 }
 
