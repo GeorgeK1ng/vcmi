@@ -795,7 +795,7 @@ jobs:
         if [ -f "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" ]; then
           unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
         else
-          cp -a artifact/. artifact/extracted/
+          find artifact -mindepth 1 -maxdepth 1 ! -name extracted -exec cp -a {} artifact/extracted/ \;
         fi
 
     - name: Ensure Inno Setup is installed
