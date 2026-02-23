@@ -444,6 +444,7 @@ jobs:
         organization-id: '091f52d0-6021-4c04-bbdf-a3736f7730b4'
         project-slug: 'vcmi'
         signing-policy-slug: 'test-signing'
+        artifact-configuration-slug: 'universal'
         github-artifact-id: '${{ steps.upload_artifact_windows.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: '${{github.workspace}}/out/signed/'
@@ -772,16 +773,30 @@ jobs:
       env:
         PULL_REQUEST: ${{ github.event.pull_request.number }}
 
-    - name: Download Artifact
+    - name: Download signed artifact
+      id: download_signed
+      continue-on-error: true
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}-signed
+        path: ${{github.workspace}}/artifact
+
+    - name: Download unsigned artifact (fallback)
+      if: ${{ steps.download_signed.outcome != 'success' }}
       uses: actions/download-artifact@v7
       with:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}
         path: ${{github.workspace}}/artifact
 
-    - name: Extract Artifact
+    - name: Prepare extracted artifact for installer
       run: |
-        mkdir artifact/extracted
-        unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
+        mkdir -p artifact/extracted
+
+        if [ -f "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" ]; then
+          unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
+        else
+          cp -a artifact/. artifact/extracted/
+        fi
 
     - name: Ensure Inno Setup is installed
       run: |
