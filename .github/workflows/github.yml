@@ -876,6 +876,9 @@ jobs:
       contents: write
       actions: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Download release-candidate artifacts
         uses: actions/download-artifact@v7
         with:
