@@ -13,6 +13,7 @@
 #include "modstatemodel.h"
 
 #include "../../lib/VCMIDirs.h"
+#include "../../lib/CConfigHandler.h"
 #include "../../lib/filesystem/Filesystem.h"
 #include "../../lib/filesystem/CZipLoader.h"
 #include "../../lib/modding/CModHandler.h"
@@ -25,8 +26,61 @@
 
 #include <future>
 
+#include <QDirIterator>
+
 namespace
 {
+bool extractModContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+{
+	QDirIterator it(modPath, QDir::Files, QDirIterator::Subdirectories);
+	QVector<QString> archives;
+	while(it.hasNext())
+	{
+		const QString archivePath = it.next();
+		if(it.fileName().compare("content.zip", Qt::CaseInsensitive) != 0)
+			continue;
+
+		archives.push_back(archivePath);
+	}
+
+	for(qint64 archiveIndex = 0; archiveIndex < archives.size(); ++archiveIndex)
+	{
+		controller->contentExtractionProgress(modName, archiveIndex + 1, archives.size());
+		qApp->processEvents();
+
+		const QString archivePath = archives[archiveIndex];
+		const QFileInfo archiveInfo(archivePath);
+		const QString contentDirPath = archiveInfo.dir().filePath("content");
+
+		QDir contentDir(contentDirPath);
+		if(!contentDir.exists() && !archiveInfo.dir().mkpath("content"))
+		{
+			logGlobal->error("Failed to create content directory for '%s'", archivePath.toStdString().c_str());
+			return false;
+		}
+
+		ZipArchive archive(qstringToPath(archivePath));
+		for(const auto & file : archive.listFiles())
+		{
+			if(!archive.extract(qstringToPath(contentDirPath), file))
+			{
+				logGlobal->error("Failed to extract '%s' from '%s'", file, archivePath.toStdString().c_str());
+				return false;
+			}
+		}
+
+		if(!QFile::remove(archivePath))
+		{
+			logGlobal->error("Failed to remove extracted archive '%s'", archivePath.toStdString().c_str());
+			return false;
+		}
+	}
+
+	controller->contentExtractionProgress(modName, archives.size(), archives.size());
+	qApp->processEvents();
+	return true;
+}
+
 QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
 {
 	try {
@@ -242,6 +296,20 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 	QString upperLevel = modDirName.section('/', 0, 0);
 	if(upperLevel != modDirName)
 		removeModDir(destDir + upperLevel);
+
+	if(settings["launcher"]["fullModExtraction"].Bool())
+	{
+		try
+		{
+			if(!extractModContentArchives(this, modname, extractedDir.path()))
+				return addError(modname, tr("Failed to extract mod data"));
+		}
+		catch (const std::runtime_error & e)
+		{
+			logGlobal->error("Failed to extract nested mod archive. Reason: %s", e.what());
+			return addError(modname, tr("Failed to extract mod data"));
+		}
+	}
 
 	return true;
 }
