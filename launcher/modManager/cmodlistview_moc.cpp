@@ -52,6 +52,12 @@ void CModListView::setupModModel()
 
 	modModel = new ModStateItemModel(modStateModel, this);
 	manager = std::make_unique<ModStateController>(modStateModel);
+
+	connect(manager.get(), SIGNAL(extractionProgress(qint64,qint64)),
+		this, SLOT(extractionProgress(qint64,qint64)));
+
+	connect(manager.get(), SIGNAL(contentExtractionProgress(QString,qint64,qint64)),
+		this, SLOT(contentExtractionProgress(QString,qint64,qint64)));
 }
 
 void CModListView::changeEvent(QEvent *event)
@@ -829,12 +835,6 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 
 		connect(dlManager, SIGNAL(finished(QStringList,QStringList,QStringList)),
 			this, SLOT(downloadFinished(QStringList,QStringList,QStringList)));
-
-		connect(manager.get(), SIGNAL(extractionProgress(qint64,qint64)),
-			this, SLOT(extractionProgress(qint64,qint64)));
-
-		connect(manager.get(), SIGNAL(contentExtractionProgress(QString,qint64,qint64)),
-			this, SLOT(contentExtractionProgress(QString,qint64,qint64)));
 
 		connect(modModel, &ModStateItemModel::dataChanged, filterModel, &QAbstractItemModel::dataChanged);
 
