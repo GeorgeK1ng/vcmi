@@ -147,7 +147,7 @@
 				},
 				{
 					"name": "spellbookAnimationCheckbox",
-					"help": "core.help.364",
+					"help": "core.help.577",
 					"callback": "spellbookAnimationChanged"
 				},
 				{
