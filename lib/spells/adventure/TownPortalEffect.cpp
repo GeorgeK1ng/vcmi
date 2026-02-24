@@ -31,6 +31,7 @@ TownPortalEffect::TownPortalEffect(const CSpell * s, const JsonNode & config)
 	, movementPointsTaken(config["movementPointsTaken"].Integer())
 	, allowTownSelection(config["allowTownSelection"].Bool())
 	, skipOccupiedTowns(config["skipOccupiedTowns"].Bool())
+	, showGarrisonDialog(config["showGarrisonDialog"].Bool())
 {
 }
 
@@ -196,7 +197,7 @@ ESpellCastResult TownPortalEffect::beginCast(SpellCastEnvironment * env, const A
 
 	if(!parameters.pos.isValid() && allowTownSelection)
 	{
-		auto queryCallback = [&mechanics, env, parameters](std::optional<int32_t> reply) -> void
+		auto queryCallback = [&mechanics, this, env, parameters](std::optional<int32_t> reply) -> void
 		{
 			if(reply.has_value())
 			{
@@ -209,9 +210,16 @@ ESpellCastResult TownPortalEffect::beginCast(SpellCastEnvironment * env, const A
 					return;
 				}
 
-				if(!dynamic_cast<const CGTownInstance *>(o))
+				auto selectedTown = dynamic_cast<const CGTownInstance *>(o);
+				if(selectedTown == nullptr)
 				{
 					env->complain("Object instance is not town");
+					return;
+				}
+
+				if(showGarrisonDialog)
+				{
+					env->showGarrisonDialog(selectedTown->id, ObjectInstanceID(parameters.caster->getCasterUnitId()), false);
 					return;
 				}
 

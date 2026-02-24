@@ -94,6 +94,11 @@ bool ServerSpellCastEnvironment::moveHero(ObjectInstanceID hid, int3 dst, EMovem
 	return gh->moveHero(hid, dst, mode, false);
 }
 
+void ServerSpellCastEnvironment::showGarrisonDialog(ObjectInstanceID townId, ObjectInstanceID heroId, bool removableUnits)
+{
+	gh->showGarrisonDialog(townId, heroId, removableUnits);
+}
+
 void ServerSpellCastEnvironment::createBoat(const int3 & visitablePosition, BoatId type, PlayerColor initiator)
 {
 	return gh->createBoat(visitablePosition, type, initiator);

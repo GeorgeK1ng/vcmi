@@ -23,6 +23,7 @@ class DLL_LINKAGE TownPortalEffect final : public IAdventureSpellEffect
 	int movementPointsTaken;
 	bool allowTownSelection;
 	bool skipOccupiedTowns;
+	bool showGarrisonDialog;
 
 public:
 	TownPortalEffect(const CSpell * s, const JsonNode & config);

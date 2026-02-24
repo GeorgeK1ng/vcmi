@@ -134,6 +134,10 @@ public:
 		return false;
 	}
 
+	void showGarrisonDialog(ObjectInstanceID townId, ObjectInstanceID heroId, bool removableUnits) override
+	{
+	}
+
 	void genericQuery(Query * request, PlayerColor color, std::function<void(std::optional<int32_t>)> callback) override
 	{
 		//todo:

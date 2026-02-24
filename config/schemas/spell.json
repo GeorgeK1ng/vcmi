@@ -126,7 +126,8 @@
 							"movementPointsRequired" : { "type" : "number" },
 							"movementPointsTaken" : { "type" : "number" },
 							"allowTownSelection" : { "type" : "boolean" },
-							"skipOccupiedTowns" : { "type" : "boolean" }
+							"skipOccupiedTowns" : { "type" : "boolean" },
+							"showGarrisonDialog" : { "type" : "boolean" }
 						},
 						"additionalProperties" : false
 					}
