@@ -109,9 +109,21 @@ GeneralOptionsTab::GeneralOptionsTab()
 #endif
 
 	const JsonNode config(JsonPath::builtin("config/widgets/settings/generalOptionsTab.json"));
-	addCallback("spellbookAnimationChanged", [](bool value)
+	addCallback("enableLargeSpellbookChanged", [this](bool value)
 	{
+		std::shared_ptr<CToggleButton> spellbookAnimationCheckbox = widget<CToggleButton>("spellbookAnimationCheckbox");
+		spellbookAnimationCheckbox->setSelectedSilent(!value);
+
+		setBoolSetting("gameTweaks", "enableLargeSpellbook", value);
+		setBoolSetting("video", "spellbookAnimation", !value);
+	});
+	addCallback("spellbookAnimationChanged", [this](bool value)
+	{
+		std::shared_ptr<CToggleButton> enableLargeSpellbookCheckbox = widget<CToggleButton>("enableLargeSpellbookCheckbox");
+		enableLargeSpellbookCheckbox->setSelectedSilent(!value);
+
 		setBoolSetting("video", "spellbookAnimation", value);
+		setBoolSetting("gameTweaks", "enableLargeSpellbook", !value);
 	});
 	addCallback("setMusic", [this](int value)
 	{
@@ -170,17 +182,6 @@ GeneralOptionsTab::GeneralOptionsTab()
 		setBoolSetting("general", "enableUiEnhancements", value);
 	});
 
-	addCallback("enableLargeSpellbookChanged", [this](bool value)
-	{
-		setBoolSetting("gameTweaks", "enableLargeSpellbook", value);
-		std::shared_ptr<CToggleButton> spellbookAnimationCheckbox = widget<CToggleButton>("spellbookAnimationCheckbox");
-		if(value)
-			spellbookAnimationCheckbox->disable();
-		else
-			spellbookAnimationCheckbox->enable();
-		redraw();
-	});
-
 	addCallback("audioMuteFocusChanged", [](bool value)
 	{
 		setBoolSetting("general", "audioMuteFocus", value);
@@ -211,12 +212,12 @@ GeneralOptionsTab::GeneralOptionsTab()
 	if (longTouchLabel)
 		longTouchLabel->setText(longTouchToLabelString(settings["general"]["longTouchTimeMilliseconds"].Integer()));
 
+	std::shared_ptr<CToggleButton> enableLargeSpellbookCheckbox = widget<CToggleButton>("enableLargeSpellbookCheckbox");
+	if (enableLargeSpellbookCheckbox)
+		enableLargeSpellbookCheckbox->setSelectedSilent(settings["gameTweaks"]["enableLargeSpellbook"].Bool());
+
 	std::shared_ptr<CToggleButton> spellbookAnimationCheckbox = widget<CToggleButton>("spellbookAnimationCheckbox");
-	spellbookAnimationCheckbox->setSelected(settings["video"]["spellbookAnimation"].Bool());
-	if(settings["gameTweaks"]["enableLargeSpellbook"].Bool())
-		spellbookAnimationCheckbox->disable();
-	else
-		spellbookAnimationCheckbox->enable();
+	spellbookAnimationCheckbox->setSelectedSilent(!settings["gameTweaks"]["enableLargeSpellbook"].Bool());
 
 	std::shared_ptr<CToggleButton> fullscreenBorderlessCheckbox = widget<CToggleButton>("fullscreenBorderlessCheckbox");
 	if (fullscreenBorderlessCheckbox)
@@ -240,10 +241,6 @@ GeneralOptionsTab::GeneralOptionsTab()
 	std::shared_ptr<CToggleButton> enableUiEnhancementsCheckbox = widget<CToggleButton>("enableUiEnhancementsCheckbox");
 	if (enableUiEnhancementsCheckbox)
 		enableUiEnhancementsCheckbox->setSelected(settings["general"]["enableUiEnhancements"].Bool());
-
-	std::shared_ptr<CToggleButton> enableLargeSpellbookCheckbox = widget<CToggleButton>("enableLargeSpellbookCheckbox");
-	if (enableLargeSpellbookCheckbox)
-		enableLargeSpellbookCheckbox->setSelected(settings["gameTweaks"]["enableLargeSpellbook"].Bool());
 
 	std::shared_ptr<CToggleButton> audioMuteFocusCheckbox = widget<CToggleButton>("audioMuteFocusCheckbox");
 	if (audioMuteFocusCheckbox)
