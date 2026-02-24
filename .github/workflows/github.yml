@@ -183,7 +183,6 @@ jobs:
         key: ${{ matrix.platform }}-apt-${{ matrix.os }}
         restore-keys: |
           ${{ matrix.platform }}-apt-${{ matrix.os }}
-
     - name: Prepare CI
       if: "${{ matrix.before_install != '' }}"
       run: source '${{ github.workspace }}/CI/before_install/${{ matrix.before_install }}'
@@ -199,26 +198,21 @@ jobs:
           echo "skip codesigning"
           exit 0
         fi
-
         keychainName=build.keychain
         security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychainName"
         security default-keychain -s "$keychainName"
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychainName"
         security set-keychain-settings -u -t 7200 "$keychainName"
-
         certPath="$RUNNER_TEMP/cert.p12"
         printf "$SIGNING_CERTIFICATE_BASE64" | base64 -D -o "$certPath"
-
         security import "$certPath" -f pkcs12 -P "$SIGNING_CERTIFICATE_PASSWORD" -T "$(which codesign)" -k "$keychainName"
         security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$keychainName" >/dev/null
-
         # fetch SHA-1 of the p12 cert. Sample output for awk processing:
         # SHA1 Fingerprint=00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33
         signingIdentitySHA=$(openssl pkcs12 -in "$certPath" -nodes -passin "pass:$SIGNING_CERTIFICATE_PASSWORD" 2>/dev/null \
           | openssl x509 -noout -fingerprint -sha1 \
           | awk -F = '{ gsub(/:/, "", $2); print $2 }')
         echo MACOS_CODE_SIGN_IDENTITY=$signingIdentitySHA >> $GITHUB_ENV
-
     # Save only on cache miss, GitHub caches are immutable per key
     - name: APT cache save
       if: contains(matrix.os, 'ubuntu') && steps.aptcache.outputs.cache-hit != 'true'
@@ -232,7 +226,6 @@ jobs:
       run: |
         pipx install conan
         source '${{github.workspace}}/CI/install_conan_dependencies.sh' '${{matrix.conan_prebuilts}}'
-
     - name: Setup MSVC Developer Command Prompt
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       uses: ilammy/msvc-dev-cmd@v1
@@ -280,7 +273,6 @@ jobs:
         ccache --set-config=base_dir="${GITHUB_WORKSPACE}"
         ccache --set-config=hash_dir=true
         ccache --set-config=sloppiness=time_macros
-
     - name: Install Conan profile
       if: "${{ matrix.conan_profile != '' }}"
       run: |
@@ -292,7 +284,6 @@ jobs:
           --profile=dependencies/conan_profiles/${{ matrix.conan_profile }} \
           ${{ matrix.conan_options }}
         ${{ startsWith(matrix.platform, 'msvc') && 'echo CONANRUN_PWSH_SCRIPT="$outFolder/conanrun.ps1" >> $GITHUB_ENV' || '' }}
-
     # Can't be set in Gradle project
     - name: Configure enableUncompressedNativeLibs
       if: ${{ startsWith(matrix.platform, 'android') }}
@@ -314,7 +305,6 @@ jobs:
         sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/share/dotnet || :
         echo "Disk usage AFTER cleanup:"
         df -h
-
     # a hack to build ID for x64 build in order for Google Play to allow upload of both 32 and 64 bit builds
     - name: Bump Android x64 build ID
       if: ${{ matrix.platform == 'android-64' }}
@@ -351,7 +341,6 @@ jobs:
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       run: |
         & $env:CONANRUN_PWSH_SCRIPT
-
         cmake --preset ${{ matrix.preset }}
       shell: pwsh
 
@@ -372,7 +361,6 @@ jobs:
       run: |
         chmod +x CI/create_appimage.sh
         CI/create_appimage.sh
-
     - name: Kill XProtect to work around CPack issue on macOS
       if: ${{ startsWith(matrix.platform, 'mac') }}
       run: |
@@ -380,7 +368,6 @@ jobs:
         echo Killing...; sudo pkill -9 XProtect >/dev/null || true;
         echo "Waiting..."; counter=0; while pgrep XProtect && ((counter < 20)); do sleep 3; ((counter++)); done
         pgrep XProtect || true
-
     - name: Pack
       id: cpack
       if: ${{ matrix.pack == 1 }}
@@ -401,7 +388,6 @@ jobs:
           echo "skip notarization"
           exit 0
         fi
-
         dmg='${{ github.workspace }}/out/build/${{ matrix.preset }}/${{ env.VCMI_PACKAGE_FILE_NAME }}.${{ matrix.extension }}'
         codesign --verbose=4 --force --sign "$MACOS_CODE_SIGN_IDENTITY" "$dmg"
         xcrun notarytool submit \
@@ -411,25 +397,21 @@ jobs:
           --wait \
           "$dmg"
         xcrun stapler staple "$dmg"
-
     - name: Find Android package
       if: ${{ startsWith(matrix.platform, 'android') }}
       run: |
         OUTPUT_DIRECTORY="${{ github.workspace }}/out/build/${{ matrix.preset }}/android-build/vcmi-app/build/outputs"
         mv "$OUTPUT_DIRECTORY/apk/release/vcmi-release.apk" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.apk"
         mv "$OUTPUT_DIRECTORY/bundle/release/vcmi-release.aab" "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.aab"
-
     - name: Prepare Windows artifact
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       run: |
         unzip "${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"
-
         # Remove selected MSVC/UCRT runtime binaries before sending artifact for signing
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/msvcp1*.dll
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/d3dcompiler_47.dll
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/concrt140.dll
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/vcruntime1*.dll
-
     - name: Upload Windows artifact
       id: upload_artifact_windows
       if: ${{ startsWith(matrix.platform, 'msvc') }}
@@ -439,7 +421,6 @@ jobs:
         compression-level: 9
         path: |
           ${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload
-
     - name: Sign Windows artifact
       if: ${{ env.SIGNPATH_API_TOKEN != '' && startsWith(matrix.platform, 'msvc') }}
       env:
@@ -465,7 +446,6 @@ jobs:
         compression-level: 9
         path: |
           ${{github.workspace}}/out/signed/${{matrix.preset}}/artifact-upload
-
     - name: Upload Artifact
       id: upload_artifact
       if: ${{ !startsWith(matrix.platform, 'msvc') }}
@@ -476,7 +456,6 @@ jobs:
         compression-level: 9
         path: |
           ${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.${{ matrix.extension }}
-
     - name: Upload release-candidate artifact
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_mode }}
       uses: actions/upload-artifact@v6
@@ -485,7 +464,6 @@ jobs:
         compression-level: 0
         path: |
           ${{ startsWith(matrix.platform, 'msvc') && format('{0}/out/build/{1}/{2}.zip', github.workspace, matrix.preset, env.VCMI_PACKAGE_FILE_NAME) || format('{0}/out/build/{1}/{2}.{3}', github.workspace, matrix.preset, env.VCMI_PACKAGE_FILE_NAME, matrix.extension) }}
-
     - name: Upload AAB Artifact
       id: upload_aab
       if: ${{ startsWith(matrix.platform, 'android') && github.ref == 'refs/heads/master' }}
@@ -495,7 +473,6 @@ jobs:
         compression-level: 9
         path: |
           ${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.aab
-
     - name: Upload MSVC debug symbols
       id: upload_symbols
       if: ${{ startsWith(matrix.platform, 'msvc') }}
@@ -505,7 +482,6 @@ jobs:
         compression-level: 9
         path: |
             ${{github.workspace}}/**/*.pdb
-
     - name: Create iOS AppStore debug symbols
       if: ${{ matrix.platform == 'ios' }}
       run: |
@@ -522,7 +498,6 @@ jobs:
         compression-level: 9
         path: |
             ${{ env.IOS_APPSTORE_SYMBOLS_DIR }}
-
     - name: Upload build to download.vcmi.eu
       if: ${{ matrix.upload == 1 && github.event.number == '' && env.DEPLOY_RSA != '' }}
       run: |
@@ -543,7 +518,6 @@ jobs:
         AAB_URL: ${{ steps.upload_aab.outputs.artifact-url }}
       run: |
         python3 CI/emit_partial.py
-
     - name: Upload partial JSON with build informations
       uses: actions/upload-artifact@v6
       with:
@@ -566,14 +540,12 @@ jobs:
           run: |
             source '${{github.workspace}}/CI/get_package_name.sh'
             echo VCMI_PACKAGE_FILE_NAME="$VCMI_PACKAGE_FILE_NAME" >> $GITHUB_ENV
-
         - name: Create source code archive (including submodules)
           run: |
             git archive HEAD -o "release.tar" --worktree-attributes -v
             git submodule update --init --recursive
             git submodule --quiet foreach 'cd "$toplevel"; tar -rvf "release.tar" "$sm_path"'
             gzip release.tar
-
         - name: Upload source code archive
           id: upload_source
           uses: actions/upload-artifact@v6
@@ -582,7 +554,6 @@ jobs:
             compression-level: 9
             path: |
               ./release.tar.gz
-
         - name: Prepare partial JSON with source informations
           shell: bash
           run: |
@@ -590,7 +561,6 @@ jobs:
             cat > .summary/source.json <<JSON
             {"source_url": "${{ steps.upload_source.outputs.artifact-url }}"}
             JSON
-
         - name: Upload partial JSON with source informations
           uses: actions/upload-artifact@v6
           with:
@@ -655,7 +625,6 @@ jobs:
         key: ${{ matrix.platform }}-apt-${{ matrix.os }}
         restore-keys: |
           ${{ matrix.platform }}-apt-${{ matrix.os }}
-
     - name: Prepare CI
       run: source '${{ github.workspace }}/CI/before_install/${{ matrix.before_install }}'
 
@@ -695,19 +664,15 @@ jobs:
         wget --progress=dot:giga "$data_url" -O heroes3.7z
         mkdir -p ~/.local/share/vcmi/
         7za x -o"$HOME/.local/share/vcmi/" heroes3.7z
-
     - name: Configure
       run: |
         cmake -DENABLE_CCACHE:BOOL=ON -DCMAKE_C_COMPILER=${{ matrix.compiler_cc }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler_cxx }} --preset ${{ matrix.preset }}
-
     - name: Build
       run: |
         cmake --build --preset ${{matrix.preset}}
-
     - name: Test
       run: |
         ctest --preset ${{matrix.preset}}
-
     - name: Validate library startup
       run: |
         cd "${{github.workspace}}/out/build/${{matrix.preset}}/bin"
@@ -719,7 +684,6 @@ jobs:
             echo "Validation failed!"
             exit 1
         fi
-
   windows-installer:
     needs: build
     if: ${{ needs.build.result == 'success' }}
@@ -754,17 +718,13 @@ jobs:
       id: extract-version
       run: |
         filePath="${GITHUB_WORKSPACE}/cmake_modules/VersionDefinition.cmake"
-
         major=$(grep -m 1 "VCMI_VERSION_MAJOR" "$filePath" | tr -d -c 0-9)
         minor=$(grep -m 1 "VCMI_VERSION_MINOR" "$filePath" | tr -d -c 0-9)
         patch=$(grep -m 1 "VCMI_VERSION_PATCH" "$filePath" | tr -d -c 0-9)
-
         short_version="${major}.${minor}.${patch}"
         version_timestamp=$(date +"%Y%m%d%H%M%S")
-
         echo "short_version=${short_version}" >> "$GITHUB_OUTPUT"
         echo "version_timestamp=${version_timestamp}" >> "$GITHUB_OUTPUT"
-
     - name: Download UCRT
       run: source '${{github.workspace}}/CI/wininstaller/download_ucrt.sh' '${{matrix.platform}}'
 
@@ -797,19 +757,16 @@ jobs:
     - name: Prepare extracted artifact for installer
       run: |
         mkdir -p artifact/extracted
-
         if [ -f "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" ]; then
           unzip "artifact/${{ env.VCMI_PACKAGE_FILE_NAME }}.zip" -d artifact/extracted
         else
           find artifact -mindepth 1 -maxdepth 1 ! -name extracted -exec cp -a {} artifact/extracted/ \;
         fi
-
     - name: Ensure Inno Setup is installed
       run: |
         if [ ! -f "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ] && [ ! -f "/c/ProgramData/Chocolatey/bin/ISCC.exe" ]; then
           choco install innosetup --no-progress -y
         fi
-
     - name: Build VCMI Installer
       run: >
         CI\wininstaller\build_installer.cmd
@@ -830,7 +787,6 @@ jobs:
         compression-level: 9
         path: |
           ${{ github.workspace }}/CI/wininstaller/Output/*.exe
-
     - name: Upload release-candidate Windows installer
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_mode }}
       uses: actions/upload-artifact@v6
@@ -839,7 +795,6 @@ jobs:
         compression-level: 0
         path: |
           ${{ github.workspace }}/CI/wininstaller/Output/*.exe
-
     - name: Upload Installer
       if: ${{ github.event.number == '' && env.DEPLOY_RSA != '' }}
       run: |
@@ -859,7 +814,6 @@ jobs:
           "installer_url": "${{ steps.upload_installer.outputs.artifact-url }}"
         }
         JSON
-
     - name: Upload partial JSON with installer informations
       uses: actions/upload-artifact@v6
       with:
@@ -891,7 +845,6 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           mkdir -p release-assets/final
-
           copy_one() {
             local pattern="$1"
             local destination="$2"
@@ -902,7 +855,6 @@ jobs:
             fi
             cp "${matches[0]}" "$destination"
           }
-
           copy_one "*arm64-v8a*.apk" "release-assets/final/VCMI-Android-arm64-v8a.apk"
           copy_one "*armeabi-v7a*.apk" "release-assets/final/VCMI-Android-armeabi-v7a.apk"
           copy_one "*x64*.apk" "release-assets/final/VCMI-Android-x86_64.apk"
@@ -917,20 +869,15 @@ jobs:
           copy_one "*x86*.zip" "release-assets/final/VCMI-Windows-x86.zip"
           copy_one "*x86_64*.AppImage" "release-assets/final/VCMI-Linux-x64.AppImage"
           copy_one "*arm64*.AppImage" "release-assets/final/VCMI-Linux-arm64.AppImage"
-
       - name: Generate release description
         run: |
           set -euo pipefail
-
           file_path="${GITHUB_WORKSPACE}/cmake_modules/VersionDefinition.cmake"
-
           major=$(grep -m 1 "VCMI_VERSION_MAJOR" "$file_path" | tr -d -c 0-9)
           minor=$(grep -m 1 "VCMI_VERSION_MINOR" "$file_path" | tr -d -c 0-9)
           patch=$(grep -m 1 "VCMI_VERSION_PATCH" "$file_path" | tr -d -c 0-9)
-
           current_version="${major}.${minor}.${patch}"
           echo "current_version=${current_version}" >> "$GITHUB_ENV"
-
           if [ "$patch" -gt 0 ]; then
             previous_version="${major}.${minor}.$((patch - 1))"
           elif [ "$minor" -gt 0 ]; then
@@ -940,15 +887,12 @@ jobs:
           else
             previous_version="0.0.0"
           fi
-
           changelog_anchor="${previous_version//./}---${current_version//./}"
-
           sed \
             -e "s/__PREVIOUS_VERSION__/${previous_version}/g" \
             -e "s/__CURRENT_VERSION__/${current_version}/g" \
             -e "s/__CHANGELOG_ANCHOR__/${changelog_anchor}/g" \
             .github/release/description.md > .github/release/release-description.md
-
       - name: Publish prerelease
         uses: softprops/action-gh-release@v2
         with:
@@ -959,7 +903,6 @@ jobs:
           body_path: .github/release/release-description.md
           files: |
             release-assets/final/*
-
   validate-code:
     name: Validate Code
     if: always()
@@ -976,12 +919,10 @@ jobs:
             -o -path ./osx  -prune -o -type f \
             -not -name '*.png' -and -not -name '*.ttf' -and -not -name '*.wav' -and -not -name '*.webm' -and -not -name '*.ico' -and -not -name '*.bat' -and -not -name '*.cmd' -and -not -name '*.iss' -and -not -name '*.isl' -print0 | \
             { ! xargs -0 grep -l -z -P '\r\n'; }
-
         - name: Validate JSON
           run: |
             sudo apt install python3-jstyleson
             python3 CI/validate_json.py
-
         - name: Validate Markdown
           uses: DavidAnson/markdownlint-cli2-action@v22
           with:
