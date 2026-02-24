@@ -434,5 +434,62 @@
 		"flags" : {
 			"indifferent": true
 		}
+	},
+	"reinforcements" : {
+		"name" : "Reinforcements",
+		"type" : "adventure",
+		"targetType": "NO_TARGET",
+		"school" : {
+			"fire" : true
+		},
+		"level" : 1,
+		"power" : 0,
+		"defaultGainChance" : 15,
+		"gainChance" : {},
+		"sounds": {
+			"cast": "TELPTOUT"
+		},
+		"graphics" : {
+			"iconBook" : "zspel102",
+			"iconEffect" : "zvs/Lib1.res/TPSR",
+			"iconScenarioBonus" : "zspel102",
+			"iconScroll" : "zspel102"
+		},
+		"levels" : {
+			"base":{
+				"range" : "X",
+				"adventureEffect" : {
+					"type" : "townPortal",
+					"castsPerDay" : 1,
+					"allowTownSelection" : false,
+					"skipOccupiedTowns" : true,
+					"showGarrisonDialog" : true,
+					"movementPointsRequired" : 0,
+					"movementPointsTaken" : 0
+				}
+			},
+			"none":{
+			},
+			"basic":{
+				"adventureEffect" : {
+					"castsPerDay" : 2
+				}
+			},
+			"advanced":{
+				"adventureEffect" : {
+					"castsPerDay" : 3,
+					"allowTownSelection" : true
+				}
+			},
+			"expert":{
+				"adventureEffect" : {
+					"castsPerDay" : 4,
+					"allowTownSelection" : true
+				}
+			}
+		},
+		"flags" : {
+			"indifferent": true
+		}
 	}
 }

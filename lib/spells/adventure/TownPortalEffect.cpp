@@ -155,6 +155,12 @@ void TownPortalEffect::endCast(SpellCastEnvironment * env, const AdventureSpellC
 		destination = dynamic_cast<const CGTownInstance *>(topObj);
 	}
 
+	if(showGarrisonDialog)
+	{
+		env->showGarrisonDialog(destination->id, ObjectInstanceID(parameters.caster->getCasterUnitId()), false);
+		return;
+	}
+
 	if(env->moveHero(ObjectInstanceID(parameters.caster->getCasterUnitId()), parameters.caster->getHeroCaster()->convertFromVisitablePos(destination->visitablePos()), EMovementMode::TOWN_PORTAL))
 	{
 		SetMovePoints smp;
@@ -214,12 +220,6 @@ ESpellCastResult TownPortalEffect::beginCast(SpellCastEnvironment * env, const A
 				if(selectedTown == nullptr)
 				{
 					env->complain("Object instance is not town");
-					return;
-				}
-
-				if(showGarrisonDialog)
-				{
-					env->showGarrisonDialog(selectedTown->id, ObjectInstanceID(parameters.caster->getCasterUnitId()), false);
 					return;
 				}
 
