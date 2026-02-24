@@ -945,10 +945,22 @@ jobs:
 
           changelog_anchor="${previous_version//./}---${current_version//./}"
 
+          current_major_minor="${major}.${minor}"
+
+          if [ "$minor" -gt 0 ]; then
+            previous_major_minor="${major}.$((minor - 1))"
+          elif [ "$major" -gt 0 ]; then
+            previous_major_minor="$((major - 1)).0"
+          else
+            previous_major_minor="0.0"
+          fi
+
           sed \
             -e "s/__PREVIOUS_VERSION__/${previous_version}/g" \
             -e "s/__CURRENT_VERSION__/${current_version}/g" \
             -e "s/__CHANGELOG_ANCHOR__/${changelog_anchor}/g" \
+            -e "s/__PREVIOUS_MAJOR_MINOR__/${previous_major_minor}/g" \
+            -e "s/__CURRENT_MAJOR_MINOR__/${current_major_minor}/g" \
             .github/release/description.md > .github/release/release-description.md
 
       - name: Publish prerelease
