@@ -27,9 +27,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
-env:
-  PACKAGE_BUILD_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.package_build_type || 'RelWithDebInfo' }}
-
 jobs:
   build:
     name: Build (${{ matrix.platform }})
@@ -40,7 +37,7 @@ jobs:
             os: macos-14
             pack: 1
             upload: 1
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: dmg
             before_install: macos.sh
             preset: macos-conan-ninja-release
@@ -53,7 +50,7 @@ jobs:
             os: macos-14
             pack: 1
             upload: 1
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: dmg
             before_install: macos.sh
             preset: macos-arm-conan-ninja-release
@@ -66,7 +63,7 @@ jobs:
             os: macos-14
             pack: 1
             upload: 1
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: ipa
             before_install: macos.sh
             preset: ios-release-conan-ccache
@@ -80,12 +77,12 @@ jobs:
             os: windows-2025
             pack: 1
             upload: 0
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: zip
             preset: windows-msvc-ninja-release
             conan_profile: msvc-x64
             conan_prebuilts: dependencies-windows-x64
-            conan_options: -s "&:build_type=${{ env.PACKAGE_BUILD_TYPE }}" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
+            conan_options: -s "&:build_type=${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
             artifact_platform: x64
 
           - platform: msvc-x86
@@ -94,12 +91,12 @@ jobs:
             os: windows-2025
             pack: 1
             upload: 0
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: zip
             preset: windows-msvc-ninja-release-x86
             conan_profile: msvc-x86
             conan_prebuilts: dependencies-windows-x86
-            conan_options: -s "&:build_type=${{ env.PACKAGE_BUILD_TYPE }}" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
+            conan_options: -s "&:build_type=${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
             artifact_platform: x86
 
           - platform: msvc-arm64
@@ -107,12 +104,12 @@ jobs:
             os: windows-11-arm
             pack: 1
             upload: 0
-            pack_type: ${{ env.PACKAGE_BUILD_TYPE }}
+            pack_type: ${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}
             extension: zip
             preset: windows-msvc-ninja-release-arm64
             conan_profile: msvc-arm64
             conan_prebuilts: dependencies-windows-arm64
-            conan_options: -s "&:build_type=${{ env.PACKAGE_BUILD_TYPE }}" -c tools.env.virtualenv:powershell=pwsh -o "&:lua_lib=lua"
+            conan_options: -s "&:build_type=${{ github.event.inputs.package_build_type || 'RelWithDebInfo' }}" -c tools.env.virtualenv:powershell=pwsh -o "&:lua_lib=lua"
             artifact_platform: arm64
 
           - platform: android-32
