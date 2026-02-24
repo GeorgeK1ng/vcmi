@@ -15,89 +15,113 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QToolButton" name="buttonTabLanguage">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Language</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextOnly</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="buttonTabHeroesData">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Heroes III Data</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextOnly</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="buttonTabModPreset">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Mods Preset</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextOnly</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="QStackedWidget" name="installerTabs">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
+     <widget class="QWidget" name="page">
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>2</x>
+         <y>40</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QListWidget" name="listWidgetLanguage">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>2</x>
+         <y>330</y>
+         <width>721</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonLanguageNext_2">
+          <property name="text">
+           <string>Next</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QLabel" name="labelLanguageTitle">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>0</y>
+         <width>721</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Select your language</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </widget>
      <widget class="QWidget" name="pageLanguageSelect">
       <layout class="QGridLayout" name="gridLayout_3">
        <property name="leftMargin">
@@ -115,32 +139,10 @@
        <property name="horizontalSpacing">
         <number>6</number>
        </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="labelLanguageTitle">
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Select your language</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignmentFlag::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" rowspan="4">
-        <widget class="QListWidget" name="listWidgetLanguage">
-         <property name="spacing">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
+       <item row="1" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -150,7 +152,7 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="1" colspan="2">
+       <item row="2" column="0" colspan="2">
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="2" column="0">
           <widget class="QPushButton" name="pushButtonGithub">
@@ -175,7 +177,7 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="1" colspan="2">
+       <item row="0" column="0" colspan="2">
         <widget class="QLabel" name="labelLanguageWelcome">
          <property name="text">
           <string>Thank you for installing VCMI!
@@ -191,7 +193,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1" colspan="2">
+       <item row="3" column="0" colspan="2">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>6</number>
@@ -199,7 +201,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -219,9 +221,6 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
         </layout>
        </item>
       </layout>
-      <zorder>labelLanguageWelcome</zorder>
-      <zorder>labelLanguageTitle</zorder>
-      <zorder>listWidgetLanguage</zorder>
      </widget>
      <widget class="QWidget" name="pageDataFiles">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -258,7 +257,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
        <item>
         <spacer name="verticalSpacer_8">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -313,10 +312,10 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
             </sizepolicy>
            </property>
            <property name="text">
-            <string>You can manually copy Maps, Data, and Mp3 folders from the original game directory to the VCMI data directory shown below</string>
+            <string>You can manually copy directories Maps, Data, and Mp3 from the original game directory to the VCMI data directory that you can see on top of this page</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -423,7 +422,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
             <string>If you already have Heroes III files on your device, you can select this directory and VCMI will copy the existing data automatically.</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -511,10 +510,10 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
 Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; - you must download both.</string>
            </property>
            <property name="textFormat">
-            <enum>Qt::PlainText</enum>
+            <enum>Qt::TextFormat::PlainText</enum>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -526,7 +525,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -544,10 +543,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
          <item>
           <spacer name="horizontalSpacer_4">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::MinimumExpanding</enum>
+            <enum>QSizePolicy::Policy::MinimumExpanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -607,7 +606,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        <item>
         <spacer name="verticalSpacer_5">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -669,7 +668,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -739,7 +738,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -780,7 +779,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -812,7 +811,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>A feature-rich expansion that expands gameplay with one alternative unit for each of the 9 standard towns, plus new neutral creatures, creature banks, skills and spells</string>
+            <string>Install the Tides of War expansion, which adds the ability to build alternative level 7 creature dwellings for all 9 standard towns</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -828,7 +827,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Descend into the underground realm and uncover Casemate — a new faction where mushrooms, stone and rune magic thrive in the dark, created for VCMI</string>
+            <string>Install the exclusive underground, mushroom-themed expansion Fallen of the Depth, available only in VCMI</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -890,7 +889,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <string>In The Wake of Gods</string>
            </property>
            <property name="icon">
-            <iconset resource="../resources.qrc">
+            <iconset>
              <normaloff>:/icons/mod-disabled.png</normaloff>
              <normalon>:icons/mod-enabled.png</normalon>:/icons/mod-disabled.png</iconset>
            </property>
@@ -898,7 +897,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -928,7 +927,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <string>Tides of War</string>
            </property>
            <property name="icon">
-            <iconset resource="../resources.qrc">
+            <iconset>
              <normaloff>:/icons/mod-disabled.png</normaloff>
              <normalon>:icons/mod-enabled.png</normalon>:/icons/mod-disabled.png</iconset>
            </property>
@@ -936,7 +935,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -966,7 +965,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <string>Fallen of the Depth</string>
            </property>
            <property name="icon">
-            <iconset resource="../resources.qrc">
+            <iconset>
              <normaloff>:/icons/mod-disabled.png</normaloff>
              <normalon>:icons/mod-enabled.png</normalon>:/icons/mod-disabled.png</iconset>
            </property>
@@ -974,7 +973,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -1004,7 +1003,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <string>Demo support</string>
            </property>
            <property name="icon">
-            <iconset resource="../resources.qrc">
+            <iconset>
              <normaloff>:/icons/mod-disabled.png</normaloff>
              <normalon>:icons/mod-enabled.png</normalon>:/icons/mod-disabled.png</iconset>
            </property>
@@ -1015,7 +1014,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             <bool>true</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
+            <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>false</bool>
@@ -1027,7 +1026,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        <item>
         <spacer name="verticalSpacer_6">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -1042,7 +1041,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
          <item>
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -1075,7 +1074,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
   </layout>
  </widget>
  <resources>
-  <include location="../resources.qrc"/>
+  <include location="../../resources.qrc"/>
  </resources>
  <connections/>
 </ui>
