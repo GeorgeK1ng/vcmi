@@ -1,4 +1,4 @@
-# Note: Saved games from the __PREVIOUS_MAJOR_MINOR__ release can be loaded in __CURRENT_MAJOR_MINOR__
+# Note: Saved games from the `__PREVIOUS_MAJOR_MINOR__` release can be loaded in `__CURRENT_MAJOR_MINOR__`
 
 ## Changelog
 
