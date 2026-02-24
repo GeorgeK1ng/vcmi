@@ -6,6 +6,7 @@ on:
       - beta
       - master
       - develop
+  
   pull_request:
   workflow_dispatch:
     inputs:
@@ -183,6 +184,7 @@ jobs:
         key: ${{ matrix.platform }}-apt-${{ matrix.os }}
         restore-keys: |
           ${{ matrix.platform }}-apt-${{ matrix.os }}
+
     - name: Prepare CI
       if: "${{ matrix.before_install != '' }}"
       run: source '${{ github.workspace }}/CI/before_install/${{ matrix.before_install }}'
@@ -412,6 +414,7 @@ jobs:
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/d3dcompiler_47.dll
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/concrt140.dll
         rm -f "${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload"/vcruntime1*.dll
+
     - name: Upload Windows artifact
       id: upload_artifact_windows
       if: ${{ startsWith(matrix.platform, 'msvc') }}
@@ -421,6 +424,7 @@ jobs:
         compression-level: 9
         path: |
           ${{github.workspace}}/out/build/${{matrix.preset}}/artifact-upload
+
     - name: Sign Windows artifact
       if: ${{ env.SIGNPATH_API_TOKEN != '' && startsWith(matrix.platform, 'msvc') }}
       env:
@@ -740,6 +744,7 @@ jobs:
         PULL_REQUEST: ${{ github.event.pull_request.number }}
 
     - name: Download signed artifact
+      if: ${{ env.SIGNPATH_API_TOKEN != '' }}
       id: download_signed
       continue-on-error: true
       uses: actions/download-artifact@v7
