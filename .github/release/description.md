@@ -2,8 +2,8 @@
 
 ## Changelog
 
-- Player changelog: [**PREVIOUS_VERSION -> CURRENT_VERSION**](https://github.com/vcmi/vcmi/blob/master/ChangeLog.md#__CHANGELOG_ANCHOR__)
-- Full changelog: [**PREVIOUS_VERSION -> CURRENT_VERSION**](https://github.com/vcmi/vcmi/compare/__PREVIOUS_VERSION__..__CURRENT_VERSION__)
+- Player changelog: [**__PREVIOUS_VERSION__ -> __CURRENT_VERSION__**](https://github.com/vcmi/vcmi/blob/master/ChangeLog.md#__CHANGELOG_ANCHOR__)
+- Full changelog: [**__PREVIOUS_VERSION__ -> __CURRENT_VERSION__**](https://github.com/vcmi/vcmi/compare/__PREVIOUS_VERSION__..__CURRENT_VERSION__)
 
 ## Additional builds
 
