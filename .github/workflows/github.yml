@@ -11,7 +11,10 @@ on:
   workflow_dispatch:
     inputs:
       release_mode:
-        description: 'Prepare prerelease assets and upload them to GitHub prerelease. NOTE: This have effect only in vcmi/vcmi github'
+        description: >-
+          Prepare prerelease assets and upload them to GitHub prerelease.
+
+          NOTE: This has effect only in vcmi/vcmi github
         required: false
         type: boolean
         default: false
