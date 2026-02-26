@@ -515,29 +515,35 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 		{
 			for(auto skillID : parent->info->levelupInfo->skills)
 			{
-				if(index == 0 && skillID >= 100)
+				if(skillID < 100)
+					continue;
+
+				if(index > 0)
 				{
-					const auto bonuses = LIBRARY->creh->skillRequirements[skillID-100].first;
-					const CStackInstance * stack = parent->info->commander;
-					auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(stack->bonusToGraphics(bonuses[0])), true, [](){});
-					icon->callback = [this, skillID, icon]()
-					{
-						parent->setSelection(skillID, icon);
-					};
-					std::string abilityDescription;
-					for(size_t i = 0; i < bonuses.size(); i++)
-					{
-						if(!abilityDescription.empty())
-							abilityDescription += "\n";
-
-						abilityDescription += LIBRARY->bth->bonusToString(bonuses[i]);
-					}
-
-					icon->hoverText = abilityDescription;
-					icon->text = abilityDescription;
-
-					return icon;
+					--index;
+					continue;
 				}
+
+				const auto bonuses = LIBRARY->creh->skillRequirements[skillID-100].first;
+				const CStackInstance * stack = parent->info->commander;
+				auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(stack->bonusToGraphics(bonuses[0])), true, [](){});
+				icon->callback = [this, skillID, icon]()
+				{
+					parent->setSelection(skillID, icon);
+				};
+				std::string abilityDescription;
+				for(size_t i = 0; i < bonuses.size(); i++)
+				{
+					if(!abilityDescription.empty())
+						abilityDescription += "\n";
+
+					abilityDescription += LIBRARY->bth->bonusToString(bonuses[i]);
+				}
+
+				icon->hoverText = abilityDescription;
+				icon->text = abilityDescription;
+
+				return icon;
 			}
 			return nullptr;
 		};
