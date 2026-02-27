@@ -317,21 +317,10 @@ QString CModListView::genModInfoText(const ModState & mod)
 	QString result;
 
 	QTextDocument description;
-	const QString rawDescription = mod.getDescription();
-	description.setMarkdown(rawDescription);
+	description.setMarkdown(mod.getDescription());
 	QString cleanDescription = description.toMarkdown();
 	if (cleanDescription.isEmpty())
 		cleanDescription = description.toPlainText();
-
-	// Legacy fallback for mod.json entries written in HTML.
-	if (rawDescription.contains('<') && rawDescription.contains('>'))
-	{
-		QTextDocument htmlDescription;
-		htmlDescription.setHtml(rawDescription);
-		const QString htmlConverted = htmlDescription.toMarkdown();
-		if (!htmlConverted.isEmpty())
-			cleanDescription = htmlConverted;
-	}
 
 	result += replaceIfNotEmpty(mod.getName(), modNameTemplate);
 	result += cleanDescription;
@@ -613,8 +602,8 @@ void CModListView::selectMod(const QModelIndex & index)
 		ui->tabWidget->setTabEnabled(1, !mod.getChangelog().isEmpty());
 		ui->tabWidget->setTabEnabled(2, !mod.getScreenshots().isEmpty());
 
-		ui->modInfoBrowser->document()->setMarkdown(genModInfoText(mod));
-		ui->changelogBrowser->document()->setMarkdown(genChangelogText(mod));
+		ui->modInfoBrowser->document()->setMarkdown(genModInfoText(mod), QTextDocument::MarkdownFeature::MarkdownNoHTML);
+		ui->changelogBrowser->document()->setMarkdown(genChangelogText(mod), QTextDocument::MarkdownFeature::MarkdownNoHTML);
 
 		Helper::enableScrollBySwiping(ui->modInfoBrowser);
 		Helper::enableScrollBySwiping(ui->changelogBrowser);

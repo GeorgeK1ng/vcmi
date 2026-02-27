@@ -10,6 +10,8 @@
 #include "StdInc.h"
 #include "modstate.h"
 
+#include <QTextDocument>
+
 #include "../../lib/modding/ModDescription.h"
 #include "../../lib/json/JsonNode.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -32,7 +34,18 @@ QString ModState::getType() const
 
 QString ModState::getDescription() const
 {
-	return QString::fromStdString(impl.getLocalizedValue("description").String());
+	const QString description = QString::fromStdString(impl.getLocalizedValue("description").String());
+
+	if (description.contains('<') && description.contains('>'))
+	{
+		QTextDocument htmlDescription;
+		htmlDescription.setHtml(description);
+		const QString convertedDescription = htmlDescription.toMarkdown();
+		if (!convertedDescription.isEmpty())
+			return convertedDescription;
+	}
+
+	return description;
 }
 
 QString ModState::getID() const
