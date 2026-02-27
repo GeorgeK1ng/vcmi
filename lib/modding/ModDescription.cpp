@@ -22,19 +22,20 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 static std::string normalizeDescriptionMarkup(std::string text)
 {
-	text = std::regex_replace(text, std::regex("<\s*br\s*/?\s*>", std::regex_constants::icase), "\n");
-	text = std::regex_replace(text, std::regex("<\s*(b|strong)(\s+[^>]*)?>", std::regex_constants::icase), "**");
-	text = std::regex_replace(text, std::regex("<\s*/\s*(b|strong)\s*>", std::regex_constants::icase), "**");
-	text = std::regex_replace(text, std::regex("<\s*(i|em)(\s+[^>]*)?>", std::regex_constants::icase), "*");
-	text = std::regex_replace(text, std::regex("<\s*/\s*(i|em)\s*>", std::regex_constants::icase), "*");
-	text = std::regex_replace(text, std::regex("<\s*u(\s+[^>]*)?>", std::regex_constants::icase), "__");
-	text = std::regex_replace(text, std::regex("<\s*/\s*u\s*>", std::regex_constants::icase), "__");
+	text = std::regex_replace(text, std::regex(R"(<\s*br\s*/?\s*>)", std::regex_constants::icase), "\n");
+	text = std::regex_replace(text, std::regex(R"(<\s*(b|strong)(\s+[^>]*)?>)", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(b|strong)\s*>)", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex(R"(<\s*(i|em)(\s+[^>]*)?>)", std::regex_constants::icase), "*");
+	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(i|em)\s*>)", std::regex_constants::icase), "*");
+	text = std::regex_replace(text, std::regex(R"(<\s*u(\s+[^>]*)?>)", std::regex_constants::icase), "__");
+	text = std::regex_replace(text, std::regex(R"(<\s*/\s*u\s*>)", std::regex_constants::icase), "__");
 
 	static const std::regex htmlTagPattern("<[^>]+>");
 	text = std::regex_replace(text, htmlTagPattern, "");
 
 	return text;
 }
+
 
 void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::string & fullDescription)
 {
