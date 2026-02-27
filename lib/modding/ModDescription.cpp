@@ -26,13 +26,11 @@ static std::string normalizeDescriptionMarkup(std::string text)
 	// Handle both <br> and self-closing variants (<br/>, <br />).
 	text = std::regex_replace(text, std::regex(R"(<\s*br\s*/?\s*>)", std::regex_constants::icase), "\n");
 
-	// Convert a few common formatting tags into markdown-style equivalents.
+	// Convert only the most useful inline tags before stripping the remaining HTML.
 	text = std::regex_replace(text, std::regex(R"(<\s*(b|strong)(\s+[^>]*)?>)", std::regex_constants::icase), "**");
 	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(b|strong)\s*>)", std::regex_constants::icase), "**");
 	text = std::regex_replace(text, std::regex(R"(<\s*(i|em)(\s+[^>]*)?>)", std::regex_constants::icase), "*");
 	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(i|em)\s*>)", std::regex_constants::icase), "*");
-	text = std::regex_replace(text, std::regex(R"(<\s*u(\s+[^>]*)?>)", std::regex_constants::icase), "__");
-	text = std::regex_replace(text, std::regex(R"(<\s*/\s*u\s*>)", std::regex_constants::icase), "__");
 
 	// Strip any remaining tags to avoid leaking raw HTML into UI markdown renderer.
 	static const std::regex htmlTagPattern("<[^>]+>");
