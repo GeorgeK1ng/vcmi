@@ -19,36 +19,106 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+
+static std::string normalizeDescriptionMarkup(std::string text)
+{
+	// Keep this normalization in lib layer: launcher/Qt conversion is not available here.
+	// Handle both <br> and self-closing variants (<br/>, <br />).
+	text = std::regex_replace(text, std::regex(R"(<\s*br\s*/?\s*>)", std::regex_constants::icase), "\n");
+
+	// Convert only the most useful inline tags before stripping the remaining HTML.
+	text = std::regex_replace(text, std::regex(R"(<\s*(b|strong)(\s+[^>]*)?>)", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(b|strong)\s*>)", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex(R"(<\s*(i|em)(\s+[^>]*)?>)", std::regex_constants::icase), "*");
+	text = std::regex_replace(text, std::regex(R"(<\s*/\s*(i|em)\s*>)", std::regex_constants::icase), "*");
+
+	// Strip any remaining tags to avoid leaking raw HTML into UI markdown renderer.
+	static const std::regex htmlTagPattern("<[^>]+>");
+	text = std::regex_replace(text, htmlTagPattern, "");
+
+	return text;
+}
+
+
 void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::string & fullDescription)
 {
-	std::vector<std::string> sections;
-	boost::algorithm::iter_split(sections, fullDescription, boost::algorithm::first_finder("\n# "));
+	if (modConfig["description"].isString())
+		modConfig["description"].String() = normalizeDescriptionMarkup(modConfig["description"].String());
 
-	for (const auto & section : sections)
+	for (const auto & language : Languages::getLanguageList())
 	{
-		size_t endOfFirstLine = section.find('\n', 1);
-		if (endOfFirstLine == std::string::npos)
-			continue;
-
-		std::string firstLine = section.substr(0, endOfFirstLine);
-
-		for (const auto & language : Languages::getLanguageList())
-		{
-			if (firstLine.find(language.identifier) == std::string::npos)
-			   continue;
-
-			bool baseLanguageDescription = language.identifier == "english";
-			if (modConfig.Struct().count("language"))
-				baseLanguageDescription = language.identifier == modConfig["language"].String();
-
-			if (baseLanguageDescription)
-				modConfig["description"].String() = section.substr(endOfFirstLine+1);
-			else
-				modConfig[language.identifier]["description"].String() = section.substr(endOfFirstLine+1);
-
-			break;
-		}
+		if (modConfig[language.identifier]["description"].isString())
+			modConfig[language.identifier]["description"].String() = normalizeDescriptionMarkup(modConfig[language.identifier]["description"].String());
 	}
+
+	if (fullDescription.empty())
+		return;
+
+	std::set<std::string> knownLanguages;
+	for (const auto & language : Languages::getLanguageList())
+		knownLanguages.insert(boost::algorithm::to_lower_copy(language.identifier));
+	std::map<std::string, std::string> sections;
+	std::string currentLanguage;
+	std::string currentContent;
+	const std::string baseLanguage = boost::algorithm::to_lower_copy(modConfig.Struct().count("language") ? modConfig["language"].String() : "english");
+
+	auto flushCurrentSection = [&]()
+	{
+		if (!currentLanguage.empty())
+			sections[currentLanguage] = currentContent;
+		currentLanguage.clear();
+		currentContent.clear();
+	};
+
+	std::istringstream stream(fullDescription);
+	bool firstLine = true;
+	for (std::string line; std::getline(stream, line);)
+	{
+		boost::trim_right_if(line, boost::is_any_of("\r"));
+		if (firstLine)
+		{
+			boost::trim_left_if(line, boost::is_any_of("\xEF\xBB\xBF")); // UTF-8 BOM, if present
+			firstLine = false;
+		}
+
+		if (boost::algorithm::starts_with(line, "#"))
+		{
+			std::string languageID = line.substr(1);
+			boost::trim(languageID);
+			boost::to_lower(languageID);
+
+			if (knownLanguages.count(languageID) != 0)
+			{
+				flushCurrentSection();
+				currentLanguage = languageID;
+				continue;
+			}
+		}
+
+		if (!currentLanguage.empty())
+			currentContent += line + "\n";
+	}
+
+	flushCurrentSection();
+
+	if (sections.empty())
+	{
+		modConfig["description"].String() = normalizeDescriptionMarkup(fullDescription);
+		return;
+	}
+
+	for (const auto & [languageID, description] : sections)
+	{
+		if (languageID != baseLanguage)
+			modConfig[languageID]["description"].String() = normalizeDescriptionMarkup(description);
+	}
+
+	if (sections.count(baseLanguage) != 0)
+		modConfig["description"].String() = normalizeDescriptionMarkup(sections[baseLanguage]);
+	else if (sections.count("english") != 0)
+		modConfig["description"].String() = normalizeDescriptionMarkup(sections["english"]);
+	else
+		modConfig["description"].String() = normalizeDescriptionMarkup(sections.begin()->second);
 }
 
 ModDescription::ModDescription(const TModID & fullID, const JsonNode & localConfig, const JsonNode & repositoryConfig)
