@@ -316,11 +316,26 @@ QString CModListView::genModInfoText(const ModState & mod)
 
 	QString result;
 
+	const QString rawDescription = mod.getDescription();
 	QTextDocument description;
-	description.setMarkdown(mod.getDescription());
+	description.setMarkdown(rawDescription);
 	QString cleanDescription = description.toMarkdown();
 	if (cleanDescription.isEmpty())
 		cleanDescription = description.toPlainText();
+
+	// Compatibility fallback: many legacy mods still use HTML in mod.json description.
+	// Markdown renderer is configured with MarkdownNoHTML, so convert known HTML input to markdown first.
+	static const QRegularExpression htmlPattern(R"(<\s*/?\s*[a-zA-Z][^>]*>)");
+	if (htmlPattern.match(rawDescription).hasMatch())
+	{
+		QTextDocument htmlDescription;
+		htmlDescription.setHtml(rawDescription);
+		QString htmlConverted = htmlDescription.toMarkdown();
+		if (htmlConverted.isEmpty())
+			htmlConverted = htmlDescription.toPlainText();
+		if (!htmlConverted.isEmpty())
+			cleanDescription = htmlConverted;
+	}
 
 	result += replaceIfNotEmpty(mod.getName(), modNameTemplate);
 	result += cleanDescription;
