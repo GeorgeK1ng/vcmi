@@ -317,10 +317,21 @@ QString CModListView::genModInfoText(const ModState & mod)
 	QString result;
 
 	QTextDocument description;
-	description.setMarkdown(mod.getDescription());
+	const QString rawDescription = mod.getDescription();
+	description.setMarkdown(rawDescription);
 	QString cleanDescription = description.toMarkdown();
 	if (cleanDescription.isEmpty())
 		cleanDescription = description.toPlainText();
+
+	// Legacy fallback for mod.json entries written in HTML.
+	if (rawDescription.contains('<') && rawDescription.contains('>'))
+	{
+		QTextDocument htmlDescription;
+		htmlDescription.setHtml(rawDescription);
+		const QString htmlConverted = htmlDescription.toMarkdown();
+		if (!htmlConverted.isEmpty())
+			cleanDescription = htmlConverted;
+	}
 
 	result += replaceIfNotEmpty(mod.getName(), modNameTemplate);
 	result += cleanDescription;
