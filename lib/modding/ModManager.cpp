@@ -454,9 +454,6 @@ ModsStorage::ModsStorage(const std::vector<TModID> & modsToLoad, const JsonNode 
 			continue;
 		}
 
-		// Always normalize legacy markup from mod.json descriptions (base + localized).
-		ModDescription::mergeModDescriptions(modConfig, "");
-
 		if (CResourceHandler::get()->existsResource(getModDescriptionFile(modID)))
 		{
 			auto data = CResourceHandler::get()->load(getModDescriptionFile(modID))->readAll();
