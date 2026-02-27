@@ -22,11 +22,13 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 static std::string normalizeDescriptionMarkup(std::string text)
 {
-	boost::replace_all(text, "<br>", "\n");
-	boost::replace_all(text, "<br/>", "\n");
-	boost::replace_all(text, "<br />", "\n");
-	boost::replace_all(text, "<b>", "**");
-	boost::replace_all(text, "</b>", "**");
+	text = std::regex_replace(text, std::regex("<\s*br\s*/?\s*>", std::regex_constants::icase), "\n");
+	text = std::regex_replace(text, std::regex("<\s*(b|strong)(\s+[^>]*)?>", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex("<\s*/\s*(b|strong)\s*>", std::regex_constants::icase), "**");
+	text = std::regex_replace(text, std::regex("<\s*(i|em)(\s+[^>]*)?>", std::regex_constants::icase), "*");
+	text = std::regex_replace(text, std::regex("<\s*/\s*(i|em)\s*>", std::regex_constants::icase), "*");
+	text = std::regex_replace(text, std::regex("<\s*u(\s+[^>]*)?>", std::regex_constants::icase), "__");
+	text = std::regex_replace(text, std::regex("<\s*/\s*u\s*>", std::regex_constants::icase), "__");
 
 	static const std::regex htmlTagPattern("<[^>]+>");
 	text = std::regex_replace(text, htmlTagPattern, "");
