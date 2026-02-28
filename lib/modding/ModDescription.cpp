@@ -25,6 +25,10 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 	if (fullDescription.empty())
 		return;
 
+	std::string descriptionText = fullDescription;
+	if (descriptionText.find('\n') == std::string::npos && descriptionText.find("\\n") != std::string::npos)
+		boost::replace_all(descriptionText, "\\n", "\n");
+
 	std::set<std::string> knownLanguages;
 	for (const auto & language : Languages::getLanguageList())
 		knownLanguages.insert(language.identifier);
@@ -32,7 +36,7 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 	const std::string baseLanguage = modConfig.Struct().count("language") ? modConfig["language"].String() : "english";
 
 	std::vector<std::string> sections;
-	boost::algorithm::iter_split(sections, fullDescription, boost::algorithm::first_finder("\n# "));
+	boost::algorithm::iter_split(sections, descriptionText, boost::algorithm::first_finder("\n# "));
 
 	for (auto & section : sections)
 	{
@@ -63,7 +67,7 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 		if (!modConfig["english"]["description"].isNull())
 			modConfig["description"].String() = modConfig["english"]["description"].String();
 		else
-			modConfig["description"].String() = fullDescription;
+			modConfig["description"].String() = descriptionText;
 	}
 }
 
