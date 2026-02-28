@@ -28,68 +28,43 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 	std::set<std::string> knownLanguages;
 	for (const auto & language : Languages::getLanguageList())
 		knownLanguages.insert(boost::algorithm::to_lower_copy(language.identifier));
-	std::map<std::string, std::string> sections;
-	std::string currentLanguage;
-	std::string currentContent;
+
 	const std::string baseLanguage = boost::algorithm::to_lower_copy(modConfig.Struct().count("language") ? modConfig["language"].String() : "english");
 
-	auto flushCurrentSection = [&]()
+	std::vector<std::string> sections;
+	boost::algorithm::iter_split(sections, fullDescription, boost::algorithm::first_finder("\n# "));
+
+	for (auto & section : sections)
 	{
-		if (!currentLanguage.empty())
-			sections[currentLanguage] = currentContent;
-		currentLanguage.clear();
-		currentContent.clear();
-	};
+		if (boost::algorithm::starts_with(section, "# "))
+			section.erase(0, 2);
 
-	std::istringstream stream(fullDescription);
-	bool firstLine = true;
-	for (std::string line; std::getline(stream, line);)
-	{
-		boost::trim_right_if(line, boost::is_any_of("\r"));
-		if (firstLine)
-		{
-			boost::trim_left_if(line, boost::is_any_of("\xEF\xBB\xBF")); // UTF-8 BOM, if present
-			firstLine = false;
-		}
+		boost::trim_left_if(section, boost::is_any_of("\xEF\xBB\xBF")); // UTF-8 BOM, if present
 
-		if (boost::algorithm::starts_with(line, "#"))
-		{
-			std::string languageID = line.substr(1);
-			boost::trim(languageID);
-			boost::to_lower(languageID);
+		size_t endOfFirstLine = section.find('\n');
+		if (endOfFirstLine == std::string::npos)
+			continue;
 
-			if (knownLanguages.count(languageID) != 0)
-			{
-				flushCurrentSection();
-				currentLanguage = languageID;
-				continue;
-			}
-		}
+		std::string languageID = section.substr(0, endOfFirstLine);
+		boost::trim(languageID);
+		boost::to_lower(languageID);
 
-		if (!currentLanguage.empty())
-			currentContent += line + "\n";
+		if (knownLanguages.count(languageID) == 0)
+			continue;
+
+		if (languageID == baseLanguage)
+			modConfig["description"].String() = section.substr(endOfFirstLine + 1);
+		else
+			modConfig[languageID]["description"].String() = section.substr(endOfFirstLine + 1);
 	}
 
-	flushCurrentSection();
-
-	if (sections.empty())
+	if (modConfig["description"].isNull())
 	{
-		modConfig["description"].String() = fullDescription;
-		return;
+		if (!modConfig["english"]["description"].isNull())
+			modConfig["description"].String() = modConfig["english"]["description"].String();
+		else
+			modConfig["description"].String() = fullDescription;
 	}
-
-	for (const auto & [languageID, description] : sections)
-	{
-		if (languageID != baseLanguage)
-			modConfig[languageID]["description"].String() = description;
-	}
-
-	if (sections.count(baseLanguage) != 0)
-		modConfig["description"].String() = sections[baseLanguage];
-	else if (sections.count("english") != 0)
-		modConfig["description"].String() = sections["english"];
-	else
-		modConfig["description"].String() = sections.begin()->second;
 }
 
 ModDescription::ModDescription(const TModID & fullID, const JsonNode & localConfig, const JsonNode & repositoryConfig)
