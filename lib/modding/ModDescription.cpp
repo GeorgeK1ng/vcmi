@@ -27,9 +27,9 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 
 	std::set<std::string> knownLanguages;
 	for (const auto & language : Languages::getLanguageList())
-		knownLanguages.insert(boost::algorithm::to_lower_copy(language.identifier));
+		knownLanguages.insert(language.identifier);
 
-	const std::string baseLanguage = boost::algorithm::to_lower_copy(modConfig.Struct().count("language") ? modConfig["language"].String() : "english");
+	const std::string baseLanguage = modConfig.Struct().count("language") ? modConfig["language"].String() : "english";
 
 	std::vector<std::string> sections;
 	boost::algorithm::iter_split(sections, fullDescription, boost::algorithm::first_finder("\n# "));
