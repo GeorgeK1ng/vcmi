@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>745</width>
-    <height>680</height>
+    <width>737</width>
+    <height>519</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QStackedWidget" name="installerTabs">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageLanguage">
       <layout class="QVBoxLayout" name="verticalLayoutLanguagePage">
@@ -35,9 +35,16 @@
        </property>
        <item>
         <widget class="QLabel" name="labelLanguageTitle">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="font">
           <font>
-           <bold>true</bold>
+           <pointsize>12</pointsize>
+           <bold>false</bold>
           </font>
          </property>
          <property name="text">
@@ -151,13 +158,20 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="font">
           <font>
-           <bold>true</bold>
+           <pointsize>12</pointsize>
+           <bold>false</bold>
           </font>
          </property>
          <property name="text">
-          <string>Locate Heroes III data files</string>
+          <string>Heroes III data import</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -178,64 +192,11 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="labelDataIntro">
-         <property name="text">
-          <string>Choose how you want to import Heroes III data files. Detailed instructions for the selected option are shown below.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0">
+        <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0,0">
          <property name="spacing">
           <number>6</number>
          </property>
-         <item row="2" column="0" colspan="3">
-          <widget class="QRadioButton" name="radioButtonDataCopy">
-           <property name="text">
-            <string>Copy existing files from local folder</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0" colspan="3">
-          <widget class="QLabel" name="labelDataOptionDetails">
-           <property name="frameShape">
-            <enum>QFrame::Shape::StyledPanel</enum>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-           <property name="margin">
-            <number>8</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="QRadioButton" name="radioButtonDataDetected">
-           <property name="text">
-            <string>Detected Heroes III installation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QRadioButton" name="radioButtonDataGog">
-           <property name="text">
-            <string>Use offline installer from gog.com</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="3">
+         <item row="4" column="0" colspan="4">
           <widget class="QRadioButton" name="radioButtonDataManual">
            <property name="text">
             <string>Manual installation</string>
@@ -245,7 +206,143 @@
            </property>
           </widget>
          </item>
-         <item row="8" column="2">
+         <item row="3" column="0">
+          <widget class="QRadioButton" name="radioButtonDataCopy">
+           <property name="text">
+            <string>Copy existing files from selected</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QRadioButton" name="radioButtonFolder">
+           <property name="text">
+            <string>Folder</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="3">
+          <widget class="QLabel" name="labelDataFound">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>100</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Your Heroes III data files have been successfully found.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="4">
+          <widget class="QTextBrowser" name="textBrowserDataOptionDetails"/>
+         </item>
+         <item row="8" column="1" colspan="3">
+          <widget class="QLineEdit" name="lineEditDataSystem">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>50</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <spacer name="horizontalSpacer_7">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="labelDataFiles">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>50</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Heroes III data files</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="4">
+          <widget class="QRadioButton" name="radioButtonDataDetected">
+           <property name="text">
+            <string>Detected Heroes III installation</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QRadioButton" name="radioButtonZIP">
+           <property name="text">
+            <string>ZIP</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0" colspan="4">
+          <widget class="QLabel" name="labelDataDemoInfo">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>100</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="visible">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Detected Heroes III demo files only. You can continue with demo support, but importing full game data is recommended for the best experience.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QPushButton" name="pushButtonSelect">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>25</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Select</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="3">
+          <widget class="QRadioButton" name="radioButtonDataGog">
+           <property name="text">
+            <string>Offline backup installer from https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="3">
           <widget class="QProgressBar" name="progressBarGog">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -273,7 +370,7 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1" colspan="2">
+         <item row="7" column="1" colspan="3">
           <widget class="QLineEdit" name="lineEditDataUser">
            <property name="enabled">
             <bool>true</bool>
@@ -285,88 +382,6 @@
             </sizepolicy>
            </property>
            <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0" colspan="3">
-          <widget class="QLabel" name="labelDataDemoInfo">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>100</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="visible">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Detected Heroes III demo files only. You can continue with demo support, but importing full game data is recommended for the best experience.</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="2">
-          <widget class="QPushButton" name="pushButtonSelect">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>25</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Select</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="labelDataFiles">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>50</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Heroes III data files</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1" colspan="2">
-          <widget class="QLineEdit" name="lineEditDataSystem">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>50</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0" colspan="2">
-          <widget class="QLabel" name="labelDataFound">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>100</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Your Heroes III data files have been successfully found.</string>
-           </property>
-           <property name="wordWrap">
             <bool>true</bool>
            </property>
           </widget>
@@ -450,13 +465,20 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="font">
           <font>
-           <bold>true</bold>
+           <pointsize>12</pointsize>
+           <bold>false</bold>
           </font>
          </property>
          <property name="text">
-          <string>Install recommended VCMI Mods</string>
+          <string>Recommended VCMI mods</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -470,6 +492,12 @@
            <horstretch>100</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
          </property>
          <property name="text">
           <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
@@ -941,13 +969,20 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="font">
           <font>
-           <bold>true</bold>
+           <pointsize>12</pointsize>
+           <bold>false</bold>
           </font>
          </property>
          <property name="text">
-          <string>Final information</string>
+          <string>Additional informations</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
