@@ -165,6 +165,19 @@
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLabel" name="labelDataIntro">
          <property name="text">
           <string>Choose how you want to import Heroes III data files. Detailed instructions for the selected option are shown below.</string>
@@ -180,7 +193,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Use detected Heroes III installation</string>
+          <string>Detected Heroes III installation</string>
          </property>
         </widget>
        </item>
@@ -188,6 +201,9 @@
         <widget class="QRadioButton" name="radioButtonDataGog">
          <property name="text">
           <string>Use offline installer from gog.com</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -201,7 +217,7 @@
        <item>
         <widget class="QRadioButton" name="radioButtonDataManual">
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Manual installation</string>
