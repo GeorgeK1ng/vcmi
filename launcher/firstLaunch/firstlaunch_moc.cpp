@@ -19,6 +19,7 @@
 #include "../../lib/texts/Languages.h"
 #include "../../lib/VCMIDirs.h"
 #include "../../lib/filesystem/Filesystem.h"
+#include "../../lib/filesystem/CZipLoader.h"
 #include "../../vcmiqt/MessageBox.h"
 #include "../helper.h"
 #include "../languages.h"
@@ -149,14 +150,23 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 
 	if(ui->radioButtonDataCopy->isChecked())
 	{
-		// iOS can't display modal dialogs when called directly on button press
-		// https://bugreports.qt.io/browse/QTBUG-98651
-		MessageBoxCustom::showDialog(this, [this]{
-			Helper::nativeFolderPicker(this, [this](const QString &picked){
-				if(!picked.isEmpty())
-					copyHeroesData(picked, false);
+		if(ui->radioButtonZIP->isChecked())
+		{
+			const QString zipPath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive"), {}, tr("Zip archives (*.zip)"));
+			if(!zipPath.isEmpty())
+				copyHeroesDataFromArchive(zipPath);
+		}
+		else
+		{
+			// iOS can't display modal dialogs when called directly on button press
+			// https://bugreports.qt.io/browse/QTBUG-98651
+			MessageBoxCustom::showDialog(this, [this]{
+				Helper::nativeFolderPicker(this, [this](const QString &picked){
+					if(!picked.isEmpty())
+						copyHeroesData(picked, false);
+				});
 			});
-		});
+		}
 		return;
 	}
 
@@ -186,6 +196,18 @@ void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
 void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
 {
 	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonFolder_toggled(bool checked)
+{
+	if(checked && ui->radioButtonDataCopy->isChecked())
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonZIP_toggled(bool checked)
+{
+	if(checked && ui->radioButtonDataCopy->isChecked())
 		updateDataOptionDetails();
 }
 
@@ -372,6 +394,10 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->radioButtonDataCopy->setVisible(canUseDataCopy);
+	ui->radioButtonFolder->setVisible(canUseDataCopy);
+	ui->radioButtonZIP->setVisible(canUseDataCopy);
+	if(canUseDataCopy && !ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
+		ui->radioButtonFolder->setChecked(true);
 	if(!canUseDataCopy && ui->radioButtonDataCopy->isChecked())
 		ui->radioButtonDataGog->setChecked(true);
 
@@ -386,30 +412,38 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 void FirstLaunchView::updateDataOptionDetails()
 {
 	const bool manualSelected = ui->radioButtonDataManual->isChecked();
+	const bool copySelected = ui->radioButtonDataCopy->isChecked();
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->labelDataFiles->setVisible(manualSelected);
 	ui->lineEditDataUser->setVisible(manualSelected);
 	ui->lineEditDataSystem->setVisible(manualSelected);
+	ui->radioButtonFolder->setVisible(copySelected && canUseDataCopy);
+	ui->radioButtonZIP->setVisible(copySelected && canUseDataCopy);
 
 	if(ui->radioButtonDataDetected->isChecked())
 	{
-		ui->labelDataOptionDetails->setText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
+		ui->textBrowserDataOptionDetails->setPlainText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
 		ui->pushButtonSelect->setVisible(false);
 	}
 	else if(ui->radioButtonDataCopy->isChecked())
 	{
-		ui->labelDataOptionDetails->setText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
-		ui->pushButtonSelect->setText(tr("Select folder"));
+		ui->textBrowserDataOptionDetails->setPlainText(ui->radioButtonZIP->isChecked() ? tr("Pick a ZIP archive with Heroes III files and VCMI will import all required data automatically.") : tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
+		ui->pushButtonSelect->setText(ui->radioButtonZIP->isChecked() ? tr("Select ZIP") : tr("Select folder"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else if(manualSelected)
 	{
-		ui->labelDataOptionDetails->setText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
+		ui->textBrowserDataOptionDetails->setPlainText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
 		ui->pushButtonSelect->setText(tr("Scan again"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else
 	{
-		ui->labelDataOptionDetails->setText(tr("Choose your GOG offline installer files (.exe and -1.bin), then VCMI will extract and import game data automatically."));
+		ui->textBrowserDataOptionDetails->setHtml(tr(R"(
+<p>If you already know this flow and have the Heroes III Complete offline backup installer from gog.com, continue by pressing <b>Select installer</b> and selecting the files.</p>
+<p>If you do not own the game yet, buy it on gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
+<p>If you already own it and only need to download it, sign in to your account and download the offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> and BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
+)"));
 		ui->pushButtonSelect->setText(tr("Select installer"));
 #ifdef ENABLE_INNOEXTRACT
 		ui->pushButtonSelect->setVisible(true);
@@ -842,6 +876,42 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 				activateTabModPreset();
 	});
 #endif
+}
+
+void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
+{
+	QTemporaryDir tempDir;
+	if(!tempDir.isValid())
+	{
+		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to create temporary directory for ZIP extraction."));
+		return;
+	}
+
+	bool extracted = false;
+	try
+	{
+		ZipArchive archive(qstringToPath(archivePath));
+		const auto files = archive.listFiles();
+		extracted = archive.extract(qstringToPath(tempDir.path()), files);
+	}
+	catch(const std::exception &e)
+	{
+		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to read ZIP archive: %1").arg(QString::fromUtf8(e.what())));
+		return;
+	}
+
+	if(!extracted)
+	{
+		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to extract ZIP archive."));
+		return;
+	}
+
+	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
+	overlay->raise();
+	if(performCopyFlow(tempDir.path(), overlay, false))
+		if(heroesDataUpdate())
+			activateTabModPreset();
+	overlay->deleteLater();
 }
 
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
