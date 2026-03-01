@@ -52,6 +52,8 @@ class FirstLaunchView : public QWidget
 	void extractGogDataAsync(QString filePathBin, QString filePathExe);
 	bool performCopyFlow(const QString& path, ProgressOverlay* overlay, bool removeSource);
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
+	void updateDataOptionDetails();
+	void setDetectedInstallPath(const QString & path);
 
 	// Tab Mod Preset
 	void modPresetUpdate();
@@ -93,6 +95,11 @@ private slots:
 
 	void on_pushButtonDataSearch_clicked();
 
+	void on_radioButtonDataDetected_toggled(bool checked);
+	void on_radioButtonDataGog_toggled(bool checked);
+	void on_radioButtonDataCopy_toggled(bool checked);
+	void on_radioButtonDataManual_toggled(bool checked);
+
 	void on_pushButtonDataCopy_clicked();
 
 	void on_pushButtonGogInstall_clicked();
@@ -111,4 +118,5 @@ private slots:
 
 private:
 	std::unique_ptr<Ui::FirstLaunchView> ui;
+	QString detectedInstallPath;
 };

@@ -69,6 +69,8 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->labelDataGogTitle->hide();
 	ui->labelDataGogDescr->hide();
 #endif
+
+	updateDataOptionDetails();
 }
 
 FirstLaunchView::~FirstLaunchView() = default;
@@ -123,10 +125,40 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 	heroesDataUpdate();
 }
 
+void FirstLaunchView::on_radioButtonDataDetected_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
+	if(ui->radioButtonDataDetected->isVisible() && ui->radioButtonDataDetected->isChecked() && !detectedInstallPath.isEmpty())
+	{
+		copyHeroesData(detectedInstallPath, false);
+		return;
+	}
+
 	MessageBoxCustom::showDialog(this, [this]{
 		Helper::nativeFolderPicker(this, [this](const QString &picked){
 			if(!picked.isEmpty())
@@ -215,13 +247,8 @@ void FirstLaunchView::activateTab(int tabIndex)
 		if(heroesDataUpdate())
 			return;
 
-		QString installPath = getHeroesInstallDir();
-		if(!installPath.isEmpty())
-		{
-			auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
-			if(reply == QMessageBox::Yes)
-				copyHeroesData(installPath, false);
-		}
+		setDetectedInstallPath(getHeroesInstallDir());
+		updateDataOptionDetails();
 	}
 
 	if(tabIndex == TAB_MOD_PRESET)
@@ -294,6 +321,58 @@ bool FirstLaunchView::heroesDataUpdate()
 	return detected;
 }
 
+void FirstLaunchView::setDetectedInstallPath(const QString & path)
+{
+	detectedInstallPath = path;
+	const bool hasDetectedPath = !detectedInstallPath.isEmpty();
+	ui->radioButtonDataDetected->setVisible(hasDetectedPath);
+	ui->radioButtonDataDetected->setEnabled(hasDetectedPath);
+	ui->radioButtonDataDetected->setText(tr("VCMI detected your Heroes III Installation at: %1").arg(detectedInstallPath));
+
+	if(!hasDetectedPath && ui->radioButtonDataDetected->isChecked())
+		ui->radioButtonDataManual->setChecked(true);
+}
+
+void FirstLaunchView::updateDataOptionDetails()
+{
+	QString details;
+
+	if(ui->radioButtonDataDetected->isVisible() && ui->radioButtonDataDetected->isChecked())
+		details = tr("VCMI found your Heroes III installation path. Click 'Copy existing data' to import files automatically from this location.");
+	else if(ui->radioButtonDataGog->isChecked())
+		details = tr("If you own Heroes III on gog.com, download the backup offline installer and select both files: '.exe' and '-1.bin'. Then click 'Install gog.com files'.");
+	else if(ui->radioButtonDataCopy->isChecked())
+		details = tr("If Heroes III files are already on your device, select the game folder and VCMI will copy required data automatically.");
+	else
+		details = tr("You can manually copy directories Maps, Data, and Mp3 from the original game directory to the VCMI data directory shown below.");
+
+	ui->labelDataOptionDetails->setText(details);
+
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
+	const bool useDetected = ui->radioButtonDataDetected->isVisible() && ui->radioButtonDataDetected->isChecked();
+	const bool useGog = ui->radioButtonDataGog->isChecked();
+	const bool useCopy = ui->radioButtonDataCopy->isChecked() || useDetected;
+
+	ui->pushButtonDataSearch->setVisible(ui->radioButtonDataManual->isChecked());
+	ui->pushButtonDataCopy->setVisible(canUseDataCopy && useCopy);
+	ui->pushButtonDataCopy->setEnabled(canUseDataCopy && (ui->radioButtonDataCopy->isChecked() || useDetected));
+	ui->pushButtonDataCopy->setText(useDetected ? tr("Copy detected data") : tr("Copy existing data"));
+
+#ifdef ENABLE_INNOEXTRACT
+	ui->pushButtonGogInstall->setVisible(useGog);
+	ui->pushButtonGogInstall->setEnabled(useGog);
+	ui->labelDataGogTitle->setVisible(useGog);
+	ui->labelDataGogDescr->setVisible(useGog);
+#else
+	Q_UNUSED(useGog);
+#endif
+
+	ui->labelDataCopyTitle->setVisible(canUseDataCopy && useCopy);
+	ui->labelDataCopyDescr->setVisible(canUseDataCopy && useCopy);
+	ui->labelDataManualTitle->setVisible(ui->radioButtonDataManual->isChecked());
+	ui->labelDataManualDescr->setVisible(ui->radioButtonDataManual->isChecked());
+}
+
 void FirstLaunchView::heroesDataMissing()
 {
 	const bool demoDetected = isDemoDataDetected();
@@ -302,21 +381,13 @@ void FirstLaunchView::heroesDataMissing()
 	ui->lineEditDataSystem->setPalette(newPalette);
 	ui->lineEditDataUser->setPalette(newPalette);
 
-	ui->labelDataManualTitle->setVisible(true);
-	ui->labelDataManualDescr->setVisible(true);
-	ui->pushButtonDataSearch->setVisible(true);
+	ui->radioButtonDataGog->setVisible(true);
+	ui->radioButtonDataCopy->setVisible(true);
+	ui->radioButtonDataManual->setVisible(true);
+	ui->labelDataOptionDetails->setVisible(true);
 
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
-
-	ui->labelDataCopyTitle->setVisible(canUseDataCopy);
-	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
-	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
-
-#ifdef ENABLE_INNOEXTRACT
-	ui->pushButtonGogInstall->setVisible(true);
-	ui->labelDataGogTitle->setVisible(true);
-	ui->labelDataGogDescr->setVisible(true);
-#endif
+	setDetectedInstallPath(getHeroesInstallDir());
+	updateDataOptionDetails();
 
 	ui->labelDataFound->setVisible(false);
 	ui->labelDataDemoInfo->setVisible(demoDetected);
@@ -332,17 +403,20 @@ void FirstLaunchView::heroesDataDetected()
 
 	ui->pushButtonDataSearch->setVisible(false);
 	ui->pushButtonDataCopy->setVisible(false);
+	ui->pushButtonGogInstall->setVisible(false);
+
+	ui->radioButtonDataDetected->setVisible(false);
+	ui->radioButtonDataGog->setVisible(false);
+	ui->radioButtonDataCopy->setVisible(false);
+	ui->radioButtonDataManual->setVisible(false);
+	ui->labelDataOptionDetails->setVisible(false);
 
 	ui->labelDataManualTitle->setVisible(false);
 	ui->labelDataManualDescr->setVisible(false);
 	ui->labelDataCopyTitle->setVisible(false);
 	ui->labelDataCopyDescr->setVisible(false);
-
-#ifdef ENABLE_INNOEXTRACT
-	ui->pushButtonGogInstall->setVisible(false);
 	ui->labelDataGogTitle->setVisible(false);
 	ui->labelDataGogDescr->setVisible(false);
-#endif
 
 	ui->labelDataFound->setVisible(true);
 	ui->labelDataDemoInfo->setVisible(false);
