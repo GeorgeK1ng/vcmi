@@ -422,27 +422,27 @@ void FirstLaunchView::updateDataOptionDetails()
 
 	if(ui->radioButtonDataDetected->isChecked())
 	{
-		ui->textBrowserDataOptionDetails->setText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
+		ui->textBrowserDataOptionDetails->setPlainText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
 		ui->pushButtonSelect->setVisible(false);
 	}
 	else if(ui->radioButtonDataCopy->isChecked())
 	{
-		ui->textBrowserDataOptionDetails->setText(ui->radioButtonZIP->isChecked() ? tr("Pick a ZIP archive with Heroes III files and VCMI will import all required data automatically.") : tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
+		ui->textBrowserDataOptionDetails->setPlainText(ui->radioButtonZIP->isChecked() ? tr("Pick a ZIP archive with Heroes III files and VCMI will import all required data automatically.") : tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
 		ui->pushButtonSelect->setText(ui->radioButtonZIP->isChecked() ? tr("Select ZIP") : tr("Select folder"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else if(manualSelected)
 	{
-		ui->textBrowserDataOptionDetails->setText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
+		ui->textBrowserDataOptionDetails->setPlainText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
 		ui->pushButtonSelect->setText(tr("Scan again"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else
 	{
 		ui->textBrowserDataOptionDetails->setHtml(tr(R"(
-<p>Pokud již víte o co jde a máte stažený Heroes III Complete z gog.com offline backup installer, pokračujte výběrem souborů stiskem tlačítka <b>Select installer</b>.</p>
-<p>Pokud hru ještě nevlastníte, je třeba si ji koupit na gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
-<p>Pokud ji už máte a jen si ji potřebujete stáhnout, stačí se přihlásit do svého účtu a potom stáhnout offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> a BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
+<p>If you already know this flow and have the Heroes III Complete offline backup installer from gog.com, continue by pressing <b>Select installer</b> and selecting the files.</p>
+<p>If you do not own the game yet, buy it on gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
+<p>If you already own it and only need to download it, sign in to your account and download the offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> and BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
 )"));
 		ui->pushButtonSelect->setText(tr("Select installer"));
 #ifdef ENABLE_INNOEXTRACT

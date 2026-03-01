@@ -198,6 +198,7 @@
          </property>
          <item row="4" column="0" colspan="4">
           <widget class="QRadioButton" name="radioButtonDataManual">
+           <attribute name="buttonGroup">mainDataSourceGroup</attribute>
            <property name="text">
             <string>Manual installation</string>
            </property>
@@ -208,6 +209,7 @@
          </item>
          <item row="3" column="0">
           <widget class="QRadioButton" name="radioButtonDataCopy">
+           <attribute name="buttonGroup">mainDataSourceGroup</attribute>
            <property name="text">
             <string>Copy existing files from selected</string>
            </property>
@@ -215,6 +217,7 @@
          </item>
          <item row="3" column="2">
           <widget class="QRadioButton" name="radioButtonFolder">
+           <attribute name="buttonGroup">copySourceGroup</attribute>
            <property name="text">
             <string>Folder</string>
            </property>
@@ -301,6 +304,7 @@
          </item>
          <item row="1" column="0" colspan="4">
           <widget class="QRadioButton" name="radioButtonDataDetected">
+           <attribute name="buttonGroup">mainDataSourceGroup</attribute>
            <property name="text">
             <string>Detected Heroes III installation</string>
            </property>
@@ -308,6 +312,7 @@
          </item>
          <item row="3" column="3">
           <widget class="QRadioButton" name="radioButtonZIP">
+           <attribute name="buttonGroup">copySourceGroup</attribute>
            <property name="text">
             <string>ZIP</string>
            </property>
@@ -347,6 +352,7 @@
          </item>
          <item row="2" column="0" colspan="3">
           <widget class="QRadioButton" name="radioButtonDataGog">
+           <attribute name="buttonGroup">mainDataSourceGroup</attribute>
            <property name="text">
             <string>Offline backup installer from https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition</string>
            </property>
@@ -1111,6 +1117,10 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
    </item>
   </layout>
  </widget>
+ <buttongroups>
+  <buttongroup name="mainDataSourceGroup"/>
+  <buttongroup name="copySourceGroup"/>
+ </buttongroups>
  <resources>
   <include location="../resources.qrc"/>
  </resources>
