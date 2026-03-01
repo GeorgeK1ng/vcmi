@@ -118,71 +118,59 @@ void FirstLaunchView::resizeEvent(QResizeEvent * event)
 void FirstLaunchView::applyResponsiveUiScale()
 {
 	const int baseHeight = 520;
-	const int minHeight = 420;
+	const int minHeight = 400;
 	const int clampedHeight = std::max(minHeight, height());
-	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), 0.9, 1.5);
+	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), 0.85, 1.45);
 
-	auto applyButtonScale = [scale](QPushButton * button)
+	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
+	for(QWidget * widget : allWidgets)
 	{
-		if(!button)
-			return;
+		QFont f = widget->font();
+		const QVariant baseSize = widget->property("_vcmiBasePointSize");
+		qreal basePointSize = baseSize.isValid() ? baseSize.toReal() : f.pointSizeF();
+		if(basePointSize <= 0)
+			continue;
+		if(!baseSize.isValid())
+			widget->setProperty("_vcmiBasePointSize", basePointSize);
 
-		const int minHeightPx = std::max(32, static_cast<int>(std::round(36 * scale)));
-		button->setMinimumHeight(minHeightPx);
-		QFont buttonFont = button->font();
-		buttonFont.setPointSizeF(10.0 * scale);
-		button->setFont(buttonFont);
-	};
+		qreal multiplier = 1.0;
+		if(qobject_cast<QRadioButton *>(widget))
+			multiplier = 1.20;
+		else if(qobject_cast<QTextBrowser *>(widget))
+			multiplier = 1.10;
+		else if(qobject_cast<QPushButton *>(widget))
+			multiplier = 1.05;
+		else if(qobject_cast<QToolButton *>(widget))
+			multiplier = 1.05;
+
+		f.setPointSizeF(basePointSize * scale * multiplier);
+		widget->setFont(f);
+	}
 
 	auto applyNavigationButtonScale = [scale](QPushButton * button)
 	{
 		if(!button)
 			return;
 
-		const int minHeightPx = std::max(32, static_cast<int>(std::round(36 * scale)));
-		const int minWidthPx = std::max(96, static_cast<int>(std::round(120 * scale)));
+		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
+		const int minWidthPx = std::max(92, static_cast<int>(std::round(112 * scale)));
 		button->setMinimumSize(minWidthPx, minHeightPx);
-		QFont buttonFont = button->font();
-		buttonFont.setPointSizeF(10.0 * scale);
-		button->setFont(buttonFont);
+		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};
 
-	auto applyRadioScale = [scale](QRadioButton * radio)
+	auto applyActionButtonScale = [scale](QPushButton * button)
 	{
-		if(!radio)
+		if(!button)
 			return;
-
-		QFont radioFont = radio->font();
-		radioFont.setPointSizeF(10.0 * scale);
-		radio->setFont(radioFont);
+		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
+		button->setMinimumHeight(minHeightPx);
+		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};
-
-	auto applyTitleScale = [scale](QLabel * label)
-	{
-		if(!label)
-			return;
-
-		QFont titleFont = label->font();
-		titleFont.setPointSizeF(12.0 * scale);
-		label->setFont(titleFont);
-	};
-
-	applyTitleScale(ui->labelLanguageTitle);
-	applyTitleScale(ui->labelDataTitle);
-	applyTitleScale(ui->labelPresetTitle);
-	applyTitleScale(ui->labelInfoTitle);
-
-	applyRadioScale(ui->radioButtonDataDetected);
-	applyRadioScale(ui->radioButtonDataGog);
-	applyRadioScale(ui->radioButtonDataCopy);
-	applyRadioScale(ui->radioButtonDataManual);
-	applyRadioScale(ui->radioButtonFolder);
-	applyRadioScale(ui->radioButtonZIP);
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
 	applyNavigationButtonScale(ui->pushButtonDataNext);
-	applyButtonScale(ui->pushButtonSelect);
+	applyActionButtonScale(ui->pushButtonSelect);
 	applyNavigationButtonScale(ui->pushButtonPresetBack);
 	applyNavigationButtonScale(ui->pushButtonPresetNext);
 	applyNavigationButtonScale(ui->pushButtonInfoBack);
@@ -234,23 +222,14 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 
 	if(ui->radioButtonDataCopy->isChecked())
 	{
-		if(ui->radioButtonZIP->isChecked())
-		{
-			const QString zipPath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive"), {}, tr("Zip archives (*.zip)"));
-			if(!zipPath.isEmpty())
-				copyHeroesDataFromArchive(zipPath);
-		}
-		else
-		{
-			// iOS can't display modal dialogs when called directly on button press
-			// https://bugreports.qt.io/browse/QTBUG-98651
-			MessageBoxCustom::showDialog(this, [this]{
-				Helper::nativeFolderPicker(this, [this](const QString &picked){
-					if(!picked.isEmpty())
-						copyHeroesData(picked, false);
-				});
+		// iOS can't display modal dialogs when called directly on button press
+		// https://bugreports.qt.io/browse/QTBUG-98651
+		MessageBoxCustom::showDialog(this, [this]{
+			Helper::nativeFolderPicker(this, [this](const QString &picked){
+				if(!picked.isEmpty())
+					copyHeroesData(picked, false);
 			});
-		}
+		});
 		return;
 	}
 
@@ -273,7 +252,7 @@ void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
 
 void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
 {
-	if(checked && !ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
+	if(checked)
 		ui->radioButtonFolder->setChecked(true);
 
 	updateDataOptionDetails();
@@ -293,8 +272,7 @@ void FirstLaunchView::on_radioButtonFolder_toggled(bool checked)
 
 void FirstLaunchView::on_radioButtonZIP_toggled(bool checked)
 {
-	if(checked && ui->radioButtonDataCopy->isChecked())
-		updateDataOptionDetails();
+	Q_UNUSED(checked);
 }
 
 void FirstLaunchView::enterSetup()
@@ -481,8 +459,10 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->radioButtonDataCopy->setVisible(canUseDataCopy);
 	ui->radioButtonFolder->setVisible(canUseDataCopy);
-	ui->radioButtonZIP->setVisible(canUseDataCopy);
-	if(canUseDataCopy && !ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
+	ui->radioButtonFolder->setEnabled(false);
+	ui->radioButtonZIP->setVisible(false);
+	ui->radioButtonZIP->setChecked(false);
+	if(canUseDataCopy)
 		ui->radioButtonFolder->setChecked(true);
 	if(!canUseDataCopy && ui->radioButtonDataCopy->isChecked())
 		ui->radioButtonDataGog->setChecked(true);
@@ -504,7 +484,8 @@ void FirstLaunchView::updateDataOptionDetails()
 	ui->lineEditDataUser->setVisible(manualSelected);
 	ui->lineEditDataSystem->setVisible(manualSelected);
 	ui->radioButtonFolder->setVisible(copySelected && canUseDataCopy);
-	ui->radioButtonZIP->setVisible(copySelected && canUseDataCopy);
+	ui->radioButtonFolder->setEnabled(false);
+	ui->radioButtonZIP->setVisible(false);
 
 	if(ui->radioButtonDataDetected->isChecked())
 	{
@@ -513,8 +494,8 @@ void FirstLaunchView::updateDataOptionDetails()
 	}
 	else if(ui->radioButtonDataCopy->isChecked())
 	{
-		ui->textBrowserDataOptionDetails->setPlainText(ui->radioButtonZIP->isChecked() ? tr("Pick a ZIP archive with Heroes III files and VCMI will import all required data automatically.") : tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
-		ui->pushButtonSelect->setText(ui->radioButtonZIP->isChecked() ? tr("Select ZIP") : tr("Select folder"));
+		ui->textBrowserDataOptionDetails->setPlainText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
+		ui->pushButtonSelect->setText(tr("Select folder"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else if(manualSelected)
