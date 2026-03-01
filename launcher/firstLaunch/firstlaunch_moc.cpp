@@ -296,8 +296,9 @@ bool FirstLaunchView::heroesDataUpdate()
 
 void FirstLaunchView::heroesDataMissing()
 {
+	const bool demoDetected = isDemoDataDetected();
 	QPalette newPalette = palette();
-	newPalette.setColor(QPalette::Base, QColor(200, 50, 50));
+	newPalette.setColor(QPalette::Base, demoDetected ? QColor(220, 170, 50) : QColor(200, 50, 50));
 	ui->lineEditDataSystem->setPalette(newPalette);
 	ui->lineEditDataUser->setPalette(newPalette);
 
@@ -318,7 +319,8 @@ void FirstLaunchView::heroesDataMissing()
 #endif
 
 	ui->labelDataFound->setVisible(false);
-	ui->pushButtonDataNext->setEnabled(false);
+	ui->labelDataDemoInfo->setVisible(demoDetected);
+	ui->pushButtonDataNext->setEnabled(demoDetected);
 }
 
 void FirstLaunchView::heroesDataDetected()
@@ -343,6 +345,7 @@ void FirstLaunchView::heroesDataDetected()
 #endif
 
 	ui->labelDataFound->setVisible(true);
+	ui->labelDataDemoInfo->setVisible(false);
 	ui->pushButtonDataNext->setEnabled(true);
 
 	CGeneralTextHandler::detectInstallParameters();
