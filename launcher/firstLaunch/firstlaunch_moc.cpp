@@ -27,6 +27,7 @@
 #include "progressoverlay.h"
 
 #include <algorithm>
+#include <cmath>
 
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
@@ -133,6 +134,19 @@ void FirstLaunchView::applyResponsiveUiScale()
 		button->setFont(buttonFont);
 	};
 
+	auto applyNavigationButtonScale = [scale](QPushButton * button)
+	{
+		if(!button)
+			return;
+
+		const int minHeightPx = std::max(32, static_cast<int>(std::round(36 * scale)));
+		const int minWidthPx = std::max(96, static_cast<int>(std::round(120 * scale)));
+		button->setMinimumSize(minWidthPx, minHeightPx);
+		QFont buttonFont = button->font();
+		buttonFont.setPointSizeF(10.0 * scale);
+		button->setFont(buttonFont);
+	};
+
 	auto applyRadioScale = [scale](QRadioButton * radio)
 	{
 		if(!radio)
@@ -165,14 +179,14 @@ void FirstLaunchView::applyResponsiveUiScale()
 	applyRadioScale(ui->radioButtonFolder);
 	applyRadioScale(ui->radioButtonZIP);
 
-	applyButtonScale(ui->pushButtonLanguageNext);
-	applyButtonScale(ui->pushButtonDataBack);
-	applyButtonScale(ui->pushButtonDataNext);
+	applyNavigationButtonScale(ui->pushButtonLanguageNext);
+	applyNavigationButtonScale(ui->pushButtonDataBack);
+	applyNavigationButtonScale(ui->pushButtonDataNext);
 	applyButtonScale(ui->pushButtonSelect);
-	applyButtonScale(ui->pushButtonPresetBack);
-	applyButtonScale(ui->pushButtonPresetNext);
-	applyButtonScale(ui->pushButtonInfoBack);
-	applyButtonScale(ui->pushButtonFinish);
+	applyNavigationButtonScale(ui->pushButtonPresetBack);
+	applyNavigationButtonScale(ui->pushButtonPresetNext);
+	applyNavigationButtonScale(ui->pushButtonInfoBack);
+	applyNavigationButtonScale(ui->pushButtonFinish);
 }
 
 void FirstLaunchView::on_pushButtonLanguageNext_clicked()
@@ -259,18 +273,10 @@ void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
 
 void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
 {
-	if(checked)
-	{
-		if(!ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
-			ui->radioButtonFolder->setChecked(true);
-		updateDataOptionDetails();
-	}
-	else
-	{
-		ui->radioButtonFolder->setChecked(false);
-		ui->radioButtonZIP->setChecked(false);
-		updateDataOptionDetails();
-	}
+	if(checked && !ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
+		ui->radioButtonFolder->setChecked(true);
+
+	updateDataOptionDetails();
 }
 
 void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
