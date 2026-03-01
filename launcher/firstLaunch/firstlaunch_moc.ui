@@ -195,7 +195,7 @@
          <item row="2" column="0" colspan="2">
           <widget class="QLabel" name="labelDataGogTitle">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>50</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -213,7 +213,7 @@
          <item row="7" column="0" colspan="3">
           <widget class="QLabel" name="labelDataManualDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -245,7 +245,7 @@
          <item row="6" column="0" colspan="2">
           <widget class="QLabel" name="labelDataManualTitle">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>50</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -320,7 +320,7 @@
          <item row="5" column="0" colspan="3">
           <widget class="QLabel" name="labelDataCopyDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -339,7 +339,7 @@
          <item row="8" column="0">
           <widget class="QLabel" name="labelDataFiles">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>50</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -357,7 +357,7 @@
          <item row="4" column="0" colspan="2">
           <widget class="QLabel" name="labelDataCopyTitle">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>50</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -391,7 +391,7 @@
          <item row="10" column="0" colspan="3">
           <widget class="QLabel" name="labelDataFound">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -410,7 +410,7 @@
             <bool>false</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -426,7 +426,7 @@
          <item row="3" column="0" colspan="3">
           <widget class="QLabel" name="labelDataGogDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -533,6 +533,22 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="labelPresetDescription">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>100</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_5">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -550,10 +566,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        </item>
        <item>
         <layout class="QGridLayout" name="gridLayout_4" columnstretch="1,0">
-         <item row="1" column="1">
+         <item row="0" column="1">
           <widget class="QLabel" name="labelPresetLanguageDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -566,7 +582,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="0" column="0">
           <widget class="QToolButton" name="buttonPresetLanguage">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -607,10 +623,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="3" column="1">
           <widget class="QLabel" name="labelPresetHotaDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -623,23 +639,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="labelPresetDescription">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>100</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
+         <item row="3" column="0">
           <widget class="QToolButton" name="buttonPresetHota">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -677,7 +677,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="2" column="0">
           <widget class="QToolButton" name="buttonPresetExtras">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -718,10 +718,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="4" column="1">
           <widget class="QLabel" name="labelPresetWogDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -734,10 +734,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="5" column="1">
           <widget class="QLabel" name="labelPresetTowDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -750,10 +750,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="6" column="1">
           <widget class="QLabel" name="labelPresetFodDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -766,10 +766,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="1" column="1">
           <widget class="QLabel" name="labelPresetDemoDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -782,10 +782,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="2" column="1">
           <widget class="QLabel" name="labelPresetExtrasDescr">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -798,7 +798,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
+         <item row="4" column="0">
           <widget class="QToolButton" name="buttonPresetWog">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -836,7 +836,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="5" column="0">
           <widget class="QToolButton" name="buttonPresetTow">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -874,7 +874,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="6" column="0">
           <widget class="QToolButton" name="buttonPresetFod">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -912,7 +912,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="1" column="0">
           <widget class="QToolButton" name="buttonPresetDemo">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1034,6 +1034,28 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="labelLanguageWelcome">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Thank you for installing VCMI!
+
+Before you can start playing, there are a few more steps to complete.
+
+Please remember that to use VCMI, you must own the original data files for Heroes® of Might and Magic® III: Complete or The Shadow of Death.
+
+Heroes® of Might and Magic® III HD is currently not supported!</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerInfoTop">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -1050,25 +1072,15 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="labelLanguageWelcome">
-         <property name="text">
-          <string>Thank you for installing VCMI!
-
-Before you can start playing, there are a few more steps to complete.
-
-Please remember that to use VCMI, you must own the original data files for Heroes® of Might and Magic® III: Complete or The Shadow of Death.
-
-Heroes® of Might and Magic® III HD is currently not supported!</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <layout class="QVBoxLayout" name="verticalLayoutInfoLinks">
          <item>
           <widget class="QLabel" name="labelLanguageSocial">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
            <property name="text">
             <string>Have a question? Found a bug? Want to help? Join us!</string>
            </property>
