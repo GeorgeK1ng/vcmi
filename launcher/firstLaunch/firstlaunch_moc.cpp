@@ -412,9 +412,13 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 void FirstLaunchView::updateDataOptionDetails()
 {
 	const bool manualSelected = ui->radioButtonDataManual->isChecked();
+	const bool copySelected = ui->radioButtonDataCopy->isChecked();
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->labelDataFiles->setVisible(manualSelected);
 	ui->lineEditDataUser->setVisible(manualSelected);
 	ui->lineEditDataSystem->setVisible(manualSelected);
+	ui->radioButtonFolder->setVisible(copySelected && canUseDataCopy);
+	ui->radioButtonZIP->setVisible(copySelected && canUseDataCopy);
 
 	if(ui->radioButtonDataDetected->isChecked())
 	{
@@ -435,7 +439,11 @@ void FirstLaunchView::updateDataOptionDetails()
 	}
 	else
 	{
-		ui->textBrowserDataOptionDetails->setText(tr("Choose your GOG offline installer files (.exe and -1.bin), then VCMI will extract and import game data automatically."));
+		ui->textBrowserDataOptionDetails->setHtml(tr(R"(
+<p>Pokud již víte o co jde a máte stažený Heroes III Complete z gog.com offline backup installer, pokračujte výběrem souborů stiskem tlačítka <b>Select installer</b>.</p>
+<p>Pokud hru ještě nevlastníte, je třeba si ji koupit na gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
+<p>Pokud ji už máte a jen si ji potřebujete stáhnout, stačí se přihlásit do svého účtu a potom stáhnout offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> a BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
+)"));
 		ui->pushButtonSelect->setText(tr("Select installer"));
 #ifdef ENABLE_INNOEXTRACT
 		ui->pushButtonSelect->setVisible(true);
