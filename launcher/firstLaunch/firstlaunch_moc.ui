@@ -164,22 +164,7 @@
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="verticalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>12</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
+       
        <item>
         <layout class="QGridLayout" name="gridLayout" columnstretch="1,2,1">
          <property name="spacing">
@@ -560,22 +545,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
+       
        <item>
         <layout class="QGridLayout" name="gridLayout_4" columnstretch="1,0">
          <item row="0" column="1">
@@ -1073,22 +1043,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="verticalSpacerInfoTop">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
+       
        <item>
         <layout class="QVBoxLayout" name="verticalLayoutInfoLinks">
          <item>
