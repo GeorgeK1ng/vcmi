@@ -152,7 +152,7 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 	{
 		if(ui->radioButtonZIP->isChecked())
 		{
-			const QString zipPath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive"), defaultStartDirForOpen(), tr("Zip archives (*.zip)"));
+			const QString zipPath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive"), {}, tr("Zip archives (*.zip)"));
 			if(!zipPath.isEmpty())
 				copyHeroesDataFromArchive(zipPath);
 		}
