@@ -65,10 +65,11 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 #endif
 
 #ifndef ENABLE_INNOEXTRACT
-	ui->pushButtonGogInstall->hide();
-	ui->labelDataGogTitle->hide();
-	ui->labelDataGogDescr->hide();
+	ui->radioButtonDataGog->hide();
+	if(ui->radioButtonDataGog->isChecked())
+		ui->radioButtonDataManual->setChecked(true);
 #endif
+	updateDataOptionState(false);
 }
 
 FirstLaunchView::~FirstLaunchView() = default;
@@ -135,11 +136,57 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
 	});
 }
 
-void FirstLaunchView::on_pushButtonGogInstall_clicked()
+void FirstLaunchView::on_pushButtonSelect_clicked()
 {
+	if(ui->radioButtonDataDetected->isChecked())
+		return;
+
+	if(ui->radioButtonDataManual->isChecked())
+	{
+		heroesDataUpdate();
+		return;
+	}
+
+	if(ui->radioButtonDataCopy->isChecked())
+	{
+		// iOS can't display modal dialogs when called directly on button press
+		// https://bugreports.qt.io/browse/QTBUG-98651
+		MessageBoxCustom::showDialog(this, [this]{
+			Helper::nativeFolderPicker(this, [this](const QString &picked){
+				if(!picked.isEmpty())
+					copyHeroesData(picked, false);
+			});
+		});
+		return;
+	}
+
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{extractGogData();});
+}
+
+void FirstLaunchView::on_radioButtonDataDetected_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
+}
+
+void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
+{
+	if(checked)
+		updateDataOptionDetails();
 }
 
 void FirstLaunchView::enterSetup()
@@ -211,18 +258,7 @@ void FirstLaunchView::activateTab(int tabIndex)
 	ui->installerTabs->setCurrentIndex(tabIndex);
 
 	if(tabIndex == TAB_DATA)
-	{
-		if(heroesDataUpdate())
-			return;
-
-		QString installPath = getHeroesInstallDir();
-		if(!installPath.isEmpty())
-		{
-			auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
-			if(reply == QMessageBox::Yes)
-				copyHeroesData(installPath, false);
-		}
-	}
+		heroesDataUpdate();
 
 	if(tabIndex == TAB_MOD_PRESET)
 		modPresetUpdate();
@@ -302,25 +338,11 @@ void FirstLaunchView::heroesDataMissing()
 	ui->lineEditDataSystem->setPalette(newPalette);
 	ui->lineEditDataUser->setPalette(newPalette);
 
-	ui->labelDataManualTitle->setVisible(true);
-	ui->labelDataManualDescr->setVisible(true);
-	ui->pushButtonDataSearch->setVisible(true);
-
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
-
-	ui->labelDataCopyTitle->setVisible(canUseDataCopy);
-	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
-	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
-
-#ifdef ENABLE_INNOEXTRACT
-	ui->pushButtonGogInstall->setVisible(true);
-	ui->labelDataGogTitle->setVisible(true);
-	ui->labelDataGogDescr->setVisible(true);
-#endif
-
 	ui->labelDataFound->setVisible(false);
 	ui->labelDataDemoInfo->setVisible(demoDetected);
 	ui->pushButtonDataNext->setEnabled(demoDetected);
+
+	updateDataOptionState(false);
 }
 
 void FirstLaunchView::heroesDataDetected()
@@ -330,25 +352,71 @@ void FirstLaunchView::heroesDataDetected()
 	ui->lineEditDataSystem->setPalette(newPalette);
 	ui->lineEditDataUser->setPalette(newPalette);
 
-	ui->pushButtonDataSearch->setVisible(false);
-	ui->pushButtonDataCopy->setVisible(false);
-
-	ui->labelDataManualTitle->setVisible(false);
-	ui->labelDataManualDescr->setVisible(false);
-	ui->labelDataCopyTitle->setVisible(false);
-	ui->labelDataCopyDescr->setVisible(false);
-
-#ifdef ENABLE_INNOEXTRACT
-	ui->pushButtonGogInstall->setVisible(false);
-	ui->labelDataGogTitle->setVisible(false);
-	ui->labelDataGogDescr->setVisible(false);
-#endif
-
 	ui->labelDataFound->setVisible(true);
 	ui->labelDataDemoInfo->setVisible(false);
 	ui->pushButtonDataNext->setEnabled(true);
 
+	updateDataOptionState(true);
+
 	CGeneralTextHandler::detectInstallParameters();
+}
+
+void FirstLaunchView::updateDataOptionState(bool dataDetected)
+{
+	const QString installPath = getHeroesInstallDir();
+	const bool hasDetectedInstall = !installPath.isEmpty();
+
+	ui->radioButtonDataDetected->setVisible(hasDetectedInstall);
+	if(!hasDetectedInstall && ui->radioButtonDataDetected->isChecked())
+		ui->radioButtonDataGog->setChecked(true);
+
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
+	ui->radioButtonDataCopy->setVisible(canUseDataCopy);
+	if(!canUseDataCopy && ui->radioButtonDataCopy->isChecked())
+		ui->radioButtonDataGog->setChecked(true);
+
+	if(dataDetected)
+		ui->radioButtonDataDetected->setChecked(hasDetectedInstall);
+	else if(!ui->radioButtonDataGog->isChecked() && !ui->radioButtonDataCopy->isChecked() && !ui->radioButtonDataManual->isChecked())
+		ui->radioButtonDataGog->setChecked(true);
+
+	updateDataOptionDetails();
+}
+
+void FirstLaunchView::updateDataOptionDetails()
+{
+	const bool manualSelected = ui->radioButtonDataManual->isChecked();
+	ui->labelDataFiles->setVisible(manualSelected);
+	ui->lineEditDataUser->setVisible(manualSelected);
+	ui->lineEditDataSystem->setVisible(manualSelected);
+
+	if(ui->radioButtonDataDetected->isChecked())
+	{
+		ui->labelDataOptionDetails->setText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
+		ui->pushButtonSelect->setVisible(false);
+	}
+	else if(ui->radioButtonDataCopy->isChecked())
+	{
+		ui->labelDataOptionDetails->setText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
+		ui->pushButtonSelect->setText(tr("Select folder"));
+		ui->pushButtonSelect->setVisible(true);
+	}
+	else if(manualSelected)
+	{
+		ui->labelDataOptionDetails->setText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
+		ui->pushButtonSelect->setText(tr("Scan again"));
+		ui->pushButtonSelect->setVisible(true);
+	}
+	else
+	{
+		ui->labelDataOptionDetails->setText(tr("Choose your GOG offline installer files (.exe and -1.bin), then VCMI will extract and import game data automatically."));
+		ui->pushButtonSelect->setText(tr("Select installer"));
+#ifdef ENABLE_INNOEXTRACT
+		ui->pushButtonSelect->setVisible(true);
+#else
+		ui->pushButtonSelect->setVisible(false);
+#endif
+	}
 }
 
 // Tab Heroes III Data

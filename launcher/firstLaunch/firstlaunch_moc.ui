@@ -309,7 +309,7 @@
           </widget>
          </item>
          <item row="7" column="2">
-          <widget class="QPushButton" name="pushButtonGogInstall">
+          <widget class="QPushButton" name="pushButtonSelect">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>25</horstretch>
@@ -317,7 +317,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Install gog.com files</string>
+            <string>Select</string>
            </property>
           </widget>
          </item>
