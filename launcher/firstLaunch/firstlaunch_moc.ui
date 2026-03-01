@@ -145,6 +145,12 @@
        </property>
        <item>
         <widget class="QLabel" name="labelDataTitle">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="font">
           <font>
            <bold>true</bold>
@@ -519,6 +525,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        </property>
        <item>
         <widget class="QLabel" name="labelPresetTitle">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="font">
           <font>
            <bold>true</bold>
@@ -1020,6 +1032,12 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
        </property>
        <item>
         <widget class="QLabel" name="labelInfoTitle">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="font">
           <font>
            <bold>true</bold>
