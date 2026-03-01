@@ -349,7 +349,7 @@ void FirstLaunchView::heroesDataDetected()
 }
 
 // Tab Heroes III Data
-bool FirstLaunchView::heroesDataDetect()
+bool FirstLaunchView::heroesDataDetect() const
 {
 	// user might have copied files to one of our data path.
 	// perform full reinitialization of virtual filesystem

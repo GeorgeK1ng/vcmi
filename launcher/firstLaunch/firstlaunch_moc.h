@@ -42,7 +42,7 @@ class FirstLaunchView : public QWidget
 	void languageSelected(const QString & languageCode);
 
 	// Tab Heroes III Data
-	bool heroesDataDetect();
+	bool heroesDataDetect() const;
 
 	void heroesDataMissing();
 	void heroesDataDetected();
