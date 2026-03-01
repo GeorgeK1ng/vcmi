@@ -46,6 +46,8 @@ class FirstLaunchView : public QWidget
 
 	void heroesDataMissing();
 	void heroesDataDetected();
+	void updateDataOptionState(bool dataDetected);
+	void updateDataOptionDetails();
 
 	QString getHeroesInstallDir();
 	void extractGogData();
@@ -95,7 +97,12 @@ private slots:
 
 	void on_pushButtonDataCopy_clicked();
 
-	void on_pushButtonGogInstall_clicked();
+	void on_pushButtonSelect_clicked();
+
+	void on_radioButtonDataDetected_toggled(bool checked);
+	void on_radioButtonDataGog_toggled(bool checked);
+	void on_radioButtonDataCopy_toggled(bool checked);
+	void on_radioButtonDataManual_toggled(bool checked);
 
 	void on_pushButtonPresetBack_clicked();
 
