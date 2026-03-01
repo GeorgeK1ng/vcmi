@@ -36,6 +36,15 @@ static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, boo
 	return overlay;
 }
 
+namespace
+{
+constexpr int TAB_LANGUAGE = 0;
+constexpr int TAB_DATA = 1;
+constexpr int TAB_MOD_PRESET = 2;
+constexpr int TAB_INFO = 3;
+constexpr int TAB_COUNT = 4;
+}
+
 FirstLaunchView::FirstLaunchView(QWidget * parent)
 	: QWidget(parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
@@ -43,7 +52,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->setupUi(this);
 
 	enterSetup();
-	activateTabLanguage();
+	activateTab(TAB_LANGUAGE);
 
 	ui->lineEditDataSystem->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().dataPaths().front())));
 	ui->lineEditDataUser->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().userDataPath())));
@@ -96,17 +105,17 @@ void FirstLaunchView::changeEvent(QEvent * event)
 
 void FirstLaunchView::on_pushButtonLanguageNext_clicked()
 {
-	activateTabHeroesData();
+	activateNextTab();
 }
 
 void FirstLaunchView::on_pushButtonDataNext_clicked()
 {
-	activateTabModPreset();
+	activateNextTab();
 }
 
 void FirstLaunchView::on_pushButtonDataBack_clicked()
 {
-	activateTabLanguage();
+	activatePreviousTab();
 }
 
 void FirstLaunchView::on_pushButtonDataSearch_clicked()
@@ -140,52 +149,123 @@ void FirstLaunchView::enterSetup()
 
 void FirstLaunchView::setSetupProgress(int progress)
 {
-	ui->buttonTabLanguage->setDisabled(progress < 1);
-	ui->buttonTabHeroesData->setDisabled(progress < 2);
-	ui->buttonTabModPreset->setDisabled(progress < 3);
+	Q_UNUSED(progress);
+}
+
+bool FirstLaunchView::isDemoDataDetected() const
+{
+	QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
+	QDir dataDir(userRoot.filePath(QStringLiteral("Data")));
+	QDir mapsDir(userRoot.filePath(QStringLiteral("Maps")));
+
+	bool hasDemoMap = false;
+	const QStringList mapFiles = mapsDir.entryList(QDir::Files | QDir::Readable);
+	for(const QString &name : mapFiles)
+	{
+		if(name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
+		{
+			hasDemoMap = true;
+			break;
+		}
+	}
+
+	if(!hasDemoMap)
+		return false;
+
+	const QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
+	for(const QString &name : files)
+	{
+		if(name.compare(QStringLiteral("H3ab_spr.lod"), Qt::CaseInsensitive) == 0)
+		{
+			QFileInfo lodInfo(dataDir.filePath(name));
+			const quint64 fileSize = static_cast<quint64>(lodInfo.size());
+			logGlobal->trace("H3ab_spr.lod size: %llu", fileSize);
+			if(fileSize < 8000000) // 8 MB + Demo map = Merged Windows and MacOS Demo
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool FirstLaunchView::shouldShowTab(int tabIndex) const
+{
+	if(tabIndex == TAB_DATA)
+		return !heroesDataDetect() || isDemoDataDetected();
+
+	return tabIndex >= TAB_LANGUAGE && tabIndex < TAB_COUNT;
+}
+
+void FirstLaunchView::activateTab(int tabIndex)
+{
+	if(tabIndex < TAB_LANGUAGE || tabIndex >= TAB_COUNT)
+		return;
+
+	if(!shouldShowTab(tabIndex))
+	{
+		activateNextTab();
+		return;
+	}
+
+	setSetupProgress(tabIndex + 1);
+	ui->installerTabs->setCurrentIndex(tabIndex);
+
+	if(tabIndex == TAB_DATA)
+	{
+		if(heroesDataUpdate())
+			return;
+
+		QString installPath = getHeroesInstallDir();
+		if(!installPath.isEmpty())
+		{
+			auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
+			if(reply == QMessageBox::Yes)
+				copyHeroesData(installPath, false);
+		}
+	}
+
+	if(tabIndex == TAB_MOD_PRESET)
+		modPresetUpdate();
+}
+
+void FirstLaunchView::activateNextTab()
+{
+	int nextTab = ui->installerTabs->currentIndex() + 1;
+	while(nextTab < TAB_COUNT && !shouldShowTab(nextTab))
+		++nextTab;
+
+	if(nextTab < TAB_COUNT)
+		activateTab(nextTab);
+}
+
+void FirstLaunchView::activatePreviousTab()
+{
+	int previousTab = ui->installerTabs->currentIndex() - 1;
+	while(previousTab >= TAB_LANGUAGE && !shouldShowTab(previousTab))
+		--previousTab;
+
+	if(previousTab >= TAB_LANGUAGE)
+		activateTab(previousTab);
 }
 
 void FirstLaunchView::activateTabLanguage()
 {
-	setSetupProgress(1);
-	ui->installerTabs->setCurrentIndex(0);
-	ui->buttonTabLanguage->setChecked(true);
-	ui->buttonTabHeroesData->setChecked(false);
-	ui->buttonTabModPreset->setChecked(false);
+	activateTab(TAB_LANGUAGE);
 }
 
 void FirstLaunchView::activateTabHeroesData()
 {
-	setSetupProgress(2);
-	ui->installerTabs->setCurrentIndex(1);
-	ui->buttonTabLanguage->setChecked(false);
-	ui->buttonTabHeroesData->setChecked(true);
-	ui->buttonTabModPreset->setChecked(false);
-
-	if(heroesDataUpdate())
-	{
-		activateTabModPreset();
-		return;
-	}
-
-	QString installPath = getHeroesInstallDir();
-	if(!installPath.isEmpty())
-	{
-		auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
-		if(reply == QMessageBox::Yes)
-			copyHeroesData(installPath, false);
-	}
+	activateTab(TAB_DATA);
 }
 
 void FirstLaunchView::activateTabModPreset()
 {
-	setSetupProgress(3);
-	ui->installerTabs->setCurrentIndex(2);
-	ui->buttonTabLanguage->setChecked(false);
-	ui->buttonTabHeroesData->setChecked(false);
-	ui->buttonTabModPreset->setChecked(true);
+	activateTab(TAB_MOD_PRESET);
+}
 
-	modPresetUpdate();
+void FirstLaunchView::activateTabInfo()
+{
+	activateTab(TAB_INFO);
 }
 
 void FirstLaunchView::exitSetup(bool goToMods)
@@ -784,32 +864,7 @@ bool FirstLaunchView::checkCanInstallDemo()
 	if(!checkCanInstallMod("demo-support"))
 		return false;
 
-	QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
-	QDir dataDir(userRoot.filePath(QStringLiteral("Data")));
-	QDir mapsDir(userRoot.filePath(QStringLiteral("Maps")));
-
-	bool hasDemoMap = false;
-	QStringList mapFiles = mapsDir.entryList(QDir::Files | QDir::Readable);
-	for(const QString &name : mapFiles)
-		if(name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
-		{
-			hasDemoMap = true;
-			break;
-		}
-	
-	QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
-	for(const QString &name : files)
-	{
-		if(name.compare(QStringLiteral("H3ab_spr.lod"), Qt::CaseInsensitive) == 0)
-		{
-			QFileInfo lodInfo(dataDir.filePath(name));
-			quint64 fileSize = static_cast<quint64>(lodInfo.size());
-			logGlobal->trace("H3ab_spr.lod size: %llu", fileSize);
-			if(fileSize < 8000000 && hasDemoMap) // 8 MB + Demo map = Merged Windows and MacOS Demo
-				return true;
-		}
-	}
-	return false;
+	return isDemoDataDetected();
 }
 
 bool FirstLaunchView::checkCanInstallHota()
@@ -850,10 +905,20 @@ bool FirstLaunchView::checkCanInstallMod(const QString & modID)
 
 void FirstLaunchView::on_pushButtonPresetBack_clicked()
 {
-	activateTabHeroesData();
+	activatePreviousTab();
 }
 
 void FirstLaunchView::on_pushButtonPresetNext_clicked()
+{
+	activateNextTab();
+}
+
+void FirstLaunchView::on_pushButtonInfoBack_clicked()
+{
+	activatePreviousTab();
+}
+
+void FirstLaunchView::on_pushButtonFinish_clicked()
 {
 	QStringList modsToInstall;
 

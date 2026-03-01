@@ -30,6 +30,12 @@ class FirstLaunchView : public QWidget
 	void activateTabLanguage();
 	void activateTabHeroesData();
 	void activateTabModPreset();
+	void activateTabInfo();
+	void activateTab(int tabIndex);
+	void activateNextTab();
+	void activatePreviousTab();
+	bool shouldShowTab(int tabIndex) const;
+	bool isDemoDataDetected() const;
 	void exitSetup(bool goToMods);
 	
 	// Tab Language
@@ -94,6 +100,10 @@ private slots:
 	void on_pushButtonPresetBack_clicked();
 
 	void on_pushButtonPresetNext_clicked();
+
+	void on_pushButtonInfoBack_clicked();
+
+	void on_pushButtonFinish_clicked();
 
 	void on_pushButtonDiscord_clicked();
 
