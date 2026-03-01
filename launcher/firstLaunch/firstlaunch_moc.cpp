@@ -26,6 +26,8 @@
 #include "../innoextract.h"
 #include "progressoverlay.h"
 
+#include <algorithm>
+
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
 {
@@ -51,6 +53,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
 {
 	ui->setupUi(this);
+	applyResponsiveUiScale();
 
 	enterSetup();
 	activateTab(TAB_LANGUAGE);
@@ -103,6 +106,73 @@ void FirstLaunchView::changeEvent(QEvent * event)
 		Languages::fillLanguages(ui->listWidgetLanguage, false);
 	}
 	QWidget::changeEvent(event);
+}
+
+void FirstLaunchView::resizeEvent(QResizeEvent * event)
+{
+	QWidget::resizeEvent(event);
+	applyResponsiveUiScale();
+}
+
+void FirstLaunchView::applyResponsiveUiScale()
+{
+	const int baseHeight = 520;
+	const int minHeight = 420;
+	const int clampedHeight = std::max(minHeight, height());
+	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), 0.9, 1.5);
+
+	auto applyButtonScale = [scale](QPushButton * button)
+	{
+		if(!button)
+			return;
+
+		const int minHeightPx = std::max(32, static_cast<int>(std::round(36 * scale)));
+		button->setMinimumHeight(minHeightPx);
+		QFont buttonFont = button->font();
+		buttonFont.setPointSizeF(10.0 * scale);
+		button->setFont(buttonFont);
+	};
+
+	auto applyRadioScale = [scale](QRadioButton * radio)
+	{
+		if(!radio)
+			return;
+
+		QFont radioFont = radio->font();
+		radioFont.setPointSizeF(10.0 * scale);
+		radio->setFont(radioFont);
+	};
+
+	auto applyTitleScale = [scale](QLabel * label)
+	{
+		if(!label)
+			return;
+
+		QFont titleFont = label->font();
+		titleFont.setPointSizeF(12.0 * scale);
+		label->setFont(titleFont);
+	};
+
+	applyTitleScale(ui->labelLanguageTitle);
+	applyTitleScale(ui->labelDataTitle);
+	applyTitleScale(ui->labelPresetTitle);
+	applyTitleScale(ui->labelInfoTitle);
+
+	applyRadioScale(ui->radioButtonDataDetected);
+	applyRadioScale(ui->radioButtonDataGog);
+	applyRadioScale(ui->radioButtonDataCopy);
+	applyRadioScale(ui->radioButtonDataManual);
+	applyRadioScale(ui->radioButtonFolder);
+	applyRadioScale(ui->radioButtonZIP);
+
+	applyButtonScale(ui->pushButtonLanguageNext);
+	applyButtonScale(ui->pushButtonDataBack);
+	applyButtonScale(ui->pushButtonDataNext);
+	applyButtonScale(ui->pushButtonSelect);
+	applyButtonScale(ui->pushButtonPresetBack);
+	applyButtonScale(ui->pushButtonPresetNext);
+	applyButtonScale(ui->pushButtonInfoBack);
+	applyButtonScale(ui->pushButtonFinish);
 }
 
 void FirstLaunchView::on_pushButtonLanguageNext_clicked()
@@ -190,7 +260,17 @@ void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
 void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
 {
 	if(checked)
+	{
+		if(!ui->radioButtonFolder->isChecked() && !ui->radioButtonZIP->isChecked())
+			ui->radioButtonFolder->setChecked(true);
 		updateDataOptionDetails();
+	}
+	else
+	{
+		ui->radioButtonFolder->setChecked(false);
+		ui->radioButtonZIP->setChecked(false);
+		updateDataOptionDetails();
+	}
 }
 
 void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)

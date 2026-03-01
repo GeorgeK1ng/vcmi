@@ -23,7 +23,9 @@ class FirstLaunchView : public QWidget
 	Q_OBJECT
 
 	void changeEvent(QEvent *event) override;
+	void resizeEvent(QResizeEvent *event) override;
 	CModListView * getModView();
+	void applyResponsiveUiScale();
 
 	void setSetupProgress(int progress);
 	void enterSetup();

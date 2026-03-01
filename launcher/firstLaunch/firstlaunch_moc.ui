@@ -935,6 +935,9 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QPushButton" name="pushButtonPresetBack">
            <property name="text">
@@ -946,6 +949,9 @@
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::MinimumExpanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -1093,6 +1099,9 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::MinimumExpanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
