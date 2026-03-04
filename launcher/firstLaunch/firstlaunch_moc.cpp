@@ -465,27 +465,42 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 	if(!grid)
 		return;
 
+	auto ensureTileContainer = [this](const QString & objectName, QCommandLinkButton * button, QTextBrowser * info)
+	{
+		QWidget * container = findChild<QWidget *>(objectName);
+		if(container)
+			return container;
+
+		container = new QWidget(this);
+		container->setObjectName(objectName);
+		auto * containerLayout = new QVBoxLayout(container);
+		containerLayout->setContentsMargins(0, 0, 0, 0);
+		containerLayout->setSpacing(4);
+		containerLayout->addWidget(button);
+		containerLayout->addWidget(info);
+		return container;
+	};
+
 	struct OptionWidgets
 	{
+		QWidget * container;
 		QCommandLinkButton * button;
 		QTextBrowser * info;
 		bool available;
 	};
 
 	const QVector<OptionWidgets> options = {
-		{ ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo, hasDetectedInstall },
-		{ ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo, canUseGogInstall },
-		{ ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo, canUseDataCopy },
-		{ ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo, true }
+		{ ensureTileContainer(QStringLiteral("dataOptionTileDetected"), ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo), ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo, hasDetectedInstall },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileGog"), ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo), ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo, canUseGogInstall },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileCopy"), ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo), ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo, canUseDataCopy },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileManual"), ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo), ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo, true }
 	};
 
 	QVector<OptionWidgets> availableOptions;
 	for(const OptionWidgets & option : options)
 	{
-		grid->removeWidget(option.button);
-		grid->removeWidget(option.info);
-		option.button->setVisible(false);
-		option.info->setVisible(false);
+		grid->removeWidget(option.container);
+		option.container->setVisible(false);
 		option.button->setEnabled(option.available);
 		if(option.available)
 			availableOptions.push_back(option);
@@ -494,13 +509,10 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 	for(int i = 0; i < availableOptions.size(); ++i)
 	{
 		const OptionWidgets & option = availableOptions[i];
-		const int buttonRow = 2 + i / 2;
-		const int infoRow = 4 + i / 2;
+		const int tileRow = 2 + i / 2;
 		const int col = (i % 2 == 0) ? 0 : 2;
-		grid->addWidget(option.button, buttonRow, col, 1, 2);
-		grid->addWidget(option.info, infoRow, col, 1, 2);
-		option.button->setVisible(true);
-		option.info->setVisible(true);
+		grid->addWidget(option.container, tileRow, col, 1, 2);
+		option.container->setVisible(true);
 	}
 }
 
@@ -528,14 +540,14 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
-		? tr("<p>Use offline installer files from GOG and import data automatically.</p>")
+		? tr(R"(<p>Import data from GOG offline installers. Download page: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition</a>.</p>)")
 		: tr("<p><i>Not available on this platform/build.</i></p>"));
 
 	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
-		? tr("<p>Select an existing Heroes III folder and copy required files automatically.</p>")
+		? tr("<p>Select your existing Heroes III folder and VCMI will copy required files.</p>")
 		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
 
-	ui->textBrowserDataManualInfo->setHtml(tr("<p>Copy game files manually and press <b>Scan again</b> to verify installation.</p>"));
+	ui->textBrowserDataManualInfo->setHtml(tr(R"(<p>Copy game files manually and press <b>Scan again</b>. Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>)"));
 
 	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
 		|| ui->commandLinkButtonDataGog->isChecked()
