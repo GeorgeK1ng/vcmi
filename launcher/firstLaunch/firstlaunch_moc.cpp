@@ -167,14 +167,28 @@ void FirstLaunchView::applyResponsiveUiScale()
 	{
 		if(!button)
 			return;
-		const int minHeightPx = std::max(76, static_cast<int>(std::round(92 * scale)));
-		button->setMinimumHeight(minHeightPx);
+		const int heightPx = std::max(76, static_cast<int>(std::round(92 * scale)));
+		button->setMinimumHeight(heightPx);
+		button->setMaximumHeight(heightPx);
+	};
+
+	auto applyDataInfoScale = [scale](QTextBrowser * text)
+	{
+		if(!text)
+			return;
+		const int heightPx = std::max(52, static_cast<int>(std::round(64 * scale)));
+		text->setMinimumHeight(heightPx);
+		text->setMaximumHeight(heightPx);
 	};
 
 	applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
 	applyDataOptionButtonScale(ui->commandLinkButtonDataGog);
 	applyDataOptionButtonScale(ui->commandLinkButtonDataCopy);
 	applyDataOptionButtonScale(ui->commandLinkButtonDataManual);
+	applyDataInfoScale(ui->textBrowserDataDetectedInfo);
+	applyDataInfoScale(ui->textBrowserDataGogInfo);
+	applyDataInfoScale(ui->textBrowserDataCopyInfo);
+	applyDataInfoScale(ui->textBrowserDataManualInfo);
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
@@ -444,45 +458,6 @@ void FirstLaunchView::heroesDataDetected()
 	CGeneralTextHandler::detectInstallParameters();
 }
 
-void FirstLaunchView::layoutDataOptionButtons(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy)
-{
-	QGridLayout * grid = ui->gridLayout;
-	if(!grid)
-		return;
-
-	QVector<QCommandLinkButton *> availableButtons;
-	if(hasDetectedInstall)
-		availableButtons.push_back(ui->commandLinkButtonDataDetected);
-	if(canUseGogInstall)
-		availableButtons.push_back(ui->commandLinkButtonDataGog);
-	if(canUseDataCopy)
-		availableButtons.push_back(ui->commandLinkButtonDataCopy);
-	availableButtons.push_back(ui->commandLinkButtonDataManual);
-
-	const QVector<QCommandLinkButton *> allButtons = {
-		ui->commandLinkButtonDataDetected,
-		ui->commandLinkButtonDataGog,
-		ui->commandLinkButtonDataCopy,
-		ui->commandLinkButtonDataManual
-	};
-
-	for(QCommandLinkButton * button : allButtons)
-	{
-		grid->removeWidget(button);
-		button->setVisible(false);
-	}
-
-	for(int i = 0; i < availableButtons.size(); ++i)
-	{
-		QCommandLinkButton * button = availableButtons[i];
-		const int row = 2 + i / 2;
-		const int col = (i % 2 == 0) ? 0 : 2;
-		grid->addWidget(button, row, col, 1, 2);
-		button->setVisible(true);
-		button->setEnabled(true);
-	}
-}
-
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
@@ -495,7 +470,38 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 #endif
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
-	layoutDataOptionButtons(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
+	ui->commandLinkButtonDataDetected->setVisible(true);
+	ui->commandLinkButtonDataGog->setVisible(true);
+	ui->commandLinkButtonDataCopy->setVisible(true);
+	ui->commandLinkButtonDataManual->setVisible(true);
+
+	ui->commandLinkButtonDataDetected->setEnabled(hasDetectedInstall);
+	ui->commandLinkButtonDataGog->setEnabled(canUseGogInstall);
+	ui->commandLinkButtonDataCopy->setEnabled(canUseDataCopy);
+	ui->commandLinkButtonDataManual->setEnabled(true);
+	ui->commandLinkButtonDataDetected->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataGog->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataCopy->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataManual->setDescription(QStringLiteral(" "));
+
+	ui->textBrowserDataDetectedInfo->setVisible(true);
+	ui->textBrowserDataGogInfo->setVisible(true);
+	ui->textBrowserDataCopyInfo->setVisible(true);
+	ui->textBrowserDataManualInfo->setVisible(true);
+
+	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
+		? tr("<p>Use installation detected automatically on this device.</p>")
+		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
+
+	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
+		? tr("<p>Use offline installer files from GOG and import data automatically.</p>")
+		: tr("<p><i>Not available on this platform/build.</i></p>"));
+
+	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
+		? tr("<p>Select an existing Heroes III folder and copy required files automatically.</p>")
+		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
+
+	ui->textBrowserDataManualInfo->setHtml(tr("<p>Copy game files manually and press <b>Scan again</b> to verify installation.</p>"));
 
 	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
 		|| ui->commandLinkButtonDataGog->isChecked()
@@ -534,28 +540,20 @@ void FirstLaunchView::updateDataOptionDetails()
 
 	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
 	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
 		ui->pushButtonSelect->setVisible(false);
 	}
 	else if(ui->commandLinkButtonDataCopy->isChecked())
 	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
 		ui->pushButtonSelect->setText(tr("Select folder"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else if(manualSelected)
 	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
 		ui->pushButtonSelect->setText(tr("Scan again"));
 		ui->pushButtonSelect->setVisible(true);
 	}
 	else
 	{
-		ui->textBrowserDataOptionDetails->setHtml(tr(R"(
-<p>If you already know this flow and have the Heroes III Complete offline backup installer from gog.com, continue by pressing <b>Select installer</b> and selecting the files.</p>
-<p>If you do not own the game yet, buy it on gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
-<p>If you already own it and only need to download it, sign in to your account and download the offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> and BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
-)"));
 		ui->pushButtonSelect->setText(tr("Select installer"));
 #ifdef ENABLE_INNOEXTRACT
 		ui->pushButtonSelect->setVisible(true);
