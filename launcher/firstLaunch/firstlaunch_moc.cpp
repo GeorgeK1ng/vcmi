@@ -220,22 +220,24 @@ void FirstLaunchView::applyResponsiveUiScale()
 	};
 
 
-	auto applyDataOptionButtonScale = [scale](QCommandLinkButton * button)
+	const int dataTileTotalHeightPx = std::max(130, static_cast<int>(std::round(168 * scale)));
+	const int dataTileButtonHeightPx = std::max(36, static_cast<int>(std::round(dataTileTotalHeightPx * 0.30)));
+	const int dataTileInfoHeightPx = std::max(72, dataTileTotalHeightPx - dataTileButtonHeightPx);
+
+	auto applyDataOptionButtonScale = [dataTileButtonHeightPx](QCommandLinkButton * button)
 	{
 		if(!button)
 			return;
-		const int heightPx = std::max(76, static_cast<int>(std::round(92 * scale)));
-		button->setMinimumHeight(heightPx);
-		button->setMaximumHeight(heightPx);
+		button->setMinimumHeight(dataTileButtonHeightPx);
+		button->setMaximumHeight(dataTileButtonHeightPx);
 	};
 
-	auto applyDataInfoScale = [scale](QTextBrowser * text)
+	auto applyDataInfoScale = [dataTileInfoHeightPx](QTextBrowser * text)
 	{
 		if(!text)
 			return;
-		const int heightPx = std::max(52, static_cast<int>(std::round(64 * scale)));
-		text->setMinimumHeight(heightPx);
-		text->setMaximumHeight(heightPx);
+		text->setMinimumHeight(dataTileInfoHeightPx);
+		text->setMaximumHeight(dataTileInfoHeightPx);
 	};
 
 	applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
