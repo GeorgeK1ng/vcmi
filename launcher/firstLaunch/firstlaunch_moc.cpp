@@ -458,6 +458,52 @@ void FirstLaunchView::heroesDataDetected()
 	CGeneralTextHandler::detectInstallParameters();
 }
 
+
+void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy)
+{
+	QGridLayout * grid = ui->gridLayout;
+	if(!grid)
+		return;
+
+	struct OptionWidgets
+	{
+		QCommandLinkButton * button;
+		QTextBrowser * info;
+		bool available;
+	};
+
+	const QVector<OptionWidgets> options = {
+		{ ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo, hasDetectedInstall },
+		{ ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo, canUseGogInstall },
+		{ ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo, canUseDataCopy },
+		{ ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo, true }
+	};
+
+	QVector<OptionWidgets> availableOptions;
+	for(const OptionWidgets & option : options)
+	{
+		grid->removeWidget(option.button);
+		grid->removeWidget(option.info);
+		option.button->setVisible(false);
+		option.info->setVisible(false);
+		option.button->setEnabled(option.available);
+		if(option.available)
+			availableOptions.push_back(option);
+	}
+
+	for(int i = 0; i < availableOptions.size(); ++i)
+	{
+		const OptionWidgets & option = availableOptions[i];
+		const int buttonRow = 2 + i / 2;
+		const int infoRow = 4 + i / 2;
+		const int col = (i % 2 == 0) ? 0 : 2;
+		grid->addWidget(option.button, buttonRow, col, 1, 2);
+		grid->addWidget(option.info, infoRow, col, 1, 2);
+		option.button->setVisible(true);
+		option.info->setVisible(true);
+	}
+}
+
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
@@ -470,24 +516,12 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 #endif
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
-	ui->commandLinkButtonDataDetected->setVisible(true);
-	ui->commandLinkButtonDataGog->setVisible(true);
-	ui->commandLinkButtonDataCopy->setVisible(true);
-	ui->commandLinkButtonDataManual->setVisible(true);
+	layoutDataOptionWidgets(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
 
-	ui->commandLinkButtonDataDetected->setEnabled(hasDetectedInstall);
-	ui->commandLinkButtonDataGog->setEnabled(canUseGogInstall);
-	ui->commandLinkButtonDataCopy->setEnabled(canUseDataCopy);
-	ui->commandLinkButtonDataManual->setEnabled(true);
 	ui->commandLinkButtonDataDetected->setDescription(QStringLiteral(" "));
 	ui->commandLinkButtonDataGog->setDescription(QStringLiteral(" "));
 	ui->commandLinkButtonDataCopy->setDescription(QStringLiteral(" "));
 	ui->commandLinkButtonDataManual->setDescription(QStringLiteral(" "));
-
-	ui->textBrowserDataDetectedInfo->setVisible(true);
-	ui->textBrowserDataGogInfo->setVisible(true);
-	ui->textBrowserDataCopyInfo->setVisible(true);
-	ui->textBrowserDataManualInfo->setVisible(true);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
 		? tr("<p>Use installation detected automatically on this device.</p>")
