@@ -110,6 +110,63 @@ void FirstLaunchView::resizeEvent(QResizeEvent * event)
 	applyResponsiveUiScale();
 }
 
+bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
+{
+	auto getTileContainer = [this](QObject * obj) -> QWidget *
+	{
+		if(!obj)
+			return nullptr;
+		const QString containerName = obj->property("tileContainerName").toString();
+		if(containerName.isEmpty())
+			return nullptr;
+		return findChild<QWidget *>(containerName);
+	};
+	auto getTileButton = [this](QObject * obj) -> QCommandLinkButton *
+	{
+		if(!obj)
+			return nullptr;
+		const QString buttonName = obj->property("tileButtonName").toString();
+		if(buttonName.isEmpty())
+			return nullptr;
+		return findChild<QCommandLinkButton *>(buttonName);
+	};
+
+	QWidget * container = getTileContainer(watched);
+	QCommandLinkButton * button = getTileButton(watched);
+	if(!container || !button)
+		return QWidget::eventFilter(watched, event);
+
+	if(event->type() == QEvent::Enter)
+	{
+		container->setProperty("tileHovered", true);
+		updateDataOptionTileVisuals();
+	}
+	else if(event->type() == QEvent::Leave)
+	{
+		container->setProperty("tileHovered", false);
+		updateDataOptionTileVisuals();
+	}
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		if(auto * info = qobject_cast<QTextBrowser *>(watched))
+		{
+			auto * mouseEvent = static_cast<QMouseEvent *>(event);
+			if(!info->anchorAt(mouseEvent->pos()).isEmpty())
+				return QWidget::eventFilter(watched, event);
+		}
+
+		if(button->isEnabled())
+		{
+			button->setChecked(true);
+			updateDataOptionDetails();
+			updateDataOptionTileVisuals();
+			return true;
+		}
+	}
+
+	return QWidget::eventFilter(watched, event);
+}
+
 void FirstLaunchView::applyResponsiveUiScale()
 {
 	const int baseHeight = 520;
@@ -265,24 +322,28 @@ void FirstLaunchView::on_commandLinkButtonDataDetected_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
 void FirstLaunchView::on_commandLinkButtonDataGog_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
 void FirstLaunchView::on_commandLinkButtonDataCopy_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
 void FirstLaunchView::on_commandLinkButtonDataManual_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
 
@@ -473,8 +534,30 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 
 		container = new QWidget(this);
 		container->setObjectName(objectName);
+		container->setProperty("tileHovered", false);
+		container->setProperty("tileChecked", false);
+		container->setProperty("tileEnabled", true);
+		container->setProperty("tileContainerName", objectName);
+		container->setProperty("tileButtonName", button->objectName());
+
+		button->setProperty("tileContainerName", objectName);
+		button->setProperty("tileButtonName", button->objectName());
+		button->setCursor(Qt::PointingHandCursor);
+		button->setStyleSheet(QStringLiteral("QCommandLinkButton{border:none;background:transparent;padding:4px;}"));
+
+		info->setProperty("tileContainerName", objectName);
+		info->setProperty("tileButtonName", button->objectName());
+		info->setFrameShape(QFrame::NoFrame);
+		info->setCursor(Qt::PointingHandCursor);
+		info->setStyleSheet(QStringLiteral("QTextBrowser{border:none;background:transparent;}"));
+		info->setOpenExternalLinks(true);
+
+		container->installEventFilter(this);
+		button->installEventFilter(this);
+		info->installEventFilter(this);
+
 		auto * containerLayout = new QVBoxLayout(container);
-		containerLayout->setContentsMargins(0, 0, 0, 0);
+		containerLayout->setContentsMargins(8, 8, 8, 8);
 		containerLayout->setSpacing(4);
 		containerLayout->addWidget(button);
 		containerLayout->addWidget(info);
@@ -513,6 +596,36 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 		const int col = (i % 2 == 0) ? 0 : 2;
 		grid->addWidget(option.container, tileRow, col, 1, 2);
 		option.container->setVisible(true);
+	}
+
+	updateDataOptionTileVisuals();
+}
+
+void FirstLaunchView::updateDataOptionTileVisuals()
+{
+	const QVector<QPair<QString, QCommandLinkButton *>> tiles = {
+		{ QStringLiteral("dataOptionTileDetected"), ui->commandLinkButtonDataDetected },
+		{ QStringLiteral("dataOptionTileGog"), ui->commandLinkButtonDataGog },
+		{ QStringLiteral("dataOptionTileCopy"), ui->commandLinkButtonDataCopy },
+		{ QStringLiteral("dataOptionTileManual"), ui->commandLinkButtonDataManual }
+	};
+
+	for(const auto & tile : tiles)
+	{
+		QWidget * container = findChild<QWidget *>(tile.first);
+		if(!container)
+			continue;
+
+		container->setProperty("tileChecked", tile.second->isChecked());
+		container->setProperty("tileEnabled", tile.second->isEnabled());
+		container->style()->unpolish(container);
+		container->style()->polish(container);
+		container->setStyleSheet(QStringLiteral(R"(
+			QWidget[tileEnabled="true"] { border: 1px solid palette(mid); border-radius: 8px; background: palette(base); }
+			QWidget[tileEnabled="true"][tileHovered="true"] { border: 1px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="true"][tileChecked="true"] { border: 2px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="false"] { border: 1px solid palette(dark); border-radius: 8px; background: palette(window); }
+		)"));
 	}
 }
 
@@ -607,6 +720,8 @@ void FirstLaunchView::updateDataOptionDetails()
 		ui->pushButtonSelect->setVisible(false);
 #endif
 	}
+
+	updateDataOptionTileVisuals();
 }
 
 // Tab Heroes III Data

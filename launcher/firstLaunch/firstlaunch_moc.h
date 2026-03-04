@@ -24,6 +24,7 @@ class FirstLaunchView : public QWidget
 
 	void changeEvent(QEvent *event) override;
 	void resizeEvent(QResizeEvent *event) override;
+	bool eventFilter(QObject * watched, QEvent * event) override;
 	CModListView * getModView();
 	void applyResponsiveUiScale();
 
@@ -51,6 +52,7 @@ class FirstLaunchView : public QWidget
 	void updateDataOptionState(bool dataDetected);
 	void updateDataOptionDetails();
 	void layoutDataOptionWidgets(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy);
+	void updateDataOptionTileVisuals();
 
 	QString getHeroesInstallDir();
 	void extractGogData();
