@@ -293,23 +293,47 @@
          </item>
          <item row="2" column="2" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataGog">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Offline GOG.com backup installer</string>
            </property>
            <property name="checked">
             <bool>false</bool>
            </property>
-          </widget>
+          
+           <property name="description">
+            <string>Select offline installer files and import data automatically.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
          </item>
          <item row="3" column="2" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataManual">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Manual installation</string>
            </property>
            <property name="checked">
             <bool>false</bool>
            </property>
-          </widget>
+          
+           <property name="description">
+            <string>Copy files yourself and use Scan again to verify installation.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
          </item>
          <item row="13" column="0">
           <widget class="QLabel" name="labelDataFiles">
@@ -360,10 +384,22 @@
          </item>
          <item row="3" column="0" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataCopy">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Copy existing files</string>
            </property>
-          </widget>
+          
+           <property name="description">
+            <string>Choose an existing Heroes III folder and copy required files.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
          </item>
          <item row="12" column="1" colspan="3">
           <widget class="QLineEdit" name="lineEditDataUser">
@@ -383,10 +419,22 @@
          </item>
          <item row="2" column="0" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataDetected">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Detected Heroes III installation</string>
            </property>
-          </widget>
+          
+           <property name="description">
+            <string>Use the installation detected automatically on this device.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
          </item>
          <item row="11" column="0" colspan="4">
           <widget class="QTextBrowser" name="textBrowserDataOptionDetails"/>

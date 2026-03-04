@@ -70,9 +70,9 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 #endif
 
 #ifndef ENABLE_INNOEXTRACT
-	ui->radioButtonDataGog->hide();
-	if(ui->radioButtonDataGog->isChecked())
-		ui->radioButtonDataManual->setChecked(true);
+	ui->commandLinkButtonDataGog->hide();
+	if(ui->commandLinkButtonDataGog->isChecked())
+		ui->commandLinkButtonDataManual->setChecked(true);
 #endif
 	updateDataOptionState(false);
 }
@@ -134,7 +134,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 			widget->setProperty("_vcmiBasePointSize", basePointSize);
 
 		qreal multiplier = 1.0;
-		if(qobject_cast<QRadioButton *>(widget))
+		if(qobject_cast<QCommandLinkButton *>(widget))
 			multiplier = 1.20;
 		else if(qobject_cast<QTextBrowser *>(widget))
 			multiplier = 1.10;
@@ -166,6 +166,20 @@ void FirstLaunchView::applyResponsiveUiScale()
 		button->setMinimumHeight(minHeightPx);
 		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};
+
+
+	auto applyDataOptionButtonScale = [scale](QCommandLinkButton * button)
+	{
+		if(!button)
+			return;
+		const int minHeightPx = std::max(76, static_cast<int>(std::round(92 * scale)));
+		button->setMinimumHeight(minHeightPx);
+	};
+
+	applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
+	applyDataOptionButtonScale(ui->commandLinkButtonDataGog);
+	applyDataOptionButtonScale(ui->commandLinkButtonDataCopy);
+	applyDataOptionButtonScale(ui->commandLinkButtonDataManual);
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
@@ -211,16 +225,16 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
 
 void FirstLaunchView::on_pushButtonSelect_clicked()
 {
-	if(ui->radioButtonDataDetected->isChecked())
+	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
 		return;
 
-	if(ui->radioButtonDataManual->isChecked())
+	if(ui->commandLinkButtonDataManual->isChecked())
 	{
 		heroesDataUpdate();
 		return;
 	}
 
-	if(ui->radioButtonDataCopy->isChecked())
+	if(ui->commandLinkButtonDataCopy->isChecked())
 	{
 		// iOS can't display modal dialogs when called directly on button press
 		// https://bugreports.qt.io/browse/QTBUG-98651
@@ -238,42 +252,30 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 	MessageBoxCustom::showDialog(this, [this]{extractGogData();});
 }
 
-void FirstLaunchView::on_radioButtonDataDetected_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataDetected_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
 }
 
-void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataGog_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
 }
 
-void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
-{
-	if(checked)
-		ui->radioButtonFolder->setChecked(true);
-
-	updateDataOptionDetails();
-}
-
-void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataCopy_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
 }
 
-void FirstLaunchView::on_radioButtonFolder_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataManual_toggled(bool checked)
 {
-	if(checked && ui->radioButtonDataCopy->isChecked())
+	if(checked)
 		updateDataOptionDetails();
 }
 
-void FirstLaunchView::on_radioButtonZIP_toggled(bool checked)
-{
-	Q_UNUSED(checked);
-}
 
 void FirstLaunchView::enterSetup()
 {
@@ -452,47 +454,49 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	const QString installPath = getHeroesInstallDir();
 	const bool hasDetectedInstall = !installPath.isEmpty();
 
-	ui->radioButtonDataDetected->setVisible(hasDetectedInstall);
-	if(!hasDetectedInstall && ui->radioButtonDataDetected->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+	ui->commandLinkButtonDataDetected->setEnabled(hasDetectedInstall);
+
+	ui->commandLinkButtonDataDetected->setText(hasDetectedInstall ? tr("Detected Heroes III installation") : QStringLiteral(" "));
+	ui->commandLinkButtonDataDetected->setDescription(hasDetectedInstall
+		? tr("Use the installation detected automatically on this device.")
+		: QStringLiteral(" "));
+	if(!hasDetectedInstall && ui->commandLinkButtonDataDetected->isChecked())
+		ui->commandLinkButtonDataGog->setChecked(true);
 
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
-	ui->radioButtonDataCopy->setVisible(canUseDataCopy);
-	ui->radioButtonFolder->setVisible(canUseDataCopy);
-	ui->radioButtonFolder->setEnabled(false);
-	ui->radioButtonZIP->setVisible(false);
-	ui->radioButtonZIP->setChecked(false);
-	if(canUseDataCopy)
-		ui->radioButtonFolder->setChecked(true);
-	if(!canUseDataCopy && ui->radioButtonDataCopy->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+	ui->commandLinkButtonDataCopy->setEnabled(canUseDataCopy);
 
-	if(dataDetected)
-		ui->radioButtonDataDetected->setChecked(hasDetectedInstall);
-	else if(!ui->radioButtonDataGog->isChecked() && !ui->radioButtonDataCopy->isChecked() && !ui->radioButtonDataManual->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+	ui->commandLinkButtonDataCopy->setText(canUseDataCopy ? tr("Copy existing files") : QStringLiteral(" "));
+	ui->commandLinkButtonDataCopy->setDescription(canUseDataCopy
+		? tr("Choose an existing Heroes III folder and copy required files.")
+		: QStringLiteral(" "));
+	if(!canUseDataCopy && ui->commandLinkButtonDataCopy->isChecked())
+		ui->commandLinkButtonDataGog->setChecked(true);
+
+	if(dataDetected && hasDetectedInstall)
+		ui->commandLinkButtonDataDetected->setChecked(true);
+	else if(!ui->commandLinkButtonDataGog->isChecked() && !ui->commandLinkButtonDataCopy->isChecked() && !ui->commandLinkButtonDataManual->isChecked() && !ui->commandLinkButtonDataDetected->isChecked())
+		ui->commandLinkButtonDataGog->setChecked(true);
 
 	updateDataOptionDetails();
 }
 
 void FirstLaunchView::updateDataOptionDetails()
 {
-	const bool manualSelected = ui->radioButtonDataManual->isChecked();
-	const bool copySelected = ui->radioButtonDataCopy->isChecked();
+	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
+	const bool copySelected = ui->commandLinkButtonDataCopy->isChecked();
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->labelDataFiles->setVisible(manualSelected);
 	ui->lineEditDataUser->setVisible(manualSelected);
 	ui->lineEditDataSystem->setVisible(manualSelected);
-	ui->radioButtonFolder->setVisible(copySelected && canUseDataCopy);
-	ui->radioButtonFolder->setEnabled(false);
-	ui->radioButtonZIP->setVisible(false);
+	Q_UNUSED(canUseDataCopy);
 
-	if(ui->radioButtonDataDetected->isChecked())
+	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
 	{
 		ui->textBrowserDataOptionDetails->setPlainText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
 		ui->pushButtonSelect->setVisible(false);
 	}
-	else if(ui->radioButtonDataCopy->isChecked())
+	else if(ui->commandLinkButtonDataCopy->isChecked())
 	{
 		ui->textBrowserDataOptionDetails->setPlainText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
 		ui->pushButtonSelect->setText(tr("Select folder"));

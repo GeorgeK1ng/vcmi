@@ -102,12 +102,10 @@ private slots:
 
 	void on_pushButtonSelect_clicked();
 
-	void on_radioButtonDataDetected_toggled(bool checked);
-	void on_radioButtonDataGog_toggled(bool checked);
-	void on_radioButtonDataCopy_toggled(bool checked);
-	void on_radioButtonDataManual_toggled(bool checked);
-	void on_radioButtonFolder_toggled(bool checked);
-	void on_radioButtonZIP_toggled(bool checked);
+	void on_commandLinkButtonDataDetected_toggled(bool checked);
+	void on_commandLinkButtonDataGog_toggled(bool checked);
+	void on_commandLinkButtonDataCopy_toggled(bool checked);
+	void on_commandLinkButtonDataManual_toggled(bool checked);
 
 	void on_pushButtonPresetBack_clicked();
 
