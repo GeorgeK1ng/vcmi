@@ -647,6 +647,9 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	ui->commandLinkButtonDataGog->setDescription(QStringLiteral(" "));
 	ui->commandLinkButtonDataCopy->setDescription(QStringLiteral(" "));
 	ui->commandLinkButtonDataManual->setDescription(QStringLiteral(" "));
+	ui->labelDataFiles->setVisible(false);
+	ui->lineEditDataUser->setVisible(false);
+	ui->lineEditDataSystem->setVisible(false);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
 		? tr("<p>Use installation detected automatically on this device.</p>")
@@ -660,7 +663,17 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 		? tr("<p>Select your existing Heroes III folder and VCMI will copy required files.</p>")
 		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
 
-	ui->textBrowserDataManualInfo->setHtml(tr(R"(<p>Copy game files manually and press <b>Scan again</b>. Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>)"));
+	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
+	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
+	ui->textBrowserDataManualInfo->setHtml(tr(R"(
+<p>Copy game files manually and press <b>Scan again</b>.</p>
+<p>Target folders:</p>
+<ul>
+<li>User data: <code>%1</code></li>
+<li>System data: <code>%2</code></li>
+</ul>
+<p>Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>
+)").arg(manualUserPath, manualSystemPath));
 
 	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
 		|| ui->commandLinkButtonDataGog->isChecked()
@@ -693,9 +706,6 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 void FirstLaunchView::updateDataOptionDetails()
 {
 	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
-	ui->labelDataFiles->setVisible(manualSelected);
-	ui->lineEditDataUser->setVisible(manualSelected);
-	ui->lineEditDataSystem->setVisible(manualSelected);
 
 	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
 	{
