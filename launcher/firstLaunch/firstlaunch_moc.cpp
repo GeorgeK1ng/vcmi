@@ -148,10 +148,17 @@ bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
 	}
 	else if(event->type() == QEvent::MouseButtonPress)
 	{
-		if(auto * info = qobject_cast<QTextBrowser *>(watched))
+		QTextBrowser * info = qobject_cast<QTextBrowser *>(watched);
+		if(!info)
+		{
+			if(auto * viewport = qobject_cast<QWidget *>(watched))
+				info = qobject_cast<QTextBrowser *>(viewport->parentWidget());
+		}
+		if(info)
 		{
 			auto * mouseEvent = static_cast<QMouseEvent *>(event);
-			if(!info->anchorAt(mouseEvent->pos()).isEmpty())
+			const QPoint pos = info->mapFromGlobal(static_cast<QWidget *>(watched)->mapToGlobal(mouseEvent->pos()));
+			if(!info->anchorAt(pos).isEmpty())
 				return QWidget::eventFilter(watched, event);
 		}
 
@@ -553,10 +560,18 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 		info->setCursor(Qt::PointingHandCursor);
 		info->setStyleSheet(QStringLiteral("QTextBrowser{border:none;background:transparent;}"));
 		info->setOpenExternalLinks(true);
+		if(info->viewport())
+		{
+			info->viewport()->setProperty("tileContainerName", objectName);
+			info->viewport()->setProperty("tileButtonName", button->objectName());
+			info->viewport()->setCursor(Qt::PointingHandCursor);
+		}
 
 		container->installEventFilter(this);
 		button->installEventFilter(this);
 		info->installEventFilter(this);
+		if(info->viewport())
+			info->viewport()->installEventFilter(this);
 
 		auto * containerLayout = new QVBoxLayout(container);
 		containerLayout->setContentsMargins(8, 8, 8, 8);
