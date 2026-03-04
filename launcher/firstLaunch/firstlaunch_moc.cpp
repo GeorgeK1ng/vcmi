@@ -444,6 +444,45 @@ void FirstLaunchView::heroesDataDetected()
 	CGeneralTextHandler::detectInstallParameters();
 }
 
+void FirstLaunchView::layoutDataOptionButtons(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy)
+{
+	QGridLayout * grid = ui->gridLayout;
+	if(!grid)
+		return;
+
+	QVector<QCommandLinkButton *> availableButtons;
+	if(hasDetectedInstall)
+		availableButtons.push_back(ui->commandLinkButtonDataDetected);
+	if(canUseGogInstall)
+		availableButtons.push_back(ui->commandLinkButtonDataGog);
+	if(canUseDataCopy)
+		availableButtons.push_back(ui->commandLinkButtonDataCopy);
+	availableButtons.push_back(ui->commandLinkButtonDataManual);
+
+	const QVector<QCommandLinkButton *> allButtons = {
+		ui->commandLinkButtonDataDetected,
+		ui->commandLinkButtonDataGog,
+		ui->commandLinkButtonDataCopy,
+		ui->commandLinkButtonDataManual
+	};
+
+	for(QCommandLinkButton * button : allButtons)
+	{
+		grid->removeWidget(button);
+		button->setVisible(false);
+	}
+
+	for(int i = 0; i < availableButtons.size(); ++i)
+	{
+		QCommandLinkButton * button = availableButtons[i];
+		const int row = 2 + i / 2;
+		const int col = (i % 2 == 0) ? 0 : 2;
+		grid->addWidget(button, row, col, 1, 2);
+		button->setVisible(true);
+		button->setEnabled(true);
+	}
+}
+
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
@@ -456,23 +495,7 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 #endif
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
-	ui->commandLinkButtonDataDetected->setEnabled(hasDetectedInstall);
-	ui->commandLinkButtonDataDetected->setText(hasDetectedInstall ? tr("Detected Heroes III installation") : QStringLiteral(" "));
-	ui->commandLinkButtonDataDetected->setDescription(hasDetectedInstall
-		? tr("Use the installation detected automatically on this device.")
-		: QStringLiteral(" "));
-
-	ui->commandLinkButtonDataGog->setEnabled(canUseGogInstall);
-	ui->commandLinkButtonDataGog->setText(canUseGogInstall ? tr("Offline GOG.com backup installer") : QStringLiteral(" "));
-	ui->commandLinkButtonDataGog->setDescription(canUseGogInstall
-		? tr("Select offline installer files and import data automatically.")
-		: QStringLiteral(" "));
-
-	ui->commandLinkButtonDataCopy->setEnabled(canUseDataCopy);
-	ui->commandLinkButtonDataCopy->setText(canUseDataCopy ? tr("Copy existing files") : QStringLiteral(" "));
-	ui->commandLinkButtonDataCopy->setDescription(canUseDataCopy
-		? tr("Choose an existing Heroes III folder and copy required files.")
-		: QStringLiteral(" "));
+	layoutDataOptionButtons(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
 
 	auto hasAnySelection = [this]()
 	{
@@ -481,19 +504,19 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 			|| ui->commandLinkButtonDataCopy->isChecked()
 			|| ui->commandLinkButtonDataManual->isChecked();
 	};
-	auto selectedOptionDisabled = [this]()
+	auto selectedOptionUnavailable = [hasDetectedInstall, canUseGogInstall, canUseDataCopy, this]()
 	{
-		return (ui->commandLinkButtonDataDetected->isChecked() && !ui->commandLinkButtonDataDetected->isEnabled())
-			|| (ui->commandLinkButtonDataGog->isChecked() && !ui->commandLinkButtonDataGog->isEnabled())
-			|| (ui->commandLinkButtonDataCopy->isChecked() && !ui->commandLinkButtonDataCopy->isEnabled());
+		return (ui->commandLinkButtonDataDetected->isChecked() && !hasDetectedInstall)
+			|| (ui->commandLinkButtonDataGog->isChecked() && !canUseGogInstall)
+			|| (ui->commandLinkButtonDataCopy->isChecked() && !canUseDataCopy);
 	};
-	auto selectFirstAvailableOption = [this]()
+	auto selectFirstAvailableOption = [hasDetectedInstall, canUseGogInstall, canUseDataCopy, this]()
 	{
-		if(ui->commandLinkButtonDataDetected->isEnabled())
+		if(hasDetectedInstall)
 			ui->commandLinkButtonDataDetected->setChecked(true);
-		else if(ui->commandLinkButtonDataGog->isEnabled())
+		else if(canUseGogInstall)
 			ui->commandLinkButtonDataGog->setChecked(true);
-		else if(ui->commandLinkButtonDataCopy->isEnabled())
+		else if(canUseDataCopy)
 			ui->commandLinkButtonDataCopy->setChecked(true);
 		else
 			ui->commandLinkButtonDataManual->setChecked(true);
@@ -501,7 +524,7 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 	if(dataDetected && hasDetectedInstall)
 		ui->commandLinkButtonDataDetected->setChecked(true);
-	else if(!hasAnySelection() || selectedOptionDisabled())
+	else if(!hasAnySelection() || selectedOptionUnavailable())
 		selectFirstAvailableOption();
 
 	updateDataOptionDetails();
