@@ -497,20 +497,20 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 	layoutDataOptionButtons(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
 
-	auto hasAnySelection = [this]()
+	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
+		|| ui->commandLinkButtonDataGog->isChecked()
+		|| ui->commandLinkButtonDataCopy->isChecked()
+		|| ui->commandLinkButtonDataManual->isChecked();
+
+	const bool selectedOptionUnavailable = (ui->commandLinkButtonDataDetected->isChecked() && !hasDetectedInstall)
+		|| (ui->commandLinkButtonDataGog->isChecked() && !canUseGogInstall)
+		|| (ui->commandLinkButtonDataCopy->isChecked() && !canUseDataCopy);
+
+	if(dataDetected && hasDetectedInstall)
 	{
-		return ui->commandLinkButtonDataDetected->isChecked()
-			|| ui->commandLinkButtonDataGog->isChecked()
-			|| ui->commandLinkButtonDataCopy->isChecked()
-			|| ui->commandLinkButtonDataManual->isChecked();
-	};
-	auto selectedOptionUnavailable = [hasDetectedInstall, canUseGogInstall, canUseDataCopy, this]()
-	{
-		return (ui->commandLinkButtonDataDetected->isChecked() && !hasDetectedInstall)
-			|| (ui->commandLinkButtonDataGog->isChecked() && !canUseGogInstall)
-			|| (ui->commandLinkButtonDataCopy->isChecked() && !canUseDataCopy);
-	};
-	auto selectFirstAvailableOption = [hasDetectedInstall, canUseGogInstall, canUseDataCopy, this]()
+		ui->commandLinkButtonDataDetected->setChecked(true);
+	}
+	else if(!hasAnySelection || selectedOptionUnavailable)
 	{
 		if(hasDetectedInstall)
 			ui->commandLinkButtonDataDetected->setChecked(true);
@@ -520,12 +520,7 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 			ui->commandLinkButtonDataCopy->setChecked(true);
 		else
 			ui->commandLinkButtonDataManual->setChecked(true);
-	};
-
-	if(dataDetected && hasDetectedInstall)
-		ui->commandLinkButtonDataDetected->setChecked(true);
-	else if(!hasAnySelection() || selectedOptionUnavailable())
-		selectFirstAvailableOption();
+	}
 
 	updateDataOptionDetails();
 }
