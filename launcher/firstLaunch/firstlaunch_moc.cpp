@@ -484,12 +484,9 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 void FirstLaunchView::updateDataOptionDetails()
 {
 	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
-	const bool copySelected = ui->commandLinkButtonDataCopy->isChecked();
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
 	ui->labelDataFiles->setVisible(manualSelected);
 	ui->lineEditDataUser->setVisible(manualSelected);
 	ui->lineEditDataSystem->setVisible(manualSelected);
-	Q_UNUSED(canUseDataCopy);
 
 	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
 	{
