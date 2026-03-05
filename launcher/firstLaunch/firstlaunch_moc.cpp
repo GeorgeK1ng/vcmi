@@ -227,25 +227,26 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
 	const int availableListHeight = std::max(compactScreen ? 36 : 60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
 	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
-	auto applyNavigationButtonScale = [scale](QPushButton * button)
+	const int navMinHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
+	const int navMinWidthPx = compactScreen ? 0 : std::max(92, static_cast<int>(std::round(112 * scale)));
+	const int navMaxHeightPx = static_cast<int>(std::round(44 * scale));
+
+	auto applyNavigationButtonScale = [navMinHeightPx, navMinWidthPx, navMaxHeightPx](QPushButton * button)
 	{
 		if(!button)
 			return;
 
-		const int minHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
-		const int minWidthPx = compactScreen ? 0 : std::max(92, static_cast<int>(std::round(112 * scale)));
-		button->setMinimumHeight(minHeightPx);
-		button->setMinimumWidth(minWidthPx);
-		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
+		button->setMinimumHeight(navMinHeightPx);
+		button->setMinimumWidth(navMinWidthPx);
+		button->setMaximumHeight(navMaxHeightPx);
 	};
 
-	auto applyActionButtonScale = [scale](QPushButton * button)
+	auto applyActionButtonScale = [navMinHeightPx, navMaxHeightPx](QPushButton * button)
 	{
 		if(!button)
 			return;
-		const int minHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
-		button->setMinimumHeight(minHeightPx);
-		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
+		button->setMinimumHeight(navMinHeightPx);
+		button->setMaximumHeight(navMaxHeightPx);
 	};
 
 
