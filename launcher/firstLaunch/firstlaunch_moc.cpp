@@ -167,6 +167,10 @@ bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
 			button->setChecked(true);
 			updateDataOptionDetails();
 			updateDataOptionTileVisuals();
+
+			// Keep tile selection on click, but let text browser process the event for scrolling/focus.
+			if(info)
+				return QWidget::eventFilter(watched, event);
 			return true;
 		}
 	}
@@ -243,7 +247,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int availableListHeight = std::max(compactScreen ? 36 : 60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
 	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
 	const int navMinHeightPx = compactScreen ? std::max(34, static_cast<int>(std::round(40 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
-	const int navMinWidthPx = compactScreen ? std::max(120, static_cast<int>(std::round(156 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
+	const int navButtonWidthPx = compactScreen ? std::max(120, static_cast<int>(std::round(156 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
 	const int navMaxHeightPx = compactScreen ? std::max(navMinHeightPx, static_cast<int>(std::round(56 * scale))) : static_cast<int>(std::round(44 * scale));
 
 	auto applyNavigationButtonScale = [&](QPushButton * button)
@@ -252,7 +256,8 @@ void FirstLaunchView::applyResponsiveUiScale()
 			return;
 
 		button->setMinimumHeight(navMinHeightPx);
-		button->setMinimumWidth(navMinWidthPx);
+		button->setMinimumWidth(navButtonWidthPx);
+		button->setMaximumWidth(navButtonWidthPx);
 		button->setMaximumHeight(navMaxHeightPx);
 	};
 
