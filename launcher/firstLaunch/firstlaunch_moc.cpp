@@ -328,6 +328,10 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
+	MessageBoxCustom::information(this,
+		tr("Folder selection"),
+		tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
+
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{
@@ -351,6 +355,10 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 
 	if(ui->commandLinkButtonDataCopy->isChecked())
 	{
+		MessageBoxCustom::information(this,
+			tr("Folder selection"),
+			tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
+
 		// iOS can't display modal dialogs when called directly on button press
 		// https://bugreports.qt.io/browse/QTBUG-98651
 		MessageBoxCustom::showDialog(this, [this]{
