@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>647</width>
-    <height>502</height>
+    <width>745</width>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,16 +25,16 @@
      <widget class="QWidget" name="pageLanguage">
       <layout class="QVBoxLayout" name="verticalLayoutLanguagePage">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelLanguageTitle">
@@ -130,16 +130,16 @@
         <number>8</number>
        </property>
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelDataTitle">
@@ -171,7 +171,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -184,7 +184,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -456,7 +456,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -503,16 +503,16 @@
      <widget class="QWidget" name="pageModPreset">
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelPresetTitle">
@@ -563,7 +563,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -928,7 +928,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -969,16 +969,16 @@
      <widget class="QWidget" name="pageInfo">
       <layout class="QVBoxLayout" name="verticalLayoutInfoPage">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelInfoTitle">
@@ -1066,7 +1066,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>20</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
