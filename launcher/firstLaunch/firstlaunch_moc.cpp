@@ -43,7 +43,6 @@ static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, boo
 namespace
 {
 constexpr int TAB_LANGUAGE = 0;
-constexpr int TAB_WELCOME = 1;
 constexpr int TAB_DATA = 2;
 constexpr int TAB_MOD_PRESET = 3;
 constexpr int TAB_INFO = 4;
