@@ -778,6 +778,7 @@ void FirstLaunchView::updateDataOptionDetails()
 	const bool copySelectedAndAvailable = ui->commandLinkButtonDataCopy->isChecked() && ui->commandLinkButtonDataCopy->isEnabled();
 	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
 
+	ui->pushButtonDataNext->setText(manualSelected ? tr("Scan again") : tr("Next"));
 	ui->pushButtonDataNext->setEnabled(detectedSelectedAndAvailable || gogSelectedAndAvailable || copySelectedAndAvailable || manualSelected || isDemoDataDetected());
 
 	updateDataOptionTileVisuals();
