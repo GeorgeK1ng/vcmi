@@ -214,6 +214,18 @@ void FirstLaunchView::applyResponsiveUiScale()
 		: std::max(120, static_cast<int>(std::round(170 * scale)));
 	ui->listWidgetLanguage->setMinimumHeight(languageListMinHeight);
 
+	const int pageMargin = compactScreen ? 6 : 12;
+	if(ui->verticalLayoutLanguagePage)
+	{
+		ui->verticalLayoutLanguagePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutLanguagePage->setSpacing(compactScreen ? 4 : 6);
+	}
+
+	const int titleHeight = ui->labelLanguageTitle->sizeHint().height();
+	const int navHeight = ui->pushButtonLanguageNext->sizeHint().height();
+	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
+	const int availableListHeight = std::max(60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
+	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
 	auto applyNavigationButtonScale = [scale](QPushButton * button)
 	{
 		if(!button)
