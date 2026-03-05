@@ -221,6 +221,21 @@ void FirstLaunchView::applyResponsiveUiScale()
 		ui->verticalLayoutLanguagePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
 		ui->verticalLayoutLanguagePage->setSpacing(compactScreen ? 4 : 6);
 	}
+	if(ui->verticalLayout_4)
+	{
+		ui->verticalLayout_4->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayout_4->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayout_3)
+	{
+		ui->verticalLayout_3->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayout_3->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayoutInfoPage)
+	{
+		ui->verticalLayoutInfoPage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutInfoPage->setSpacing(compactScreen ? 4 : 6);
+	}
 
 	const int titleHeight = ui->labelLanguageTitle->sizeHint().height();
 	const int navHeight = ui->pushButtonLanguageNext->sizeHint().height();
@@ -732,14 +747,12 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
 	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
 	ui->textBrowserDataManualInfo->setHtml(tr(R"(
-<p>Copy game files manually and press <b>Scan again</b>.</p>
-<p>Target folders:</p>
-<ul>
-<li>User data: <code>%1</code></li>
-<li>System data: <code>%2</code></li>
-</ul>
-<p>Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>
-)").arg(manualUserPath, manualSystemPath));
+	<p>Copy game files manually and press <b>Scan again</b>.</p>
+	<p>Target folders:</p>
+	<p><b>User folder:</b><br/><code>%1</code></p>
+	<p><b>System folder:</b><br/><code>%2</code></p>
+	<p>Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>
+	)").arg(manualUserPath, manualSystemPath));
 
 	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
 		|| ui->commandLinkButtonDataGog->isChecked()
