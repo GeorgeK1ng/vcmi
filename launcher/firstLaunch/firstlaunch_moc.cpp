@@ -177,11 +177,11 @@ bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
 void FirstLaunchView::applyResponsiveUiScale()
 {
 	const int baseHeight = 520;
-	const int minHeight = 360;
+	const int minHeight = 1;
 	const int clampedHeight = std::max(minHeight, height());
 	const bool compactScreen = (width() < 900 || height() < 620);
-	const qreal maxScale = compactScreen ? 1.10 : 1.45;
-	const qreal minScale = compactScreen ? 0.72 : 0.85;
+	const qreal maxScale = compactScreen ? 1.00 : 1.45;
+	const qreal minScale = compactScreen ? 0.50 : 0.85;
 	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
 
 	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
@@ -209,10 +209,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 		widget->setFont(f);
 	}
 
-	const int languageListMinHeight = compactScreen
-		? std::max(64, static_cast<int>(std::round(88 * scale)))
-		: std::max(120, static_cast<int>(std::round(170 * scale)));
-	ui->listWidgetLanguage->setMinimumHeight(languageListMinHeight);
+	ui->listWidgetLanguage->setMinimumHeight(0);
 
 	const int pageMargin = compactScreen ? 6 : 12;
 	if(ui->verticalLayoutLanguagePage)
@@ -226,13 +223,13 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
 	const int availableListHeight = std::max(60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
 	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
-	auto applyNavigationButtonScale = [scale](QPushButton * button)
+	auto applyNavigationButtonScale = [scale, compactScreen](QPushButton * button)
 	{
 		if(!button)
 			return;
 
-		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
-		const int minWidthPx = std::max(92, static_cast<int>(std::round(112 * scale)));
+		const int minHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
+		const int minWidthPx = compactScreen ? std::max(72, static_cast<int>(std::round(84 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
 		button->setMinimumSize(minWidthPx, minHeightPx);
 		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};

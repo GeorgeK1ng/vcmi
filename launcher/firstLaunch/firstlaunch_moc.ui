@@ -38,12 +38,6 @@
        </property>
        <item>
         <widget class="QLabel" name="labelLanguageTitle">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -154,12 +148,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="font">
           <font>
@@ -534,12 +522,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -561,12 +543,6 @@
            <horstretch>100</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="text">
           <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
@@ -1011,12 +987,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="font">
           <font>
