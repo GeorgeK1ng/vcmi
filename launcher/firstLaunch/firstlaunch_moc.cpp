@@ -185,7 +185,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const bool compactScreen = (width() < 900 || height() < 620);
 #endif
 	const qreal maxScale = compactScreen ? 1.20 : 1.45;
-	const qreal minScale = compactScreen ? 0.95 : 0.85;
+	const qreal minScale = compactScreen ? 1.00 : 0.85;
 	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
 
 	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
@@ -201,13 +201,13 @@ void FirstLaunchView::applyResponsiveUiScale()
 
 		qreal multiplier = 1.0;
 		if(qobject_cast<QCommandLinkButton *>(widget))
-			multiplier = compactScreen ? 1.10 : 1.20;
+			multiplier = compactScreen ? 1.16 : 1.20;
 		else if(qobject_cast<QTextBrowser *>(widget))
-			multiplier = compactScreen ? 1.08 : 1.10;
+			multiplier = compactScreen ? 1.14 : 1.10;
 		else if(qobject_cast<QPushButton *>(widget))
-			multiplier = compactScreen ? 1.12 : 1.05;
+			multiplier = compactScreen ? 1.14 : 1.05;
 		else if(qobject_cast<QToolButton *>(widget))
-			multiplier = compactScreen ? 1.10 : 1.05;
+			multiplier = compactScreen ? 1.12 : 1.05;
 
 		f.setPointSizeF(basePointSize * scale * multiplier);
 		widget->setFont(f);
