@@ -43,10 +43,11 @@ static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, boo
 namespace
 {
 constexpr int TAB_LANGUAGE = 0;
-constexpr int TAB_DATA = 1;
-constexpr int TAB_MOD_PRESET = 2;
-constexpr int TAB_INFO = 3;
-constexpr int TAB_COUNT = 4;
+constexpr int TAB_WELCOME = 1;
+constexpr int TAB_DATA = 2;
+constexpr int TAB_MOD_PRESET = 3;
+constexpr int TAB_INFO = 4;
+constexpr int TAB_COUNT = 5;
 }
 
 FirstLaunchView::FirstLaunchView(QWidget * parent)
@@ -225,6 +226,11 @@ void FirstLaunchView::applyResponsiveUiScale()
 		ui->verticalLayoutLanguagePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
 		ui->verticalLayoutLanguagePage->setSpacing(compactScreen ? 4 : 6);
 	}
+	if(ui->verticalLayoutWelcomePage)
+	{
+		ui->verticalLayoutWelcomePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutWelcomePage->setSpacing(compactScreen ? 4 : 6);
+	}
 	if(ui->verticalLayout_4)
 	{
 		ui->verticalLayout_4->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
@@ -303,6 +309,8 @@ void FirstLaunchView::applyResponsiveUiScale()
 	}
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
+	applyNavigationButtonScale(ui->pushButtonWelcomeBack);
+	applyNavigationButtonScale(ui->pushButtonWelcomeNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
 	applyNavigationButtonScale(ui->pushButtonDataNext);
 	applyActionButtonScale(ui->pushButtonSelect);
@@ -313,6 +321,16 @@ void FirstLaunchView::applyResponsiveUiScale()
 }
 
 void FirstLaunchView::on_pushButtonLanguageNext_clicked()
+{
+	activateNextTab();
+}
+
+void FirstLaunchView::on_pushButtonWelcomeBack_clicked()
+{
+	activatePreviousTab();
+}
+
+void FirstLaunchView::on_pushButtonWelcomeNext_clicked()
 {
 	activateNextTab();
 }

@@ -96,6 +96,8 @@ private slots:
 	void on_buttonTabModPreset_clicked();
 	void on_listWidgetLanguage_currentRowChanged(int currentRow);
 	void on_pushButtonLanguageNext_clicked();
+	void on_pushButtonWelcomeBack_clicked();
+	void on_pushButtonWelcomeNext_clicked();
 	void on_pushButtonDataNext_clicked();
 	void on_pushButtonDataBack_clicked();
 
