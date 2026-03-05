@@ -314,12 +314,6 @@ void FirstLaunchView::on_pushButtonLanguageNext_clicked()
 
 void FirstLaunchView::on_pushButtonDataNext_clicked()
 {
-	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
-	{
-		activateNextTab();
-		return;
-	}
-
 	if(ui->commandLinkButtonDataManual->isChecked())
 	{
 		if(heroesDataUpdate() || isDemoDataDetected())
@@ -327,7 +321,7 @@ void FirstLaunchView::on_pushButtonDataNext_clicked()
 		return;
 	}
 
-	// For copy/GOG modes, Next triggers the import/select action directly on this page.
+	// For detected/copy/GOG modes, Next triggers import/select action directly on this page.
 	on_pushButtonSelect_clicked();
 }
 
@@ -360,7 +354,12 @@ void FirstLaunchView::on_pushButtonDataCopy_clicked()
 void FirstLaunchView::on_pushButtonSelect_clicked()
 {
 	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
+	{
+		const QString installPath = getHeroesInstallDir();
+		if(!installPath.isEmpty())
+			copyHeroesData(installPath, false);
 		return;
+	}
 
 	if(ui->commandLinkButtonDataManual->isChecked())
 	{
@@ -733,7 +732,8 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	ui->lineEditDataSystem->setVisible(false);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
-		? tr("<p>Use installation detected automatically on this device.</p>")
+		? tr("<p>Use installation detected automatically on this device.</p>"
+			"<p><b>Source folder:</b><br/><code>%1</code></p>").arg(installPath.toHtmlEscaped())
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
