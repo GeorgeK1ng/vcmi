@@ -177,9 +177,12 @@ bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
 void FirstLaunchView::applyResponsiveUiScale()
 {
 	const int baseHeight = 520;
-	const int minHeight = 400;
+	const int minHeight = 360;
 	const int clampedHeight = std::max(minHeight, height());
-	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), 0.85, 1.45);
+	const bool compactScreen = (width() < 900 || height() < 620);
+	const qreal maxScale = compactScreen ? 1.10 : 1.45;
+	const qreal minScale = compactScreen ? 0.72 : 0.85;
+	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
 
 	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
 	for(QWidget * widget : allWidgets)
@@ -194,9 +197,9 @@ void FirstLaunchView::applyResponsiveUiScale()
 
 		qreal multiplier = 1.0;
 		if(qobject_cast<QCommandLinkButton *>(widget))
-			multiplier = 1.20;
+			multiplier = compactScreen ? 1.05 : 1.20;
 		else if(qobject_cast<QTextBrowser *>(widget))
-			multiplier = 1.10;
+			multiplier = compactScreen ? 1.00 : 1.10;
 		else if(qobject_cast<QPushButton *>(widget))
 			multiplier = 1.05;
 		else if(qobject_cast<QToolButton *>(widget))
@@ -205,6 +208,11 @@ void FirstLaunchView::applyResponsiveUiScale()
 		f.setPointSizeF(basePointSize * scale * multiplier);
 		widget->setFont(f);
 	}
+
+	const int languageListMinHeight = compactScreen
+		? std::max(110, static_cast<int>(std::round(120 * scale)))
+		: std::max(180, static_cast<int>(std::round(220 * scale)));
+	ui->listWidgetLanguage->setMinimumHeight(languageListMinHeight);
 
 	auto applyNavigationButtonScale = [scale](QPushButton * button)
 	{
@@ -247,14 +255,17 @@ void FirstLaunchView::applyResponsiveUiScale()
 		text->setMaximumHeight(dataTileInfoHeightPx);
 	};
 
-	applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
-	applyDataOptionButtonScale(ui->commandLinkButtonDataGog);
-	applyDataOptionButtonScale(ui->commandLinkButtonDataCopy);
-	applyDataOptionButtonScale(ui->commandLinkButtonDataManual);
-	applyDataInfoScale(ui->textBrowserDataDetectedInfo);
-	applyDataInfoScale(ui->textBrowserDataGogInfo);
-	applyDataInfoScale(ui->textBrowserDataCopyInfo);
-	applyDataInfoScale(ui->textBrowserDataManualInfo);
+	if(ui->installerTabs->currentIndex() == TAB_DATA)
+	{
+		applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataGog);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataCopy);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataManual);
+		applyDataInfoScale(ui->textBrowserDataDetectedInfo);
+		applyDataInfoScale(ui->textBrowserDataGogInfo);
+		applyDataInfoScale(ui->textBrowserDataCopyInfo);
+		applyDataInfoScale(ui->textBrowserDataManualInfo);
+	}
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
@@ -423,6 +434,7 @@ void FirstLaunchView::activateTab(int tabIndex)
 
 	setSetupProgress(tabIndex + 1);
 	ui->installerTabs->setCurrentIndex(tabIndex);
+	applyResponsiveUiScale();
 
 	if(tabIndex == TAB_DATA)
 		heroesDataUpdate();
