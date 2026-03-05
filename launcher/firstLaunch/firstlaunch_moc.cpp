@@ -179,7 +179,11 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int baseHeight = 520;
 	const int minHeight = 1;
 	const int clampedHeight = std::max(minHeight, height());
+	#ifdef VCMI_MOBILE
+	const bool compactScreen = true;
+#else
 	const bool compactScreen = (width() < 900 || height() < 620);
+#endif
 	const qreal maxScale = compactScreen ? 1.00 : 1.45;
 	const qreal minScale = compactScreen ? 0.50 : 0.85;
 	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
@@ -221,7 +225,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int titleHeight = ui->labelLanguageTitle->sizeHint().height();
 	const int navHeight = ui->pushButtonLanguageNext->sizeHint().height();
 	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
-	const int availableListHeight = std::max(60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
+	const int availableListHeight = std::max(compactScreen ? 36 : 60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
 	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
 	auto applyNavigationButtonScale = [scale, compactScreen](QPushButton * button)
 	{
@@ -229,16 +233,17 @@ void FirstLaunchView::applyResponsiveUiScale()
 			return;
 
 		const int minHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
-		const int minWidthPx = compactScreen ? std::max(72, static_cast<int>(std::round(84 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
-		button->setMinimumSize(minWidthPx, minHeightPx);
+		const int minWidthPx = compactScreen ? 0 : std::max(92, static_cast<int>(std::round(112 * scale)));
+		button->setMinimumHeight(minHeightPx);
+		button->setMinimumWidth(minWidthPx);
 		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};
 
-	auto applyActionButtonScale = [scale](QPushButton * button)
+	auto applyActionButtonScale = [scale, compactScreen](QPushButton * button)
 	{
 		if(!button)
 			return;
-		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
+		const int minHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
 		button->setMinimumHeight(minHeightPx);
 		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
 	};
