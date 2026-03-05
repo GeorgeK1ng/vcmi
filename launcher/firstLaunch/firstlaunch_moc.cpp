@@ -231,7 +231,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int navMinWidthPx = compactScreen ? 0 : std::max(92, static_cast<int>(std::round(112 * scale)));
 	const int navMaxHeightPx = static_cast<int>(std::round(44 * scale));
 
-	auto applyNavigationButtonScale = [navMinHeightPx, navMinWidthPx, navMaxHeightPx](QPushButton * button)
+	auto applyNavigationButtonScale = [&](QPushButton * button)
 	{
 		if(!button)
 			return;
@@ -241,7 +241,7 @@ void FirstLaunchView::applyResponsiveUiScale()
 		button->setMaximumHeight(navMaxHeightPx);
 	};
 
-	auto applyActionButtonScale = [navMinHeightPx, navMaxHeightPx](QPushButton * button)
+	auto applyActionButtonScale = [&](QPushButton * button)
 	{
 		if(!button)
 			return;
