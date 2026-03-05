@@ -60,6 +60,7 @@ class FirstLaunchView : public QWidget
 	bool performCopyFlow(const QString& path, ProgressOverlay* overlay, bool removeSource);
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
 	void copyHeroesDataFromArchive(const QString & archivePath);
+	void selectCopyDataSource();
 
 	// Tab Mod Preset
 	void modPresetUpdate();

@@ -359,18 +359,7 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-	MessageBoxCustom::information(this,
-		tr("Folder selection"),
-		tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
-
-	// iOS can't display modal dialogs when called directly on button press
-	// https://bugreports.qt.io/browse/QTBUG-98651
-	MessageBoxCustom::showDialog(this, [this]{
-		Helper::nativeFolderPicker(this, [this](const QString &picked){
-			if(!picked.isEmpty())
-				copyHeroesData(picked, false);
-		});
-	});
+	selectCopyDataSource();
 }
 
 void FirstLaunchView::on_pushButtonSelect_clicked()
@@ -391,24 +380,50 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 
 	if(ui->commandLinkButtonDataCopy->isChecked())
 	{
-		MessageBoxCustom::information(this,
-			tr("Folder selection"),
-			tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
-
-		// iOS can't display modal dialogs when called directly on button press
-		// https://bugreports.qt.io/browse/QTBUG-98651
-		MessageBoxCustom::showDialog(this, [this]{
-			Helper::nativeFolderPicker(this, [this](const QString &picked){
-				if(!picked.isEmpty())
-					copyHeroesData(picked, false);
-			});
-		});
+		selectCopyDataSource();
 		return;
 	}
 
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{extractGogData();});
+}
+
+void FirstLaunchView::selectCopyDataSource()
+{
+	MessageBoxCustom::showDialog(this, [this]{
+		QMessageBox msgBox(this);
+		msgBox.setWindowTitle(tr("Import source"));
+		msgBox.setText(tr("How do you want to import Heroes III data?"));
+		QAbstractButton * folderButton = msgBox.addButton(tr("Folder"), QMessageBox::AcceptRole);
+		QAbstractButton * zipButton = msgBox.addButton(tr("ZIP archive"), QMessageBox::AcceptRole);
+		msgBox.addButton(QMessageBox::Cancel);
+		msgBox.exec();
+
+		if(msgBox.clickedButton() == folderButton)
+		{
+			MessageBoxCustom::information(this,
+				tr("Folder selection"),
+				tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
+			MessageBoxCustom::showDialog(this, [this]{
+				Helper::nativeFolderPicker(this, [this](const QString &picked){
+					if(!picked.isEmpty())
+						copyHeroesData(picked, false);
+				});
+			});
+			return;
+		}
+
+		if(msgBox.clickedButton() == zipButton)
+		{
+			MessageBoxCustom::information(this,
+				tr("ZIP selection"),
+				tr("Please select a ZIP archive that contains Heroes III data files."));
+			const QString archivePath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive with Heroes III data"), QString{}, tr("ZIP archives (*.zip)"));
+			if(!archivePath.isEmpty())
+				copyHeroesDataFromArchive(archivePath);
+		}
+	});
 }
 
 void FirstLaunchView::on_commandLinkButtonDataDetected_toggled(bool checked)
@@ -769,9 +784,9 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 		: tr("<p><i>Not available on this platform/build.</i></p>"));
 
 	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
-		? tr("<p>Select an existing Heroes III installation folder.</p>"
+		? tr("<p>Select an existing Heroes III installation folder or a ZIP archive with game data files.</p>"
 			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
-			"<p>VCMI will verify the folder and copy required files automatically.</p>")
+			"<p>VCMI will verify the source and copy required files automatically.</p>")
 		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
 
 	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
@@ -1261,6 +1276,9 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 		return;
 	}
 
+	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Extracting ZIP archive..."), true);
+	overlay->raise();
+
 	bool extracted = false;
 	try
 	{
@@ -1270,18 +1288,22 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 	}
 	catch(const std::exception &e)
 	{
+		overlay->deleteLater();
 		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to read ZIP archive: %1").arg(QString::fromUtf8(e.what())));
 		return;
 	}
 
 	if(!extracted)
 	{
+		overlay->deleteLater();
 		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to extract ZIP archive."));
 		return;
 	}
 
-	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
-	overlay->raise();
+	overlay->setTitle(tr("Scanning selected folder..."));
+	overlay->setFileName({});
+	overlay->setIndeterminate(true);
+
 	if(performCopyFlow(tempDir.path(), overlay, false))
 		if(heroesDataUpdate())
 			activateTabModPreset();
