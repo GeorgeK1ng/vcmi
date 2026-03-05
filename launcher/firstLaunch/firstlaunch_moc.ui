@@ -17,6 +17,9 @@
    <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+   </property>
    <item>
     <widget class="QStackedWidget" name="installerTabs">
      <property name="currentIndex">
@@ -126,6 +129,9 @@
      </widget>
      <widget class="QWidget" name="pageDataFiles">
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="sizeConstraint">
+        <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+       </property>
        <property name="spacing">
         <number>8</number>
        </property>
