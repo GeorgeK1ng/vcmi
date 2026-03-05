@@ -298,7 +298,21 @@ void FirstLaunchView::on_pushButtonLanguageNext_clicked()
 
 void FirstLaunchView::on_pushButtonDataNext_clicked()
 {
-	activateNextTab();
+	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
+	{
+		activateNextTab();
+		return;
+	}
+
+	if(ui->commandLinkButtonDataManual->isChecked())
+	{
+		if(heroesDataUpdate() || isDemoDataDetected())
+			activateNextTab();
+		return;
+	}
+
+	// For copy/GOG modes, Next triggers the import/select action directly on this page.
+	on_pushButtonSelect_clicked();
 }
 
 void FirstLaunchView::on_pushButtonDataBack_clicked()
@@ -748,32 +762,7 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 void FirstLaunchView::updateDataOptionDetails()
 {
-	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
-
-	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
-	{
-		ui->pushButtonSelect->setVisible(false);
-	}
-	else if(ui->commandLinkButtonDataCopy->isChecked())
-	{
-		ui->pushButtonSelect->setText(tr("Select folder"));
-		ui->pushButtonSelect->setVisible(true);
-	}
-	else if(manualSelected)
-	{
-		ui->pushButtonSelect->setText(tr("Scan again"));
-		ui->pushButtonSelect->setVisible(true);
-	}
-	else
-	{
-		ui->pushButtonSelect->setText(tr("Select installer"));
-#ifdef ENABLE_INNOEXTRACT
-		ui->pushButtonSelect->setVisible(true);
-#else
-		ui->pushButtonSelect->setVisible(false);
-#endif
-	}
-
+	ui->pushButtonSelect->setVisible(false);
 	updateDataOptionTileVisuals();
 }
 
