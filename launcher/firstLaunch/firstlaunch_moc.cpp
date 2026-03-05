@@ -732,16 +732,24 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	ui->lineEditDataSystem->setVisible(false);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
-		? tr("<p>Use installation detected automatically on this device.</p>"
+		? tr("<p>Use game files detected automatically on this device.</p>"
+			"<p>VCMI will copy required data into its own folders.</p>"
 			"<p><b>Source folder:</b><br/><code>%1</code></p>").arg(installPath.toHtmlEscaped())
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
-		? tr(R"(<p>Import data from GOG offline installers. Download page: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition</a>.</p>)")
+		? tr(R"(<p>Import data from GOG offline installers (<code>.exe</code> + <code>.bin</code>).</p>
+<p>Download page: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition</a></p>
+<p>Direct links:</p>
+<ul>
+<li>Installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a></li>
+<li>Installer BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a></li>
+</ul>)")
 		: tr("<p><i>Not available on this platform/build.</i></p>"));
 
 	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
-		? tr("<p>Select your existing Heroes III folder and VCMI will copy required files.</p>")
+		? tr("<p>Select an existing Heroes III installation folder.</p>"
+			"<p>VCMI will verify the folder and copy required files automatically.</p>")
 		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
 
 	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
