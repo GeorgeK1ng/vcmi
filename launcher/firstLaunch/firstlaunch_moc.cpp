@@ -184,8 +184,8 @@ void FirstLaunchView::applyResponsiveUiScale()
 #else
 	const bool compactScreen = (width() < 900 || height() < 620);
 #endif
-	const qreal maxScale = compactScreen ? 1.00 : 1.45;
-	const qreal minScale = compactScreen ? 0.50 : 0.85;
+	const qreal maxScale = compactScreen ? 1.20 : 1.45;
+	const qreal minScale = compactScreen ? 0.90 : 0.85;
 	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
 
 	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
@@ -201,13 +201,13 @@ void FirstLaunchView::applyResponsiveUiScale()
 
 		qreal multiplier = 1.0;
 		if(qobject_cast<QCommandLinkButton *>(widget))
-			multiplier = compactScreen ? 1.05 : 1.20;
+			multiplier = 1.20;
 		else if(qobject_cast<QTextBrowser *>(widget))
-			multiplier = compactScreen ? 1.00 : 1.10;
+			multiplier = compactScreen ? 1.18 : 1.10;
 		else if(qobject_cast<QPushButton *>(widget))
-			multiplier = 1.05;
+			multiplier = compactScreen ? 1.25 : 1.05;
 		else if(qobject_cast<QToolButton *>(widget))
-			multiplier = 1.05;
+			multiplier = compactScreen ? 1.20 : 1.05;
 
 		f.setPointSizeF(basePointSize * scale * multiplier);
 		widget->setFont(f);
@@ -227,9 +227,9 @@ void FirstLaunchView::applyResponsiveUiScale()
 	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
 	const int availableListHeight = std::max(compactScreen ? 36 : 60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
 	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
-	const int navMinHeightPx = compactScreen ? std::max(20, static_cast<int>(std::round(22 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
-	const int navMinWidthPx = compactScreen ? 0 : std::max(92, static_cast<int>(std::round(112 * scale)));
-	const int navMaxHeightPx = static_cast<int>(std::round(44 * scale));
+	const int navMinHeightPx = compactScreen ? std::max(34, static_cast<int>(std::round(40 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
+	const int navMinWidthPx = compactScreen ? std::max(120, static_cast<int>(std::round(156 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
+	const int navMaxHeightPx = compactScreen ? std::max(navMinHeightPx, static_cast<int>(std::round(56 * scale))) : static_cast<int>(std::round(44 * scale));
 
 	auto applyNavigationButtonScale = [&](QPushButton * button)
 	{
@@ -250,9 +250,9 @@ void FirstLaunchView::applyResponsiveUiScale()
 	};
 
 
-	const int dataTileTotalHeightPx = std::max(88, static_cast<int>(std::round(152 * scale)));
-	const int dataTileButtonHeightPx = std::max(24, static_cast<int>(std::round(dataTileTotalHeightPx * 0.20)));
-	const int dataTileInfoHeightPx = std::max(44, dataTileTotalHeightPx - dataTileButtonHeightPx);
+	const int dataTileTotalHeightPx = compactScreen ? std::max(108, static_cast<int>(std::round(176 * scale))) : std::max(88, static_cast<int>(std::round(152 * scale)));
+	const int dataTileButtonHeightPx = compactScreen ? std::max(30, static_cast<int>(std::round(dataTileTotalHeightPx * 0.24))) : std::max(24, static_cast<int>(std::round(dataTileTotalHeightPx * 0.20)));
+	const int dataTileInfoHeightPx = compactScreen ? std::max(58, dataTileTotalHeightPx - dataTileButtonHeightPx) : std::max(44, dataTileTotalHeightPx - dataTileButtonHeightPx);
 
 	auto applyDataOptionButtonScale = [dataTileButtonHeightPx](QCommandLinkButton * button)
 	{
