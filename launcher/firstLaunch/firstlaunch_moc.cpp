@@ -210,8 +210,8 @@ void FirstLaunchView::applyResponsiveUiScale()
 	}
 
 	const int languageListMinHeight = compactScreen
-		? std::max(110, static_cast<int>(std::round(120 * scale)))
-		: std::max(180, static_cast<int>(std::round(220 * scale)));
+		? std::max(64, static_cast<int>(std::round(88 * scale)))
+		: std::max(120, static_cast<int>(std::round(170 * scale)));
 	ui->listWidgetLanguage->setMinimumHeight(languageListMinHeight);
 
 	auto applyNavigationButtonScale = [scale](QPushButton * button)
