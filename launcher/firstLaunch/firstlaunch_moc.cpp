@@ -32,7 +32,7 @@
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
 {
-	auto *overlay = new ProgressOverlay(parent, 50);
+	auto *overlay = new ProgressOverlay(parent, 0);
 	overlay->setTitle(title);
 	overlay->setIndeterminate(indeterminate);
 	overlay->show();
@@ -738,17 +738,17 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
-		? tr(R"(<p>Import data from GOG offline installers (<code>.exe</code> + <code>.bin</code>).</p>
-<p>Download page: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition</a></p>
+		? tr(R"(<p>Import data from offline GOG installers for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
 <p>Direct links:</p>
 <ul>
-<li>Installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a></li>
-<li>Installer BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a></li>
+<li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">Installer EXE (en1installer0)</a></li>
+<li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">Installer BIN (en1installer1)</a></li>
 </ul>)")
 		: tr("<p><i>Not available on this platform/build.</i></p>"));
 
 	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
 		? tr("<p>Select an existing Heroes III installation folder.</p>"
+			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
 			"<p>VCMI will verify the folder and copy required files automatically.</p>")
 		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
 
