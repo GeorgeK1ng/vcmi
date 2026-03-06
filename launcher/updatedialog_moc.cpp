@@ -881,7 +881,11 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         });
     }
 
+#if defined(VCMI_ANDROID)
     connect(reply, &QNetworkReply::finished, this, [this, reply, progress, target, targetIsFile, requestedUrl = url] {
+#else
+    connect(reply, &QNetworkReply::finished, this, [this, reply, progress, target, requestedUrl = url] {
+#endif
         reply->deleteLater();
         if(reply->error() != QNetworkReply::NoError)
 		{
