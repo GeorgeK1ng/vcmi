@@ -35,6 +35,7 @@
 #include <QTimer>
 #include <QScreen>
 #include <QProcessEnvironment>
+#include <QFileDialog>
 
 #ifdef VCMI_IOS
 #include "iOS_utils.h"
@@ -823,11 +824,24 @@ void UpdateDialog::on_installButton_clicked()
 
 #if defined(VCMI_MOBILE)
 	// Always ask user where to save on mobile
-	Helper::nativeFolderPicker(this, [this, url](QString picked){
-		if(picked.isEmpty())
-			return; // user cancelled
-		startDownloadToCacheAndRun(QUrl(url), picked);
-	});
+	const QString suggestedName = QFileInfo(QUrl(url).path()).fileName();
+
+	if(Helper::canUseFolderPicker())
+	{
+		Helper::nativeFolderPicker(this, [this, url](QString picked){
+			if(picked.isEmpty())
+				return; // user cancelled
+			startDownloadToCacheAndRun(QUrl(url), picked);
+		});
+	}
+	else
+	{
+		const QString pickedPath = QFileDialog::getSaveFileName(this, tr("Save update package"), suggestedName);
+		if(pickedPath.isEmpty())
+			return;
+
+		startDownloadToCacheAndRun(QUrl(url), pickedPath, true);
+	}
 	return;
 #else
 	// Desktop: keep current behaviour
@@ -840,8 +854,12 @@ void UpdateDialog::on_closeButton_clicked()
 	close();
 }
 
-void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target)
+void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& target, bool targetIsFile)
 {
+#if !defined(VCMI_ANDROID)
+	Q_UNUSED(targetIsFile);
+#endif
+
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     QNetworkReply* reply = networkManager.get(request);
@@ -993,7 +1011,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 
 #elif defined(VCMI_ANDROID)
         const bool targetIsContent = target.startsWith("content://", Qt::CaseInsensitive);
-        const QString dstPath = Helper::createFile(target, fileName, QStringLiteral("application/octet-stream"));
+        const QString dstPath = targetIsFile ? target : Helper::createFile(target, fileName, QStringLiteral("application/octet-stream"));
         const bool copyOk = !dstPath.isEmpty() && Helper::performNativeCopy(fullPath, dstPath);
 
         if(copyOk)
@@ -1009,7 +1027,8 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         }
         else
         {
-            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
+            const QString shownPath = targetIsFile ? dstPath : target;
+            ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(shownPath));
         }
 
         if(progress)
