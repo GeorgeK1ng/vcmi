@@ -1169,7 +1169,9 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	// Defer heavy work to next event-loop tick to ensure overlay is painted
 	QTimer::singleShot(0, this, [this, filePathBin, filePathExe]()
 	{
-		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Preparing installer..."), true));
+		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Preparing installer..."), false));
+		overlay->setRange(2);
+		overlay->setValue(0);
 		overlay->setFileName(QFileInfo(filePathExe).fileName());
 		overlay->raise();
 		qApp->processEvents();
@@ -1201,6 +1203,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		// 2) Copy selected files into tmp
 		logGlobal->info("Performing native copy...");
 		Helper::performNativeCopy(filePathExe, tmpFileExe);
+		overlay->setValue(1);
 
 		if(needPostCopyCheckExe)
 		{
@@ -1214,6 +1217,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		}
 
 		Helper::performNativeCopy(filePathBin, tmpFileBin);
+		overlay->setValue(2);
 
 		if(needPostCopyCheckBin)
 		{
@@ -1293,8 +1297,10 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 		return;
 	}
 
-	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Preparing ZIP archive..."), true);
+	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Preparing ZIP archive..."), false);
 	overlay->setFileName(Helper::getRealPath(archivePath));
+	overlay->setRange(1);
+	overlay->setValue(0);
 	overlay->raise();
 	qApp->processEvents();
 
@@ -1310,6 +1316,7 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to access selected ZIP archive. Please copy ZIP to accessible storage and try again."));
 		return;
 	}
+	overlay->setValue(1);
 
 	overlay->setTitle(tr("Extracting ZIP archive..."));
 	overlay->setFileName({});
