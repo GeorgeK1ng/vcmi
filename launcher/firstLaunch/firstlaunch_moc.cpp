@@ -391,6 +391,19 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 
 void FirstLaunchView::selectCopyDataSource()
 {
+	const bool canUseFolderImport = Helper::canUseFolderPicker();
+
+	if(!canUseFolderImport)
+	{
+		MessageBoxCustom::information(this,
+			tr("ZIP selection"),
+			tr("Folder picker is unavailable on this platform. Please select a ZIP archive that contains Heroes III data files."));
+		const QString archivePath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive with Heroes III data"), QString{}, tr("ZIP archives (*.zip)"));
+		if(!archivePath.isEmpty())
+			copyHeroesDataFromArchive(archivePath);
+		return;
+	}
+
 	MessageBoxCustom::showDialog(this, [this]{
 		QMessageBox msgBox(this);
 		msgBox.setWindowTitle(tr("Import source"));
@@ -756,7 +769,8 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 #else
 	const bool canUseGogInstall = false;
 #endif
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
+	// Copy option supports folder import and ZIP import; ZIP works even where folder picker is unavailable.
+	const bool canUseDataCopy = true;
 
 	layoutDataOptionWidgets(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
 
@@ -783,11 +797,14 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 </ul>)")
 		: tr("<p><i>Not available on this platform/build.</i></p>"));
 
-	ui->textBrowserDataCopyInfo->setHtml(canUseDataCopy
+	const bool canUseFolderImport = Helper::canUseFolderPicker();
+	ui->textBrowserDataCopyInfo->setHtml(canUseFolderImport
 		? tr("<p>Select an existing Heroes III installation folder or a ZIP archive with game data files.</p>"
 			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
 			"<p>VCMI will verify the source and copy required files automatically.</p>")
-		: tr("<p><i>Not available: native folder picker is unavailable.</i></p>"));
+		: tr("<p>Folder import is unavailable on this platform.</p>"
+			"<p>Please select a ZIP archive with Heroes III data files.</p>"
+			"<p>VCMI will verify the source and copy required files automatically.</p>"));
 
 	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
 	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
