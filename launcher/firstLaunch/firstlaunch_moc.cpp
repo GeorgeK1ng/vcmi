@@ -1293,13 +1293,26 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 		return;
 	}
 
-	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Extracting ZIP archive..."), true);
+	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Preparing ZIP archive..."), true);
+	overlay->setFileName(Helper::getRealPath(archivePath));
 	overlay->raise();
+
+	const QString tempArchivePath = tempDir.filePath("import_data.zip");
+	if(!Helper::performNativeCopy(archivePath, tempArchivePath))
+	{
+		overlay->deleteLater();
+		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to access selected ZIP archive. Please copy ZIP to accessible storage and try again."));
+		return;
+	}
+
+	overlay->setTitle(tr("Extracting ZIP archive..."));
+	overlay->setFileName({});
+	overlay->setIndeterminate(true);
 
 	bool extracted = false;
 	try
 	{
-		ZipArchive archive(qstringToPath(archivePath));
+		ZipArchive archive(qstringToPath(tempArchivePath));
 		const auto files = archive.listFiles();
 		extracted = archive.extract(qstringToPath(tempDir.path()), files);
 	}
