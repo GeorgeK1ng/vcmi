@@ -881,7 +881,7 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
         });
     }
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, progress, target, requestedUrl = url] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, progress, target, targetIsFile, requestedUrl = url] {
         reply->deleteLater();
         if(reply->error() != QNetworkReply::NoError)
 		{
