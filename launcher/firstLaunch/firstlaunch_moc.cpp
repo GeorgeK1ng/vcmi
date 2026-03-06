@@ -1296,6 +1296,12 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Preparing ZIP archive..."), true);
 	overlay->setFileName(Helper::getRealPath(archivePath));
 	overlay->raise();
+	qApp->processEvents();
+
+	// Ensure overlay is painted before potentially slow native copy from URI/content provider.
+	QEventLoop ev;
+	QTimer::singleShot(0, &ev, &QEventLoop::quit);
+	ev.exec();
 
 	const QString tempArchivePath = tempDir.filePath("import_data.zip");
 	if(!Helper::performNativeCopy(archivePath, tempArchivePath))
