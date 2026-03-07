@@ -23,6 +23,9 @@
 #include "../../lib/VCMIDirs.h"
 #include "../../vcmiqt/MessageBox.h"
 
+#include <QDateTime>
+#include <QProgressDialog>
+
 void StartGameTab::changeEvent(QEvent *event)
 {
 	if(event->type() == QEvent::LanguageChange)
@@ -254,8 +257,53 @@ void StartGameTab::on_buttonImportFiles_clicked()
 		QString filter = tr("All files (*.*)");
 #endif
 		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
+		if(files.isEmpty())
+			return;
 
-		for(const auto & file : files)
+		QStringList preparedFiles;
+		preparedFiles.reserve(files.size());
+
+		QDir importCacheDir(pathToQString(VCMIDirs::get().userDataPath()));
+		importCacheDir.mkpath("tmp/import-cache");
+		importCacheDir.cd("tmp/import-cache");
+
+		QProgressDialog progress(tr("Preparing selected files for import..."), tr("Cancel"), 0, files.size(), this);
+		progress.setWindowModality(Qt::WindowModal);
+		progress.setMinimumDuration(0);
+
+		for(int index = 0; index < files.size(); ++index)
+		{
+			if(progress.wasCanceled())
+				break;
+
+			const QString file = files[index];
+			progress.setValue(index);
+			progress.setLabelText(tr("Preparing: %1").arg(Helper::getRealPath(file)));
+			qApp->processEvents();
+
+			QString importPath = file;
+			const QFileInfo sourceInfo(file);
+			const bool needsStaging = file.startsWith("content://", Qt::CaseInsensitive) || !sourceInfo.exists() || !sourceInfo.isReadable();
+			if(needsStaging)
+			{
+				QString baseName = QFileInfo(Helper::getRealPath(file)).fileName();
+				if(baseName.isEmpty())
+					baseName = QStringLiteral("import_%1.bin").arg(index + 1);
+				const QString stagedPath = importCacheDir.filePath(QString::number(QDateTime::currentMSecsSinceEpoch()) + "_" + baseName);
+				if(!Helper::performNativeCopy(file, stagedPath))
+				{
+					QMessageBox::warning(this, tr("Import failed"), tr("Failed to prepare file for import: %1").arg(Helper::getRealPath(file)));
+					continue;
+				}
+				importPath = stagedPath;
+			}
+
+			preparedFiles << importPath;
+		}
+
+		progress.setValue(files.size());
+
+		for(const auto & file : preparedFiles)
 		{
 			logGlobal->info("Importing file %s", file.toStdString());
 			Helper::getMainWindow()->manualInstallFile(file);
