@@ -282,8 +282,15 @@ void StartGameTab::on_buttonImportFiles_clicked()
 			qApp->processEvents();
 
 			QString importPath = file;
-			const QFileInfo sourceInfo(file);
-			const bool needsStaging = file.startsWith("content://", Qt::CaseInsensitive) || !sourceInfo.exists() || !sourceInfo.isReadable();
+			bool needsStaging = file.startsWith("content://", Qt::CaseInsensitive);
+			if(!needsStaging)
+			{
+				QFile sourceFile(file);
+				if(!sourceFile.open(QIODevice::ReadOnly))
+					needsStaging = true;
+				else
+					sourceFile.close();
+			}
 			if(needsStaging)
 			{
 				QString baseName = QFileInfo(Helper::getRealPath(file)).fileName();
