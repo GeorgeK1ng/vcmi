@@ -834,6 +834,7 @@ void UpdateDialog::on_installButton_clicked()
 	}
 	else
 	{
+		QMessageBox::information(this, tr("Manual filename required"), tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi.apk)."));
 		const QString pickedPath = QFileDialog::getOpenFileName(this, tr("Select destination file"), QDir::homePath(), tr("All files (*.*)"));
 		if(pickedPath.isEmpty())
 			return;
