@@ -27,6 +27,7 @@ namespace Helper
 	void keepScreenOn(bool isEnabled);
 	bool canUseFolderPicker();
 	void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb);
+	void nativeFilePicker(QWidget *parent, const QString &suggestedName, const QString &mime, std::function<void(QString)>&& cb);
 	QStringList findFilesForCopy(const QString &treeUri);
 	void sendFileToApp(QString path);
 	bool isInstalledFromGooglePlay();

@@ -35,7 +35,6 @@
 #include <QTimer>
 #include <QScreen>
 #include <QProcessEnvironment>
-#include <QFileDialog>
 
 #ifdef VCMI_IOS
 #include "iOS_utils.h"
@@ -836,11 +835,12 @@ void UpdateDialog::on_installButton_clicked()
 	}
 	else
 	{
-		const QString pickedPath = QFileDialog::getSaveFileName(this, tr("Save update package"), suggestedName);
-		if(pickedPath.isEmpty())
-			return;
+		Helper::nativeFilePicker(this, suggestedName, QStringLiteral("application/octet-stream"), [this, url](const QString &pickedPath){
+			if(pickedPath.isEmpty())
+				return;
 
-		startDownloadToCacheAndRun(QUrl(url), pickedPath, true);
+			startDownloadToCacheAndRun(QUrl(url), pickedPath, true);
+		});
 	}
 	return;
 #else
@@ -1020,8 +1020,10 @@ void UpdateDialog::startDownloadToCacheAndRun(const QUrl& url, const QString& ta
 
         if(copyOk)
         {
-            if(targetIsContent)
+            if(targetIsContent && !targetIsFile)
                 ui->downloadLink->setText(tr("Saved to selected folder, install it manually."));
+            else if(targetIsContent)
+                ui->downloadLink->setText(tr("Saved to selected file, install it manually."));
             else
                 ui->downloadLink->setText(tr("Saved to: %1 — install it manually.").arg(target));
         }
