@@ -35,6 +35,7 @@
 #include <QTimer>
 #include <QScreen>
 #include <QProcessEnvironment>
+#include <QFileDialog>
 
 #ifdef VCMI_IOS
 #include "iOS_utils.h"
@@ -823,8 +824,6 @@ void UpdateDialog::on_installButton_clicked()
 
 #if defined(VCMI_MOBILE)
 	// Always ask user where to save on mobile
-	const QString suggestedName = QFileInfo(QUrl(url).path()).fileName();
-
 	if(Helper::canUseFolderPicker())
 	{
 		Helper::nativeFolderPicker(this, [this, url](QString picked){
@@ -835,12 +834,11 @@ void UpdateDialog::on_installButton_clicked()
 	}
 	else
 	{
-		Helper::nativeFilePicker(this, suggestedName, QStringLiteral("application/octet-stream"), [this, url](const QString &pickedPath){
-			if(pickedPath.isEmpty())
-				return;
+		const QString pickedPath = QFileDialog::getOpenFileName(this, tr("Select destination file"), QDir::homePath(), tr("All files (*.*)"));
+		if(pickedPath.isEmpty())
+			return;
 
-			startDownloadToCacheAndRun(QUrl(url), pickedPath, true);
-		});
+		startDownloadToCacheAndRun(QUrl(url), pickedPath, true);
 	}
 	return;
 #else

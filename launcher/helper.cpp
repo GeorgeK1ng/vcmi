@@ -221,7 +221,6 @@ bool canUseFolderPicker()
 // Request code for Android folder picker (ACTION_OPEN_DOCUMENT_TREE).
 // Value is arbitrary, used only to match activity result callback.
 static constexpr int  kFolderPickerReqCode = 4242;
-static constexpr int  kFilePickerReqCode = 4243;
 
 static jint intentFlags()
 {
@@ -268,37 +267,6 @@ public:
 
 static FolderPickReceiver g_receiver;
 
-class FilePickReceiver final : public QAndroidActivityResultReceiver
-{
-public:
-	std::function<void(QString)> onDone;
-
-	// One-shot result handler for ACTION_CREATE_DOCUMENT
-	void handleActivityResult(int req, int res, const QAndroidJniObject &data) override
-	{
-		auto cb = std::exchange(onDone, {}); // guarantee single-use
-		if(!cb)
-			return;
-
-		if(req != kFilePickerReqCode || res != -1 /*RESULT_OK*/ || !data.isValid())
-		{
-			QMetaObject::invokeMethod(qApp, [cb]{ if (cb) cb({}); }, Qt::QueuedConnection);
-			return;
-		}
-
-		const QAndroidJniObject uri = data.callObjectMethod("getData", "()Landroid/net/Uri;");
-		const QAndroidJniObject us = uri.callObjectMethod("toString", "()Ljava/lang/String;");
-		const QString pickedFile = us.toString();
-
-		const QAndroidJniObject ctx = QtAndroid::androidContext();
-		const QAndroidJniObject cr = ctx.callObjectMethod("getContentResolver", "()Landroid/content/ContentResolver;");
-		cr.callMethod<void>("takePersistableUriPermission", "(Landroid/net/Uri;I)V", uri.object<jobject>(), jint(1 | 2));
-
-		QMetaObject::invokeMethod(qApp, [cb, pickedFile]{ if (cb) cb(pickedFile); }, Qt::QueuedConnection);
-	}
-};
-
-static FilePickReceiver g_fileReceiver;
 #endif
 
 void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb)
@@ -324,32 +292,6 @@ void nativeFolderPicker(QWidget *parent, std::function<void(QString)>&& cb)
 #else
 	const QString dir = QFileDialog::getExistingDirectory(parent, {}, {}, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 	cb(dir);
-#endif
-}
-
-void nativeFilePicker(QWidget *parent, const QString &suggestedName, const QString &mime, std::function<void(QString)>&& cb)
-{
-	if(!cb)
-		return;
-
-#if defined(VCMI_ANDROID)
-	Q_UNUSED(parent);
-	g_fileReceiver.onDone = std::move(cb);
-
-	const QString safeName = suggestedName.isEmpty() ? QStringLiteral("vcmi-update.bin") : suggestedName;
-	const QString mimeType = mime.isEmpty() ? QStringLiteral("application/octet-stream") : mime;
-
-	QAndroidJniObject intent("android/content/Intent", "()V");
-	intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;", QAndroidJniObject::fromString("android.intent.action.CREATE_DOCUMENT").object<jstring>());
-	intent.callObjectMethod("addCategory", "(Ljava/lang/String;)Landroid/content/Intent;", QAndroidJniObject::fromString("android.intent.category.OPENABLE").object<jstring>());
-	intent.callObjectMethod("setType", "(Ljava/lang/String;)Landroid/content/Intent;", QAndroidJniObject::fromString(mimeType).object<jstring>());
-	intent.callObjectMethod("putExtra", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;", QAndroidJniObject::fromString("android.intent.extra.TITLE").object<jstring>(), QAndroidJniObject::fromString(safeName).object<jstring>());
-	intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;", intentFlags());
-
-	QtAndroid::startActivity(intent, kFilePickerReqCode, &g_fileReceiver);
-#else
-	const QString file = QFileDialog::getSaveFileName(parent, {}, suggestedName);
-	cb(file);
 #endif
 }
 
