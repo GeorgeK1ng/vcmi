@@ -913,6 +913,30 @@ void CModListView::hideProgressBar()
 	}
 }
 
+void CModListView::showExternalProgress(const QString & format, int current, int maximum)
+{
+	ui->progressWidget->setVisible(true);
+	ui->progressBar->setVisible(true);
+	ui->progressBar->setFormat(format);
+	if(maximum <= 0)
+	{
+		ui->progressBar->setMaximum(0);
+		ui->progressBar->setValue(0);
+	}
+	else
+	{
+		ui->progressBar->setMaximum(maximum);
+		ui->progressBar->setValue(current);
+	}
+}
+
+void CModListView::hideExternalProgress()
+{
+	ui->progressWidget->setVisible(false);
+	ui->progressBar->setMaximum(0);
+	ui->progressBar->setValue(0);
+}
+
 void CModListView::installFiles(QStringList files)
 {
 	QStringList mods;

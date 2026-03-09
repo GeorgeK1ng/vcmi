@@ -24,7 +24,6 @@
 #include "../../vcmiqt/MessageBox.h"
 
 #include <QDateTime>
-#include <QProgressDialog>
 
 void StartGameTab::changeEvent(QEvent *event)
 {
@@ -267,18 +266,13 @@ void StartGameTab::on_buttonImportFiles_clicked()
 		importCacheDir.mkpath("tmp/import-cache");
 		importCacheDir.cd("tmp/import-cache");
 
-		QProgressDialog progress(tr("Preparing selected files for import..."), tr("Cancel"), 0, files.size(), this);
-		progress.setWindowModality(Qt::WindowModal);
-		progress.setMinimumDuration(0);
+		auto * modView = Helper::getMainWindow()->getModView();
+		modView->showExternalProgress(tr("Preparing selected files for import..."), 0, files.size());
 
 		for(int index = 0; index < files.size(); ++index)
 		{
-			if(progress.wasCanceled())
-				break;
-
 			const QString file = files[index];
-			progress.setValue(index);
-			progress.setLabelText(tr("Preparing: %1").arg(Helper::getRealPath(file)));
+			modView->showExternalProgress(tr("Preparing selected files for import... %1/%2").arg(index + 1).arg(files.size()), index, files.size());
 			qApp->processEvents();
 
 			QString importPath = file;
@@ -308,7 +302,8 @@ void StartGameTab::on_buttonImportFiles_clicked()
 			preparedFiles << importPath;
 		}
 
-		progress.setValue(files.size());
+		modView->showExternalProgress(tr("Preparing selected files for import..."), files.size(), files.size());
+		modView->hideExternalProgress();
 
 		for(const auto & file : preparedFiles)
 		{
