@@ -24,6 +24,7 @@ class FirstLaunchView : public QWidget
 
 	void changeEvent(QEvent *event) override;
 	void resizeEvent(QResizeEvent *event) override;
+	bool eventFilter(QObject * watched, QEvent * event) override;
 	CModListView * getModView();
 	void applyResponsiveUiScale();
 
@@ -50,6 +51,8 @@ class FirstLaunchView : public QWidget
 	void heroesDataDetected();
 	void updateDataOptionState(bool dataDetected);
 	void updateDataOptionDetails();
+	void layoutDataOptionWidgets(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy);
+	void updateDataOptionTileVisuals();
 
 	QString getHeroesInstallDir();
 	void extractGogData();
@@ -57,6 +60,7 @@ class FirstLaunchView : public QWidget
 	bool performCopyFlow(const QString& path, ProgressOverlay* overlay, bool removeSource);
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
 	void copyHeroesDataFromArchive(const QString & archivePath);
+	void selectCopyDataSource();
 
 	// Tab Mod Preset
 	void modPresetUpdate();
@@ -93,6 +97,8 @@ private slots:
 	void on_buttonTabModPreset_clicked();
 	void on_listWidgetLanguage_currentRowChanged(int currentRow);
 	void on_pushButtonLanguageNext_clicked();
+	void on_pushButtonWelcomeBack_clicked();
+	void on_pushButtonWelcomeNext_clicked();
 	void on_pushButtonDataNext_clicked();
 	void on_pushButtonDataBack_clicked();
 
@@ -102,12 +108,10 @@ private slots:
 
 	void on_pushButtonSelect_clicked();
 
-	void on_radioButtonDataDetected_toggled(bool checked);
-	void on_radioButtonDataGog_toggled(bool checked);
-	void on_radioButtonDataCopy_toggled(bool checked);
-	void on_radioButtonDataManual_toggled(bool checked);
-	void on_radioButtonFolder_toggled(bool checked);
-	void on_radioButtonZIP_toggled(bool checked);
+	void on_commandLinkButtonDataDetected_toggled(bool checked);
+	void on_commandLinkButtonDataGog_toggled(bool checked);
+	void on_commandLinkButtonDataCopy_toggled(bool checked);
+	void on_commandLinkButtonDataManual_toggled(bool checked);
 
 	void on_pushButtonPresetBack_clicked();
 

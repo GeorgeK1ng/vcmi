@@ -32,7 +32,7 @@
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
 {
-	auto *overlay = new ProgressOverlay(parent, 50);
+	auto *overlay = new ProgressOverlay(parent, 0);
 	overlay->setTitle(title);
 	overlay->setIndeterminate(indeterminate);
 	overlay->show();
@@ -43,10 +43,10 @@ static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, boo
 namespace
 {
 constexpr int TAB_LANGUAGE = 0;
-constexpr int TAB_DATA = 1;
-constexpr int TAB_MOD_PRESET = 2;
-constexpr int TAB_INFO = 3;
-constexpr int TAB_COUNT = 4;
+constexpr int TAB_DATA = 2;
+constexpr int TAB_MOD_PRESET = 3;
+constexpr int TAB_INFO = 4;
+constexpr int TAB_COUNT = 5;
 }
 
 FirstLaunchView::FirstLaunchView(QWidget * parent)
@@ -69,11 +69,6 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->lineEditDataSystem->hide();
 #endif
 
-#ifndef ENABLE_INNOEXTRACT
-	ui->radioButtonDataGog->hide();
-	if(ui->radioButtonDataGog->isChecked())
-		ui->radioButtonDataManual->setChecked(true);
-#endif
 	updateDataOptionState(false);
 }
 
@@ -115,12 +110,87 @@ void FirstLaunchView::resizeEvent(QResizeEvent * event)
 	applyResponsiveUiScale();
 }
 
+bool FirstLaunchView::eventFilter(QObject * watched, QEvent * event)
+{
+	auto getTileContainer = [this](QObject * obj) -> QWidget *
+	{
+		if(!obj)
+			return nullptr;
+		const QString containerName = obj->property("tileContainerName").toString();
+		if(containerName.isEmpty())
+			return nullptr;
+		return findChild<QWidget *>(containerName);
+	};
+	auto getTileButton = [this](QObject * obj) -> QCommandLinkButton *
+	{
+		if(!obj)
+			return nullptr;
+		const QString buttonName = obj->property("tileButtonName").toString();
+		if(buttonName.isEmpty())
+			return nullptr;
+		return findChild<QCommandLinkButton *>(buttonName);
+	};
+
+	QWidget * container = getTileContainer(watched);
+	QCommandLinkButton * button = getTileButton(watched);
+	if(!container || !button)
+		return QWidget::eventFilter(watched, event);
+
+	if(event->type() == QEvent::Enter)
+	{
+		container->setProperty("tileHovered", true);
+		updateDataOptionTileVisuals();
+	}
+	else if(event->type() == QEvent::Leave)
+	{
+		container->setProperty("tileHovered", false);
+		updateDataOptionTileVisuals();
+	}
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		QTextBrowser * info = qobject_cast<QTextBrowser *>(watched);
+		if(!info)
+		{
+			if(auto * viewport = qobject_cast<QWidget *>(watched))
+				info = qobject_cast<QTextBrowser *>(viewport->parentWidget());
+		}
+		if(info)
+		{
+			auto * mouseEvent = static_cast<QMouseEvent *>(event);
+			const QPoint pos = info->mapFromGlobal(static_cast<QWidget *>(watched)->mapToGlobal(mouseEvent->pos()));
+			if(!info->anchorAt(pos).isEmpty())
+				return QWidget::eventFilter(watched, event);
+		}
+
+		if(button->isEnabled())
+		{
+			button->setChecked(true);
+			updateDataOptionDetails();
+			updateDataOptionTileVisuals();
+
+			// Keep tile selection on click, but let text browser process the event for scrolling/focus.
+			if(info)
+				return QWidget::eventFilter(watched, event);
+			return true;
+		}
+	}
+
+	return QWidget::eventFilter(watched, event);
+}
+
 void FirstLaunchView::applyResponsiveUiScale()
 {
 	const int baseHeight = 520;
-	const int minHeight = 400;
+	const int minHeight = 1;
 	const int clampedHeight = std::max(minHeight, height());
-	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), 0.85, 1.45);
+	#ifdef VCMI_MOBILE
+	const bool compactScreen = true;
+#else
+	const bool compactScreen = (width() < 900 || height() < 620);
+#endif
+	const qreal maxScale = compactScreen ? 1.20 : 1.45;
+	const qreal minScale = compactScreen ? 1.00 : 0.85;
+	const qreal scale = std::clamp(static_cast<qreal>(clampedHeight) / static_cast<qreal>(baseHeight), minScale, maxScale);
 
 	const QList<QWidget *> allWidgets = findChildren<QWidget *>();
 	for(QWidget * widget : allWidgets)
@@ -134,40 +204,112 @@ void FirstLaunchView::applyResponsiveUiScale()
 			widget->setProperty("_vcmiBasePointSize", basePointSize);
 
 		qreal multiplier = 1.0;
-		if(qobject_cast<QRadioButton *>(widget))
-			multiplier = 1.20;
+		if(qobject_cast<QCommandLinkButton *>(widget))
+			multiplier = compactScreen ? 1.16 : 1.20;
 		else if(qobject_cast<QTextBrowser *>(widget))
-			multiplier = 1.10;
+			multiplier = compactScreen ? 1.14 : 1.10;
 		else if(qobject_cast<QPushButton *>(widget))
-			multiplier = 1.05;
+			multiplier = compactScreen ? 1.14 : 1.05;
 		else if(qobject_cast<QToolButton *>(widget))
-			multiplier = 1.05;
+			multiplier = compactScreen ? 1.12 : 1.05;
 
 		f.setPointSizeF(basePointSize * scale * multiplier);
 		widget->setFont(f);
 	}
 
-	auto applyNavigationButtonScale = [scale](QPushButton * button)
+	ui->listWidgetLanguage->setMinimumHeight(0);
+
+	const int pageMargin = compactScreen ? 6 : 12;
+	if(ui->verticalLayoutLanguagePage)
+	{
+		ui->verticalLayoutLanguagePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutLanguagePage->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayoutWelcomePage)
+	{
+		ui->verticalLayoutWelcomePage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutWelcomePage->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayout_4)
+	{
+		ui->verticalLayout_4->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayout_4->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayout_3)
+	{
+		ui->verticalLayout_3->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayout_3->setSpacing(compactScreen ? 4 : 6);
+	}
+	if(ui->verticalLayoutInfoPage)
+	{
+		ui->verticalLayoutInfoPage->setContentsMargins(pageMargin, pageMargin, pageMargin, pageMargin);
+		ui->verticalLayoutInfoPage->setSpacing(compactScreen ? 4 : 6);
+	}
+
+	const int titleHeight = ui->labelLanguageTitle->sizeHint().height();
+	const int navHeight = ui->pushButtonLanguageNext->sizeHint().height();
+	const int chromePadding = pageMargin * 2 + (compactScreen ? 24 : 36);
+	const int availableListHeight = std::max(compactScreen ? 36 : 60, ui->installerTabs->height() - titleHeight - navHeight - chromePadding);
+	ui->listWidgetLanguage->setMaximumHeight(availableListHeight);
+	const int navMinHeightPx = compactScreen ? std::max(34, static_cast<int>(std::round(40 * scale))) : std::max(28, static_cast<int>(std::round(30 * scale)));
+	const int navButtonWidthPx = compactScreen ? std::max(120, static_cast<int>(std::round(156 * scale))) : std::max(92, static_cast<int>(std::round(112 * scale)));
+	const int navMaxHeightPx = compactScreen ? std::max(navMinHeightPx, static_cast<int>(std::round(56 * scale))) : static_cast<int>(std::round(44 * scale));
+
+	auto applyNavigationButtonScale = [&](QPushButton * button)
 	{
 		if(!button)
 			return;
 
-		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
-		const int minWidthPx = std::max(92, static_cast<int>(std::round(112 * scale)));
-		button->setMinimumSize(minWidthPx, minHeightPx);
-		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
+		button->setMinimumHeight(navMinHeightPx);
+		button->setMinimumWidth(navButtonWidthPx);
+		button->setMaximumWidth(navButtonWidthPx);
+		button->setMaximumHeight(navMaxHeightPx);
 	};
 
-	auto applyActionButtonScale = [scale](QPushButton * button)
+	auto applyActionButtonScale = [&](QPushButton * button)
 	{
 		if(!button)
 			return;
-		const int minHeightPx = std::max(28, static_cast<int>(std::round(30 * scale)));
-		button->setMinimumHeight(minHeightPx);
-		button->setMaximumHeight(static_cast<int>(std::round(44 * scale)));
+		button->setMinimumHeight(navMinHeightPx);
+		button->setMaximumHeight(navMaxHeightPx);
 	};
+
+
+	const int dataTileTotalHeightPx = compactScreen ? std::max(108, static_cast<int>(std::round(176 * scale))) : std::max(88, static_cast<int>(std::round(152 * scale)));
+	const int dataTileButtonHeightPx = compactScreen ? std::max(30, static_cast<int>(std::round(dataTileTotalHeightPx * 0.24))) : std::max(24, static_cast<int>(std::round(dataTileTotalHeightPx * 0.20)));
+	const int dataTileInfoHeightPx = compactScreen ? std::max(58, dataTileTotalHeightPx - dataTileButtonHeightPx) : std::max(44, dataTileTotalHeightPx - dataTileButtonHeightPx);
+
+	auto applyDataOptionButtonScale = [dataTileButtonHeightPx](QCommandLinkButton * button)
+	{
+		if(!button)
+			return;
+		button->setMinimumHeight(dataTileButtonHeightPx);
+		button->setMaximumHeight(dataTileButtonHeightPx);
+	};
+
+	auto applyDataInfoScale = [dataTileInfoHeightPx](QTextBrowser * text)
+	{
+		if(!text)
+			return;
+		text->setMinimumHeight(dataTileInfoHeightPx);
+		text->setMaximumHeight(dataTileInfoHeightPx);
+	};
+
+	if(ui->installerTabs->currentIndex() == TAB_DATA)
+	{
+		applyDataOptionButtonScale(ui->commandLinkButtonDataDetected);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataGog);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataCopy);
+		applyDataOptionButtonScale(ui->commandLinkButtonDataManual);
+		applyDataInfoScale(ui->textBrowserDataDetectedInfo);
+		applyDataInfoScale(ui->textBrowserDataGogInfo);
+		applyDataInfoScale(ui->textBrowserDataCopyInfo);
+		applyDataInfoScale(ui->textBrowserDataManualInfo);
+	}
 
 	applyNavigationButtonScale(ui->pushButtonLanguageNext);
+	applyNavigationButtonScale(ui->pushButtonWelcomeBack);
+	applyNavigationButtonScale(ui->pushButtonWelcomeNext);
 	applyNavigationButtonScale(ui->pushButtonDataBack);
 	applyNavigationButtonScale(ui->pushButtonDataNext);
 	applyActionButtonScale(ui->pushButtonSelect);
@@ -182,9 +324,27 @@ void FirstLaunchView::on_pushButtonLanguageNext_clicked()
 	activateNextTab();
 }
 
-void FirstLaunchView::on_pushButtonDataNext_clicked()
+void FirstLaunchView::on_pushButtonWelcomeBack_clicked()
+{
+	activatePreviousTab();
+}
+
+void FirstLaunchView::on_pushButtonWelcomeNext_clicked()
 {
 	activateNextTab();
+}
+
+void FirstLaunchView::on_pushButtonDataNext_clicked()
+{
+	if(ui->commandLinkButtonDataManual->isChecked())
+	{
+		if(heroesDataUpdate() || isDemoDataDetected())
+			activateNextTab();
+		return;
+	}
+
+	// For detected/copy/GOG modes, Next triggers import/select action directly on this page.
+	on_pushButtonSelect_clicked();
 }
 
 void FirstLaunchView::on_pushButtonDataBack_clicked()
@@ -199,37 +359,28 @@ void FirstLaunchView::on_pushButtonDataSearch_clicked()
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-	// iOS can't display modal dialogs when called directly on button press
-	// https://bugreports.qt.io/browse/QTBUG-98651
-	MessageBoxCustom::showDialog(this, [this]{
-		Helper::nativeFolderPicker(this, [this](const QString &picked){
-			if(!picked.isEmpty())
-				copyHeroesData(picked, false);
-		});
-	});
+	selectCopyDataSource();
 }
 
 void FirstLaunchView::on_pushButtonSelect_clicked()
 {
-	if(ui->radioButtonDataDetected->isChecked())
+	if(ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled())
+	{
+		const QString installPath = getHeroesInstallDir();
+		if(!installPath.isEmpty())
+			copyHeroesData(installPath, false);
 		return;
+	}
 
-	if(ui->radioButtonDataManual->isChecked())
+	if(ui->commandLinkButtonDataManual->isChecked())
 	{
 		heroesDataUpdate();
 		return;
 	}
 
-	if(ui->radioButtonDataCopy->isChecked())
+	if(ui->commandLinkButtonDataCopy->isChecked())
 	{
-		// iOS can't display modal dialogs when called directly on button press
-		// https://bugreports.qt.io/browse/QTBUG-98651
-		MessageBoxCustom::showDialog(this, [this]{
-			Helper::nativeFolderPicker(this, [this](const QString &picked){
-				if(!picked.isEmpty())
-					copyHeroesData(picked, false);
-			});
-		});
+		selectCopyDataSource();
 		return;
 	}
 
@@ -238,42 +389,84 @@ void FirstLaunchView::on_pushButtonSelect_clicked()
 	MessageBoxCustom::showDialog(this, [this]{extractGogData();});
 }
 
-void FirstLaunchView::on_radioButtonDataDetected_toggled(bool checked)
+void FirstLaunchView::selectCopyDataSource()
+{
+	const bool canUseFolderImport = Helper::canUseFolderPicker();
+
+	if(!canUseFolderImport)
+	{
+		MessageBoxCustom::information(this,
+			tr("ZIP selection"),
+			tr("Folder picker is unavailable on this platform. Please select a ZIP archive that contains Heroes III data files."));
+		const QString archivePath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive with Heroes III data"), QString{}, tr("ZIP archives (*.zip)"));
+		if(!archivePath.isEmpty())
+			copyHeroesDataFromArchive(archivePath);
+		return;
+	}
+
+	MessageBoxCustom::showDialog(this, [this]{
+		QMessageBox msgBox(this);
+		msgBox.setWindowTitle(tr("Import source"));
+		msgBox.setText(tr("How do you want to import Heroes III data?"));
+		QAbstractButton * folderButton = msgBox.addButton(tr("Folder"), QMessageBox::AcceptRole);
+		QAbstractButton * zipButton = msgBox.addButton(tr("ZIP archive"), QMessageBox::AcceptRole);
+		msgBox.addButton(QMessageBox::Cancel);
+		msgBox.exec();
+
+		if(msgBox.clickedButton() == folderButton)
+		{
+			MessageBoxCustom::information(this,
+				tr("Folder selection"),
+				tr("Please select the Heroes III installation folder.\nAfter confirmation, folder selection will open."));
+			MessageBoxCustom::showDialog(this, [this]{
+				Helper::nativeFolderPicker(this, [this](const QString &picked){
+					if(!picked.isEmpty())
+						copyHeroesData(picked, false);
+				});
+			});
+			return;
+		}
+
+		if(msgBox.clickedButton() == zipButton)
+		{
+			MessageBoxCustom::information(this,
+				tr("ZIP selection"),
+				tr("Please select a ZIP archive that contains Heroes III data files."));
+			const QString archivePath = QFileDialog::getOpenFileName(this, tr("Select ZIP archive with Heroes III data"), QString{}, tr("ZIP archives (*.zip)"));
+			if(!archivePath.isEmpty())
+				copyHeroesDataFromArchive(archivePath);
+		}
+	});
+}
+
+void FirstLaunchView::on_commandLinkButtonDataDetected_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
-void FirstLaunchView::on_radioButtonDataGog_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataGog_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
-void FirstLaunchView::on_radioButtonDataCopy_toggled(bool checked)
-{
-	if(checked)
-		ui->radioButtonFolder->setChecked(true);
-
-	updateDataOptionDetails();
-}
-
-void FirstLaunchView::on_radioButtonDataManual_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataCopy_toggled(bool checked)
 {
 	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
-void FirstLaunchView::on_radioButtonFolder_toggled(bool checked)
+void FirstLaunchView::on_commandLinkButtonDataManual_toggled(bool checked)
 {
-	if(checked && ui->radioButtonDataCopy->isChecked())
+	if(checked)
 		updateDataOptionDetails();
+	updateDataOptionTileVisuals();
 }
 
-void FirstLaunchView::on_radioButtonZIP_toggled(bool checked)
-{
-	Q_UNUSED(checked);
-}
 
 void FirstLaunchView::enterSetup()
 {
@@ -342,6 +535,7 @@ void FirstLaunchView::activateTab(int tabIndex)
 
 	setSetupProgress(tabIndex + 1);
 	ui->installerTabs->setCurrentIndex(tabIndex);
+	applyResponsiveUiScale();
 
 	if(tabIndex == TAB_DATA)
 		heroesDataUpdate();
@@ -447,77 +641,222 @@ void FirstLaunchView::heroesDataDetected()
 	CGeneralTextHandler::detectInstallParameters();
 }
 
+
+void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy)
+{
+	QGridLayout * grid = ui->gridLayout;
+	if(!grid)
+		return;
+
+	auto ensureTileContainer = [this](const QString & objectName, QCommandLinkButton * button, QTextBrowser * info)
+	{
+		QWidget * container = findChild<QWidget *>(objectName);
+		if(container)
+			return container;
+
+		container = new QWidget(this);
+		container->setObjectName(objectName);
+		container->setProperty("tileHovered", false);
+		container->setProperty("tileChecked", false);
+		container->setProperty("tileEnabled", true);
+		container->setProperty("tileContainerName", objectName);
+		container->setProperty("tileButtonName", button->objectName());
+
+		button->setProperty("tileContainerName", objectName);
+		button->setProperty("tileButtonName", button->objectName());
+		button->setCursor(Qt::PointingHandCursor);
+		button->setStyleSheet(QStringLiteral("QCommandLinkButton{border:none;background:transparent;padding:4px;}"));
+
+		info->setProperty("tileContainerName", objectName);
+		info->setProperty("tileButtonName", button->objectName());
+		info->setFrameShape(QFrame::NoFrame);
+		info->setCursor(Qt::PointingHandCursor);
+		info->setStyleSheet(QStringLiteral("QTextBrowser{border:none;background:transparent;}"));
+		info->setOpenExternalLinks(true);
+		if(info->viewport())
+		{
+			info->viewport()->setProperty("tileContainerName", objectName);
+			info->viewport()->setProperty("tileButtonName", button->objectName());
+			info->viewport()->setCursor(Qt::PointingHandCursor);
+		}
+
+		container->installEventFilter(this);
+		button->installEventFilter(this);
+		info->installEventFilter(this);
+		if(info->viewport())
+			info->viewport()->installEventFilter(this);
+
+		auto * containerLayout = new QVBoxLayout(container);
+		containerLayout->setContentsMargins(8, 8, 8, 8);
+		containerLayout->setSpacing(4);
+		containerLayout->addWidget(button);
+		containerLayout->addWidget(info);
+		return container;
+	};
+
+	struct OptionWidgets
+	{
+		QWidget * container;
+		QCommandLinkButton * button;
+		QTextBrowser * info;
+		bool available;
+	};
+
+	const QVector<OptionWidgets> options = {
+		{ ensureTileContainer(QStringLiteral("dataOptionTileDetected"), ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo), ui->commandLinkButtonDataDetected, ui->textBrowserDataDetectedInfo, hasDetectedInstall },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileGog"), ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo), ui->commandLinkButtonDataGog, ui->textBrowserDataGogInfo, canUseGogInstall },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileCopy"), ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo), ui->commandLinkButtonDataCopy, ui->textBrowserDataCopyInfo, canUseDataCopy },
+		{ ensureTileContainer(QStringLiteral("dataOptionTileManual"), ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo), ui->commandLinkButtonDataManual, ui->textBrowserDataManualInfo, true }
+	};
+
+	QVector<OptionWidgets> availableOptions;
+	for(const OptionWidgets & option : options)
+	{
+		grid->removeWidget(option.container);
+		option.container->setVisible(false);
+		option.button->setEnabled(option.available);
+		if(option.available)
+			availableOptions.push_back(option);
+	}
+
+	for(int i = 0; i < availableOptions.size(); ++i)
+	{
+		const OptionWidgets & option = availableOptions[i];
+		const int tileRow = 2 + i / 2;
+		const int col = (i % 2 == 0) ? 0 : 2;
+		grid->addWidget(option.container, tileRow, col, 1, 2);
+		option.container->setVisible(true);
+	}
+
+	updateDataOptionTileVisuals();
+}
+
+void FirstLaunchView::updateDataOptionTileVisuals()
+{
+	const QVector<QPair<QString, QCommandLinkButton *>> tiles = {
+		{ QStringLiteral("dataOptionTileDetected"), ui->commandLinkButtonDataDetected },
+		{ QStringLiteral("dataOptionTileGog"), ui->commandLinkButtonDataGog },
+		{ QStringLiteral("dataOptionTileCopy"), ui->commandLinkButtonDataCopy },
+		{ QStringLiteral("dataOptionTileManual"), ui->commandLinkButtonDataManual }
+	};
+
+	for(const auto & tile : tiles)
+	{
+		QWidget * container = findChild<QWidget *>(tile.first);
+		if(!container)
+			continue;
+
+		container->setProperty("tileChecked", tile.second->isChecked());
+		container->setProperty("tileEnabled", tile.second->isEnabled());
+		container->style()->unpolish(container);
+		container->style()->polish(container);
+		container->setStyleSheet(QStringLiteral(R"(
+			QWidget[tileEnabled="true"] { border: 1px solid palette(mid); border-radius: 8px; background: palette(base); }
+			QWidget[tileEnabled="true"][tileHovered="true"] { border: 1px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="true"][tileChecked="true"] { border: 2px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="false"] { border: 1px solid palette(dark); border-radius: 8px; background: palette(window); }
+		)"));
+	}
+}
+
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
 	const bool hasDetectedInstall = !installPath.isEmpty();
 
-	ui->radioButtonDataDetected->setVisible(hasDetectedInstall);
-	if(!hasDetectedInstall && ui->radioButtonDataDetected->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+#ifdef ENABLE_INNOEXTRACT
+	const bool canUseGogInstall = true;
+#else
+	const bool canUseGogInstall = false;
+#endif
+	// Copy option supports folder import and ZIP import; ZIP works even where folder picker is unavailable.
+	const bool canUseDataCopy = true;
 
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
-	ui->radioButtonDataCopy->setVisible(canUseDataCopy);
-	ui->radioButtonFolder->setVisible(canUseDataCopy);
-	ui->radioButtonFolder->setEnabled(false);
-	ui->radioButtonZIP->setVisible(false);
-	ui->radioButtonZIP->setChecked(false);
-	if(canUseDataCopy)
-		ui->radioButtonFolder->setChecked(true);
-	if(!canUseDataCopy && ui->radioButtonDataCopy->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+	layoutDataOptionWidgets(hasDetectedInstall, canUseGogInstall, canUseDataCopy);
 
-	if(dataDetected)
-		ui->radioButtonDataDetected->setChecked(hasDetectedInstall);
-	else if(!ui->radioButtonDataGog->isChecked() && !ui->radioButtonDataCopy->isChecked() && !ui->radioButtonDataManual->isChecked())
-		ui->radioButtonDataGog->setChecked(true);
+	ui->commandLinkButtonDataDetected->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataGog->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataCopy->setDescription(QStringLiteral(" "));
+	ui->commandLinkButtonDataManual->setDescription(QStringLiteral(" "));
+	ui->labelDataFiles->setVisible(false);
+	ui->lineEditDataUser->setVisible(false);
+	ui->lineEditDataSystem->setVisible(false);
+
+	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
+		? tr("<p>Use game files detected automatically on this device.</p>"
+			"<p>VCMI will copy required data into its own folders.</p>"
+			"<p><b>Source folder:</b><br/><code>%1</code></p>").arg(installPath.toHtmlEscaped())
+		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
+
+	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
+		? tr(R"(<p>Import data from offline GOG installers for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
+<p>Direct links:</p>
+<ul>
+<li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">Installer EXE (en1installer0)</a></li>
+<li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">Installer BIN (en1installer1)</a></li>
+</ul>)")
+		: tr("<p><i>Not available on this platform/build.</i></p>"));
+
+	const bool canUseFolderImport = Helper::canUseFolderPicker();
+	ui->textBrowserDataCopyInfo->setHtml(canUseFolderImport
+		? tr("<p>Select an existing Heroes III installation folder or a ZIP archive with game data files.</p>"
+			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
+			"<p>VCMI will verify the source and copy required files automatically.</p>")
+		: tr("<p>Folder import is unavailable on this platform.</p>"
+			"<p>Please select a ZIP archive with Heroes III data files.</p>"
+			"<p>VCMI will verify the source and copy required files automatically.</p>"));
+
+	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
+	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
+	ui->textBrowserDataManualInfo->setHtml(tr(R"(
+	<p>Copy game files manually and press <b>Scan again</b>.</p>
+	<p>Target folders:</p>
+	<p><b>User folder:</b><br/><code>%1</code></p>
+	<p><b>System folder:</b><br/><code>%2</code></p>
+	<p>Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>
+	)").arg(manualUserPath, manualSystemPath));
+
+	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
+		|| ui->commandLinkButtonDataGog->isChecked()
+		|| ui->commandLinkButtonDataCopy->isChecked()
+		|| ui->commandLinkButtonDataManual->isChecked();
+
+	const bool selectedOptionUnavailable = (ui->commandLinkButtonDataDetected->isChecked() && !hasDetectedInstall)
+		|| (ui->commandLinkButtonDataGog->isChecked() && !canUseGogInstall)
+		|| (ui->commandLinkButtonDataCopy->isChecked() && !canUseDataCopy);
+
+	if(dataDetected && hasDetectedInstall)
+	{
+		ui->commandLinkButtonDataDetected->setChecked(true);
+	}
+	else if(!hasAnySelection || selectedOptionUnavailable)
+	{
+		if(hasDetectedInstall)
+			ui->commandLinkButtonDataDetected->setChecked(true);
+		else if(canUseGogInstall)
+			ui->commandLinkButtonDataGog->setChecked(true);
+		else if(canUseDataCopy)
+			ui->commandLinkButtonDataCopy->setChecked(true);
+		else
+			ui->commandLinkButtonDataManual->setChecked(true);
+	}
 
 	updateDataOptionDetails();
 }
 
 void FirstLaunchView::updateDataOptionDetails()
 {
-	const bool manualSelected = ui->radioButtonDataManual->isChecked();
-	const bool copySelected = ui->radioButtonDataCopy->isChecked();
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
-	ui->labelDataFiles->setVisible(manualSelected);
-	ui->lineEditDataUser->setVisible(manualSelected);
-	ui->lineEditDataSystem->setVisible(manualSelected);
-	ui->radioButtonFolder->setVisible(copySelected && canUseDataCopy);
-	ui->radioButtonFolder->setEnabled(false);
-	ui->radioButtonZIP->setVisible(false);
+	ui->pushButtonSelect->setVisible(false);
 
-	if(ui->radioButtonDataDetected->isChecked())
-	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("VCMI found an existing Heroes III installation on this system. No additional action is required."));
-		ui->pushButtonSelect->setVisible(false);
-	}
-	else if(ui->radioButtonDataCopy->isChecked())
-	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("Pick the folder with your existing Heroes III files and VCMI will copy all required data automatically."));
-		ui->pushButtonSelect->setText(tr("Select folder"));
-		ui->pushButtonSelect->setVisible(true);
-	}
-	else if(manualSelected)
-	{
-		ui->textBrowserDataOptionDetails->setPlainText(tr("Copy Heroes III files manually into the folders shown below, then press Scan again to verify installation."));
-		ui->pushButtonSelect->setText(tr("Scan again"));
-		ui->pushButtonSelect->setVisible(true);
-	}
-	else
-	{
-		ui->textBrowserDataOptionDetails->setHtml(tr(R"(
-<p>If you already know this flow and have the Heroes III Complete offline backup installer from gog.com, continue by pressing <b>Select installer</b> and selecting the files.</p>
-<p>If you do not own the game yet, buy it on gog.com: <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes of Might and Magic 3 Complete Edition</a>.</p>
-<p>If you already own it and only need to download it, sign in to your account and download the offline backup game installer EXE: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">en1installer0</a> and BIN: <a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer1">en1installer1</a>.</p>
-)"));
-		ui->pushButtonSelect->setText(tr("Select installer"));
-#ifdef ENABLE_INNOEXTRACT
-		ui->pushButtonSelect->setVisible(true);
-#else
-		ui->pushButtonSelect->setVisible(false);
-#endif
-	}
+	const bool detectedSelectedAndAvailable = ui->commandLinkButtonDataDetected->isChecked() && ui->commandLinkButtonDataDetected->isEnabled();
+	const bool gogSelectedAndAvailable = ui->commandLinkButtonDataGog->isChecked() && ui->commandLinkButtonDataGog->isEnabled();
+	const bool copySelectedAndAvailable = ui->commandLinkButtonDataCopy->isChecked() && ui->commandLinkButtonDataCopy->isEnabled();
+	const bool manualSelected = ui->commandLinkButtonDataManual->isChecked();
+
+	ui->pushButtonDataNext->setText(manualSelected ? tr("Scan again") : tr("Next"));
+	ui->pushButtonDataNext->setEnabled(detectedSelectedAndAvailable || gogSelectedAndAvailable || copySelectedAndAvailable || manualSelected || isDemoDataDetected());
+
+	updateDataOptionTileVisuals();
 }
 
 // Tab Heroes III Data
@@ -830,7 +1169,9 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 	// Defer heavy work to next event-loop tick to ensure overlay is painted
 	QTimer::singleShot(0, this, [this, filePathBin, filePathExe]()
 	{
-		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Preparing installer..."), true));
+		QScopedPointer<ProgressOverlay> overlay(createOverlay(this, tr("Preparing installer..."), false));
+		overlay->setRange(2);
+		overlay->setValue(0);
 		overlay->setFileName(QFileInfo(filePathExe).fileName());
 		overlay->raise();
 		qApp->processEvents();
@@ -862,6 +1203,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		// 2) Copy selected files into tmp
 		logGlobal->info("Performing native copy...");
 		Helper::performNativeCopy(filePathExe, tmpFileExe);
+		overlay->setValue(1);
 
 		if(needPostCopyCheckExe)
 		{
@@ -875,6 +1217,7 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 		}
 
 		Helper::performNativeCopy(filePathBin, tmpFileBin);
+		overlay->setValue(2);
 
 		if(needPostCopyCheckBin)
 		{
@@ -954,27 +1297,56 @@ void FirstLaunchView::copyHeroesDataFromArchive(const QString &archivePath)
 		return;
 	}
 
+	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Preparing ZIP archive..."), false);
+	overlay->setFileName(Helper::getRealPath(archivePath));
+	overlay->setRange(1);
+	overlay->setValue(0);
+	overlay->raise();
+	qApp->processEvents();
+
+	// Ensure overlay is painted before potentially slow native copy from URI/content provider.
+	QEventLoop ev;
+	QTimer::singleShot(0, &ev, &QEventLoop::quit);
+	ev.exec();
+
+	const QString tempArchivePath = tempDir.filePath("import_data.zip");
+	if(!Helper::performNativeCopy(archivePath, tempArchivePath))
+	{
+		overlay->deleteLater();
+		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to access selected ZIP archive. Please copy ZIP to accessible storage and try again."));
+		return;
+	}
+	overlay->setValue(1);
+
+	overlay->setTitle(tr("Extracting ZIP archive..."));
+	overlay->setFileName({});
+	overlay->setIndeterminate(true);
+
 	bool extracted = false;
 	try
 	{
-		ZipArchive archive(qstringToPath(archivePath));
+		ZipArchive archive(qstringToPath(tempArchivePath));
 		const auto files = archive.listFiles();
 		extracted = archive.extract(qstringToPath(tempDir.path()), files);
 	}
 	catch(const std::exception &e)
 	{
+		overlay->deleteLater();
 		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to read ZIP archive: %1").arg(QString::fromUtf8(e.what())));
 		return;
 	}
 
 	if(!extracted)
 	{
+		overlay->deleteLater();
 		QMessageBox::critical(this, tr("Extraction error"), tr("Failed to extract ZIP archive."));
 		return;
 	}
 
-	QPointer<ProgressOverlay> overlay = createOverlay(this, tr("Scanning selected folder..."), true);
-	overlay->raise();
+	overlay->setTitle(tr("Scanning selected folder..."));
+	overlay->setFileName({});
+	overlay->setIndeterminate(true);
+
 	if(performCopyFlow(tempDir.path(), overlay, false))
 		if(heroesDataUpdate())
 			activateTabModPreset();

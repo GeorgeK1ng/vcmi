@@ -9,41 +9,38 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>647</width>
-    <height>502</height>
+    <width>745</width>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+   </property>
    <item>
     <widget class="QStackedWidget" name="installerTabs">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageLanguage">
       <layout class="QVBoxLayout" name="verticalLayoutLanguagePage">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelLanguageTitle">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -80,12 +77,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>220</height>
-            </size>
            </property>
            <property name="spacing">
             <number>5</number>
@@ -136,22 +127,107 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="pageWelcome">
+      <layout class="QVBoxLayout" name="verticalLayoutWelcomePage">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="labelWelcomeTitle">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Welcome to VCMI</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextBrowser" name="textBrowserWelcomeInfo">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+         <property name="html">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;VCMI is an open-source reimplementation of the game engine for the classic turn-based strategy game Heroes of Might and Magic III. The goal of the project is to allow this legendary game to be played on modern operating systems while preserving the original gameplay experience.&lt;/p&gt;&lt;p&gt;Without using modifications, VCMI aims to replicate the mechanics, rules, and behavior of Heroes of Might and Magic III Complete as faithfully as possible, including the campaigns, units, spells, and other gameplay systems known from the original game.&lt;/p&gt;&lt;p&gt;VCMI does not include the original game data. To play the game, you must own a legal copy of Heroes of Might and Magic III (for example Complete or Shadow of Death) and have access to its original data files.&lt;/p&gt;&lt;p&gt;One of the main advantages of VCMI is its extensive mod support. Using the built-in mod manager, you can easily install new towns, maps, factions, units, campaigns, graphical improvements, or gameplay mechanics created by the community.&lt;/p&gt;&lt;p&gt;VCMI is free to use, but owning the original Heroes of Might and Magic III game is still required to play.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayoutWelcomeNav">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="pushButtonWelcomeBack">
+           <property name="text">
+            <string>Back</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacerWelcomeNav">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButtonWelcomeNext">
+           <property name="text">
+            <string>Next</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="pageDataFiles">
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="sizeConstraint">
+        <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+       </property>
        <property name="spacing">
         <number>8</number>
        </property>
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelDataTitle">
@@ -160,12 +236,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="font">
           <font>
@@ -189,7 +259,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -202,7 +272,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -224,7 +294,7 @@
         </spacer>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0,0">
+        <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1">
          <property name="spacing">
           <number>6</number>
          </property>
@@ -293,21 +363,59 @@
          </item>
          <item row="2" column="2" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataGog">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Offline GOG.com backup installer</string>
            </property>
            <property name="checked">
             <bool>false</bool>
            </property>
+          
+           <property name="description">
+            <string>Select offline installer files and import data automatically.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
+         </item>
+         <item row="4" column="2" colspan="2">
+          <widget class="QTextBrowser" name="textBrowserDataGogInfo">
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item row="3" column="2" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataManual">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Manual installation</string>
            </property>
            <property name="checked">
             <bool>false</bool>
+           </property>
+          
+           <property name="description">
+            <string>Copy files yourself and use Scan again to verify installation.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
+         </item>
+         <item row="5" column="2" colspan="2">
+          <widget class="QTextBrowser" name="textBrowserDataManualInfo">
+           <property name="openExternalLinks">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -360,8 +468,27 @@
          </item>
          <item row="3" column="0" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataCopy">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Copy existing files</string>
+           </property>
+          
+           <property name="description">
+            <string>Choose an existing Heroes III folder and copy required files.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
+         </item>
+         <item row="5" column="0" colspan="2">
+          <widget class="QTextBrowser" name="textBrowserDataCopyInfo">
+           <property name="openExternalLinks">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -383,13 +510,29 @@
          </item>
          <item row="2" column="0" colspan="2">
           <widget class="QCommandLinkButton" name="commandLinkButtonDataDetected">
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
            <property name="text">
             <string>Detected Heroes III installation</string>
            </property>
-          </widget>
+          
+           <property name="description">
+            <string>Use the installation detected automatically on this device.</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property></widget>
          </item>
-         <item row="11" column="0" colspan="4">
-          <widget class="QTextBrowser" name="textBrowserDataOptionDetails"/>
+         <item row="4" column="0" colspan="2">
+          <widget class="QTextBrowser" name="textBrowserDataDetectedInfo">
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -401,7 +544,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -448,16 +591,16 @@
      <widget class="QWidget" name="pageModPreset">
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelPresetTitle">
@@ -466,12 +609,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="font">
           <font>
@@ -495,12 +632,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
          <property name="text">
           <string>Optionally, you can install additional mods either now, or at any point later, using the VCMI Launcher</string>
          </property>
@@ -520,7 +651,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -550,12 +681,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
            </property>
            <property name="font">
             <font>
@@ -608,12 +733,6 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
-           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -645,12 +764,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
            </property>
            <property name="font">
             <font>
@@ -767,12 +880,6 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
-           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -804,12 +911,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
            </property>
            <property name="font">
             <font>
@@ -843,12 +944,6 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
-           </property>
            <property name="font">
             <font>
              <bold>true</bold>
@@ -880,12 +975,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>32</height>
-            </size>
            </property>
            <property name="font">
             <font>
@@ -927,7 +1016,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -968,16 +1057,16 @@
      <widget class="QWidget" name="pageInfo">
       <layout class="QVBoxLayout" name="verticalLayoutInfoPage">
        <property name="leftMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>12</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelInfoTitle">
@@ -986,12 +1075,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
          </property>
          <property name="font">
           <font>
@@ -1071,7 +1154,7 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>20</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
