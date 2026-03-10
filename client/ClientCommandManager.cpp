@@ -222,7 +222,7 @@ void ClientCommandManager::handleTranslateGameCommand(bool onlyMissing)
 	printCommandMessage("Extracted files can be found in " + outPath.string() + " directory\n");
 }
 
-void ClientCommandManager::handleTranslateMapsCommand()
+void ClientCommandManager::handleTranslateMapsCommand(bool onlyMissing)
 {
 	CMapService mapService;
 
@@ -275,9 +275,9 @@ void ClientCommandManager::handleTranslateMapsCommand()
 	}
 
 	std::map<std::string, std::map<std::string, std::string>> textsByMod;
-	LIBRARY->generaltexth->exportAllTexts(textsByMod, false);
+	LIBRARY->generaltexth->exportAllTexts(textsByMod, onlyMissing);
 
-	const boost::filesystem::path outPath = VCMIDirs::get().userExtractedPath() / "translation";
+	const boost::filesystem::path outPath = VCMIDirs::get().userExtractedPath() / (onlyMissing ? "translationMissing" : "translation");
 	boost::filesystem::create_directories(outPath);
 
 	for(const auto & modEntry : textsByMod)
@@ -640,7 +640,13 @@ void ClientCommandManager::processCommand(const std::string & message, bool call
 		handleTranslateGameCommand(true);
 
 	else if(message=="translate maps")
-		handleTranslateMapsCommand();
+		handleTranslateMapsCommand(false);
+
+	else if(message=="translate maps missing")
+		handleTranslateMapsCommand(true);
+
+	else if(message=="translate missing maps")
+		handleTranslateMapsCommand(true);
 
 	else if(message=="get config")
 		handleGetConfigCommand();

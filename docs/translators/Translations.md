@@ -67,6 +67,7 @@ If you have already existing Heroes III translation you can:
 This will export all strings from game into `Documents/My Games/VCMI/extracted/translation/` directory which you can then use to update json files in your translation.
 
 To export maps and campaigns, use `/translate maps` command instead.
+To export only untranslated map and campaign strings, use `/translate maps missing` (or `/translate missing maps`).
 
 ### Video subtitles
 
@@ -153,7 +154,8 @@ After that, start Launcher, switch to Help tab and open "log files directory". Y
 
 If your mod also contains maps or campaigns that you want to translate, then use `/translate maps` command instead.
 
-If you want to update existing translation, you can use `/translate missing` command that will export only strings that were not translated
+If you want to update existing translation, you can use `/translate missing` command that will export only strings that were not translated.
+For map and campaign text updates, use `/translate maps missing` (or `/translate missing maps`) to export only missing strings.
 
 ### Translating mod information
 

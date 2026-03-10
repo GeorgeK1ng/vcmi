@@ -52,7 +52,7 @@ class ClientCommandManager //take mantis #2292 issue about account if thinking a
 	void handleTranslateGameCommand(bool onlyMissing);
 
 	// Extracts all translateable texts from maps and campaigns into Translation directory, separating files on per-mod basis
-	void handleTranslateMapsCommand();
+	void handleTranslateMapsCommand(bool onlyMissing);
 
 	// Saves current game configuration into extracted/configuration folder
 	void handleGetConfigCommand();
