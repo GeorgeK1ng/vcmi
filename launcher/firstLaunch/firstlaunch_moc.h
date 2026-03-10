@@ -53,6 +53,7 @@ class FirstLaunchView : public QWidget
 	void updateDataOptionDetails();
 	void layoutDataOptionWidgets(bool hasDetectedInstall, bool canUseGogInstall, bool canUseDataCopy);
 	void updateDataOptionTileVisuals();
+	void applyDataOptionIcons();
 
 	QString getHeroesInstallDir();
 	void extractGogData();

@@ -54,6 +54,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
 {
 	ui->setupUi(this);
+	applyDataOptionIcons();
 	applyResponsiveUiScale();
 
 	enterSetup();
@@ -731,6 +732,20 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 	updateDataOptionTileVisuals();
 }
 
+void FirstLaunchView::applyDataOptionIcons()
+{
+	ui->commandLinkButtonDataDetected->setIcon(style()->standardIcon(QStyle::SP_DialogApplyButton));
+	ui->commandLinkButtonDataGog->setIcon(style()->standardIcon(QStyle::SP_ArrowDown));
+	ui->commandLinkButtonDataCopy->setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
+	ui->commandLinkButtonDataManual->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));
+
+	const QSize iconSize(24, 24);
+	ui->commandLinkButtonDataDetected->setIconSize(iconSize);
+	ui->commandLinkButtonDataGog->setIconSize(iconSize);
+	ui->commandLinkButtonDataCopy->setIconSize(iconSize);
+	ui->commandLinkButtonDataManual->setIconSize(iconSize);
+}
+
 void FirstLaunchView::updateDataOptionTileVisuals()
 {
 	const QVector<QPair<QString, QCommandLinkButton *>> tiles = {
@@ -752,8 +767,9 @@ void FirstLaunchView::updateDataOptionTileVisuals()
 		container->style()->polish(container);
 		container->setStyleSheet(QStringLiteral(R"(
 			QWidget[tileEnabled="true"] { border: 1px solid palette(mid); border-radius: 8px; background: palette(base); }
-			QWidget[tileEnabled="true"][tileHovered="true"] { border: 1px solid palette(highlight); background: palette(alternate-base); }
-			QWidget[tileEnabled="true"][tileChecked="true"] { border: 2px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="true"][tileHovered="true"] { border: 2px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="true"][tileChecked="true"] { border: 3px solid palette(highlight); background: palette(alternate-base); }
+			QWidget[tileEnabled="true"][tileChecked="true"][tileHovered="true"] { background: palette(light); }
 			QWidget[tileEnabled="false"] { border: 1px solid palette(dark); border-radius: 8px; background: palette(window); }
 		)"));
 	}
