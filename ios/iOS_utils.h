@@ -11,7 +11,7 @@
 
 #include <TargetConditionals.h>
 #include <string>
-#include <QtGlobal>
+#include <cstdint>
 
 #pragma GCC visibility push(default)
 namespace iOS_utils
@@ -37,7 +37,7 @@ bool isOsVersionAtLeast(unsigned int osMajorVersion);
 void keepScreenOn(bool isEnabled);
 
 
-quint64 startBackgroundDownload(const std::string & url, const std::string & destinationPath, std::string & error);
-bool queryBackgroundDownload(quint64 id, qint64 & received, qint64 & total, bool & finished, bool & failed, std::string & error);
+std::uint64_t startBackgroundDownload(const std::string & url, const std::string & destinationPath, std::string & error);
+bool queryBackgroundDownload(std::uint64_t id, std::int64_t & received, std::int64_t & total, bool & finished, bool & failed, std::string & error);
 }
 #pragma GCC visibility pop

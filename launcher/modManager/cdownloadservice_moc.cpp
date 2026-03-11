@@ -10,6 +10,8 @@
 #include "StdInc.h"
 #include "cdownloadservice_moc.h"
 
+#include <cstdint>
+
 #ifdef VCMI_ANDROID
 #include <QAndroidJniObject>
 #include <QtAndroid>
@@ -76,9 +78,13 @@ CDownloadService::DownloadStatus CDownloadService::status(quint64 id)
 	}
 #elif defined(VCMI_IOS)
 	std::string error;
+	std::int64_t received = 0;
+	std::int64_t total = 0;
 	bool finished = false;
 	bool failed = false;
-	iOS_utils::queryBackgroundDownload(id, result.received, result.total, finished, failed, error);
+	iOS_utils::queryBackgroundDownload(id, received, total, finished, failed, error);
+	result.received = static_cast<qint64>(received);
+	result.total = static_cast<qint64>(total);
 	result.finished = finished;
 	result.failed = failed;
 	result.error = QString::fromStdString(error);

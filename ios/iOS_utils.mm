@@ -28,8 +28,8 @@ static void requestNotificationPermissionIfNeeded()
 		{
 			[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
 				completionHandler:^(BOOL granted, NSError * _Nullable error) {
-					Q_UNUSED(granted);
-					Q_UNUSED(error);
+					(void)granted;
+					(void)error;
 				}];
 		}
 	}];
@@ -168,7 +168,7 @@ std::string iphoneHardwareId()
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
-	Q_UNUSED(session);
+	(void)session;
 	NSNumber *tid = @(downloadTask.taskIdentifier);
 	@synchronized (self)
 	{
@@ -179,7 +179,7 @@ std::string iphoneHardwareId()
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-	Q_UNUSED(session);
+	(void)session;
 	if(!error)
 		return;
 	NSNumber *tid = @(task.taskIdentifier);
@@ -193,7 +193,7 @@ std::string iphoneHardwareId()
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
-	Q_UNUSED(session);
+	(void)session;
 	NSNumber *tid = @(downloadTask.taskIdentifier);
 	NSString *dst = nil;
 	@synchronized (self)
@@ -224,7 +224,7 @@ std::string iphoneHardwareId()
 
 namespace iOS_utils
 {
-quint64 startBackgroundDownload(const std::string & url, const std::string & destinationPath, std::string & error)
+std::uint64_t startBackgroundDownload(const std::string & url, const std::string & destinationPath, std::string & error)
 {
 	requestNotificationPermissionIfNeeded();
 	NSString *err = nil;
@@ -234,7 +234,7 @@ quint64 startBackgroundDownload(const std::string & url, const std::string & des
 	return id;
 }
 
-bool queryBackgroundDownload(quint64 id, qint64 & received, qint64 & total, bool & finished, bool & failed, std::string & error)
+bool queryBackgroundDownload(std::uint64_t id, std::int64_t & received, std::int64_t & total, bool & finished, bool & failed, std::string & error)
 {
 	auto state = [[VCMIBackgroundDownloader shared] state:id];
 	received = [state[@"received"] longLongValue];
