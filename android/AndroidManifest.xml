@@ -95,7 +95,8 @@
 			android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
 			android:label="@string/app_name"
 			android:launchMode="singleTop"
-			android:screenOrientation="fullSensor" />
+			android:screenOrientation="fullSensor"
+			android:windowSoftInputMode="adjustResize|stateHidden" />
 
 		<service
 			android:name=".ServerService"

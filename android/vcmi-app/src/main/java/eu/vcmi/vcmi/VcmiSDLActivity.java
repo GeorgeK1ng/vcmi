@@ -10,9 +10,13 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.view.inputmethod.InputMethodManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import org.libsdl.app.SDLActivity;
 
@@ -115,6 +119,23 @@ public class VcmiSDLActivity extends SDLActivity
         setContentView(outerLayout);
 
         VcmiSDLActivity.this.setWindowStyle(true); // set fullscreen
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        configureImeInsets(layout);
+    }
+
+    private void configureImeInsets(final View gameLayout)
+    {
+        ViewCompat.setOnApplyWindowInsetsListener(gameLayout, (view, windowInsets) -> {
+            final int imeBottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+            final int navigationBottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            final int bottomInset = Math.max(imeBottomInset, navigationBottomInset);
+
+            view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), bottomInset);
+            return windowInsets;
+        });
+
+        ViewCompat.requestApplyInsets(gameLayout);
     }
 
     @Override
@@ -166,8 +187,20 @@ public class VcmiSDLActivity extends SDLActivity
         mSurface.setFocusable(true);
         mSurface.setFocusableInTouchMode(true);
         mSurface.requestFocus();
+        hideSoftKeyboard();
 
         notifySdlFocusChanged();
+    }
+
+    private void hideSoftKeyboard()
+    {
+        final InputMethodManager inputManager = getSystemService(InputMethodManager.class);
+        if (inputManager == null)
+            return;
+
+        final View focusedView = getCurrentFocus() != null ? getCurrentFocus() : mSurface;
+        if (focusedView != null)
+            inputManager.hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
     }
 
     private void notifySdlFocusChanged()
