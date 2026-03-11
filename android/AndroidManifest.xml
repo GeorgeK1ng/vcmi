@@ -103,6 +103,10 @@
 			android:description="@string/server_name"
 			android:exported="false"/>
 
+		<service
+			android:name=".BackgroundDownloadService"
+			android:exported="false"/>
+
 		<!-- FileProvider for sharing files from app cache -->
 		<provider
 			android:name="androidx.core.content.FileProvider"

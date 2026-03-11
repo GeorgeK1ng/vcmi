@@ -9,12 +9,16 @@
  */
 #include "StdInc.h"
 #include "cdownloadmanager_moc.h"
+#include "cdownloadservice_moc.h"
 
 #include "../vcmiqt/launcherdirs.h"
 
 #include "../../lib/CConfigHandler.h"
 
+#include <QTimer>
+
 CDownloadManager::CDownloadManager()
+	: backgroundPollTimer(nullptr)
 {
 	connect(&manager, SIGNAL(finished(QNetworkReply *)),
 		SLOT(downloadFinished(QNetworkReply *)));
@@ -22,6 +26,12 @@ CDownloadManager::CDownloadManager()
 		if(settings["launcher"]["ignoreSslErrors"].Bool())
 			reply->ignoreSslErrors();
 	});
+
+#if defined(VCMI_MOBILE)
+	backgroundPollTimer = new QTimer(this);
+	backgroundPollTimer->setInterval(250);
+	connect(backgroundPollTimer, &QTimer::timeout, this, &CDownloadManager::processBackgroundDownloads);
+#endif
 }
 
 void CDownloadManager::downloadFile(const QUrl & url, const QString & file, qint64 bytesTotal)
@@ -32,14 +42,34 @@ void CDownloadManager::downloadFile(const QUrl & url, const QString & file, qint
 	entry.bytesReceived = 0;
 	entry.totalSize = bytesTotal;
 	entry.filename = file;
+	entry.backgroundDownloadId = 0;
 
 	if(entry.file->open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		entry.status = FileEntry::IN_PROGRESS;
+#if defined(VCMI_MOBILE)
+		QString startError;
+		entry.backgroundDownloadId = CDownloadService::enqueue(url, entry.file->fileName(), startError);
+		if(entry.backgroundDownloadId != 0)
+		{
+			entry.reply = nullptr;
+			if(backgroundPollTimer && !backgroundPollTimer->isActive())
+				backgroundPollTimer->start();
+		}
+		else
+		{
+			entry.reply = manager.get(request);
+			if(!startError.isEmpty())
+				encounteredErrors += startError;
+			connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
+				SLOT(downloadProgressChanged(qint64,qint64)));
+		}
+#else
 		entry.reply = manager.get(request);
 
 		connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
 			SLOT(downloadProgressChanged(qint64,qint64)));
+#endif
 	}
 	else
 	{
@@ -141,12 +171,12 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 		entry.totalSize = bytesTotal;
 
 	quint64 total = 0;
-	for(auto & entry : currentDownloads)
-		total += entry.totalSize > 0 ? entry.totalSize : entry.bytesReceived;
+	for(auto & queuedEntry : currentDownloads)
+		total += queuedEntry.totalSize > 0 ? queuedEntry.totalSize : queuedEntry.bytesReceived;
 
 	quint64 received = 0;
-	for(auto & entry : currentDownloads)
-		received += entry.bytesReceived > 0 ? entry.bytesReceived : 0;
+	for(auto & queuedEntry : currentDownloads)
+		received += queuedEntry.bytesReceived > 0 ? queuedEntry.bytesReceived : 0;
 
 	if(received > total)
 		total = received;
@@ -154,11 +184,70 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 	Q_EMIT downloadProgress(received, total);
 }
 
+void CDownloadManager::processBackgroundDownloads()
+{
+#if defined(VCMI_MOBILE)
+	bool hasInProgress = false;
+	for(auto & entry : currentDownloads)
+	{
+		if(entry.status != FileEntry::IN_PROGRESS || entry.backgroundDownloadId == 0)
+			continue;
+
+		hasInProgress = true;
+		auto state = CDownloadService::status(entry.backgroundDownloadId);
+		entry.bytesReceived = state.received;
+		entry.totalSize = state.total;
+
+		if(state.finished)
+		{
+			entry.status = state.failed ? FileEntry::FAILED : FileEntry::FINISHED;
+			if(state.failed)
+			{
+				entry.file->remove();
+				if(!state.error.isEmpty())
+					encounteredErrors += state.error;
+			}
+		}
+	}
+
+	quint64 total = 0;
+	quint64 received = 0;
+	for(const auto & entry : currentDownloads)
+	{
+		total += entry.totalSize > 0 ? entry.totalSize : entry.bytesReceived;
+		received += entry.bytesReceived > 0 ? entry.bytesReceived : 0;
+		if(entry.status == FileEntry::IN_PROGRESS)
+			hasInProgress = true;
+	}
+	if(received > total)
+		total = received;
+
+	Q_EMIT downloadProgress(received, total);
+
+	if(!hasInProgress)
+	{
+		if(backgroundPollTimer)
+			backgroundPollTimer->stop();
+
+		QStringList successful;
+		QStringList failed;
+		for(const auto & entry : currentDownloads)
+		{
+			if(entry.status == FileEntry::FINISHED)
+				successful += entry.file->fileName();
+			else
+				failed += entry.file->fileName();
+		}
+		Q_EMIT finished(successful, failed, encounteredErrors);
+	}
+#endif
+}
+
 bool CDownloadManager::downloadInProgress(const QUrl & url) const
 {
 	for(auto & entry : currentDownloads)
 	{
-		if(entry.reply->url() == url)
+		if(entry.reply && entry.reply->url() == url)
 			return true;
 	}
 	return false;

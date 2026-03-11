@@ -13,6 +13,7 @@
 #include <QtNetwork/QNetworkReply>
 
 class QFile;
+class QTimer;
 
 class CDownloadManager : public QObject
 {
@@ -33,15 +34,18 @@ class CDownloadManager : public QObject
 		Status status;
 		qint64 bytesReceived;
 		qint64 totalSize;
+		quint64 backgroundDownloadId;
 	};
 
 	QStringList encounteredErrors;
 
 	QNetworkAccessManager manager;
+	QTimer * backgroundPollTimer;
 
 	QList<FileEntry> currentDownloads;
 
 	FileEntry & getEntry(QNetworkReply * reply);
+	void processBackgroundDownloads();
 
 public:
 	CDownloadManager();
