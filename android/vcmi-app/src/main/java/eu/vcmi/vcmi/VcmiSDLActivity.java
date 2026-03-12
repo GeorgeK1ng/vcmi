@@ -181,6 +181,9 @@ public class VcmiSDLActivity extends SDLActivity
         if (mSurface == null)
             return;
 
+        if (shouldKeepTextInputFocus())
+            return;
+
         VcmiSDLActivity.this.setWindowStyle(true);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
 
@@ -190,6 +193,12 @@ public class VcmiSDLActivity extends SDLActivity
         hideSoftKeyboard();
 
         notifySdlFocusChanged();
+    }
+
+    private boolean shouldKeepTextInputFocus()
+    {
+        final View focusedView = getCurrentFocus();
+        return focusedView != null && focusedView != mSurface && focusedView.onCheckIsTextEditor();
     }
 
     private void hideSoftKeyboard()
