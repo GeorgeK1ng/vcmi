@@ -80,6 +80,7 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 {
 	public:
 		VCMIDirsWIN32();
+		void reloadConfig();
 		bfs::path userDataPath() const override;
 		bfs::path userCachePath() const override;
 		bfs::path userConfigPath() const override;
@@ -110,6 +111,13 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 
 VCMIDirsWIN32::VCMIDirsWIN32()
 {
+	reloadConfig();
+}
+
+void VCMIDirsWIN32::reloadConfig()
+{
+	dirsConfig.reset();
+
 	wchar_t currentPath[MAX_PATH];
 	GetModuleFileNameW(nullptr, currentPath, MAX_PATH);
 	auto configPath = bfs::path(currentPath).parent_path() / "config" / "dirs.json";
@@ -635,6 +643,15 @@ std::string VCMIDirsXDG::libraryName(const std::string& basename) const { return
 #endif // VCMI_WINDOWS, VCMI_UNIX
 
 // Getters for interfaces are separated for clarity.
+namespace
+{
+	std::once_flag & vcmiDirsInitFlag()
+	{
+		static std::once_flag flag;
+		return flag;
+	}
+}
+
 namespace VCMIDirs
 {
 	const IVCMIDirs& get()
@@ -653,9 +670,17 @@ namespace VCMIDirs
 			static VCMIDirsIOS singleton;
 		#endif
 
-		static std::once_flag flag;
-		std::call_once(flag, [] { singleton.init(); });
+		std::call_once(vcmiDirsInitFlag(), [] { singleton.init(); });
 		return singleton;
+	}
+
+	void reload()
+	{
+		auto & singleton = const_cast<IVCMIDirs &>(get());
+#ifdef VCMI_WINDOWS
+		static_cast<VCMIDirsWIN32 &>(singleton).reloadConfig();
+#endif
+		singleton.init();
 	}
 }
 

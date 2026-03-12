@@ -71,6 +71,7 @@ public:
 namespace VCMIDirs
 {
 	extern DLL_LINKAGE const IVCMIDirs & get();
+	extern DLL_LINKAGE void reload();
 }
 
 VCMI_LIB_NAMESPACE_END

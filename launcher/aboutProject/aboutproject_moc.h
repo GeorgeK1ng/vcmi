@@ -51,6 +51,8 @@ private slots:
 
 	void on_openConfigDir_clicked();
 
+	void on_pushButtonRelocateDataDirs_clicked();
+
 private:
 	std::unique_ptr<Ui::AboutProjectView> ui;
 };
