@@ -48,22 +48,37 @@ void CDownloadManager::downloadFile(const QUrl & url, const QString & file, qint
 	{
 		entry.status = FileEntry::IN_PROGRESS;
 #if defined(VCMI_MOBILE)
-		QString startError;
-		entry.backgroundDownloadId = CDownloadService::enqueue(url, entry.file->fileName(), startError);
-		if(entry.backgroundDownloadId != 0)
+		// On Android, launcher metadata downloads (repo json, descriptions, screenshots)
+		// are often started with unknown size (bytesTotal == 0). Keep those on Qt
+		// network path to preserve previous behavior and avoid DownloadManager
+		// destination limitations for app-private cache files.
+		const bool useNativeBackgroundDownload = (bytesTotal > 0);
+
+		if(useNativeBackgroundDownload)
 		{
-			// Native background downloader writes directly to destination path.
-			// Close QFile handle to avoid locking/truncation conflicts.
-			entry.file->close();
-			entry.reply = nullptr;
-			if(backgroundPollTimer && !backgroundPollTimer->isActive())
-				backgroundPollTimer->start();
+			QString startError;
+			entry.backgroundDownloadId = CDownloadService::enqueue(url, entry.file->fileName(), startError);
+			if(entry.backgroundDownloadId != 0)
+			{
+				// Native background downloader writes directly to destination path.
+				// Close QFile handle to avoid locking/truncation conflicts.
+				entry.file->close();
+				entry.reply = nullptr;
+				if(backgroundPollTimer && !backgroundPollTimer->isActive())
+					backgroundPollTimer->start();
+			}
+			else
+			{
+				entry.reply = manager.get(request);
+				if(!startError.isEmpty())
+					encounteredErrors += startError;
+				connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
+					SLOT(downloadProgressChanged(qint64,qint64)));
+			}
 		}
 		else
 		{
 			entry.reply = manager.get(request);
-			if(!startError.isEmpty())
-				encounteredErrors += startError;
 			connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
 				SLOT(downloadProgressChanged(qint64,qint64)));
 		}
