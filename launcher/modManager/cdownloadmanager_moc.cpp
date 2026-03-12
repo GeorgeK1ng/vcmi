@@ -52,6 +52,9 @@ void CDownloadManager::downloadFile(const QUrl & url, const QString & file, qint
 		entry.backgroundDownloadId = CDownloadService::enqueue(url, entry.file->fileName(), startError);
 		if(entry.backgroundDownloadId != 0)
 		{
+			// Native background downloader writes directly to destination path.
+			// Close QFile handle to avoid locking/truncation conflicts.
+			entry.file->close();
 			entry.reply = nullptr;
 			if(backgroundPollTimer && !backgroundPollTimer->isActive())
 				backgroundPollTimer->start();
