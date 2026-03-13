@@ -78,7 +78,7 @@ bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath
 
 		if (!QFile::rename(sourceEntry, targetEntry))
 		{
-			if (!QFile::copy(sourceEntry, targetEntry))
+			if (!Helper::performNativeCopy(sourceEntry, targetEntry))
 				return false;
 			QFile::remove(sourceEntry);
 		}
