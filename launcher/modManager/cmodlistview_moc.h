@@ -59,7 +59,6 @@ class CModListView : public QWidget
 	void installMods(QStringList archives);
 	void installMaps(QStringList maps);
 	void installSaveFiles(QStringList saves);
-	void installSaveArchives(QStringList archives);
 	bool askOverwriteDialog(const QString & windowTitle, const QString & message, int conflictCount, bool & applyToAll, bool & overwriteAll);
 
 	QString genChangelogText(const ModState & mod);
