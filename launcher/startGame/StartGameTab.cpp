@@ -253,7 +253,7 @@ void StartGameTab::on_buttonImportFiles_clicked()
 		//Workaround for sometimes incorrect mime for some extensions (e.g. for exe)
 		QString filter = tr("All files (*.*)");
 #endif
-		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
+		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, save archives, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
 
 		for(const auto & file : files)
 		{
@@ -303,6 +303,7 @@ void StartGameTab::on_buttonHelpImportFiles_clicked()
 		" - Heroes III Campaigns (.h3c or .vcmp).\n"
 		" - Heroes III Chronicles using offline backup installer from GOG.com (.exe).\n"
 		" - VCMI mods in zip format (.zip)\n"
+		" - VCMI saves archive in zip format (.zip)\n"
 		" - VCMI configuration files (.json)\n"
 	);
 

@@ -150,6 +150,64 @@ static QString gatherDeviceInfo()
 	return info;
 }
 
+
+void AboutProjectView::on_pushButtonExportSaves_clicked()
+{
+	const QString defaultName = QDir::home().filePath("vcmi-saves.zip");
+	QString outPath = QFileDialog::getSaveFileName(this, tr("Save saves"), defaultName, tr("Zip archives (*.zip)"));
+	if (outPath.isEmpty())
+		return;
+
+	if (!outPath.endsWith(".zip", Qt::CaseInsensitive))
+		outPath += ".zip";
+
+	QDir savesDir(pathToQString(VCMIDirs::get().userSavePath()));
+	if(!savesDir.exists())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Saves directory does not exist"));
+		return;
+	}
+
+	QDirIterator it(savesDir.absolutePath(), QDir::Files, QDirIterator::Subdirectories);
+
+	try
+	{
+		std::shared_ptr<CIOApi> api = std::make_shared<CDefaultIOApi>();
+		boost::filesystem::path archivePath(outPath.toStdString());
+		CZipSaver saver(api, archivePath);
+
+		bool hasAnySave = false;
+		while (it.hasNext())
+		{
+			const QString savePath = it.next();
+			if(!savePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+				continue;
+			QFile saveFile(savePath);
+			if (!saveFile.open(QIODevice::ReadOnly))
+				continue;
+
+			hasAnySave = true;
+			QByteArray data = saveFile.readAll();
+			const QString relativePath = savesDir.relativeFilePath(savePath);
+			auto stream = saver.addFile(relativePath.toStdString());
+			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
+		}
+
+		if(!hasAnySave)
+		{
+			QMessageBox::warning(this, tr("Error"), tr("No save files were found"));
+			return;
+		}
+	}
+	catch (const std::exception & e)
+	{
+		QMessageBox::critical(this, tr("Error"), tr("Failed to create archive: %1").arg(QString::fromUtf8(e.what())));
+		return;
+	}
+
+	QMessageBox::information(this, tr("Success"), tr("Saves saved to %1").arg(outPath));
+}
+
 void AboutProjectView::on_pushButtonExportLogs_clicked()
 {
 	QDir tempDir(ui->lineEditTempDir->text());

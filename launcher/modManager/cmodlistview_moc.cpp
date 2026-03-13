@@ -905,6 +905,7 @@ void CModListView::installFiles(QStringList files)
 {
 	QStringList mods;
 	QStringList maps;
+	QStringList saves;
 	QStringList images;
 	QStringList exe;
 	bool repositoryFilesEnqueued = false;
@@ -923,6 +924,7 @@ void CModListView::installFiles(QStringList files)
 
 			bool hasModJson = false;
 			bool hasMaps = false;
+			bool hasSaves = false;
 
 			for (const auto& file : fileList)
 			{
@@ -935,12 +937,17 @@ void CModListView::installFiles(QStringList files)
 				// Check for map files anywhere
 				if (lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
 					hasMaps = true;
+
+				if (lower.endsWith(".vsgm1"))
+					hasSaves = true;
 			}
 
 			if (hasModJson)
 				mods.push_back(filename);
 			else if (hasMaps)
 				maps.push_back(filename);
+			else if (hasSaves)
+				saves.push_back(filename);
 			else
 				mods.push_back(filename);
 			}
@@ -1037,6 +1044,13 @@ void CModListView::installFiles(QStringList files)
 		logGlobal->info("Installing maps: ended");
 	}
 
+	if(!saves.empty())
+	{
+		logGlobal->info("Installing saves: started");
+		installSaveArchives(saves);
+		logGlobal->info("Installing saves: ended");
+	}
+
 	if(!exe.empty())
 	{
 		logGlobal->info("Installing chronicles: started");
@@ -1077,6 +1091,48 @@ void CModListView::installFiles(QStringList files)
 
 	if(!images.empty())
 		loadScreenshots();
+}
+
+void CModListView::installSaveArchives(QStringList archives)
+{
+	const auto savesPath = VCMIDirs::get().userSavePath();
+	boost::filesystem::create_directories(savesPath);
+
+	int importedCount = 0;
+
+	for(const auto & archivePath : archives)
+	{
+		try
+		{
+			ZipArchive archive(qstringToPath(archivePath));
+			auto fileList = archive.listFiles();
+
+			std::vector<std::string> saveFiles;
+			for(const auto & file : fileList)
+			{
+				if(QString::fromStdString(file).endsWith(".vsgm1", Qt::CaseInsensitive))
+					saveFiles.push_back(file);
+			}
+
+			if(saveFiles.empty())
+				continue;
+
+			if(!archive.extract(savesPath, saveFiles))
+			{
+				QMessageBox::warning(this, tr("Import failed"), tr("Failed to import saves from %1").arg(archivePath));
+				continue;
+			}
+
+			importedCount += static_cast<int>(saveFiles.size());
+		}
+		catch(const std::exception & e)
+		{
+			QMessageBox::warning(this, tr("Import failed"), tr("Failed to import saves from %1.\nReason: %2").arg(archivePath, QString::fromUtf8(e.what())));
+		}
+	}
+
+	if(importedCount > 0)
+		QMessageBox::information(this, tr("Success"), tr("Imported %1 save files").arg(importedCount));
 }
 
 void CModListView::installMods(QStringList archives)

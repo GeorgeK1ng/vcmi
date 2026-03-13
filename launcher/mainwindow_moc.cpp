@@ -266,6 +266,7 @@ void MainWindow::manualInstallFile(QString filePath)
 {
 	QString realFilePath = Helper::getRealPath(filePath);
 
+
 	if(realFilePath.endsWith(".zip", Qt::CaseInsensitive) || realFilePath.endsWith(".exe", Qt::CaseInsensitive))
 		switchToModsTab();
 
