@@ -44,13 +44,29 @@ void AboutProjectView::hideAndStretchWidget(QGridLayout * layout, QWidget * toHi
 
 namespace
 {
+#ifdef VCMI_WINDOWS
 QString windowsDirsConfigPath()
 {
 	return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("config/dirs.json"));
 }
 
-#ifdef VCMI_WINDOWS
-bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath)
+int countDirectoryEntries(const QString & sourcePath)
+{
+	QDir sourceDir(sourcePath);
+	if (!sourceDir.exists())
+		return 0;
+
+	int count = 0;
+	for (const QFileInfo & entry : sourceDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries))
+	{
+		++count;
+		if (entry.isDir())
+			count += countDirectoryEntries(entry.absoluteFilePath());
+	}
+	return count;
+}
+
+bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath, int & processed, const std::function<void(int, const QString &)> & onProgress)
 {
 	QDir sourceDir(sourcePath);
 	if (!sourceDir.exists())
@@ -67,24 +83,80 @@ bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath
 
 		if (entry.isDir())
 		{
-			if (!moveDirectoryContent(sourceEntry, targetEntry))
+			if (!moveDirectoryContent(sourceEntry, targetEntry, processed, onProgress))
 				return false;
 			QDir().rmdir(sourceEntry);
+			++processed;
+			onProgress(processed, sourceEntry);
 			continue;
 		}
 
-		if (QFile::exists(targetEntry))
-			continue;
-
-		if (!QFile::rename(sourceEntry, targetEntry))
+		if (!QFile::exists(targetEntry))
 		{
-			if (!Helper::performNativeCopy(sourceEntry, targetEntry))
-				return false;
-			QFile::remove(sourceEntry);
+			if (!QFile::rename(sourceEntry, targetEntry))
+			{
+				if (!Helper::performNativeCopy(sourceEntry, targetEntry))
+					return false;
+				QFile::remove(sourceEntry);
+			}
 		}
+
+		++processed;
+		onProgress(processed, sourceEntry);
 	}
 
 	return true;
+}
+
+JsonNode currentWindowsDirsConfig()
+{
+	JsonNode dirsConfig;
+	dirsConfig.setType(JsonNode::JsonType::DATA_STRUCT);
+	dirsConfig["userDataPath"].String() = pathToQString(VCMIDirs::get().userDataPath()).toStdString();
+	dirsConfig["userCachePath"].String() = pathToQString(VCMIDirs::get().userCachePath()).toStdString();
+	dirsConfig["userConfigPath"].String() = pathToQString(VCMIDirs::get().userConfigPath()).toStdString();
+	dirsConfig["userLogsPath"].String() = pathToQString(VCMIDirs::get().userLogsPath()).toStdString();
+	dirsConfig["userSavePath"].String() = pathToQString(VCMIDirs::get().userSavePath()).toStdString();
+	return dirsConfig;
+}
+
+bool writeWindowsDirsConfig(const JsonNode & dirsConfig)
+{
+	QFile configFile(windowsDirsConfigPath());
+	QDir().mkpath(QFileInfo(configFile).absolutePath());
+	if (!configFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+		return false;
+
+	configFile.write(QString::fromStdString(dirsConfig.toString()).toUtf8());
+	configFile.close();
+	return true;
+}
+
+bool relocateDirectoryWithProgress(QWidget * parent, const QString & sourcePath, const QString & targetPath, const QString & title)
+{
+	if (!QDir().mkpath(targetPath))
+		return false;
+
+	const int totalEntries = std::max(1, countDirectoryEntries(sourcePath));
+	QProgressDialog progressDialog(QObject::tr("Moving files..."), QString(), 0, totalEntries, parent);
+	progressDialog.setWindowTitle(title);
+	progressDialog.setWindowModality(Qt::WindowModal);
+	progressDialog.setCancelButton(nullptr);
+	progressDialog.setMinimumDuration(0);
+	progressDialog.setValue(0);
+
+	int processed = 0;
+	const auto onProgress = [&](int value, const QString & path)
+	{
+		progressDialog.setLabelText(QObject::tr("Moving: %1").arg(QFileInfo(path).fileName()));
+		progressDialog.setValue(std::min(value, totalEntries));
+		QCoreApplication::processEvents();
+	};
+
+	const bool moved = moveDirectoryContent(sourcePath, targetPath, processed, onProgress);
+	progressDialog.setValue(totalEntries);
+	QCoreApplication::processEvents();
+	return moved;
 }
 #endif
 }
@@ -99,13 +171,13 @@ AboutProjectView::AboutProjectView(QWidget * parent)
 	ui->lineEditGameDir->setText(pathToQString(VCMIDirs::get().binaryPath()));
 	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
 	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
-	ui->lineEditDirsConfigPath->setText(windowsDirsConfigPath());
+	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
 	ui->lineEditBuildVersion->setText(QString::fromStdString(GameConstants::VCMI_VERSION));
 
 #ifndef VCMI_WINDOWS
-	ui->labelDirsConfigPath->hide();
-	ui->lineEditDirsConfigPath->hide();
-	ui->pushButtonRelocateDataDirs->hide();
+	ui->relocateUserDataDir->hide();
+	ui->relocateTempDir->hide();
+	ui->relocateSaveDir->hide();
 #endif
 	ui->lineEditOperatingSystem->setText(QSysInfo::prettyProductName());
 
@@ -117,6 +189,7 @@ AboutProjectView::AboutProjectView(QWidget * parent)
 	hideAndStretchWidget(ui->gridLayout, ui->openUserDataDir, ui->lineEditUserDataDir);
 	hideAndStretchWidget(ui->gridLayout, ui->openTempDir, ui->lineEditTempDir);
 	hideAndStretchWidget(ui->gridLayout, ui->openConfigDir, ui->lineEditConfigDir);
+	hideAndStretchWidget(ui->gridLayout, ui->openSaveDir, ui->lineEditSaveDir);
 #endif
 #endif
 }
@@ -156,62 +229,101 @@ void AboutProjectView::on_openConfigDir_clicked()
 	Helper::revealDirectoryInFileBrowser(ui->lineEditConfigDir->text());
 }
 
-void AboutProjectView::on_pushButtonRelocateDataDirs_clicked()
+void AboutProjectView::on_openSaveDir_clicked()
+{
+	Helper::revealDirectoryInFileBrowser(ui->lineEditSaveDir->text());
+}
+
+void AboutProjectView::on_relocateUserDataDir_clicked()
 {
 #ifndef VCMI_WINDOWS
-	QMessageBox::information(this, tr("Unsupported platform"), tr("This action is available only on Windows."));
 	return;
 #else
-	const QString newRootPath = QFileDialog::getExistingDirectory(this, tr("Select new VCMI data directory"), ui->lineEditUserDataDir->text());
-	if (newRootPath.isEmpty())
+	const QString targetPath = QFileDialog::getExistingDirectory(this, tr("Select new user data directory"), ui->lineEditUserDataDir->text());
+	if (targetPath.isEmpty())
 		return;
 
-	const QDir newRoot(newRootPath);
-	const QString newDataPath = newRoot.absolutePath();
-	const QString newCachePath = newRoot.filePath(QStringLiteral("cache"));
-	const QString newConfigPath = newRoot.filePath(QStringLiteral("config"));
-	const QString newLogsPath = newRoot.filePath(QStringLiteral("logs"));
-	const QString newSavePath = newRoot.filePath(QStringLiteral("Saves"));
-
-	if (!QDir().mkpath(newDataPath) || !QDir().mkpath(newCachePath) || !QDir().mkpath(newConfigPath) || !QDir().mkpath(newLogsPath) || !QDir().mkpath(newSavePath))
-	{
-		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to create one or more target directories."));
-		return;
-	}
-
-	if (!moveDirectoryContent(ui->lineEditUserDataDir->text(), newDataPath) ||
-		!moveDirectoryContent(ui->lineEditTempDir->text(), newLogsPath) ||
-		!moveDirectoryContent(ui->lineEditConfigDir->text(), newConfigPath))
+	if (!relocateDirectoryWithProgress(this, ui->lineEditUserDataDir->text(), targetPath, tr("Relocating user data")))
 	{
 		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to move existing files to the new directory."));
 		return;
 	}
 
-	JsonNode dirsConfig;
-	dirsConfig.setType(JsonNode::JsonType::DATA_STRUCT);
-	dirsConfig["userDataPath"].String() = QDir::toNativeSeparators(newDataPath).toStdString();
-	dirsConfig["userCachePath"].String() = QDir::toNativeSeparators(newCachePath).toStdString();
-	dirsConfig["userConfigPath"].String() = QDir::toNativeSeparators(newConfigPath).toStdString();
-	dirsConfig["userLogsPath"].String() = QDir::toNativeSeparators(newLogsPath).toStdString();
-	dirsConfig["userSavePath"].String() = QDir::toNativeSeparators(newSavePath).toStdString();
-
-	QFile configFile(windowsDirsConfigPath());
-	QDir().mkpath(QFileInfo(configFile).absolutePath());
-	if (!configFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	JsonNode dirsConfig = currentWindowsDirsConfig();
+	dirsConfig["userDataPath"].String() = QDir::toNativeSeparators(targetPath).toStdString();
+	if (!writeWindowsDirsConfig(dirsConfig))
 	{
 		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to write %1").arg(windowsDirsConfigPath()));
 		return;
 	}
 
-	configFile.write(QString::fromStdString(dirsConfig.toString()).toUtf8());
-	configFile.close();
+	VCMIDirs::reload();
+	ui->lineEditUserDataDir->setText(pathToQString(VCMIDirs::get().userDataPath()));
+	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
+	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
+	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
+#endif
+}
+
+void AboutProjectView::on_relocateTempDir_clicked()
+{
+#ifndef VCMI_WINDOWS
+	return;
+#else
+	const QString targetPath = QFileDialog::getExistingDirectory(this, tr("Select new logs directory"), ui->lineEditTempDir->text());
+	if (targetPath.isEmpty())
+		return;
+
+	if (!relocateDirectoryWithProgress(this, ui->lineEditTempDir->text(), targetPath, tr("Relocating logs")))
+	{
+		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to move existing files to the new directory."));
+		return;
+	}
+
+	JsonNode dirsConfig = currentWindowsDirsConfig();
+	dirsConfig["userLogsPath"].String() = QDir::toNativeSeparators(targetPath).toStdString();
+	if (!writeWindowsDirsConfig(dirsConfig))
+	{
+		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to write %1").arg(windowsDirsConfigPath()));
+		return;
+	}
 
 	VCMIDirs::reload();
 	ui->lineEditUserDataDir->setText(pathToQString(VCMIDirs::get().userDataPath()));
 	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
 	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
+	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
+#endif
+}
 
-	QMessageBox::information(this, tr("Relocation complete"), tr("VCMI directories were updated and reloaded."));
+void AboutProjectView::on_relocateSaveDir_clicked()
+{
+#ifndef VCMI_WINDOWS
+	return;
+#else
+	const QString targetPath = QFileDialog::getExistingDirectory(this, tr("Select new save directory"), ui->lineEditSaveDir->text());
+	if (targetPath.isEmpty())
+		return;
+
+	if (!relocateDirectoryWithProgress(this, ui->lineEditSaveDir->text(), targetPath, tr("Relocating saves")))
+	{
+		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to move existing files to the new directory."));
+		return;
+	}
+
+	JsonNode dirsConfig = currentWindowsDirsConfig();
+	dirsConfig["userSavePath"].String() = QDir::toNativeSeparators(targetPath).toStdString();
+	if (!writeWindowsDirsConfig(dirsConfig))
+	{
+		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to write %1").arg(windowsDirsConfigPath()));
+		return;
+	}
+
+	VCMIDirs::reload();
+	ui->lineEditUserDataDir->setText(pathToQString(VCMIDirs::get().userDataPath()));
+	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
+	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
+	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
 #endif
 }
 
