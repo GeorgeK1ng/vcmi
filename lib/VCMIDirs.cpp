@@ -102,6 +102,7 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 		std::unique_ptr<JsonNode> dirsConfig;
 
 		bfs::path getPathFromConfigOrDefault(const std::string& key, const std::function<bfs::path()>& fallbackFunc) const;
+		bool isPathValueValid(const std::string & value) const;
 		bfs::path getDefaultUserDataPath() const;
 
 		std::wstring utf8ToWstring(const std::string& str) const;
@@ -130,7 +131,14 @@ void VCMIDirsWIN32::reloadConfig()
 		return;
 
 	std::string buffer((std::istreambuf_iterator<char>(in)), {});
-	dirsConfig = std::make_unique<JsonNode>(reinterpret_cast<const std::byte*>(buffer.data()), buffer.size(), pathToUtf8(configPath));
+	try
+	{
+		dirsConfig = std::make_unique<JsonNode>(reinterpret_cast<const std::byte*>(buffer.data()), buffer.size(), pathToUtf8(configPath));
+	}
+	catch(const std::exception &)
+	{
+		dirsConfig.reset();
+	}
 }
 
 std::string VCMIDirsWIN32::pathToUtf8(const bfs::path& path) const
@@ -154,6 +162,16 @@ std::wstring VCMIDirsWIN32::utf8ToWstring(const std::string& str) const
 	return result;
 }
 
+bool VCMIDirsWIN32::isPathValueValid(const std::string & value) const
+{
+	for (unsigned char ch : value)
+	{
+		if (ch < 0x20)
+			return false;
+	}
+	return !value.empty();
+}
+
 bfs::path VCMIDirsWIN32::getPathFromConfigOrDefault(const std::string& key, const std::function<bfs::path()>& fallbackFunc) const
 {
 	if (!dirsConfig || !dirsConfig->isStruct())
@@ -161,6 +179,9 @@ bfs::path VCMIDirsWIN32::getPathFromConfigOrDefault(const std::string& key, cons
 
 	const JsonNode& node = (*dirsConfig)[key];
 	if (!node.isString())
+		return fallbackFunc();
+
+	if (!isPathValueValid(node.String()))
 		return fallbackFunc();
 
 	std::wstring raw = utf8ToWstring(node.String());
