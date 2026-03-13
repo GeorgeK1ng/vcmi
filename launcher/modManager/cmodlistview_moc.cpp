@@ -37,8 +37,6 @@
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/texts/Languages.h"
 
-#include "../vcmiqt/launcherdirs.h"
-
 #include <future>
 
 void CModListView::setupModModel()
@@ -901,6 +899,47 @@ void CModListView::hideProgressBar()
 	}
 }
 
+bool CModListView::askOverwriteDialog(const QString & windowTitle, const QString & message, int conflictCount, bool & applyToAll, bool & overwriteAll)
+{
+	if(applyToAll)
+		return overwriteAll;
+
+	QMessageBox msgBox(this);
+	msgBox.setIcon(QMessageBox::Question);
+	msgBox.setWindowTitle(windowTitle);
+	msgBox.setText(message);
+
+	QPushButton * yes = msgBox.addButton(QMessageBox::Yes);
+	msgBox.addButton(QMessageBox::No);
+
+	QPushButton * yesAll = nullptr;
+	QPushButton * noAll = nullptr;
+	if(conflictCount > 1)
+	{
+		yesAll = msgBox.addButton(tr("Yes to All"), QMessageBox::YesRole);
+		noAll = msgBox.addButton(tr("No to All"), QMessageBox::NoRole);
+	}
+
+	msgBox.exec();
+	QAbstractButton * clicked = msgBox.clickedButton();
+
+	if(clicked == yes)
+		return true;
+	if(clicked == yesAll)
+	{
+		applyToAll = true;
+		overwriteAll = true;
+		return true;
+	}
+	if(clicked == noAll)
+	{
+		applyToAll = true;
+		overwriteAll = false;
+		return false;
+	}
+	return false;
+}
+
 void CModListView::installFiles(QStringList files)
 {
 	QStringList mods;
@@ -1129,47 +1168,6 @@ void CModListView::installSaveArchives(QStringList archives)
 	bool applyToAll = false;
 	bool overwriteAll = false;
 
-	auto askOverwrite = [&](const QString & name) -> bool
-	{
-		if(applyToAll)
-			return overwriteAll;
-
-		QMessageBox msgBox(this);
-		msgBox.setIcon(QMessageBox::Question);
-		msgBox.setWindowTitle(tr("Save exists"));
-		msgBox.setText(tr("Save '%1' already exists. Do you want to overwrite it?").arg(name));
-
-		QPushButton * yes = msgBox.addButton(QMessageBox::Yes);
-		msgBox.addButton(QMessageBox::No);
-
-		QPushButton * yesAll = nullptr;
-		QPushButton * noAll = nullptr;
-		if(conflictCount > 1)
-		{
-			yesAll = msgBox.addButton(tr("Yes to All"), QMessageBox::YesRole);
-			noAll = msgBox.addButton(tr("No to All"), QMessageBox::NoRole);
-		}
-
-		msgBox.exec();
-		QAbstractButton * clicked = msgBox.clickedButton();
-
-		if(clicked == yes)
-			return true;
-		if(clicked == yesAll)
-		{
-			applyToAll = true;
-			overwriteAll = true;
-			return true;
-		}
-		if(clicked == noAll)
-		{
-			applyToAll = true;
-			overwriteAll = false;
-			return false;
-		}
-		return false;
-	};
-
 	for(const auto & archivePath : archives)
 	{
 		try
@@ -1186,7 +1184,7 @@ void CModListView::installSaveArchives(QStringList archives)
 				const QString destinationPath = saveDestDir + relativePath;
 				if(QFile::exists(destinationPath))
 				{
-					if(!askOverwrite(relativePath))
+					if(!askOverwriteDialog(tr("Save exists"), tr("Save '%1' already exists. Do you want to overwrite it?").arg(relativePath), conflictCount, applyToAll, overwriteAll))
 						continue;
 
 					QFile::remove(destinationPath);
@@ -1318,46 +1316,6 @@ void CModListView::installMaps(QStringList maps)
 	bool applyToAll = false;
 	bool overwriteAll = false;
 
-	auto askOverwrite = [&](const QString& name) -> bool {
-		if (applyToAll)
-			return overwriteAll;
-
-		QMessageBox msgBox(this);
-		msgBox.setIcon(QMessageBox::Question);
-		msgBox.setWindowTitle(tr("Map exists"));
-		msgBox.setText(tr("Map '%1' already exists. Do you want to overwrite it?").arg(name));
-
-		QPushButton* yes = msgBox.addButton(QMessageBox::Yes);
-		msgBox.addButton(QMessageBox::No);
-
-		QPushButton* yesAll = nullptr;
-		QPushButton* noAll = nullptr;
-		if (conflictCount > 1)
-		{
-			yesAll = msgBox.addButton(tr("Yes to All"), QMessageBox::YesRole);
-			noAll = msgBox.addButton(tr("No to All"), QMessageBox::NoRole);
-		}
-
-		msgBox.exec();
-		QAbstractButton* clicked = msgBox.clickedButton();
-
-		if (clicked == yes)
-			return true;
-		if (clicked == yesAll)
-		{
-			applyToAll = true;
-			overwriteAll = true;
-			return true;
-		}
-		if (clicked == noAll)
-		{
-			applyToAll = true;
-			overwriteAll = false;
-			return false;
-		}
-		return false;
-	};
-
 	// Process each map file and archive
 	for (const QString& map : maps)
 	{
@@ -1377,7 +1335,7 @@ void CModListView::installMaps(QStringList maps)
 
 				if (QFile::exists(destFile))
 				{
-					if (!askOverwrite(name))
+					if (!askOverwriteDialog(tr("Map exists"), tr("Map '%1' already exists. Do you want to overwrite it?").arg(name), conflictCount, applyToAll, overwriteAll))
 					{
 						logGlobal->info("Skipped map '%s'", name.toStdString());
 						continue;
