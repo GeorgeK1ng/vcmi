@@ -49,6 +49,7 @@ QString windowsDirsConfigPath()
 	return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("config/dirs.json"));
 }
 
+#ifdef VCMI_WINDOWS
 bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath)
 {
 	QDir sourceDir(sourcePath);
@@ -85,6 +86,7 @@ bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath
 
 	return true;
 }
+#endif
 }
 
 AboutProjectView::AboutProjectView(QWidget * parent)
