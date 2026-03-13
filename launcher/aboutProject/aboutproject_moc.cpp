@@ -232,7 +232,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 {
 	QDir tempDir(ui->lineEditTempDir->text());
 
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
     // cleanup old temp archives from previous runs (delete now)
     {
         QDir tdir(QDir::tempPath());
@@ -351,7 +351,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 		return;
 	}
 	// On mobile platforms, send file via platform and remove temporary file afterwards.
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
 	QMessageBox::information(this, tr("Send logs"), tr("The archive will be sent via another application. Share your logs e.g. over discord to developers."));
 	Helper::sendFileToApp(outPath);
 #else
