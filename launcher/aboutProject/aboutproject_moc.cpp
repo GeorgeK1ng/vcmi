@@ -50,7 +50,7 @@ QString windowsDirsConfigPath()
 	return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("config/dirs.json"));
 }
 
-int countDirectoryEntries(const QString & sourcePath)
+int countDirectoryEntries(const QString & sourcePath, const QSet<QString> & skippedFiles)
 {
 	QDir sourceDir(sourcePath);
 	if (!sourceDir.exists())
@@ -59,14 +59,17 @@ int countDirectoryEntries(const QString & sourcePath)
 	int count = 0;
 	for (const QFileInfo & entry : sourceDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries))
 	{
+		if (!entry.isDir() && skippedFiles.contains(entry.fileName()))
+			continue;
+
 		++count;
 		if (entry.isDir())
-			count += countDirectoryEntries(entry.absoluteFilePath());
+			count += countDirectoryEntries(entry.absoluteFilePath(), skippedFiles);
 	}
 	return count;
 }
 
-bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath, int & processed, const std::function<void(int, const QString &)> & onProgress)
+bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath, int & processed, const QSet<QString> & skippedFiles, const std::function<void(int, const QString &)> & onProgress)
 {
 	QDir sourceDir(sourcePath);
 	if (!sourceDir.exists())
@@ -83,13 +86,16 @@ bool moveDirectoryContent(const QString & sourcePath, const QString & targetPath
 
 		if (entry.isDir())
 		{
-			if (!moveDirectoryContent(sourceEntry, targetEntry, processed, onProgress))
+			if (!moveDirectoryContent(sourceEntry, targetEntry, processed, skippedFiles, onProgress))
 				return false;
 			QDir().rmdir(sourceEntry);
 			++processed;
 			onProgress(processed, sourceEntry);
 			continue;
 		}
+
+		if (skippedFiles.contains(entry.fileName()))
+			continue;
 
 		if (!QFile::exists(targetEntry))
 		{
@@ -132,12 +138,12 @@ bool writeWindowsDirsConfig(const JsonNode & dirsConfig)
 	return true;
 }
 
-bool relocateDirectoryWithProgress(QWidget * parent, const QString & sourcePath, const QString & targetPath, const QString & title)
+bool relocateDirectoryWithProgress(QWidget * parent, const QString & sourcePath, const QString & targetPath, const QString & title, const QSet<QString> & skippedFiles = {})
 {
 	if (!QDir().mkpath(targetPath))
 		return false;
 
-	const int totalEntries = std::max(1, countDirectoryEntries(sourcePath));
+	const int totalEntries = std::max(1, countDirectoryEntries(sourcePath, skippedFiles));
 	QProgressDialog progressDialog(QObject::tr("Moving files..."), QString(), 0, totalEntries, parent);
 	progressDialog.setWindowTitle(title);
 	progressDialog.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
@@ -155,7 +161,7 @@ bool relocateDirectoryWithProgress(QWidget * parent, const QString & sourcePath,
 		QCoreApplication::processEvents();
 	};
 
-	const bool moved = moveDirectoryContent(sourcePath, targetPath, processed, onProgress);
+	const bool moved = moveDirectoryContent(sourcePath, targetPath, processed, skippedFiles, onProgress);
 	progressDialog.setValue(totalEntries);
 	QCoreApplication::processEvents();
 	return moved;
@@ -276,7 +282,7 @@ void AboutProjectView::on_relocateTempDir_clicked()
 	if (targetPath.isEmpty())
 		return;
 
-	if (!relocateDirectoryWithProgress(this, ui->lineEditTempDir->text(), targetPath, tr("Relocating logs")))
+	if (!relocateDirectoryWithProgress(this, ui->lineEditTempDir->text(), targetPath, tr("Relocating logs"), {QStringLiteral("VCMI_Launcher_log.txt")}))
 	{
 		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to move existing files to the new directory."));
 		return;
@@ -290,7 +296,18 @@ void AboutProjectView::on_relocateTempDir_clicked()
 		return;
 	}
 
+	const QString previousLogsPath = ui->lineEditTempDir->text();
 	VCMIDirs::reload();
+	Helper::reconfigureLauncherLogging();
+
+	const QString oldLogPath = QDir(previousLogsPath).filePath(QStringLiteral("VCMI_Launcher_log.txt"));
+	const QString newLogPath = QDir(pathToQString(VCMIDirs::get().userLogsPath())).filePath(QStringLiteral("VCMI_Launcher_log.txt"));
+	if (QFile::exists(oldLogPath) && !QFile::exists(newLogPath))
+	{
+		Helper::performNativeCopy(oldLogPath, newLogPath);
+		QFile::remove(oldLogPath);
+	}
+
 	ui->lineEditUserDataDir->setText(pathToQString(VCMIDirs::get().userDataPath()));
 	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
 	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));

@@ -22,6 +22,7 @@ namespace Helper
 	QString getRealPath(QString path);
 	bool performNativeCopy(QString src, QString dst);
 	void revealDirectoryInFileBrowser(QString path);
+	void reconfigureLauncherLogging();
 	MainWindow * getMainWindow();
 	void keepScreenOn(bool isEnabled);
 	bool canUseFolderPicker();

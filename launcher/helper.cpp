@@ -140,6 +140,12 @@ MainWindow * getMainWindow()
 	return nullptr;
 }
 
+void reconfigureLauncherLogging()
+{
+	if(auto * mainWindow = getMainWindow())
+		mainWindow->reconfigureLogging();
+}
+
 void keepScreenOn(bool isEnabled)
 {
 #if defined(VCMI_ANDROID)
