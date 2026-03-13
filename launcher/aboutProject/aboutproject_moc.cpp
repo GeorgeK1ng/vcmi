@@ -187,7 +187,8 @@ void AboutProjectView::on_pushButtonRelocateDataDirs_clicked()
 		return;
 	}
 
-	JsonNode dirsConfig(JsonNode::JsonType::DATA_STRUCT);
+	JsonNode dirsConfig;
+	dirsConfig.setType(JsonNode::JsonType::DATA_STRUCT);
 	dirsConfig["userDataPath"].String() = QDir::toNativeSeparators(newDataPath).toStdString();
 	dirsConfig["userCachePath"].String() = QDir::toNativeSeparators(newCachePath).toStdString();
 	dirsConfig["userConfigPath"].String() = QDir::toNativeSeparators(newConfigPath).toStdString();
@@ -202,7 +203,7 @@ void AboutProjectView::on_pushButtonRelocateDataDirs_clicked()
 		return;
 	}
 
-	configFile.write(QString::fromStdString(dirsConfig.toFormattedString()).toUtf8());
+	configFile.write(QString::fromStdString(dirsConfig.toString()).toUtf8());
 	configFile.close();
 
 	VCMIDirs::reload();
