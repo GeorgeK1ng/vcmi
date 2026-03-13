@@ -963,6 +963,7 @@ void CModListView::installFiles(QStringList files)
 	QStringList mods;
 	QStringList maps;
 	QStringList saves;
+	QStringList saveFiles;
 	QStringList images;
 	QStringList exe;
 	bool repositoryFilesEnqueued = false;
@@ -1016,6 +1017,8 @@ void CModListView::installFiles(QStringList files)
 		}
 		else if(realFilename.endsWith(".h3m", Qt::CaseInsensitive) || realFilename.endsWith(".h3c", Qt::CaseInsensitive) || realFilename.endsWith(".vmap", Qt::CaseInsensitive) || realFilename.endsWith(".vcmp", Qt::CaseInsensitive))
 			maps.push_back(filename);
+		else if(realFilename.endsWith(".vsgm1", Qt::CaseInsensitive))
+			saveFiles.push_back(filename);
 		if(realFilename.endsWith(".exe", Qt::CaseInsensitive))
 			exe.push_back(filename);
 		else if(realFilename.endsWith(".json", Qt::CaseInsensitive))
@@ -1101,6 +1104,13 @@ void CModListView::installFiles(QStringList files)
 		logGlobal->info("Installing maps: ended");
 	}
 
+	if(!saveFiles.empty())
+	{
+		logGlobal->info("Installing save files: started");
+		installSaveFiles(saveFiles);
+		logGlobal->info("Installing save files: ended");
+	}
+
 	if(!saves.empty())
 	{
 		logGlobal->info("Installing saves: started");
@@ -1148,6 +1158,55 @@ void CModListView::installFiles(QStringList files)
 
 	if(!images.empty())
 		loadScreenshots();
+}
+
+void CModListView::installSaveFiles(QStringList saves)
+{
+	const auto savesPath = VCMIDirs::get().userSavePath();
+	boost::filesystem::create_directories(savesPath);
+
+	QDir savesDir(pathToQString(savesPath));
+	const auto saveDestDir = savesDir.absolutePath() + QChar{'/'};
+
+	int importedCount = 0;
+	int conflictCount = 0;
+	for(const auto & save : saves)
+	{
+		QString realSavePath = Helper::getRealPath(save);
+		QString fileName = QFileInfo(realSavePath).fileName();
+		if(fileName.isEmpty())
+			continue;
+		if(QFile::exists(saveDestDir + fileName))
+			conflictCount++;
+	}
+
+	bool applyToAll = false;
+	bool overwriteAll = false;
+
+	for(const auto & save : saves)
+	{
+		QString realSavePath = Helper::getRealPath(save);
+		QString fileName = QFileInfo(realSavePath).fileName();
+		if(fileName.isEmpty())
+			continue;
+
+		const QString destinationPath = saveDestDir + fileName;
+		if(QFile::exists(destinationPath))
+		{
+			if(!askOverwriteDialog(tr("Save exists"), tr("Save '%1' already exists. Do you want to overwrite it?").arg(fileName), conflictCount, applyToAll, overwriteAll))
+				continue;
+
+			QFile::remove(destinationPath);
+		}
+
+		if(Helper::performNativeCopy(realSavePath, destinationPath))
+			importedCount++;
+		else
+			QMessageBox::warning(this, tr("Import failed"), tr("Failed to import save file %1").arg(realSavePath));
+	}
+
+	if(importedCount > 0)
+		QMessageBox::information(this, tr("Success"), tr("Imported %1 save files").arg(importedCount));
 }
 
 void CModListView::installSaveArchives(QStringList archives)

@@ -243,9 +243,10 @@ void StartGameTab::on_buttonImportFiles_clicked()
 	{
 #ifndef VCMI_MOBILE
 		QString filter =
-			tr("All supported files") + " (*.h3m *.vmap *.h3c *.vcmp *.zip *.json *.exe);;" +
+			tr("All supported files") + " (*.h3m *.vmap *.h3c *.vcmp *.vsgm1 *.zip *.json *.exe);;" +
 			tr("Maps") + " (*.h3m *.vmap);;" +
 			tr("Campaigns") + " (*.h3c *.vcmp);;" +
+			tr("Saves") + " (*.vsgm1);;" +
 			tr("Configs") + " (*.json);;" +
 			tr("Mods") + " (*.zip);;" +
 			tr("Gog files") + " (*.exe)";
@@ -253,7 +254,7 @@ void StartGameTab::on_buttonImportFiles_clicked()
 		//Workaround for sometimes incorrect mime for some extensions (e.g. for exe)
 		QString filter = tr("All files (*.*)");
 #endif
-		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
+		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, saves, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
 		if(files.isEmpty())
 			return;
 
@@ -347,6 +348,7 @@ void StartGameTab::on_buttonHelpImportFiles_clicked()
 		" - Heroes III Chronicles using offline backup installer from GOG.com (.exe).\n"
 		" - VCMI mods in zip format (.zip)\n"
 		" - VCMI saves archive in zip format (.zip)\n"
+		" - VCMI save files (.vsgm1)\n"
 		" - VCMI configuration files (.json)\n"
 	);
 
