@@ -150,11 +150,89 @@ static QString gatherDeviceInfo()
 	return info;
 }
 
+
+void AboutProjectView::on_pushButtonExportSaves_clicked()
+{
+	const QString defaultName = QDir::home().filePath("vcmi-saves.zip");
+	QString outPath = QFileDialog::getSaveFileName(this, tr("Save saves"), defaultName, tr("Zip archives (*.zip)"));
+	if (outPath.isEmpty())
+		return;
+
+	if (!outPath.endsWith(".zip", Qt::CaseInsensitive))
+		outPath += ".zip";
+
+	QDir savesDir(pathToQString(VCMIDirs::get().userSavePath()));
+	if(!savesDir.exists())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Saves directory does not exist"));
+		return;
+	}
+
+	QStringList saveFiles;
+	QDirIterator scanner(savesDir.absolutePath(), QDir::Files, QDirIterator::Subdirectories);
+	while(scanner.hasNext())
+	{
+		const QString savePath = scanner.next();
+		if(savePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+			saveFiles.push_back(savePath);
+	}
+
+	if(saveFiles.empty())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("No save files were found"));
+		return;
+	}
+
+	QProgressDialog progress(tr("Exporting saves..."), tr("Cancel"), 0, saveFiles.size(), this);
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
+
+	try
+	{
+		std::shared_ptr<CIOApi> api = std::make_shared<CDefaultIOApi>();
+		boost::filesystem::path archivePath(outPath.toStdString());
+		CZipSaver saver(api, archivePath);
+
+		for(int index = 0; index < saveFiles.size(); ++index)
+		{
+			if(progress.wasCanceled())
+			{
+				QFile::remove(outPath);
+				return;
+			}
+
+			const QString savePath = saveFiles[index];
+			const QString relativePath = savesDir.relativeFilePath(savePath);
+			progress.setValue(index);
+			progress.setLabelText(tr("Exporting %1").arg(relativePath));
+			qApp->processEvents();
+
+			QFile saveFile(savePath);
+			if (!saveFile.open(QIODevice::ReadOnly))
+				continue;
+
+			QByteArray data = saveFile.readAll();
+			QByteArray relativePathUtf8 = relativePath.toUtf8();
+			auto stream = saver.addFile(std::string(relativePathUtf8.constData(), relativePathUtf8.size()));
+			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
+		}
+
+		progress.setValue(saveFiles.size());
+	}
+	catch (const std::exception & e)
+	{
+		QMessageBox::critical(this, tr("Error"), tr("Failed to create archive: %1").arg(QString::fromUtf8(e.what())));
+		return;
+	}
+
+	QMessageBox::information(this, tr("Success"), tr("Saves saved to %1").arg(outPath));
+}
+
 void AboutProjectView::on_pushButtonExportLogs_clicked()
 {
 	QDir tempDir(ui->lineEditTempDir->text());
 
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
     // cleanup old temp archives from previous runs (delete now)
     {
         QDir tdir(QDir::tempPath());
@@ -273,7 +351,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 		return;
 	}
 	// On mobile platforms, send file via platform and remove temporary file afterwards.
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
 	QMessageBox::information(this, tr("Send logs"), tr("The archive will be sent via another application. Share your logs e.g. over discord to developers."));
 	Helper::sendFileToApp(outPath);
 #else
