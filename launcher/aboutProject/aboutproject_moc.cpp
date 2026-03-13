@@ -296,22 +296,14 @@ void AboutProjectView::on_relocateTempDir_clicked()
 		return;
 	}
 
-	const QString previousLogsPath = ui->lineEditTempDir->text();
 	VCMIDirs::reload();
-	Helper::reconfigureLauncherLogging();
-
-	const QString oldLogPath = QDir(previousLogsPath).filePath(QStringLiteral("VCMI_Launcher_log.txt"));
-	const QString newLogPath = QDir(pathToQString(VCMIDirs::get().userLogsPath())).filePath(QStringLiteral("VCMI_Launcher_log.txt"));
-	if (QFile::exists(oldLogPath) && !QFile::exists(newLogPath))
-	{
-		Helper::performNativeCopy(oldLogPath, newLogPath);
-		QFile::remove(oldLogPath);
-	}
 
 	ui->lineEditUserDataDir->setText(pathToQString(VCMIDirs::get().userDataPath()));
 	ui->lineEditTempDir->setText(pathToQString(VCMIDirs::get().userLogsPath()));
 	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
 	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
+
+	QMessageBox::information(this, tr("Restart recommended"), tr("Log directory was moved. Launcher log output switches fully to the new path after restart."));
 #endif
 }
 

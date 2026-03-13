@@ -55,17 +55,6 @@ void MainWindow::load()
 	Helper::loadSettings();
 }
 
-void MainWindow::reconfigureLogging()
-{
-#ifndef VCMI_MOBILE
-	CBasicLogConfigurator logConfigurator(VCMIDirs::get().userLogsPath() / "VCMI_Launcher_log.txt", console.get());
-#else
-	CBasicLogConfigurator logConfigurator(VCMIDirs::get().userLogsPath() / "VCMI_Launcher_log.txt", nullptr);
-#endif
-	logConfigurator.deconfigure();
-	logConfigurator.configureDefault();
-}
-
 void MainWindow::computeSidePanelSizes()
 {
 	QVector<QToolButton*> widgets = {

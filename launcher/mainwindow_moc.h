@@ -66,7 +66,6 @@ public:
 
 	void updateTranslation();
 	void computeSidePanelSizes();
-	void reconfigureLogging();
 	
 	void detectPreferredLanguage();
 	void enterSetup();
