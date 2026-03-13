@@ -19,6 +19,7 @@
 #endif
 
 #include "../updatedialog_moc.h"
+#include "../main.h"
 #include "../helper.h"
 
 #include "../../lib/GameConstants.h"
@@ -303,7 +304,8 @@ void AboutProjectView::on_relocateTempDir_clicked()
 	ui->lineEditConfigDir->setText(pathToQString(VCMIDirs::get().userConfigPath()));
 	ui->lineEditSaveDir->setText(pathToQString(VCMIDirs::get().userSavePath()));
 
-	QMessageBox::information(this, tr("Restart recommended"), tr("Log directory was moved. Launcher log output switches fully to the new path after restart."));
+	QMessageBox::information(this, tr("Restarting launcher"), tr("Log directory was moved. Launcher will now restart to apply logging path changes."));
+	startExecutable(QCoreApplication::applicationFilePath(), QCoreApplication::arguments().mid(1));
 #endif
 }
 
