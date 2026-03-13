@@ -132,6 +132,9 @@ public:
 	void downloadFile(QString file, QUrl url, QString description, qint64 sizeBytes = 0);
 	void installFiles(QStringList mods);
 
+	void showExternalProgress(const QString & format, int current, int max);
+	void hideExternalProgress();
+
 public slots:
 	void enableModByName(QString modName);
 	void disableModByName(QString modName);

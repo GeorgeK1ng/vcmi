@@ -889,6 +889,24 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	hideProgressBar();
 }
 
+void CModListView::showExternalProgress(const QString & format, int current, int max)
+{
+	ui->progressWidget->setVisible(true);
+	ui->progressBar->setFormat(format);
+	ui->progressBar->setMaximum(max);
+	ui->progressBar->setValue(current);
+}
+
+void CModListView::hideExternalProgress()
+{
+	if(dlManager == nullptr)
+	{
+		ui->progressWidget->setVisible(false);
+		ui->progressBar->setMaximum(0);
+		ui->progressBar->setValue(0);
+	}
+}
+
 void CModListView::hideProgressBar()
 {
 	if(dlManager == nullptr) // it was not recreated meanwhile

@@ -253,9 +253,52 @@ void StartGameTab::on_buttonImportFiles_clicked()
 		//Workaround for sometimes incorrect mime for some extensions (e.g. for exe)
 		QString filter = tr("All files (*.*)");
 #endif
-		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, save archives, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
+		QStringList files = QFileDialog::getOpenFileNames(this, tr("Select files (configs, mods, maps, campaigns, gog files) to install..."), QDir::homePath(), filter);
+		if(files.isEmpty())
+			return;
 
-		for(const auto & file : files)
+		QStringList preparedFiles;
+		preparedFiles.reserve(files.size());
+
+		QDir importCacheDir(pathToQString(VCMIDirs::get().userDataPath()));
+		importCacheDir.mkpath("tmp/import-cache");
+		importCacheDir.cd("tmp/import-cache");
+
+		auto * modView = Helper::getMainWindow()->getModView();
+		modView->showExternalProgress(tr("Preparing selected files for import..."), 0, files.size());
+
+		for(int index = 0; index < files.size(); ++index)
+		{
+			const QString file = files[index];
+			modView->showExternalProgress(tr("Preparing selected files for import... %1/%2").arg(index + 1).arg(files.size()), index, files.size());
+			qApp->processEvents();
+
+			QString importPath = file;
+
+			// Some exotic systems allows read after copy
+			QFile sourceFile(file);
+			if(!sourceFile.open(QIODevice::ReadOnly))
+			{
+				QString baseName = QFileInfo(Helper::getRealPath(file)).fileName();
+				if(baseName.isEmpty())
+					baseName = QStringLiteral("import_%1.bin").arg(index + 1);
+
+				const QString stagedPath = importCacheDir.filePath(QString::number(QDateTime::currentMSecsSinceEpoch()) + "_" + baseName);
+				if(!Helper::performNativeCopy(file, stagedPath))
+				{
+					QMessageBox::warning(this, tr("Import failed"), tr("Failed to prepare file for import: %1").arg(Helper::getRealPath(file)));
+					continue;
+				}
+				importPath = stagedPath;
+			}
+
+			preparedFiles << importPath;
+		}
+
+		modView->showExternalProgress(tr("Preparing selected files for import..."), files.size(), files.size());
+		modView->hideExternalProgress();
+
+		for(const auto & file : preparedFiles)
 		{
 			logGlobal->info("Importing file %s", file.toStdString());
 			Helper::getMainWindow()->manualInstallFile(file);
