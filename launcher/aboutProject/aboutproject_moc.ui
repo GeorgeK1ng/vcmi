@@ -71,7 +71,7 @@
     </spacer>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="2,4,1">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="2,4,1,1">
      <item row="2" column="1">
       <widget class="QLineEdit" name="lineEditOperatingSystem">
        <property name="text">
@@ -93,6 +93,13 @@
       <widget class="QPushButton" name="openUserDataDir">
        <property name="text">
         <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QPushButton" name="relocateUserDataDir">
+       <property name="text">
+        <string>Relocate...</string>
        </property>
       </widget>
      </item>
@@ -159,6 +166,13 @@
       <widget class="QPushButton" name="openTempDir">
        <property name="text">
         <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="3">
+      <widget class="QPushButton" name="relocateTempDir">
+       <property name="text">
+        <string>Relocate...</string>
        </property>
       </widget>
      </item>
@@ -245,6 +259,40 @@
       <widget class="QPushButton" name="openConfigDir">
        <property name="text">
         <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="labelSaveDir">
+       <property name="text">
+        <string>Save files directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QLineEdit" name="lineEditSaveDir">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string notr="true">/home/user/.vcmi/Saves</string>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="2">
+      <widget class="QPushButton" name="openSaveDir">
+       <property name="text">
+        <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="3">
+      <widget class="QPushButton" name="relocateSaveDir">
+       <property name="text">
+        <string>Relocate...</string>
        </property>
       </widget>
      </item>
