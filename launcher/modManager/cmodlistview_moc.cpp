@@ -1106,7 +1106,7 @@ void CModListView::installFiles(QStringList files)
 	if(!saves.empty())
 	{
 		logGlobal->info("Installing saves: started");
-		installSaveFiles(saves);
+		installSaves(saves);
 		logGlobal->info("Installing saves: ended");
 	}
 
@@ -1152,7 +1152,7 @@ void CModListView::installFiles(QStringList files)
 		loadScreenshots();
 }
 
-void CModListView::installSaveFiles(QStringList saves)
+void CModListView::installSaves(QStringList saves)
 {
 	const auto savesPath = VCMIDirs::get().userSavePath();
 	boost::filesystem::create_directories(savesPath);
