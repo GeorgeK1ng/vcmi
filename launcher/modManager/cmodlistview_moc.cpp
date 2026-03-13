@@ -1098,7 +1098,11 @@ void CModListView::installSaveArchives(QStringList archives)
 	const auto savesPath = VCMIDirs::get().userSavePath();
 	boost::filesystem::create_directories(savesPath);
 
+	QDir savesDir(pathToQString(savesPath));
+	const auto saveDestDir = savesDir.absolutePath() + QChar{'/'};
+
 	int importedCount = 0;
+	int conflictCount = 0;
 
 	for(const auto & archivePath : archives)
 	{
@@ -1107,23 +1111,92 @@ void CModListView::installSaveArchives(QStringList archives)
 			ZipArchive archive(qstringToPath(archivePath));
 			auto fileList = archive.listFiles();
 
-			std::vector<std::string> saveFiles;
 			for(const auto & file : fileList)
 			{
-				if(QString::fromStdString(file).endsWith(".vsgm1", Qt::CaseInsensitive))
-					saveFiles.push_back(file);
+				QString relativePath = QString::fromUtf8(file.data(), static_cast<int>(file.size()));
+				if(!relativePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+					continue;
+
+				if(QFile::exists(saveDestDir + relativePath))
+					conflictCount++;
 			}
+		}
+		catch(const std::exception &)
+		{
+		}
+	}
 
-			if(saveFiles.empty())
-				continue;
+	bool applyToAll = false;
+	bool overwriteAll = false;
 
-			if(!archive.extract(savesPath, saveFiles))
+	auto askOverwrite = [&](const QString & name) -> bool
+	{
+		if(applyToAll)
+			return overwriteAll;
+
+		QMessageBox msgBox(this);
+		msgBox.setIcon(QMessageBox::Question);
+		msgBox.setWindowTitle(tr("Save exists"));
+		msgBox.setText(tr("Save '%1' already exists. Do you want to overwrite it?").arg(name));
+
+		QPushButton * yes = msgBox.addButton(QMessageBox::Yes);
+		msgBox.addButton(QMessageBox::No);
+
+		QPushButton * yesAll = nullptr;
+		QPushButton * noAll = nullptr;
+		if(conflictCount > 1)
+		{
+			yesAll = msgBox.addButton(tr("Yes to All"), QMessageBox::YesRole);
+			noAll = msgBox.addButton(tr("No to All"), QMessageBox::NoRole);
+		}
+
+		msgBox.exec();
+		QAbstractButton * clicked = msgBox.clickedButton();
+
+		if(clicked == yes)
+			return true;
+		if(clicked == yesAll)
+		{
+			applyToAll = true;
+			overwriteAll = true;
+			return true;
+		}
+		if(clicked == noAll)
+		{
+			applyToAll = true;
+			overwriteAll = false;
+			return false;
+		}
+		return false;
+	};
+
+	for(const auto & archivePath : archives)
+	{
+		try
+		{
+			ZipArchive archive(qstringToPath(archivePath));
+			auto fileList = archive.listFiles();
+
+			for(const auto & file : fileList)
 			{
-				QMessageBox::warning(this, tr("Import failed"), tr("Failed to import saves from %1").arg(archivePath));
-				continue;
-			}
+				QString relativePath = QString::fromUtf8(file.data(), static_cast<int>(file.size()));
+				if(!relativePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+					continue;
 
-			importedCount += static_cast<int>(saveFiles.size());
+				const QString destinationPath = saveDestDir + relativePath;
+				if(QFile::exists(destinationPath))
+				{
+					if(!askOverwrite(relativePath))
+						continue;
+
+					QFile::remove(destinationPath);
+				}
+
+				if(archive.extract(savesPath, file))
+					importedCount++;
+				else
+					QMessageBox::warning(this, tr("Import failed"), tr("Failed to import save %1 from %2").arg(relativePath, archivePath));
+			}
 		}
 		catch(const std::exception & e)
 		{

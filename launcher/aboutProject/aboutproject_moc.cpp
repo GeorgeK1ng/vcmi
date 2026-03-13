@@ -168,7 +168,24 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 		return;
 	}
 
-	QDirIterator it(savesDir.absolutePath(), QDir::Files, QDirIterator::Subdirectories);
+	QStringList saveFiles;
+	QDirIterator scanner(savesDir.absolutePath(), QDir::Files, QDirIterator::Subdirectories);
+	while(scanner.hasNext())
+	{
+		const QString savePath = scanner.next();
+		if(savePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+			saveFiles.push_back(savePath);
+	}
+
+	if(saveFiles.empty())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("No save files were found"));
+		return;
+	}
+
+	QProgressDialog progress(tr("Exporting saves..."), tr("Cancel"), 0, saveFiles.size(), this);
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
 
 	try
 	{
@@ -176,28 +193,31 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 		boost::filesystem::path archivePath(outPath.toStdString());
 		CZipSaver saver(api, archivePath);
 
-		bool hasAnySave = false;
-		while (it.hasNext())
+		for(int index = 0; index < saveFiles.size(); ++index)
 		{
-			const QString savePath = it.next();
-			if(!savePath.endsWith(".vsgm1", Qt::CaseInsensitive))
-				continue;
+			if(progress.wasCanceled())
+			{
+				QFile::remove(outPath);
+				return;
+			}
+
+			const QString savePath = saveFiles[index];
+			const QString relativePath = savesDir.relativeFilePath(savePath);
+			progress.setValue(index);
+			progress.setLabelText(tr("Exporting %1").arg(relativePath));
+			qApp->processEvents();
+
 			QFile saveFile(savePath);
 			if (!saveFile.open(QIODevice::ReadOnly))
 				continue;
 
-			hasAnySave = true;
 			QByteArray data = saveFile.readAll();
-			const QString relativePath = savesDir.relativeFilePath(savePath);
-			auto stream = saver.addFile(relativePath.toStdString());
+			QByteArray relativePathUtf8 = relativePath.toUtf8();
+			auto stream = saver.addFile(std::string(relativePathUtf8.constData(), relativePathUtf8.size()));
 			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
 		}
 
-		if(!hasAnySave)
-		{
-			QMessageBox::warning(this, tr("Error"), tr("No save files were found"));
-			return;
-		}
+		progress.setValue(saveFiles.size());
 	}
 	catch (const std::exception & e)
 	{
