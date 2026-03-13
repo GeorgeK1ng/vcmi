@@ -283,6 +283,15 @@ void AboutProjectView::on_relocateTempDir_clicked()
 	if (targetPath.isEmpty())
 		return;
 
+	if (QMessageBox::warning(this,
+		tr("Restart required"),
+		tr("Log directory relocation requires launcher restart after migration. Do you want to continue?"),
+		QMessageBox::Ok | QMessageBox::Cancel,
+		QMessageBox::Cancel) != QMessageBox::Ok)
+	{
+		return;
+	}
+
 	if (!relocateDirectoryWithProgress(this, ui->lineEditTempDir->text(), targetPath, tr("Relocating logs"), {QStringLiteral("VCMI_Launcher_log.txt")}))
 	{
 		QMessageBox::critical(this, tr("Failed to relocate"), tr("Unable to move existing files to the new directory."));
