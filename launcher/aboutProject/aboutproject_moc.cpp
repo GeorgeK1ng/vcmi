@@ -140,6 +140,8 @@ bool relocateDirectoryWithProgress(QWidget * parent, const QString & sourcePath,
 	const int totalEntries = std::max(1, countDirectoryEntries(sourcePath));
 	QProgressDialog progressDialog(QObject::tr("Moving files..."), QString(), 0, totalEntries, parent);
 	progressDialog.setWindowTitle(title);
+	progressDialog.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+	progressDialog.setWindowFlag(Qt::WindowCloseButtonHint, false);
 	progressDialog.setWindowModality(Qt::WindowModal);
 	progressDialog.setCancelButton(nullptr);
 	progressDialog.setMinimumDuration(0);
