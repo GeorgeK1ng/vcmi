@@ -188,6 +188,9 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 	progress.setMinimumDuration(0);
 	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
 	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+	auto * progressBar = new QProgressBar(&progress);
+	progressBar->setFormat(QStringLiteral("%v / %m"));
+	progress.setBar(progressBar);
 
 	try
 	{
@@ -206,7 +209,7 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 			const QString savePath = saveFiles[index];
 			const QString relativePath = savesDir.relativeFilePath(savePath);
 			progress.setValue(index);
-			progress.setLabelText(tr("Exporting saves... %1 / %2").arg(index + 1).arg(saveFiles.size()));
+			progress.setLabelText(tr("Exporting saves..."));
 			qApp->processEvents();
 
 			QFile saveFile(savePath);
