@@ -154,7 +154,7 @@ static QString gatherDeviceInfo()
 void AboutProjectView::on_pushButtonExportSaves_clicked()
 {
 	const QString defaultName = QDir::home().filePath("vcmi-saves.zip");
-	QString outPath = QFileDialog::getSaveFileName(this, tr("Save saves"), defaultName, tr("Zip archives (*.zip)"));
+	QString outPath = QFileDialog::getSaveFileName(this, tr("Export saves"), defaultName, tr("Zip archives (*.zip)"));
 	if (outPath.isEmpty())
 		return;
 
@@ -184,6 +184,7 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 	}
 
 	QProgressDialog progress(tr("Exporting saves..."), tr("Cancel"), 0, saveFiles.size(), this);
+	progress.setWindowTitle(tr("Save export"));
 	progress.setWindowModality(Qt::WindowModal);
 	progress.setMinimumDuration(0);
 	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
@@ -230,7 +231,7 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 		return;
 	}
 
-	QMessageBox::information(this, tr("Success"), tr("Saves saved to %1").arg(outPath));
+	QMessageBox::information(this, tr("Success"), tr("Saves exported to %1").arg(outPath));
 }
 
 void AboutProjectView::on_pushButtonExportLogs_clicked()
