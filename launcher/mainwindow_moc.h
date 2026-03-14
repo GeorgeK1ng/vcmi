@@ -77,6 +77,7 @@ public:
 	void dropEvent(QDropEvent *event) override;
 
 	void manualInstallFile(QString filePath);
+
 	ETranslationStatus getTranslationStatus();
 
 protected:

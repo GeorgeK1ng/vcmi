@@ -150,11 +150,101 @@ static QString gatherDeviceInfo()
 	return info;
 }
 
+
+void AboutProjectView::on_pushButtonExportSaves_clicked()
+{
+	const QString defaultName = QDir::home().filePath("vcmi-saves.zip");
+	QString outPath = QFileDialog::getSaveFileName(this, tr("Export saves"), defaultName, tr("Zip archives (*.zip)"));
+	if (outPath.isEmpty())
+		return;
+
+	if (!outPath.endsWith(".zip", Qt::CaseInsensitive))
+		outPath += ".zip";
+
+	QDir savesDir(pathToQString(VCMIDirs::get().userSavePath()));
+	if(!savesDir.exists())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Saves directory does not exist"));
+		return;
+	}
+
+	QStringList saveFiles;
+	QDirIterator scanner(savesDir.absolutePath(), QDir::Files, QDirIterator::Subdirectories);
+	while(scanner.hasNext())
+	{
+		const QString savePath = scanner.next();
+		if(savePath.endsWith(".vsgm1", Qt::CaseInsensitive))
+			saveFiles.push_back(savePath);
+	}
+
+	if(saveFiles.empty())
+	{
+		QMessageBox::warning(this, tr("Error"), tr("No save files were found"));
+		return;
+	}
+
+	QProgressDialog progress(tr("Exporting saves..."), tr("Cancel"), 0, saveFiles.size(), this);
+	progress.setWindowTitle(tr("Save export"));
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
+	progress.setAutoReset(false);
+	progress.setAutoClose(false);
+	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
+	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+	auto * progressBar = new QProgressBar(&progress);
+	progressBar->setRange(0, saveFiles.size());
+	progressBar->setValue(0);
+	progressBar->setFormat(QStringLiteral("%v / %m"));
+	progress.setBar(progressBar);
+	progress.setLabelText(tr("Exporting saves..."));
+
+	try
+	{
+		std::shared_ptr<CIOApi> api = std::make_shared<CDefaultIOApi>();
+		boost::filesystem::path archivePath(outPath.toStdString());
+		CZipSaver saver(api, archivePath);
+
+		for(int index = 0; index < saveFiles.size(); ++index)
+		{
+			if(progress.wasCanceled())
+			{
+				QFile::remove(outPath);
+				return;
+			}
+
+			const QString savePath = saveFiles[index];
+			const QString relativePath = savesDir.relativeFilePath(savePath);
+			progress.setValue(index + 1);
+			qApp->processEvents();
+
+			QFile saveFile(savePath);
+			if (!saveFile.open(QIODevice::ReadOnly))
+				continue;
+
+			QByteArray data = saveFile.readAll();
+			QByteArray relativePathUtf8 = relativePath.toUtf8();
+			auto stream = saver.addFile(std::string(relativePathUtf8.constData(), relativePathUtf8.size()));
+			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
+		}
+
+		progress.setValue(saveFiles.size());
+		qApp->processEvents();
+		progress.hide();
+	}
+	catch (const std::exception & e)
+	{
+		QMessageBox::critical(this, tr("Error"), tr("Failed to create archive: %1").arg(QString::fromUtf8(e.what())));
+		return;
+	}
+
+	QMessageBox::information(this, tr("Success"), tr("Saves exported to %1").arg(outPath));
+}
+
 void AboutProjectView::on_pushButtonExportLogs_clicked()
 {
 	QDir tempDir(ui->lineEditTempDir->text());
 
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
     // cleanup old temp archives from previous runs (delete now)
     {
         QDir tdir(QDir::tempPath());
@@ -177,6 +267,22 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 
 	QFileInfoList files = tempDir.entryInfoList({ "*.txt" }, QDir::Files, QDir::Name);
 	files.append(QDir(ui->lineEditConfigDir->text()).entryInfoList({ "*.json", "*.ini" }, QDir::Files, QDir::Name));
+
+	const int progressSteps = files.size() + 3; // source files + listing + optional last save + device info
+	QProgressDialog progress(tr("Exporting logs..."), tr("Cancel"), 0, progressSteps, this);
+	progress.setWindowTitle(tr("Logs export"));
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
+	progress.setAutoReset(false);
+	progress.setAutoClose(false);
+	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
+	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+	auto * progressBar = new QProgressBar(&progress);
+	progressBar->setRange(0, progressSteps);
+	progressBar->setValue(0);
+	progressBar->setFormat(QStringLiteral("%v / %m"));
+	progress.setBar(progressBar);
+	progress.setLabelText(tr("Exporting logs..."));
 
 	// build data dir file/folder listing and add as a virtual text file
 	const QString dataDirPath = ui->lineEditUserDataDir->text();
@@ -206,8 +312,16 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 		boost::filesystem::path archivePath(outPath.toStdString());
 		CZipSaver saver(api, archivePath);
 
+		int progressStep = 0;
 		for (const QFileInfo & fi : files)
 		{
+			if(progress.wasCanceled())
+			{
+				QFile::remove(outPath);
+				return;
+			}
+			progress.setValue(++progressStep);
+			qApp->processEvents();
 			// Skip persistent storage to avoid logging private data (e.g. lobby login tokens)
 			if (fi.fileName().compare(QStringLiteral("persistentStorage.json"), Qt::CaseInsensitive) == 0)
 				continue;
@@ -232,7 +346,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 					const auto rsave = ResourcePath(lastSavePath, EResType::SAVEGAME);
 					const auto * rhandler = CResourceHandler::get();
 					if(!rhandler->existsResource(rsave))
-						return;
+						throw std::runtime_error("Last save not found");
 
 					size_t pos = lastSavePath.find_last_of("/\\");
 					std::string name = (pos == std::string::npos)? lastSavePath : lastSavePath.substr(pos + 1);
@@ -248,6 +362,9 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 			}
 		}
 
+		progress.setValue(++progressStep); // optional last save step
+		qApp->processEvents();
+
 		// add generated listing as game-directory-structure.txt
 		if (!listing.isEmpty())
 		{
@@ -255,6 +372,9 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 			auto stream = saver.addFile(std::string("data-directory-structure.txt"));
 			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
 		}
+
+		progress.setValue(++progressStep); // listing step
+		qApp->processEvents();
 
 		// add device information as device-info.txt
 		{
@@ -266,6 +386,10 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 				streamDev->write(reinterpret_cast<const ui8 *>(dataDev.constData()), dataDev.size());
 			}
 		}
+
+		progress.setValue(++progressStep); // device info step
+		qApp->processEvents();
+		progress.hide();
 	}
 	catch (const std::exception & e)
 	{
@@ -273,7 +397,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 		return;
 	}
 	// On mobile platforms, send file via platform and remove temporary file afterwards.
-#if defined(VCMI_ANDROID) || defined(VCMI_IOS)
+#if defined(VCMI_MOBILE)
 	QMessageBox::information(this, tr("Send logs"), tr("The archive will be sent via another application. Share your logs e.g. over discord to developers."));
 	Helper::sendFileToApp(outPath);
 #else
