@@ -187,6 +187,8 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 	progress.setWindowTitle(tr("Save export"));
 	progress.setWindowModality(Qt::WindowModal);
 	progress.setMinimumDuration(0);
+	progress.setAutoReset(false);
+	progress.setAutoClose(false);
 	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
 	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 	auto * progressBar = new QProgressBar(&progress);
@@ -224,6 +226,8 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 		}
 
 		progress.setValue(saveFiles.size());
+		qApp->processEvents();
+		progress.hide();
 	}
 	catch (const std::exception & e)
 	{
