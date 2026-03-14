@@ -1,0 +1,59 @@
+name: Build Portmaster
+
+on:
+  push:
+    branches:
+      - beta
+      - master
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": { "containerd-snapshotter": true }
+            }
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/BuildPortmaster-aarch64.dockerfile
+          context: .
+          tags: vcmi-portmaster-build:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build VCMI
+        shell: bash
+        run: docker run --rm -v "$PWD":/vcmi vcmi-portmaster-build
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p vcmi-portmaster/libs
+          sudo mv ./out/build/portmaster-conan-release/bin/*so* vcmi-portmaster/libs/ || true
+          mkdir -p vcmi-portmaster/libs/AI
+          sudo mv ./out/build/portmaster-conan-release/bin/AI/*so* vcmi-portmaster/libs/AI/ || true
+          mkdir -p vcmi-portmaster/bin
+          sudo mv ./out/build/portmaster-conan-release/bin/vcmi* vcmi-portmaster/bin/ || true
+          cp -r ./Mods vcmi-portmaster/Mods
+          cp -r ./config vcmi-portmaster/config
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: vcmi-portmaster
+          path: vcmi-portmaster

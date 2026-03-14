@@ -3,24 +3,48 @@ WORKDIR /usr/local/app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# from VCMI build docs
-RUN apt-get update && apt-get install -y cmake g++ clang libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev zlib1g-dev libavformat-dev libswscale-dev libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-program-options-dev libboost-locale-dev libboost-iostreams-dev qtbase5-dev libtbb-dev libluajit-5.1-dev liblzma-dev libsqlite3-dev libminizip-dev qttools5-dev ninja-build ccache
+# Runtime build dependencies for PortMaster + Conan toolchain restore
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential wget ca-certificates git curl \
+    python3 python3-pipx \
+    libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+    qtbase5-dev qttools5-dev libqt5svg5-dev \
+    ninja-build libavformat-dev libswscale-dev \
+    libluajit-5.1-dev libminizip-dev libsqlite3-dev \
+    libicu-dev zlib1g-dev libbz2-dev liblzma-dev \
+ && rm -rf /var/lib/apt/lists/*
 
-# newer cmake version to support presets
-RUN apt-get remove -y cmake
-RUN apt-get install -y libssl-dev
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5.tar.gz ; tar zxvf cmake-3.31.5.tar.gz ; cd cmake-3.31.5 ; ./bootstrap ; make ; make install ; cd .. ; rm -rf cmake-3.31.5
+# CMake >= 3.31 (presets support)
+ARG CMAKE_VER=3.31.5
+RUN set -eux; \
+  wget -q https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-aarch64.tar.gz; \
+  tar -xzf cmake-${CMAKE_VER}-linux-aarch64.tar.gz -C /opt; \
+  ln -s /opt/cmake-${CMAKE_VER}-linux-aarch64/bin/* /usr/local/bin/; \
+  rm -f cmake-${CMAKE_VER}-linux-aarch64.tar.gz; \
+  cmake --version
+
+RUN pipx install conan
 
 CMD ["sh", "-c", " \
-    # switch to mounted dir
-    cd /vcmi ; \
-    # fix for wrong path of base image
-    ln -s /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so ; \
-    # build
-    cmake --preset portmaster-release ; \
-    cmake --build --preset portmaster-release ; \
-    # export missing libraries
-    ldd /vcmi/out/build/portmaster-release/bin/vcmiclient | grep -e libboost -e libtbb -e libicu | awk 'NF == 4 { system(\"cp \" $3 \" /vcmi/out/build/portmaster-release/bin/\") }' \
+    set -euo pipefail; \
+    cd /vcmi; \
+    # fix for wrong path of base image \
+    ln -sf /usr/lib/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2.so; \
+    export PATH=/root/.local/bin:${PATH}; \
+    export RUNNER_TEMP=/tmp; \
+    # restore linux ARM64 prebuilt Conan dependencies and generate toolchain \
+    source /vcmi/CI/install_conan_dependencies.sh dependencies-linux-arm64; \
+    conan profile detect --force; \
+    conan install . \
+      --output-folder=conan-generated \
+      --build=never \
+      --profile=dependencies/conan_profiles/linux-arm64 \
+      --conf=tools.cmake.cmaketoolchain:generator=Ninja; \
+    # build \
+    cmake --preset portmaster-conan-release; \
+    cmake --build --preset portmaster-conan-release; \
+    # export missing shared libraries \
+    ldd /vcmi/out/build/portmaster-conan-release/bin/vcmiclient | grep -e libboost -e libtbb -e libicu | awk 'NF == 4 { system(\"cp \" $3 \" /vcmi/out/build/portmaster-conan-release/bin/\") }' \
 "]
 
 # Build on ARM64 processor or ARM64 chroot with:

@@ -404,6 +404,15 @@
                 "ENABLE_GOLDMASTER": "ON",
                 "VCMI_PORTMASTER": "ON"
             }
+        },
+        {
+            "name": "portmaster-conan-release",
+            "displayName": "PortMaster + Conan",
+            "description": "VCMI PortMaster using Conan dependencies",
+            "inherits": [
+                "portmaster-release",
+                "build-with-conan"
+            ]
         }
     ],
     "buildPresets": [
@@ -565,6 +574,12 @@
         {
             "name": "portmaster-release",
             "configurePreset": "portmaster-release",
+            "inherits": "default-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "portmaster-conan-release",
+            "configurePreset": "portmaster-conan-release",
             "inherits": "default-release",
             "configuration": "Release"
         }
