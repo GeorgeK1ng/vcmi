@@ -268,6 +268,22 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 	QFileInfoList files = tempDir.entryInfoList({ "*.txt" }, QDir::Files, QDir::Name);
 	files.append(QDir(ui->lineEditConfigDir->text()).entryInfoList({ "*.json", "*.ini" }, QDir::Files, QDir::Name));
 
+	const int progressSteps = files.size() + 3; // source files + listing + optional last save + device info
+	QProgressDialog progress(tr("Exporting logs..."), tr("Cancel"), 0, progressSteps, this);
+	progress.setWindowTitle(tr("Logs export"));
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
+	progress.setAutoReset(false);
+	progress.setAutoClose(false);
+	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
+	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+	auto * progressBar = new QProgressBar(&progress);
+	progressBar->setRange(0, progressSteps);
+	progressBar->setValue(0);
+	progressBar->setFormat(QStringLiteral("%v / %m"));
+	progress.setBar(progressBar);
+	progress.setLabelText(tr("Exporting logs..."));
+
 	// build data dir file/folder listing and add as a virtual text file
 	const QString dataDirPath = ui->lineEditUserDataDir->text();
 	QString listing;
@@ -296,8 +312,16 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 		boost::filesystem::path archivePath(outPath.toStdString());
 		CZipSaver saver(api, archivePath);
 
+		int progressStep = 0;
 		for (const QFileInfo & fi : files)
 		{
+			if(progress.wasCanceled())
+			{
+				QFile::remove(outPath);
+				return;
+			}
+			progress.setValue(++progressStep);
+			qApp->processEvents();
 			// Skip persistent storage to avoid logging private data (e.g. lobby login tokens)
 			if (fi.fileName().compare(QStringLiteral("persistentStorage.json"), Qt::CaseInsensitive) == 0)
 				continue;
@@ -322,7 +346,7 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 					const auto rsave = ResourcePath(lastSavePath, EResType::SAVEGAME);
 					const auto * rhandler = CResourceHandler::get();
 					if(!rhandler->existsResource(rsave))
-						return;
+						throw std::runtime_error("Last save not found");
 
 					size_t pos = lastSavePath.find_last_of("/\\");
 					std::string name = (pos == std::string::npos)? lastSavePath : lastSavePath.substr(pos + 1);
@@ -338,6 +362,9 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 			}
 		}
 
+		progress.setValue(++progressStep); // optional last save step
+		qApp->processEvents();
+
 		// add generated listing as game-directory-structure.txt
 		if (!listing.isEmpty())
 		{
@@ -345,6 +372,9 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 			auto stream = saver.addFile(std::string("data-directory-structure.txt"));
 			stream->write(reinterpret_cast<const ui8 *>(data.constData()), data.size());
 		}
+
+		progress.setValue(++progressStep); // listing step
+		qApp->processEvents();
 
 		// add device information as device-info.txt
 		{
@@ -356,6 +386,10 @@ void AboutProjectView::on_pushButtonExportLogs_clicked()
 				streamDev->write(reinterpret_cast<const ui8 *>(dataDev.constData()), dataDev.size());
 			}
 		}
+
+		progress.setValue(++progressStep); // device info step
+		qApp->processEvents();
+		progress.hide();
 	}
 	catch (const std::exception & e)
 	{
