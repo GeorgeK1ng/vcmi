@@ -242,7 +242,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
 	if(event->mimeData()->hasUrls())
 		for(const auto & url : event->mimeData()->urls())
-			for(const auto & ending : QStringList({".zip", ".h3m", ".h3c", ".vmap", ".vcmp", ".json", ".exe"}))
+			for(const auto & ending : QStringList({".zip", ".vsgm1", ".h3m", ".h3c", ".vmap", ".vcmp", ".json", ".exe"}))
 				if(url.fileName().endsWith(ending, Qt::CaseInsensitive))
 				{
 					event->acceptProposedAction();
@@ -265,6 +265,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 void MainWindow::manualInstallFile(QString filePath)
 {
 	QString realFilePath = Helper::getRealPath(filePath);
+
 
 	if(realFilePath.endsWith(".zip", Qt::CaseInsensitive) || realFilePath.endsWith(".exe", Qt::CaseInsensitive))
 		switchToModsTab();
