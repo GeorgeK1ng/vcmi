@@ -42,11 +42,9 @@ void TextLocalizationContainer::registerStringOverride(const std::string & modCo
 			entry.identifierModContext = modContext;
 			entry.baseStringModContext = modContext;
 		}
-		else
-		{
-			if (language == LIBRARY->generaltexth->getPreferredLanguage())
-				entry.overriden = true;
-		}
+
+		if (language == LIBRARY->generaltexth->getPreferredLanguage())
+			entry.overriden = true;
 	}
 	else
 	{
