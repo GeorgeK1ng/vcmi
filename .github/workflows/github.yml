@@ -651,6 +651,18 @@ jobs:
             exit 1
         fi
 
+    - name: Validate translation export CLI
+      run: |
+        cd "${{github.workspace}}/out/build/${{matrix.preset}}/bin"
+        ./vcmiclient --translate missing > >(tee output.log) 2> >(tee error.log >&2)
+        if [ ! -s error.log ] && [ -d "$HOME/.local/share/vcmi/Extracted/translationMissing" ]; then
+            echo "Translation export validation OK!"
+            exit 0
+        else
+            echo "Translation export validation failed!"
+            exit 1
+        fi
+
   lobby:
     name: Test VCMI Lobby
     runs-on: ubuntu-latest

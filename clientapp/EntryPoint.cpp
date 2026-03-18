@@ -141,6 +141,7 @@ int main(int argc, char * argv[])
 	opts.add_options()
 		("help,h", "display help and exit")
 		("version,v", "display version information and exit")
+		("translate", po::value<std::string>(), "exports translation files and exits: game|missing|maps|all")
 		("testmap", po::value<std::string>(), "")
 		("testsave", po::value<std::string>(), "")
 		("logLocation", po::value<std::string>(), "new location for log files")
@@ -253,7 +254,7 @@ int main(int argc, char * argv[])
 
 	setSettingBool("session/onlyai", "onlyAI");
 	setSettingBool("session/disableVideo", "disable-video");
-	if(vm.count("headless"))
+	if(vm.count("headless") || vm.count("translate"))
 	{
 		session["headless"].Bool() = true;
 		session["onlyai"].Bool() = true;
@@ -361,6 +362,30 @@ int main(int argc, char * argv[])
 		session["testsave"].String() = vm["testsave"].as<std::string>();
 		session["onlyai"].Bool() = true;
 		GAME->server().debugStartTest(session["testsave"].String(), true);
+	}
+	else if(vm.count("translate"))
+	{
+		ClientCommandManager commandController;
+		const auto mode = boost::to_lower_copy(vm["translate"].as<std::string>());
+
+		if(mode == "game")
+			commandController.processCommand("translate game", false);
+		else if(mode == "missing")
+			commandController.processCommand("translate missing", false);
+		else if(mode == "maps")
+			commandController.processCommand("translate maps", false);
+		else if(mode == "all")
+		{
+			commandController.processCommand("translate game", false);
+			commandController.processCommand("translate maps", false);
+		}
+		else
+		{
+			logGlobal->error("Invalid --translate mode '%s'. Supported values: game, missing, maps, all", mode);
+			return 1;
+		}
+
+		headlessQuit = true;
 	}
 	else if (!settings["session"]["headless"].Bool())
 	{
