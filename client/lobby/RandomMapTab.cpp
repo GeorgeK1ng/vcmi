@@ -205,9 +205,6 @@ RandomMapTab::RandomMapTab():
 
 void RandomMapTab::onToggleMapSize(int btnId)
 {
-	if(btnId == -1)
-		return;
-
 	auto mapSizeVal = getStandardMapSizes();
 
 	auto setTemplateForSize = [this](){
@@ -217,7 +214,7 @@ void RandomMapTab::onToggleMapSize(int btnId)
 		updateMapInfoByHost();
 	};
 
-	if(btnId == mapSizeVal.size() - 1)
+	auto openCustomSizeWindow = [this, setTemplateForSize]()
 	{
 		ENGINE->windows().createAndPushWindow<SetSizeWindow>(int3(mapGenOptions->getWidth(), mapGenOptions->getHeight(), mapGenOptions->getLevels()), mapGenOptions->getMapTemplate(), [this, setTemplateForSize](int3 ret){
 			if(ret.z > 2)
@@ -230,8 +227,16 @@ void RandomMapTab::onToggleMapSize(int btnId)
 			mapGenOptions->setLevels(ret.z);
 			setTemplateForSize();
 		});
+	};
+
+	if(btnId == CMapGenOptions::RANDOM_SIZE)
+	{
+		openCustomSizeWindow();
 		return;
 	}
+
+	if(btnId < 0 || btnId >= mapSizeVal.size())
+		return;
 
 	mapGenOptions->setWidth(mapSizeVal[btnId]);
 	mapGenOptions->setHeight(mapSizeVal[btnId]);
