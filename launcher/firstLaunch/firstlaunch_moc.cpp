@@ -783,13 +783,13 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	ui->lineEditDataSystem->setVisible(false);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
-		? tr("<p>Use game files detected automatically on this device.</p>"
-			"<p>VCMI will copy required data into its own folders.</p>"
+		? tr("<p>Use the Heroes III installation detected on this device.</p>"
+			"<p>VCMI will copy the required data into its own folders.</p>"
 			"<p><b>Source folder:</b><br/><code>%1</code></p>").arg(installPath.toHtmlEscaped())
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
-		? tr(R"(<p>Import data from offline GOG installers for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
+		? tr(R"(<p>Import data from the offline GOG installer for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
 <p>Direct links:</p>
 <ul>
 <li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">Installer EXE (en1installer0)</a></li>
@@ -799,17 +799,17 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 	const bool canUseFolderImport = Helper::canUseFolderPicker();
 	ui->textBrowserDataCopyInfo->setHtml(canUseFolderImport
-		? tr("<p>Select an existing Heroes III installation folder or a ZIP archive with game data files.</p>"
-			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
-			"<p>VCMI will verify the source and copy required files automatically.</p>")
+		? tr("<p>Import from a Heroes III backup in a folder or ZIP archive.</p>"
+			"<p>You can use Heroes III Complete or older Shadow of Death data.</p>"
+			"<p>VCMI will verify the source and copy the required files automatically.</p>")
 		: tr("<p>Folder import is unavailable on this platform.</p>"
 			"<p>Please select a ZIP archive with Heroes III data files.</p>"
-			"<p>VCMI will verify the source and copy required files automatically.</p>"));
+			"<p>VCMI will verify the source and copy the required files automatically.</p>"));
 
 	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
 	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
 	ui->textBrowserDataManualInfo->setHtml(tr(R"(
-	<p>Copy game files manually and press <b>Scan again</b>.</p>
+	<p>Copy Heroes III game files manually, then press <b>Scan again</b>.</p>
 	<p>Target folders:</p>
 	<p><b>User folder:</b><br/><code>%1</code></p>
 	<p><b>System folder:</b><br/><code>%2</code></p>
