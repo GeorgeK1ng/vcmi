@@ -82,7 +82,7 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 	std::map<int3, int3> cameFrom;  // The map of navigated nodes.
 	std::map<int3, float> distances;
 
-	const auto & neighbors = straight ? rmg::dirs4 : int3::getDirs();
+	static constexpr auto dirs8 = int3::getDirs();
 	
 	cameFrom[src] = int3(-1, -1, -1); //first node points to finish condition
 	distances[src] = 0;
@@ -134,11 +134,17 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 				}
 			};
 			
-			for(auto & i : neighbors)
-			{
-				computeTileScore(currentNode + i);
+				if(straight)
+				{
+					for(const auto & i : rmg::dirs4)
+						computeTileScore(currentNode + i);
+				}
+				else
+				{
+					for(const auto & i : dirs8)
+						computeTileScore(currentNode + i);
+				}
 			}
-		}
 		
 	}
 	
