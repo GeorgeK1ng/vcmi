@@ -1,3 +1,10 @@
 #!/bin/sh
+
+for arg in "$@"; do
+	if [ "$arg" = "objective-c" ] || [ "$arg" = "objective-c++" ]; then
+		exec clang "$@"
+	fi
+done
+
 export CCACHE_CPP2=true
-ccache clang "$@"
+exec ccache clang "$@"
