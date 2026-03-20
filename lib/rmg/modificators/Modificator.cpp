@@ -33,6 +33,11 @@ const std::string & Modificator::getName() const
 	return name;
 }
 
+int Modificator::getZoneId() const
+{
+	return zone.getId();
+}
+
 bool Modificator::isReady()
 {
 	Lock lock(mx, std::try_to_lock);

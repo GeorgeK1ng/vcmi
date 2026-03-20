@@ -46,6 +46,7 @@ public:
 
 	void setName(const std::string & n);
 	const std::string & getName() const;
+	int getZoneId() const;
 
 	bool isReady();
 	bool isFinished();

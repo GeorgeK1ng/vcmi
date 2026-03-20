@@ -24,6 +24,7 @@
 #include "../mapping/CMapEditManager.h"
 #include "../constants/StringConstants.h"
 #include "../filesystem/Filesystem.h"
+#include "../CStopWatch.h"
 #include "CZonePlacer.h"
 #include "CRoadRandomizer.h"
 #include "TileInfo.h"
@@ -38,7 +39,10 @@
 #include <vcmi/HeroTypeService.h>
 
 #include <tbb/task_group.h>
+#include <algorithm>
+#include <mutex>
 #include <thread>
+#include <unordered_map>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -354,6 +358,13 @@ void CMapGenerator::addWaterTreasuresInfo()
 
 void CMapGenerator::fillZones()
 {
+	struct JobTiming
+	{
+		std::string name;
+		int zoneId = -1;
+		int durationMs = 0;
+	};
+
 	addWaterTreasuresInfo();
 
 	logGlobal->info("Started filling zones");
@@ -380,6 +391,23 @@ void CMapGenerator::fillZones()
 	}
 
 	Load::Progress::setupStepsTill(allJobs.size(), 240);
+	std::vector<JobTiming> jobTimings;
+	std::mutex jobTimingsMutex;
+	jobTimings.reserve(allJobs.size());
+
+	auto runJobAndTrackTiming = [&jobTimings, &jobTimingsMutex](const auto & job)
+	{
+		CStopWatch sw;
+		job->run();
+
+		JobTiming timing;
+		timing.name = job->getName();
+		timing.zoneId = job->getZoneId();
+		timing.durationMs = sw.getDiff();
+
+		std::lock_guard guard(jobTimingsMutex);
+		jobTimings.push_back(std::move(timing));
+	};
 
 	if (config.singleThread) //No thread pool, just queue with deterministic order
 	{
@@ -391,7 +419,7 @@ void CMapGenerator::fillZones()
 				if ((*it)->isReady())
 				{
 					auto jobCopy = *it;
-					jobCopy->run();
+					runJobAndTrackTiming(jobCopy);
 					Progress::Progress::step(); //Update progress bar
 					allJobs.erase(it);
 					madeProgress = true;
@@ -426,9 +454,9 @@ void CMapGenerator::fillZones()
 				else if ((*it)->isReady())
 				{
 					auto jobCopy = *it;
-					pool.run([this, jobCopy]() -> void
+					pool.run([this, jobCopy, &runJobAndTrackTiming]() -> void
 						{
-							jobCopy->run();
+							runJobAndTrackTiming(jobCopy);
 							Progress::Progress::step(); //Update progress bar
 							}
 					);
@@ -448,6 +476,63 @@ void CMapGenerator::fillZones()
 
 		//Wait for all the tasks
 		pool.wait();
+	}
+
+	if(!jobTimings.empty())
+	{
+		long long totalRuntimeMs = 0;
+		for(const auto & timing : jobTimings)
+			totalRuntimeMs += timing.durationMs;
+
+		logGlobal->info("RMG modificator timing summary: %d jobs, total runtime %d ms",
+			static_cast<int>(jobTimings.size()), totalRuntimeMs);
+
+		auto jobTimingsByDuration = jobTimings;
+		std::sort(jobTimingsByDuration.begin(), jobTimingsByDuration.end(), [](const JobTiming & lhs, const JobTiming & rhs)
+		{
+			return lhs.durationMs > rhs.durationMs;
+		});
+
+		const int entriesToLog = std::min<int>(10, jobTimingsByDuration.size());
+		for(int i = 0; i < entriesToLog; i++)
+		{
+			const auto & timing = jobTimingsByDuration[i];
+			logGlobal->info("RMG slow job #%d: zone %d, %s, %d ms",
+				i + 1, timing.zoneId, timing.name, timing.durationMs);
+		}
+
+		struct AggregateTiming
+		{
+			long long totalMs = 0;
+			int count = 0;
+		};
+
+		std::unordered_map<std::string, AggregateTiming> aggregateByName;
+		aggregateByName.reserve(jobTimings.size());
+		for(const auto & timing : jobTimings)
+		{
+			auto & aggregate = aggregateByName[timing.name];
+			aggregate.totalMs += timing.durationMs;
+			aggregate.count += 1;
+		}
+
+		std::vector<std::pair<std::string, AggregateTiming>> aggregateSorted(
+			aggregateByName.begin(), aggregateByName.end());
+		std::sort(aggregateSorted.begin(), aggregateSorted.end(),
+			[](const auto & lhs, const auto & rhs)
+			{
+				return lhs.second.totalMs > rhs.second.totalMs;
+			}
+		);
+
+		const int aggregateEntriesToLog = std::min<int>(10, aggregateSorted.size());
+		for(int i = 0; i < aggregateEntriesToLog; i++)
+		{
+			const auto & entry = aggregateSorted[i];
+			const double avg = static_cast<double>(entry.second.totalMs) / entry.second.count;
+			logGlobal->info("RMG slow job group #%d: %s, calls=%d, total=%d ms, avg=%.2f ms",
+				i + 1, entry.first, entry.second.count, entry.second.totalMs, avg);
+		}
 	}
 
 	for (const auto& it : map->getZones())
