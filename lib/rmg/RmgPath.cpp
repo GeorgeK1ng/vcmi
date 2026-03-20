@@ -81,6 +81,8 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 	auto open = createPriorityQueue(); // The set of tentative nodes to be evaluated, initially containing the start node
 	std::map<int3, int3> cameFrom;  // The map of navigated nodes.
 	std::map<int3, float> distances;
+
+	const auto & neighbors = straight ? rmg::dirs4 : int3::getDirs();
 	
 	cameFrom[src] = int3(-1, -1, -1); //first node points to finish condition
 	distances[src] = 0;
@@ -119,10 +121,10 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 				float movementCost = moveCostFunction(currentNode, pos);
 
 				float distance = distances[currentNode] + movementCost; //we prefer to use already free paths
-				int bestDistanceSoFar = std::numeric_limits<int>::max();
+				float bestDistanceSoFar = std::numeric_limits<float>::max();
 				auto it = distances.find(pos);
 				if(it != distances.end())
-					bestDistanceSoFar = static_cast<int>(it->second);
+					bestDistanceSoFar = it->second;
 				
 				if(distance < bestDistanceSoFar)
 				{
@@ -132,10 +134,6 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 				}
 			};
 			
-			auto dirs = int3::getDirs();
-			std::vector<int3> neighbors(dirs.begin(), dirs.end());
-			if(straight)
-				neighbors.assign(rmg::dirs4.begin(), rmg::dirs4.end());
 			for(auto & i : neighbors)
 			{
 				computeTileScore(currentNode + i);
