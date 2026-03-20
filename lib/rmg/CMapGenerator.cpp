@@ -38,6 +38,7 @@
 #include <vcmi/HeroTypeService.h>
 
 #include <tbb/task_group.h>
+#include <thread>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -384,6 +385,7 @@ void CMapGenerator::fillZones()
 	{
 		while (!allJobs.empty())
 		{
+			bool madeProgress = false;
 			for (auto it = allJobs.begin(); it != allJobs.end();)
 			{
 				if ((*it)->isReady())
@@ -392,6 +394,7 @@ void CMapGenerator::fillZones()
 					jobCopy->run();
 					Progress::Progress::step(); //Update progress bar
 					allJobs.erase(it);
+					madeProgress = true;
 					break; //Restart from the first job
 				}
 				else
@@ -399,6 +402,10 @@ void CMapGenerator::fillZones()
 					++it;
 				}
 			}
+
+			// Avoid busy-spin when no job can run yet (waiting on dependencies)
+			if(!madeProgress)
+				std::this_thread::yield();
 		}
 	}
 	else
@@ -407,12 +414,14 @@ void CMapGenerator::fillZones()
 
 		while (!allJobs.empty())
 		{
+			bool madeProgress = false;
 			for (auto it = allJobs.begin(); it != allJobs.end();)
 			{
 				if ((*it)->isFinished())
 				{
 					it = allJobs.erase(it);
 					Progress::Progress::step();
+					madeProgress = true;
 				}
 				else if ((*it)->isReady())
 				{
@@ -421,15 +430,20 @@ void CMapGenerator::fillZones()
 						{
 							jobCopy->run();
 							Progress::Progress::step(); //Update progress bar
-						}
+							}
 					);
 					it = allJobs.erase(it);
+					madeProgress = true;
 				}
 				else
 				{
 					++it;
 				}
 			}
+
+			// Avoid burning CPU if all remaining jobs are currently running / blocked
+			if(!madeProgress)
+				std::this_thread::yield();
 		}
 
 		//Wait for all the tasks
