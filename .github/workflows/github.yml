@@ -45,18 +45,6 @@ jobs:
             conan_options: --profile=dependencies/conan_profiles/base/apple-system
             artifact_platform: arm
 
-          - platform: ios
-            os: macos-15
-            pack: 1
-            upload: 1
-            pack_type: RelWithDebInfo
-            extension: ipa
-            before_install: macos.sh
-            preset: ios-release-conan-ccache
-            conan_profile: ios-arm64
-            conan_prebuilts: dependencies-ios
-            conan_options: --profile=dependencies/conan_profiles/base/apple-system
-
           - platform: msvc-x64
             arch: x64
             toolset: '14.29'
