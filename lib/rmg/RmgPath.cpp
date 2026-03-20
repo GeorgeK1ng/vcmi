@@ -11,6 +11,7 @@
 #include "StdInc.h"
 #include "RmgPath.h"
 #include <boost/heap/priority_queue.hpp> //A*
+#include <unordered_map>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -79,8 +80,8 @@ Path Path::search(const Tileset & dst, bool straight, std::function<float(const 
 	
 	Tileset closed;    // The set of nodes already evaluated.
 	auto open = createPriorityQueue(); // The set of tentative nodes to be evaluated, initially containing the start node
-	std::map<int3, int3> cameFrom;  // The map of navigated nodes.
-	std::map<int3, float> distances;
+	std::unordered_map<int3, int3> cameFrom;  // The map of navigated nodes.
+	std::unordered_map<int3, float> distances;
 
 	static constexpr auto dirs8 = int3::getDirs();
 	
