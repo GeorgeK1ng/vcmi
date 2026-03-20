@@ -811,7 +811,7 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
 	const bool hasDetectedInstall = !installPath.isEmpty();
-	auto folderLink = [this](const QString & path)
+	auto folderLink = [](const QString & path)
 	{
 		const QString encodedPath = QString::fromUtf8(QUrl::toPercentEncoding(path));
 #ifdef Q_OS_WIN
@@ -926,7 +926,7 @@ void FirstLaunchView::handleDataInfoLink(const QUrl & url)
 	}
 
 	QUrlQuery query(url);
-	const QString path = QString::fromUtf8(QUrl::fromPercentEncoding(query.queryItemValue(QStringLiteral("path")).toUtf8()));
+	const QString path = QUrl::fromPercentEncoding(query.queryItemValue(QStringLiteral("path")).toUtf8());
 	if(path.isEmpty())
 		return;
 
