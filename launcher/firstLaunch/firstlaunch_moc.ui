@@ -244,7 +244,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Heroes III data import</string>
+          <string>How to import Heroes III data?</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -367,7 +367,7 @@
             <string notr="true">buttonGroup</string>
            </attribute>
            <property name="text">
-            <string>Offline GOG.com backup installer</string>
+            <string>GOG offline installer</string>
            </property>
            <property name="checked">
             <bool>false</bool>
@@ -396,14 +396,14 @@
             <string notr="true">buttonGroup</string>
            </attribute>
            <property name="text">
-            <string>Manual installation</string>
+            <string>I will copy files manually</string>
            </property>
            <property name="checked">
             <bool>false</bool>
            </property>
           
            <property name="description">
-            <string>Copy files yourself and use Scan again to verify installation.</string>
+            <string>Copy files yourself and then use Scan again to verify data.</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -472,11 +472,11 @@
             <string notr="true">buttonGroup</string>
            </attribute>
            <property name="text">
-            <string>Copy existing files</string>
+            <string>Custom backup (ZIP or folder)</string>
            </property>
           
            <property name="description">
-            <string>Choose an existing Heroes III folder and copy required files.</string>
+            <string>Import from your own Heroes III backup folder or ZIP file.</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -514,7 +514,7 @@
             <string notr="true">buttonGroup</string>
            </attribute>
            <property name="text">
-            <string>Detected Heroes III installation</string>
+            <string>Installed Heroes III</string>
            </property>
           
            <property name="description">

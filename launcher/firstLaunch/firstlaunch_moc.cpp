@@ -28,6 +28,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <QDesktopServices>
+#include <QUrlQuery>
 
 // Create and show overlay immediately
 static ProgressOverlay* createOverlay(QWidget *parent, const QString &title, bool indeterminate = true)
@@ -56,11 +58,30 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->setupUi(this);
 	applyResponsiveUiScale();
 
+	ui->textBrowserDataDetectedInfo->setOpenLinks(false);
+	ui->textBrowserDataGogInfo->setOpenLinks(false);
+	ui->textBrowserDataCopyInfo->setOpenLinks(false);
+	ui->textBrowserDataManualInfo->setOpenLinks(false);
+	connect(ui->textBrowserDataDetectedInfo, &QTextBrowser::anchorClicked, this, &FirstLaunchView::handleDataInfoLink);
+	connect(ui->textBrowserDataGogInfo, &QTextBrowser::anchorClicked, this, &FirstLaunchView::handleDataInfoLink);
+	connect(ui->textBrowserDataCopyInfo, &QTextBrowser::anchorClicked, this, &FirstLaunchView::handleDataInfoLink);
+	connect(ui->textBrowserDataManualInfo, &QTextBrowser::anchorClicked, this, &FirstLaunchView::handleDataInfoLink);
+
 	enterSetup();
 	activateTab(TAB_LANGUAGE);
 
 	ui->lineEditDataSystem->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().dataPaths().front())));
 	ui->lineEditDataUser->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().userDataPath())));
+	if(ui->verticalSpacer)
+		ui->verticalSpacer->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	if(ui->verticalSpacer_2)
+		ui->verticalSpacer_2->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	if(ui->verticalSpacer_3)
+		ui->verticalSpacer_3->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	if(ui->verticalSpacer_4)
+		ui->verticalSpacer_4->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	if(ui->verticalLayout_4)
+		ui->verticalLayout_4->invalidate();
 
 	Helper::enableScrollBySwiping(ui->listWidgetLanguage);
 
@@ -275,9 +296,11 @@ void FirstLaunchView::applyResponsiveUiScale()
 	};
 
 
-	const int dataTileTotalHeightPx = compactScreen ? std::max(108, static_cast<int>(std::round(176 * scale))) : std::max(88, static_cast<int>(std::round(152 * scale)));
-	const int dataTileButtonHeightPx = compactScreen ? std::max(30, static_cast<int>(std::round(dataTileTotalHeightPx * 0.24))) : std::max(24, static_cast<int>(std::round(dataTileTotalHeightPx * 0.20)));
-	const int dataTileInfoHeightPx = compactScreen ? std::max(58, dataTileTotalHeightPx - dataTileButtonHeightPx) : std::max(44, dataTileTotalHeightPx - dataTileButtonHeightPx);
+	const int dataTileTotalHeightPx = compactScreen
+		? std::clamp(static_cast<int>(std::round(180 * scale)), 120, 220)
+		: std::clamp(static_cast<int>(std::round(150 * scale)), 100, 180);
+	const int dataTileButtonHeightPx = std::clamp(static_cast<int>(std::round(dataTileTotalHeightPx * 0.18)), 24, 38);
+	const int dataTileInfoHeightPx = std::max(56, dataTileTotalHeightPx - dataTileButtonHeightPx);
 
 	auto applyDataOptionButtonScale = [dataTileButtonHeightPx](QCommandLinkButton * button)
 	{
@@ -665,14 +688,14 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 		button->setProperty("tileContainerName", objectName);
 		button->setProperty("tileButtonName", button->objectName());
 		button->setCursor(Qt::PointingHandCursor);
-		button->setStyleSheet(QStringLiteral("QCommandLinkButton{border:none;background:transparent;padding:4px;}"));
+		button->setStyleSheet(QStringLiteral("QCommandLinkButton{border:none;background:transparent;padding:0px 2px;}"));
 
 		info->setProperty("tileContainerName", objectName);
 		info->setProperty("tileButtonName", button->objectName());
 		info->setFrameShape(QFrame::NoFrame);
 		info->setCursor(Qt::PointingHandCursor);
 		info->setStyleSheet(QStringLiteral("QTextBrowser{border:none;background:transparent;}"));
-		info->setOpenExternalLinks(true);
+		info->setOpenExternalLinks(false);
 		if(info->viewport())
 		{
 			info->viewport()->setProperty("tileContainerName", objectName);
@@ -687,8 +710,8 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 			info->viewport()->installEventFilter(this);
 
 		auto * containerLayout = new QVBoxLayout(container);
-		containerLayout->setContentsMargins(8, 8, 8, 8);
-		containerLayout->setSpacing(4);
+		containerLayout->setContentsMargins(8, 6, 8, 6);
+		containerLayout->setSpacing(2);
 		containerLayout->addWidget(button);
 		containerLayout->addWidget(info);
 		return container;
@@ -733,6 +756,8 @@ void FirstLaunchView::layoutDataOptionWidgets(bool hasDetectedInstall, bool canU
 
 void FirstLaunchView::updateDataOptionTileVisuals()
 {
+	updateDataOptionIcons();
+
 	const QVector<QPair<QString, QCommandLinkButton *>> tiles = {
 		{ QStringLiteral("dataOptionTileDetected"), ui->commandLinkButtonDataDetected },
 		{ QStringLiteral("dataOptionTileGog"), ui->commandLinkButtonDataGog },
@@ -759,10 +784,29 @@ void FirstLaunchView::updateDataOptionTileVisuals()
 	}
 }
 
+void FirstLaunchView::updateDataOptionIcons()
+{
+	// Let QCommandLinkButton use native style icon/indicator to keep visuals consistent across desktop themes.
+	ui->commandLinkButtonDataDetected->setIcon(QIcon());
+	ui->commandLinkButtonDataGog->setIcon(QIcon());
+	ui->commandLinkButtonDataCopy->setIcon(QIcon());
+	ui->commandLinkButtonDataManual->setIcon(QIcon());
+}
+
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
 {
 	const QString installPath = getHeroesInstallDir();
 	const bool hasDetectedInstall = !installPath.isEmpty();
+	auto folderLink = [](const QString & path)
+	{
+		const QString encodedPath = QString::fromUtf8(QUrl::toPercentEncoding(path));
+#ifdef Q_OS_WIN
+		const QString label = tr("Open in Explorer");
+#else
+		const QString label = tr("Open location");
+#endif
+		return QStringLiteral("<a href=\"vcmi-open-folder://open?path=%1\">%2</a>").arg(encodedPath, label.toHtmlEscaped());
+	};
 
 #ifdef ENABLE_INNOEXTRACT
 	const bool canUseGogInstall = true;
@@ -783,13 +827,13 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 	ui->lineEditDataSystem->setVisible(false);
 
 	ui->textBrowserDataDetectedInfo->setHtml(hasDetectedInstall
-		? tr("<p>Use game files detected automatically on this device.</p>"
-			"<p>VCMI will copy required data into its own folders.</p>"
-			"<p><b>Source folder:</b><br/><code>%1</code></p>").arg(installPath.toHtmlEscaped())
+		? tr("<p>Use the Heroes III installation detected on this device.</p>"
+			"<p>VCMI will copy the required data into its own folders.</p>"
+			"<p><b>Source folder:</b> %1</p>").arg(folderLink(installPath))
 		: tr("<p><i>Not available: no compatible Heroes III installation was detected.</i></p>"));
 
 	ui->textBrowserDataGogInfo->setHtml(canUseGogInstall
-		? tr(R"(<p>Import data from offline GOG installers for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
+		? tr(R"(<p>Import data from the offline GOG installer for <a href="https://www.gog.com/en/game/heroes_of_might_and_magic_3_complete_edition">Heroes III Complete Edition on GOG.com</a> (<code>.exe</code> + <code>.bin</code>).</p>
 <p>Direct links:</p>
 <ul>
 <li><a href="https://www.gog.com/downloads/heroes_of_might_and_magic_3_complete_edition/en1installer0">Installer EXE (en1installer0)</a></li>
@@ -799,22 +843,22 @@ void FirstLaunchView::updateDataOptionState(bool dataDetected)
 
 	const bool canUseFolderImport = Helper::canUseFolderPicker();
 	ui->textBrowserDataCopyInfo->setHtml(canUseFolderImport
-		? tr("<p>Select an existing Heroes III installation folder or a ZIP archive with game data files.</p>"
-			"<p>You can use Heroes III Complete or older Shadow of Death installation folders.</p>"
-			"<p>VCMI will verify the source and copy required files automatically.</p>")
+		? tr("<p>Import from a Heroes III backup in a folder or ZIP archive.</p>"
+			"<p>You can use Heroes III Complete or older Shadow of Death data.</p>"
+			"<p>VCMI will verify the source and copy the required files automatically.</p>")
 		: tr("<p>Folder import is unavailable on this platform.</p>"
 			"<p>Please select a ZIP archive with Heroes III data files.</p>"
-			"<p>VCMI will verify the source and copy required files automatically.</p>"));
+			"<p>VCMI will verify the source and copy the required files automatically.</p>"));
 
-	const QString manualUserPath = ui->lineEditDataUser->text().toHtmlEscaped();
-	const QString manualSystemPath = ui->lineEditDataSystem->text().toHtmlEscaped();
+	const QString manualUserPath = ui->lineEditDataUser->text();
+	const QString manualSystemPath = ui->lineEditDataSystem->text();
 	ui->textBrowserDataManualInfo->setHtml(tr(R"(
-	<p>Copy game files manually and press <b>Scan again</b>.</p>
+	<p>Copy Heroes III game files manually, then press <b>Scan again</b>.</p>
 	<p>Target folders:</p>
-	<p><b>User folder:</b><br/><code>%1</code></p>
-	<p><b>System folder:</b><br/><code>%2</code></p>
+	<p><b>User folder:</b> %1</p>
+	<p><b>System folder:</b> %2</p>
 	<p>Setup guide: <a href="https://wiki.vcmi.eu/Installation">VCMI Installation</a>.</p>
-	)").arg(manualUserPath, manualSystemPath));
+	)").arg(folderLink(manualUserPath), folderLink(manualSystemPath)));
 
 	const bool hasAnySelection = ui->commandLinkButtonDataDetected->isChecked()
 		|| ui->commandLinkButtonDataGog->isChecked()
@@ -857,6 +901,29 @@ void FirstLaunchView::updateDataOptionDetails()
 	ui->pushButtonDataNext->setEnabled(detectedSelectedAndAvailable || gogSelectedAndAvailable || copySelectedAndAvailable || manualSelected || isDemoDataDetected());
 
 	updateDataOptionTileVisuals();
+}
+
+void FirstLaunchView::handleDataInfoLink(const QUrl & url)
+{
+	if(url.scheme() != QLatin1String("vcmi-open-folder"))
+	{
+		QDesktopServices::openUrl(url);
+		return;
+	}
+
+	QUrlQuery query(url);
+	const QString path = QUrl::fromPercentEncoding(query.queryItemValue(QStringLiteral("path")).toUtf8());
+	if(path.isEmpty())
+		return;
+
+	const QUrl localUrl = QUrl::fromLocalFile(path);
+	if(QDesktopServices::openUrl(localUrl))
+		return;
+
+	QMessageBox::warning(
+		this,
+		tr("Cannot open folder"),
+		tr("Could not open this location in the system file manager:\n%1").arg(path));
 }
 
 // Tab Heroes III Data
