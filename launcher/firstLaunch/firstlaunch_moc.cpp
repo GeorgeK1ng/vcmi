@@ -296,12 +296,10 @@ void FirstLaunchView::applyResponsiveUiScale()
 	};
 
 
-	const int dataRows = 2;
-	const int dataGridSpacing = ui->gridLayout ? std::max(0, ui->gridLayout->verticalSpacing()) : 6;
-	const int dataChromePadding = pageMargin * 2 + titleHeight + navHeight + (compactScreen ? 20 : 16);
-	const int availableDataHeight = std::max(compactScreen ? 260 : 220, ui->installerTabs->height() - dataChromePadding);
-	const int dataTileTotalHeightPx = std::max(compactScreen ? 120 : 100, (availableDataHeight - dataGridSpacing * (dataRows - 1)) / dataRows);
-	const int dataTileButtonHeightPx = std::clamp(static_cast<int>(std::round(dataTileTotalHeightPx * 0.12)), 22, 40);
+	const int dataTileTotalHeightPx = compactScreen
+		? std::clamp(static_cast<int>(std::round(180 * scale)), 120, 220)
+		: std::clamp(static_cast<int>(std::round(150 * scale)), 100, 180);
+	const int dataTileButtonHeightPx = std::clamp(static_cast<int>(std::round(dataTileTotalHeightPx * 0.18)), 24, 38);
 	const int dataTileInfoHeightPx = std::max(56, dataTileTotalHeightPx - dataTileButtonHeightPx);
 
 	auto applyDataOptionButtonScale = [dataTileButtonHeightPx](QCommandLinkButton * button)
@@ -310,8 +308,6 @@ void FirstLaunchView::applyResponsiveUiScale()
 			return;
 		button->setMinimumHeight(dataTileButtonHeightPx);
 		button->setMaximumHeight(dataTileButtonHeightPx);
-		const int iconSide = std::max(16, static_cast<int>(std::round(dataTileButtonHeightPx * 0.72)));
-		button->setIconSize(QSize(iconSide, iconSide));
 	};
 
 	auto applyDataInfoScale = [dataTileInfoHeightPx](QTextBrowser * text)
@@ -790,21 +786,11 @@ void FirstLaunchView::updateDataOptionTileVisuals()
 
 void FirstLaunchView::updateDataOptionIcons()
 {
-	auto makeStateIcon = [this](QStyle::StandardPixmap normal, QStyle::StandardPixmap checked, QStyle::StandardPixmap disabled)
-	{
-		QIcon icon;
-		icon.addPixmap(style()->standardPixmap(normal), QIcon::Normal, QIcon::Off);
-		icon.addPixmap(style()->standardPixmap(checked), QIcon::Normal, QIcon::On);
-		icon.addPixmap(style()->standardPixmap(checked), QIcon::Active, QIcon::On);
-		icon.addPixmap(style()->standardPixmap(disabled), QIcon::Disabled, QIcon::Off);
-		icon.addPixmap(style()->standardPixmap(disabled), QIcon::Disabled, QIcon::On);
-		return icon;
-	};
-
-	ui->commandLinkButtonDataDetected->setIcon(makeStateIcon(QStyle::SP_DirOpenIcon, QStyle::SP_DialogApplyButton, QStyle::SP_MessageBoxWarning));
-	ui->commandLinkButtonDataGog->setIcon(makeStateIcon(QStyle::SP_DriveNetIcon, QStyle::SP_DialogApplyButton, QStyle::SP_MessageBoxWarning));
-	ui->commandLinkButtonDataCopy->setIcon(makeStateIcon(QStyle::SP_FileDialogStart, QStyle::SP_DialogApplyButton, QStyle::SP_MessageBoxWarning));
-	ui->commandLinkButtonDataManual->setIcon(makeStateIcon(QStyle::SP_FileDialogDetailedView, QStyle::SP_DialogApplyButton, QStyle::SP_BrowserReload));
+	// Let QCommandLinkButton use native style icon/indicator to keep visuals consistent across desktop themes.
+	ui->commandLinkButtonDataDetected->setIcon(QIcon());
+	ui->commandLinkButtonDataGog->setIcon(QIcon());
+	ui->commandLinkButtonDataCopy->setIcon(QIcon());
+	ui->commandLinkButtonDataManual->setIcon(QIcon());
 }
 
 void FirstLaunchView::updateDataOptionState(bool dataDetected)
