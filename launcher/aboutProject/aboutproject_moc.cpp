@@ -159,6 +159,11 @@ static void setupExportProgressDialog(QProgressDialog & progress, const QString 
 	progress.setAutoClose(false);
 	progress.setWindowFlag(Qt::WindowCloseButtonHint, false);
 	progress.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#if defined(VCMI_MOBILE)
+	progress.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+	progress.setObjectName(QStringLiteral("contentPanel"));
+	progress.setStyleSheet(QStringLiteral("QWidget#contentPanel { background: palette(window); border: 2px solid rgba(0,0,0,160); border-radius: 6px; }"));
+#endif
 	if(auto * progressBar = progress.findChild<QProgressBar *>())
 	{
 		progressBar->setRange(0, maximum);
