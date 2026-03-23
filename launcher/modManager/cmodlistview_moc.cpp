@@ -31,6 +31,7 @@
 #include "../../lib/VCMIDirs.h"
 #include "../../lib/filesystem/Filesystem.h"
 #include "../../lib/filesystem/CZipLoader.h"
+#include "../../lib/filesystem/ResourcePath.h"
 #include "../../lib/json/JsonUtils.h"
 #include "../../lib/modding/CModVersion.h"
 #include "../../lib/modding/ModDescription.h"
@@ -944,56 +945,123 @@ void CModListView::installFiles(QStringList files)
 	QStringList images;
 	QStringList exe;
 	bool repositoryFilesEnqueued = false;
+	auto isMapOrCampaignFile = [](const QString & fileName)
+	{
+		const auto extension = QString{".%1"}.arg(QFileInfo(fileName).suffix());
+		const auto resourceType = EResTypeHelper::getTypeFromExtension(extension.toStdString());
+		return resourceType == EResType::MAP || resourceType == EResType::CAMPAIGN;
+	};
 
 	// TODO: some better way to separate zip's with mods and downloaded repository files
+	auto isZipByHeader = [](const QString & filePath)
+	{
+		QFile file(filePath);
+		if(!file.open(QIODevice::ReadOnly))
+			return false;
+
+		const QByteArray magicZip{"PK"};
+		const QByteArray magicFile = file.peek(magicZip.length());
+		if(!magicFile.startsWith(magicZip))
+			return false;
+
+		const QByteArray header = file.peek(4);
+		if(header.size() < 4)
+			return false;
+
+		return (header[2] == 3 && header[3] == 4) || (header[2] == 5 && header[3] == 6) || (header[2] == 7 && header[3] == 8);
+	};
+
+	QStringList temporaryImportedFiles;
+
 	for(QString filename : files)
 	{
 		QString realFilename = Helper::getRealPath(filename);
+		QString processingFilename = realFilename;
 
-		if(realFilename.endsWith(".zip", Qt::CaseInsensitive))
+		QFile readableCheck(realFilename);
+		if(!readableCheck.open(QIODevice::ReadOnly))
 		{
-			try {
-			// TODO: there is some weird crash on Android where this constructor fails to open file
-			ZipArchive archive(qstringToPath(realFilename));
-			auto fileList = archive.listFiles();
-
-			bool hasModJson = false;
-			bool hasMaps = false;
-
-			for (const auto& file : fileList)
+			logGlobal->warn("Failed to open file '%s'. Reason: %s", realFilename.toStdString(), readableCheck.errorString().toStdString());
+			const QString tempDirPath = CLauncherDirs::downloadsPath() + "/tmp";
+			QDir{}.mkpath(tempDirPath);
+			processingFilename = QDir(tempDirPath).filePath(QFileInfo(realFilename).fileName());
+			QFile::remove(processingFilename);
+			if(!Helper::performNativeCopy(filename, processingFilename))
 			{
-				QString lower = QString::fromStdString(file).toLower();
+				QMessageBox::warning(this, tr("Import failed"), tr("Failed to install file %1.\nReason: %2.").arg(filename).arg(readableCheck.errorString()));
+				continue;
+			}
+			temporaryImportedFiles.push_back(processingFilename);
+		}
+		else
+		{
+			readableCheck.close();
+		}
 
-				// Check for mod.json anywhere in archive
-				if (lower.endsWith("mod.json"))
-					hasModJson = true;
-
-				// Check for map files anywhere
-				if (lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
-					hasMaps = true;
+		if(processingFilename.endsWith(".zip", Qt::CaseInsensitive))
+		{
+			if(!isZipByHeader(processingFilename))
+			{
+				QMessageBox::warning(this, tr("Import failed"), tr("Failed to install file %1.\nReason: Not a ZIP archive.").arg(filename));
+				continue;
 			}
 
-			if (hasModJson)
-				mods.push_back(filename);
-			else if (hasMaps)
-				maps.push_back(filename);
-			else
-				mods.push_back(filename);
-			}
-			catch (const std::runtime_error & e)
+			try
 			{
+				auto futureArchiveScan = std::async(std::launch::async, [processingFilename, isMapOrCampaignFile]()
+				{
+					ZipArchive archive(qstringToPath(processingFilename));
+					auto fileList = archive.listFiles();
+
+					bool hasModJson = false;
+					bool hasMaps = false;
+
+					for(const auto & file : fileList)
+					{
+						QString lower = QString::fromStdString(file).toLower();
+
+						// Check for mod.json anywhere in archive
+						if(lower.endsWith("mod.json"))
+							hasModJson = true;
+
+						// Check for map/campaign files anywhere
+						if(isMapOrCampaignFile(lower))
+							hasMaps = true;
+					}
+
+					return std::pair<bool, bool>{hasModJson, hasMaps};
+				});
+
+				ui->progressBar->setFormat(tr("Scanning archive %1").arg(QFileInfo(filename).fileName()));
+				ui->progressWidget->setVisible(true);
+				ui->progressBar->setMaximum(0);
+				while(futureArchiveScan.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+					qApp->processEvents();
+
+				const auto [hasModJson, hasMaps] = futureArchiveScan.get();
+				hideProgressBar();
+
+				if(hasModJson)
+					mods.push_back(processingFilename);
+				else if(hasMaps)
+					maps.push_back(processingFilename);
+				else
+					mods.push_back(processingFilename);
+			}
+			catch(const std::runtime_error & e)
+			{
+				hideProgressBar();
 				QMessageBox::warning(this, tr("Import failed"), tr("Failed to install file %1.\nReason: %2.\nPlease report this issue to developers").arg(filename).arg(QString::fromStdString(e.what())));
 			}
-
 		}
-		else if(realFilename.endsWith(".h3m", Qt::CaseInsensitive) || realFilename.endsWith(".h3c", Qt::CaseInsensitive) || realFilename.endsWith(".vmap", Qt::CaseInsensitive) || realFilename.endsWith(".vcmp", Qt::CaseInsensitive))
-			maps.push_back(filename);
-		if(realFilename.endsWith(".exe", Qt::CaseInsensitive))
-			exe.push_back(filename);
-		else if(realFilename.endsWith(".json", Qt::CaseInsensitive))
+		else if(isMapOrCampaignFile(processingFilename))
+			maps.push_back(processingFilename);
+		if(processingFilename.endsWith(".exe", Qt::CaseInsensitive))
+			exe.push_back(processingFilename);
+		else if(processingFilename.endsWith(".json", Qt::CaseInsensitive))
 		{
 			//download and merge additional files
-			JsonNode repoData = JsonUtils::jsonFromFile(filename);
+			JsonNode repoData = JsonUtils::jsonFromFile(processingFilename);
 			if(repoData["name"].isNull())
 			{
 				// MODS COMPATIBILITY: in 1.6, repository list contains mod list directly, in 1.7 it is located in 'availableMods' node
@@ -1022,19 +1090,19 @@ void CModListView::installFiles(QStringList files)
 			else
 			{
 				// This is json of a single mod. Extract name of mod and add it to repo
-				auto modName = QFileInfo(filename).baseName().toStdString();
+				auto modName = QFileInfo(processingFilename).baseName().toStdString();
 				auto modNameLower = boost::algorithm::to_lower_copy(modName);
 				JsonUtils::merge(accumulatedRepositoryData[modNameLower], repoData);
 			}
 		}
-		else if(realFilename.endsWith(".png", Qt::CaseInsensitive))
-			images.push_back(filename);
-		else if(realFilename.endsWith(".md", Qt::CaseInsensitive))
+		else if(processingFilename.endsWith(".png", Qt::CaseInsensitive))
+			images.push_back(processingFilename);
+		else if(processingFilename.endsWith(".md", Qt::CaseInsensitive))
 		{
 			// This is description of a single mod. Extract name of mod and add it to index
-			auto modName = QFileInfo(filename).baseName().toStdString();
+			auto modName = QFileInfo(processingFilename).baseName().toStdString();
 			auto modNameLower = boost::algorithm::to_lower_copy(modName);
-			QFile file(realFilename);
+			QFile file(processingFilename);
 			if(file.open(QFile::ReadOnly))
 			{
 				const auto data = file.readAll();
@@ -1042,7 +1110,7 @@ void CModListView::installFiles(QStringList files)
 				ModDescription::mergeModDescriptions(accumulatedRepositoryData[modNameLower], modDescriptions);
 			}
 			else
-				logGlobal->error("Failed to open file %s. Reason: %s", qUtf8Printable(filename), qUtf8Printable(file.errorString()));
+				logGlobal->error("Failed to open file %s. Reason: %s", qUtf8Printable(processingFilename), qUtf8Printable(file.errorString()));
 		}
 
 	}
@@ -1112,6 +1180,9 @@ void CModListView::installFiles(QStringList files)
 		if(extractResult & ChroniclesExtractor::ChroniclesInstallResultMask::InvalidFile)
 			QMessageBox::critical(this, tr("Invalid file selected"), tr("You have to select a Heroes Chronicles installer file!"));
 	}
+
+	for(const auto & tempFile : temporaryImportedFiles)
+		QFile::remove(tempFile);
 
 	if(!images.empty())
 		loadScreenshots();
