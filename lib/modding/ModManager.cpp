@@ -192,7 +192,9 @@ ModsPresetState::ModsPresetState()
 
 	if(modConfig["presets"].isNull() || modConfig["presets"].Struct().empty())
 	{
-		modConfig["activePreset"] = JsonNode("default");
+		if (modConfig["activePreset"].isNull())
+			modConfig["activePreset"] = JsonNode("default");
+
 		if(modConfig["activeMods"].isNull())
 			createInitialPreset(); // new install
 		else
