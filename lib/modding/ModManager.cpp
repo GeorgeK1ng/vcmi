@@ -456,7 +456,13 @@ void ModsPresetState::saveConfigurationState() const
 
 void ModsPresetState::createNewPreset(const std::string & presetName)
 {
-	if (modConfig["presets"][presetName].isNull())
+	if (!modConfig["presets"][presetName].isNull())
+		return;
+
+	const std::string activePresetName = modConfig["activePreset"].String();
+	if (!activePresetName.empty() && !modConfig["presets"][activePresetName].isNull())
+		modConfig["presets"][presetName] = modConfig["presets"][activePresetName];
+	else
 		modConfig["presets"][presetName]["mods"].Vector().emplace_back("vcmi");
 }
 
