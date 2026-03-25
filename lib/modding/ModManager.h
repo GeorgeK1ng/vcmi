@@ -41,6 +41,13 @@ public:
 class ModsPresetState : boost::noncopyable
 {
 	JsonNode modConfig;
+	boost::filesystem::path presetsDirectory;
+
+	void loadPresetsFromDirectory();
+	void savePresetsToDirectory() const;
+	void migrateLegacyPresetsToDirectory();
+
+	boost::filesystem::path getPresetFilePath(const std::string & presetName) const;
 
 	void createInitialPreset();
 	void importInitialPreset();

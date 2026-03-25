@@ -20,6 +20,27 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+namespace
+{
+std::string getPresetFilename(const std::string & presetName)
+{
+	std::string sanitizedName = presetName;
+	for (char & character : sanitizedName)
+	{
+		if (!std::isalnum(static_cast<unsigned char>(character)) && character != '_' && character != '-')
+			character = '_';
+	}
+
+	if (sanitizedName.empty())
+		sanitizedName = "preset";
+
+	boost::crc_32_type checksum;
+	checksum.process_bytes(presetName.data(), presetName.size());
+
+	return sanitizedName + "_" + boost::str(boost::format("%08x") % checksum.checksum()) + ".json";
+}
+}
+
 static std::string getModDirectory(const TModID & modName)
 {
 	std::string result = modName;
@@ -157,6 +178,7 @@ std::vector<TModID> ModsState::scanModsDirectory(const std::string & modDir) con
 ModsPresetState::ModsPresetState()
 {
 	static const JsonPath settingsPath = JsonPath::builtin("config/modSettings.json");
+	presetsDirectory = CResourceHandler::get()->getResourceName(ResourcePath("config/modSettings.json"))->parent_path() / "modPresets";
 
 	if(CResourceHandler::get("local")->existsResource(ResourcePath(settingsPath)))
 	{
@@ -181,7 +203,84 @@ ModsPresetState::ModsPresetState()
 	if (!vstd::contains(allPresets, modConfig["activePreset"].String()))
 		modConfig["activePreset"] = JsonNode(allPresets.front());
 
+	migrateLegacyPresetsToDirectory();
+	loadPresetsFromDirectory();
+
+	allPresets = getAllPresets();
+	if (!vstd::contains(allPresets, modConfig["activePreset"].String()))
+		modConfig["activePreset"] = JsonNode(allPresets.front());
+
 	logGlobal->debug("Loading following mod settings: %s", modConfig.toCompactString());
+}
+
+boost::filesystem::path ModsPresetState::getPresetFilePath(const std::string & presetName) const
+{
+	return presetsDirectory / getPresetFilename(presetName);
+}
+
+void ModsPresetState::loadPresetsFromDirectory()
+{
+	if (!boost::filesystem::is_directory(presetsDirectory))
+		return;
+
+	JsonNode presets;
+	for (const auto & entry : boost::filesystem::directory_iterator(presetsDirectory))
+	{
+		if (!boost::filesystem::is_regular_file(entry.path()) || entry.path().extension() != ".json")
+			continue;
+
+		std::ifstream file(entry.path().string());
+		std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		if (contents.empty())
+			continue;
+
+		JsonNode presetJson(contents.data(), contents.size(), entry.path().filename().string());
+		const std::string presetName = presetJson["name"].String();
+		if (presetName.empty() || presetJson["mods"].isNull())
+			continue;
+
+		presetJson.Struct().erase("name");
+		presets[presetName] = presetJson;
+	}
+
+	if (!presets.Struct().empty())
+		modConfig["presets"] = presets;
+}
+
+void ModsPresetState::savePresetsToDirectory() const
+{
+	boost::filesystem::create_directories(presetsDirectory);
+
+	for (const auto & entry : boost::filesystem::directory_iterator(presetsDirectory))
+	{
+		if (boost::filesystem::is_regular_file(entry.path()) && entry.path().extension() == ".json")
+			boost::filesystem::remove(entry.path());
+	}
+
+	for (const auto & [presetName, presetData] : modConfig["presets"].Struct())
+	{
+		JsonNode dataToSave = presetData;
+		dataToSave["name"] = JsonNode(presetName);
+
+		std::ofstream file(getPresetFilePath(presetName).string(), std::ofstream::out | std::ofstream::trunc);
+		file << dataToSave.toCompactString();
+	}
+}
+
+void ModsPresetState::migrateLegacyPresetsToDirectory()
+{
+	boost::filesystem::create_directories(presetsDirectory);
+
+	const bool hasPresetFiles = std::any_of(
+		boost::filesystem::directory_iterator(presetsDirectory),
+		boost::filesystem::directory_iterator(),
+		[](const auto & entry)
+		{
+			return boost::filesystem::is_regular_file(entry.path()) && entry.path().extension() == ".json";
+		});
+
+	if (!hasPresetFiles && !modConfig["presets"].Struct().empty())
+		savePresetsToDirectory();
 }
 
 void ModsPresetState::createInitialPreset()
@@ -345,8 +444,12 @@ void ModsPresetState::setValidatedChecksum(const TModID & modName, std::optional
 
 void ModsPresetState::saveConfigurationState() const
 {
+	JsonNode configToSave = modConfig;
+	configToSave.Struct().erase("presets");
+
 	std::fstream file(CResourceHandler::get()->getResourceName(ResourcePath("config/modSettings.json"))->c_str(), std::ofstream::out | std::ofstream::trunc);
-	file << modConfig.toCompactString();
+	file << configToSave.toCompactString();
+	savePresetsToDirectory();
 }
 
 void ModsPresetState::createNewPreset(const std::string & presetName)
