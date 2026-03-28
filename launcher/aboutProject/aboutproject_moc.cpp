@@ -375,12 +375,11 @@ static void handleMobileLogArchiveDestination(AboutProjectView * view, const QSt
 	}
 
 	logGlobal->warn("Log export: folder picker unavailable, using manual file selection fallback");
-	QMessageBox::information(view, view->tr("Select destination file"), view->tr("Please select destination file and save the archive as vcmi-logs.zip."));
-	const QString defaultName = QDir::home().filePath("vcmi-logs.zip");
-	QString pickedPath = QFileDialog::getSaveFileName(view, view->tr("Select destination file"), defaultName, view->tr("Zip archives (*.zip);;All files (*.*)"));
+	QMessageBox::information(view, view->tr("Manual filename required"), view->tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-logs.zip)."));
+	QString pickedPath = QFileDialog::getOpenFileName(view, view->tr("Select destination file"), QDir::homePath(), view->tr("All files (*.*)"));
 	if(pickedPath.isEmpty())
 		return;
-	if(!pickedPath.endsWith(".zip", Qt::CaseInsensitive))
+	if(!pickedPath.startsWith("content://", Qt::CaseInsensitive) && !pickedPath.endsWith(".zip", Qt::CaseInsensitive))
 		pickedPath += ".zip";
 	saveLogArchiveToDestination(view, outPath, pickedPath);
 }
@@ -390,7 +389,7 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 {
 	auto ensureZipSuffix = [](QString path)
 	{
-		if(path.endsWith(".zip", Qt::CaseInsensitive))
+		if(path.startsWith("content://", Qt::CaseInsensitive) || path.endsWith(".zip", Qt::CaseInsensitive))
 			return path;
 		return path + ".zip";
 	};
@@ -431,9 +430,8 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 	else
 	{
 		logGlobal->warn("Save export: folder picker unavailable, using manual file selection fallback");
-		QMessageBox::information(this, tr("Select destination file"), tr("Please select destination file and save the archive as vcmi-saves.zip."));
-		const QString defaultName = QDir::home().filePath("vcmi-saves.zip");
-		const QString pickedPath = QFileDialog::getSaveFileName(this, tr("Select destination file"), defaultName, tr("Zip archives (*.zip);;All files (*.*)"));
+		QMessageBox::information(this, tr("Manual filename required"), tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-saves.zip)."));
+		const QString pickedPath = QFileDialog::getOpenFileName(this, tr("Select destination file"), QDir::homePath(), tr("All files (*.*)"));
 		if(pickedPath.isEmpty())
 			return;
 		exportViaTarget(ensureZipSuffix(pickedPath), true);
