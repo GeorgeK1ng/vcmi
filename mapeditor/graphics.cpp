@@ -36,6 +36,10 @@
 #include "../lib/mapObjects/ObjectTemplate.h"
 
 Graphics * graphics = nullptr;
+namespace
+{
+const std::string FALLBACK_ANIMATION = "IOKAY32.DEF";
+}
 
 void Graphics::loadPaletteAndColors()
 {
@@ -263,6 +267,22 @@ std::shared_ptr<Animation> Graphics::getAnimation(const CGObjectInstance* obj)
 
 std::shared_ptr<Animation> Graphics::getHeroAnimation(const std::shared_ptr<const ObjectTemplate> info)
 {
+	auto getFallbackAnimation = [this]() -> std::shared_ptr<Animation>
+	{
+		try
+		{
+			auto fallback = std::make_shared<Animation>(FALLBACK_ANIMATION);
+			fallback->preload();
+			return fallback;
+		}
+		catch(const std::exception & e)
+		{
+			reportMissingAnimation(FALLBACK_ANIMATION);
+			logGlobal->warn("Failed to preload fallback animation %s: %s", FALLBACK_ANIMATION, e.what());
+			return std::shared_ptr<Animation>();
+		}
+	};
+
 	if(info->animationFile.empty())
 	{
 		logGlobal->warn("Def name for hero (%d,%d) is empty!", info->id, info->subid);
@@ -274,19 +294,53 @@ std::shared_ptr<Animation> Graphics::getHeroAnimation(const std::shared_ptr<cons
 	//already loaded
 	if(ret)
 	{
-		ret->preload();
+		try
+		{
+			ret->preload();
+		}
+		catch(const std::exception & e)
+		{
+			reportMissingAnimation(info->animationFile.getOriginalName());
+			logGlobal->warn("Failed to preload hero animation %s: %s", info->animationFile.getOriginalName(), e.what());
+			return getFallbackAnimation();
+		}
 		return ret;
 	}
 	
 	ret = std::make_shared<Animation>(info->animationFile.getOriginalName());
 	heroAnimations[info->animationFile.getName()] = ret;
 	
-	ret->preload();
+	try
+	{
+		ret->preload();
+	}
+	catch(const std::exception & e)
+	{
+		reportMissingAnimation(info->animationFile.getOriginalName());
+		logGlobal->warn("Failed to preload hero animation %s: %s", info->animationFile.getOriginalName(), e.what());
+		return getFallbackAnimation();
+	}
 	return ret;
 }
 
 std::shared_ptr<Animation> Graphics::getAnimation(const std::shared_ptr<const ObjectTemplate> info)
 {	
+	auto getFallbackAnimation = [this]() -> std::shared_ptr<Animation>
+	{
+		try
+		{
+			auto fallback = std::make_shared<Animation>(FALLBACK_ANIMATION);
+			fallback->preload();
+			return fallback;
+		}
+		catch(const std::exception & e)
+		{
+			reportMissingAnimation(FALLBACK_ANIMATION);
+			logGlobal->warn("Failed to preload fallback animation %s: %s", FALLBACK_ANIMATION, e.what());
+			return std::shared_ptr<Animation>();
+		}
+	};
+
 	if(info->animationFile.empty())
 	{
 		logGlobal->warn("Def name for obj (%d,%d) is empty!", info->id, info->subid);
@@ -298,15 +352,49 @@ std::shared_ptr<Animation> Graphics::getAnimation(const std::shared_ptr<const Ob
 	//already loaded
 	if(ret)
 	{
-		ret->preload();
+		try
+		{
+			ret->preload();
+		}
+		catch(const std::exception & e)
+		{
+			reportMissingAnimation(info->animationFile.getOriginalName());
+			logGlobal->warn("Failed to preload animation %s: %s", info->animationFile.getOriginalName(), e.what());
+			return getFallbackAnimation();
+		}
 		return ret;
 	}
 	
 	ret = std::make_shared<Animation>(info->animationFile.getOriginalName());
 	mapObjectAnimations[info->animationFile.getName()] = ret;
 	
-	ret->preload();
+	try
+	{
+		ret->preload();
+	}
+	catch(const std::exception & e)
+	{
+		reportMissingAnimation(info->animationFile.getOriginalName());
+		logGlobal->warn("Failed to preload animation %s: %s", info->animationFile.getOriginalName(), e.what());
+		return getFallbackAnimation();
+	}
 	return ret;
+}
+
+void Graphics::reportMissingAnimation(const std::string & animationName)
+{
+	if(!animationName.empty())
+		missingAnimationFiles.insert(animationName);
+}
+
+void Graphics::clearMissingAnimations()
+{
+	missingAnimationFiles.clear();
+}
+
+std::vector<std::string> Graphics::getMissingAnimations() const
+{
+	return std::vector<std::string>(missingAnimationFiles.begin(), missingAnimationFiles.end());
 }
 
 void Graphics::addImageListEntry(size_t index, size_t group, const std::string & listName, const std::string & imageName)

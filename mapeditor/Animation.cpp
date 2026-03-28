@@ -648,7 +648,18 @@ Animation::Animation(std::string Name):
 	auto resource = AnimationPath::builtin("SPRITES/" + name);
 
 	if(CResourceHandler::get()->existsResource(resource))
-		defFile = std::make_shared<DefFile>(name);
+	{
+		try
+		{
+			defFile = std::make_shared<DefFile>(name);
+		}
+		catch(const std::exception & e)
+		{
+			logAnim->warn("Failed to load def file for animation %s: %s", name, e.what());
+			if(graphics)
+				graphics->reportMissingAnimation(name + ".DEF");
+		}
+	}
 
 	init();
 

@@ -18,6 +18,13 @@
 #include <QFileInfo>
 #include <QDialog>
 #include <QListWidget>
+#include <QLabel>
+#include <QPlainTextEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QClipboard>
+#include <QApplication>
 
 #include "../lib/VCMIDirs.h"
 #include "../lib/GameLibrary.h"
@@ -468,6 +475,8 @@ void MainWindow::initializeMap(bool isNew)
 
 bool MainWindow::openMap(const QString & filenameSelect)
 {
+	graphics->clearMissingAnimations();
+
 	try
 	{
 		controller.setMap(Helper::openMapInternal(filenameSelect, controller.getCallback()));
@@ -496,10 +505,51 @@ bool MainWindow::openMap(const QString & filenameSelect)
 	
 	filename = filenameSelect;
 	initializeMap(controller.map()->version != EMapFormat::VCMI);
+	showMissingAnimationsReport();
 
 	updateRecentMenu(filenameSelect);
 
 	return true;
+}
+
+void MainWindow::showMissingAnimationsReport()
+{
+	const auto missingAnimations = graphics->getMissingAnimations();
+	if(missingAnimations.empty())
+		return;
+
+	auto * reportDialog = new QDialog(this);
+	reportDialog->setWindowTitle(tr("Missing DEF files"));
+	reportDialog->setMinimumSize(700, 420);
+
+	auto * layout = new QVBoxLayout(reportDialog);
+	layout->addWidget(new QLabel(tr("Map was loaded, but some DEF files are missing.\n"
+		"Fallback graphics are used on the map. Copy this list and map missing defs to templates."), reportDialog));
+
+	auto * listEdit = new QPlainTextEdit(reportDialog);
+	listEdit->setReadOnly(true);
+	QStringList missingList;
+	for(const auto & animationName : missingAnimations)
+		missingList.append(QString::fromStdString(animationName));
+	listEdit->setPlainText(missingList.join("\n"));
+	layout->addWidget(listEdit);
+
+	auto * buttonsLayout = new QHBoxLayout();
+	buttonsLayout->addStretch();
+	auto * copyButton = new QPushButton(tr("Copy list"), reportDialog);
+	auto * closeButton = new QPushButton(tr("Close"), reportDialog);
+	buttonsLayout->addWidget(copyButton);
+	buttonsLayout->addWidget(closeButton);
+	layout->addLayout(buttonsLayout);
+
+	connect(copyButton, &QPushButton::clicked, this, [listEdit]()
+	{
+		if(auto * clipboard = QApplication::clipboard())
+			clipboard->setText(listEdit->toPlainText());
+	});
+	connect(closeButton, &QPushButton::clicked, reportDialog, &QDialog::accept);
+
+	reportDialog->exec();
 }
 
 void MainWindow::openCampaign(const QString & filenameSelect)
@@ -1685,4 +1735,3 @@ void MainWindow::on_toolSelect_toggled(bool checked)
 		ui->tabWidget->setCurrentIndex(0);
 	}
 }
-

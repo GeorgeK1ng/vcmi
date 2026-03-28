@@ -13,6 +13,8 @@
 #include "../lib/GameConstants.h"
 #include "../lib/filesystem/ResourcePath.h"
 #include <QImage>
+#include <set>
+#include <vector>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -74,6 +76,7 @@ public:
 	std::map< std::string, std::shared_ptr<Animation> > mapObjectAnimations;
 		
 	std::map<std::string, JsonNode> imageLists;
+	std::set<std::string> missingAnimationFiles;
 		
 	//functions
 	Graphics();
@@ -86,6 +89,9 @@ public:
 	std::shared_ptr<Animation> getAnimation(const CGObjectInstance * obj);
 	std::shared_ptr<Animation> getAnimation(const std::shared_ptr<const ObjectTemplate> info);
 	std::shared_ptr<Animation> getHeroAnimation(const std::shared_ptr<const ObjectTemplate> info);
+	void clearMissingAnimations();
+	void reportMissingAnimation(const std::string & animationName);
+	std::vector<std::string> getMissingAnimations() const;
 };
 
 extern Graphics * graphics;

@@ -191,6 +191,7 @@ private:
 	void parseCommandLine(ExtractionOptions & extractionOptions);
 
 	void updateRecentMenu(const QString & filenameSelect);
+	void showMissingAnimationsReport();
 
 private:
 	Ui::MainWindow * ui;
