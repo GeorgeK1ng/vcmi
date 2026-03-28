@@ -374,13 +374,9 @@ static void handleMobileLogArchiveDestination(AboutProjectView * view, const QSt
 		return;
 	}
 
-	logGlobal->warn("Log export: folder picker unavailable, trying save dialog with fallback");
-	QString pickedPath = QFileDialog::getSaveFileName(view, view->tr("Select destination file"), QDir::home().filePath("vcmi-logs.zip"), view->tr("Zip archives (*.zip);;All files (*.*)"));
-	if(pickedPath.isEmpty())
-	{
-		QMessageBox::information(view, view->tr("Manual filename required"), view->tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-logs.zip)."));
-		pickedPath = QFileDialog::getOpenFileName(view, view->tr("Select destination file"), QDir::homePath(), view->tr("All files (*.*)"));
-	}
+	logGlobal->warn("Log export: folder picker unavailable, using direct open-file fallback");
+	QMessageBox::information(view, view->tr("Manual filename required"), view->tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-logs.zip)."));
+	QString pickedPath = QFileDialog::getOpenFileName(view, view->tr("Select destination file"), QDir::homePath(), view->tr("All files (*.*)"));
 	if(pickedPath.isEmpty())
 		return;
 	if(!pickedPath.startsWith("content://", Qt::CaseInsensitive) && !pickedPath.endsWith(".zip", Qt::CaseInsensitive))
@@ -433,13 +429,9 @@ void AboutProjectView::on_pushButtonExportSaves_clicked()
 	}
 	else
 	{
-		logGlobal->warn("Save export: folder picker unavailable, trying save dialog with fallback");
-		QString pickedPath = QFileDialog::getSaveFileName(this, tr("Select destination file"), QDir::home().filePath("vcmi-saves.zip"), tr("Zip archives (*.zip);;All files (*.*)"));
-		if(pickedPath.isEmpty())
-		{
-			QMessageBox::information(this, tr("Manual filename required"), tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-saves.zip)."));
-			pickedPath = QFileDialog::getOpenFileName(this, tr("Select destination file"), QDir::homePath(), tr("All files (*.*)"));
-		}
+		logGlobal->warn("Save export: folder picker unavailable, using direct open-file fallback");
+		QMessageBox::information(this, tr("Manual filename required"), tr("This fallback picker may not prefill a filename on some devices. If no filename is shown, create one manually (for example: vcmi-saves.zip)."));
+		const QString pickedPath = QFileDialog::getOpenFileName(this, tr("Select destination file"), QDir::homePath(), tr("All files (*.*)"));
 		if(pickedPath.isEmpty())
 			return;
 		exportViaTarget(ensureZipSuffix(pickedPath), true);
