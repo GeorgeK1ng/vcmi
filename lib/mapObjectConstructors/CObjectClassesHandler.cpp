@@ -359,10 +359,14 @@ void CObjectClassesHandler::removeSubObject(MapObjectID ID, MapObjectSubID subID
 
 TObjectTypeHandler CObjectClassesHandler::getHandlerFor(MapObjectID type, MapObjectSubID subtype) const
 {
+	TObjectTypeHandler fallbackHandler;
+	if(!mapObjectTypes.empty() && mapObjectTypes.front() && !mapObjectTypes.front()->objectTypeHandlers.empty())
+		fallbackHandler = mapObjectTypes.front()->objectTypeHandlers.front();
+
 	try
 	{
 		if (mapObjectTypes.at(type.getNum()) == nullptr)
-			return mapObjectTypes.front()->objectTypeHandlers.front();
+			return fallbackHandler;
 
 		auto subID = subtype.getNum();
 		if (type == Obj::PRISON || type == Obj::HERO_PLACEHOLDER || type == Obj::SPELL_SCROLL)
@@ -379,7 +383,8 @@ TObjectTypeHandler CObjectClassesHandler::getHandlerFor(MapObjectID type, MapObj
 
 	std::string errorString = "Failed to find object of type " + std::to_string(type.getNum()) + "::" + std::to_string(subtype.getNum());
 	logGlobal->error(errorString);
-	throw std::out_of_range(errorString);
+	missingObjectTypeHandlers.insert(std::to_string(type.getNum()) + ":" + std::to_string(subtype.getNum()));
+	return fallbackHandler;
 }
 
 TObjectTypeHandler CObjectClassesHandler::getHandlerFor(const std::string & scope, const std::string & type, const std::string & subtype) const
@@ -396,6 +401,9 @@ TObjectTypeHandler CObjectClassesHandler::getHandlerFor(const std::string & scop
 
 	std::string objectType = type + "::" + subtype;
 	logGlobal->error("Failed to find object of type %s", objectType);
+	missingObjectTypeHandlers.insert(objectType);
+	if(!mapObjectTypes.empty() && mapObjectTypes.front() && !mapObjectTypes.front()->objectTypeHandlers.empty())
+		return mapObjectTypes.front()->objectTypeHandlers.front();
 	throw IdentifierResolutionException(objectType);
 }
 
@@ -629,6 +637,16 @@ std::string CObjectClassesHandler::getJsonKey(MapObjectID type) const
 
 	logGlobal->warn("Unknown object of type %d!", type);
 	return mapObjectTypes.front()->getJsonKey();
+}
+
+void CObjectClassesHandler::clearMissingObjectTypeHandlers() const
+{
+	missingObjectTypeHandlers.clear();
+}
+
+std::vector<std::string> CObjectClassesHandler::getMissingObjectTypeHandlers() const
+{
+	return std::vector<std::string>(missingObjectTypeHandlers.begin(), missingObjectTypeHandlers.end());
 }
 
 VCMI_LIB_NAMESPACE_END

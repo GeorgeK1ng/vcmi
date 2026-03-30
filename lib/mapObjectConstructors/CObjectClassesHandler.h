@@ -54,6 +54,7 @@ class DLL_LINKAGE CObjectClassesHandler : public IHandlerBase
 	std::map<std::string, std::function<TObjectTypeHandler()> > handlerConstructors;
 
 	std::vector<std::pair<CompoundMapObjectID, std::function<void(CompoundMapObjectID)>>> objectIdHandlers;
+	mutable std::set<std::string> missingObjectTypeHandlers;
 
 	/// container with H3 templates, used only during loading, no need to serialize it
 	using TTemplatesContainer = std::multimap<std::pair<MapObjectID, MapObjectSubID>, std::shared_ptr<const ObjectTemplate>>;
@@ -104,6 +105,8 @@ public:
 	std::string getObjectHandlerName(MapObjectID type) const;
 
 	std::string getJsonKey(MapObjectID type) const;
+	void clearMissingObjectTypeHandlers() const;
+	std::vector<std::string> getMissingObjectTypeHandlers() const;
 };
 
 VCMI_LIB_NAMESPACE_END

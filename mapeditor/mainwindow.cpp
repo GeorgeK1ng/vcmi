@@ -476,6 +476,7 @@ void MainWindow::initializeMap(bool isNew)
 bool MainWindow::openMap(const QString & filenameSelect)
 {
 	graphics->clearMissingAnimations();
+	LIBRARY->objtypeh->clearMissingObjectTypeHandlers();
 
 	try
 	{
@@ -515,7 +516,8 @@ bool MainWindow::openMap(const QString & filenameSelect)
 void MainWindow::showMissingAnimationsReport()
 {
 	const auto missingAnimations = graphics->getMissingAnimations();
-	if(missingAnimations.empty())
+	const auto missingObjectTypes = LIBRARY->objtypeh->getMissingObjectTypeHandlers();
+	if(missingAnimations.empty() && missingObjectTypes.empty())
 		return;
 
 	auto * reportDialog = new QDialog(this);
@@ -523,14 +525,16 @@ void MainWindow::showMissingAnimationsReport()
 	reportDialog->setMinimumSize(700, 420);
 
 	auto * layout = new QVBoxLayout(reportDialog);
-	layout->addWidget(new QLabel(tr("Map was loaded, but some DEF files are missing.\n"
-		"Fallback graphics are used on the map. Copy this list and map missing defs to templates."), reportDialog));
+	layout->addWidget(new QLabel(tr("Map was loaded, but some assets or object mappings are missing.\n"
+		"Fallback graphics are used on the map. Copy this list and update object mappings."), reportDialog));
 
 	auto * listEdit = new QPlainTextEdit(reportDialog);
 	listEdit->setReadOnly(true);
 	QStringList missingList;
 	for(const auto & animationName : missingAnimations)
-		missingList.append(QString::fromStdString(animationName));
+		missingList.append(QString("DEF: %1").arg(QString::fromStdString(animationName)));
+	for(const auto & objectType : missingObjectTypes)
+		missingList.append(QString("OBJECT: %1").arg(QString::fromStdString(objectType)));
 	listEdit->setPlainText(missingList.join("\n"));
 	layout->addWidget(listEdit);
 
