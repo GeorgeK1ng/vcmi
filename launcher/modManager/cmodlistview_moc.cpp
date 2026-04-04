@@ -1110,9 +1110,8 @@ void CModListView::installMods(QStringList archives)
 {
 	QStringList modNames;
 	QStringList modsToEnable;
-	QMap<QString, QSet<QString>> submodsEnabledBeforeUpdate;
-	QMap<QString, QSet<QString>> submodsDisabledBeforeUpdate;
-	QMap<QString, QStringList> submodsByTopParent;
+	QMap<QString, QMap<QString, bool>> submodStateBeforeUpdate;
+	const QStringList allKnownMods = modStateModel->getAllMods();
 
 	for(QString archive : archives)
 	{
@@ -1121,13 +1120,6 @@ void CModListView::installMods(QStringList archives)
 		QString modName = archive.section('/', -1, -1).section('.', 0, 0);
 
 		modNames.push_back(modName);
-	}
-
-	for(const auto & knownMod : modStateModel->getAllMods())
-	{
-		const auto modState = modStateModel->getMod(knownMod);
-		if(modState.isSubmod())
-			submodsByTopParent[modState.getTopParentID()].push_back(knownMod);
 	}
 
 	if (!activatingPreset.isEmpty())
@@ -1141,14 +1133,14 @@ void CModListView::installMods(QStringList archives)
 	{
 		if(modStateModel->isModExists(mod) && modStateModel->getMod(mod).isInstalled())
 		{
-			for(const auto & knownMod : submodsByTopParent.value(mod))
+			for(const auto & knownMod : allKnownMods)
 			{
-				const QString settingID = knownMod.mid(mod.size() + 1);
+				const auto knownModState = modStateModel->getMod(knownMod);
+				if(!knownModState.isSubmod() || knownModState.getTopParentID() != mod)
+					continue;
 
-				if(modStateModel->isModSettingEnabled(mod, settingID))
-					submodsEnabledBeforeUpdate[mod].insert(knownMod);
-				else
-					submodsDisabledBeforeUpdate[mod].insert(knownMod);
+				const QString settingID = knownMod.mid(mod.size() + 1);
+				submodStateBeforeUpdate[mod][knownMod] = modStateModel->isModSettingEnabled(mod, settingID);
 			}
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
@@ -1194,15 +1186,17 @@ void CModListView::installMods(QStringList archives)
 		if (!modStateModel->isModExists(mod) || !modStateModel->isModEnabled(mod))
 			continue;
 
-		for (const auto & submod : submodsEnabledBeforeUpdate[mod])
+		for (auto submodIt = submodStateBeforeUpdate[mod].cbegin(); submodIt != submodStateBeforeUpdate[mod].cend(); ++submodIt)
 		{
-			if (modStateModel->isModExists(submod) && !modStateModel->isModEnabled(submod))
-				manager->enableMods({submod});
-		}
+			const QString & submod = submodIt.key();
+			const bool wasEnabled = submodIt.value();
 
-		for (const auto & submod : submodsDisabledBeforeUpdate[mod])
-		{
-			if (modStateModel->isModExists(submod) && modStateModel->isModEnabled(submod))
+			if(!modStateModel->isModExists(submod))
+				continue;
+
+			if(wasEnabled && !modStateModel->isModEnabled(submod))
+				manager->enableMods({submod});
+			else if(!wasEnabled && modStateModel->isModEnabled(submod))
 				manager->disableMod(submod);
 		}
 	}
