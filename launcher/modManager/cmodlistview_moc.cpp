@@ -1110,6 +1110,8 @@ void CModListView::installMods(QStringList archives)
 {
 	QStringList modNames;
 	QStringList modsToEnable;
+	QMap<QString, QSet<QString>> submodsEnabledBeforeUpdate;
+	QMap<QString, QSet<QString>> submodsDisabledBeforeUpdate;
 
 	for(QString archive : archives)
 	{
@@ -1131,6 +1133,17 @@ void CModListView::installMods(QStringList archives)
 	{
 		if(modStateModel->isModExists(mod) && modStateModel->getMod(mod).isInstalled())
 		{
+			for(const auto & knownMod : modStateModel->getAllMods())
+			{
+				if(!knownMod.startsWith(mod + '.'))
+					continue;
+
+				if(modStateModel->isModSettingEnabled(mod, knownMod.section('.', 1)))
+					submodsEnabledBeforeUpdate[mod].insert(knownMod);
+				else
+					submodsDisabledBeforeUpdate[mod].insert(knownMod);
+			}
+
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
 			if (modStateModel->isModEnabled(mod))
 				modsToEnable.push_back(mod);
@@ -1167,6 +1180,24 @@ void CModListView::installMods(QStringList archives)
 	if (!modsToEnable.empty())
 	{
 		manager->enableMods(modsToEnable);
+	}
+
+	for (const auto & mod : modNames)
+	{
+		if (!modStateModel->isModExists(mod) || !modStateModel->isModEnabled(mod))
+			continue;
+
+		for (const auto & submod : submodsEnabledBeforeUpdate[mod])
+		{
+			if (modStateModel->isModExists(submod) && !modStateModel->isModEnabled(submod))
+				manager->enableMods({submod});
+		}
+
+		for (const auto & submod : submodsDisabledBeforeUpdate[mod])
+		{
+			if (modStateModel->isModExists(submod) && modStateModel->isModEnabled(submod))
+				manager->disableMod(submod);
+		}
 	}
 
 	checkManagerErrors();
