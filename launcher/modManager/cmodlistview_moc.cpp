@@ -1112,6 +1112,7 @@ void CModListView::installMods(QStringList archives)
 	QStringList modsToEnable;
 	QMap<QString, QSet<QString>> submodsEnabledBeforeUpdate;
 	QMap<QString, QSet<QString>> submodsDisabledBeforeUpdate;
+	QMap<QString, QStringList> submodsByTopParent;
 
 	for(QString archive : archives)
 	{
@@ -1120,6 +1121,13 @@ void CModListView::installMods(QStringList archives)
 		QString modName = archive.section('/', -1, -1).section('.', 0, 0);
 
 		modNames.push_back(modName);
+	}
+
+	for(const auto & knownMod : modStateModel->getAllMods())
+	{
+		const auto modState = modStateModel->getMod(knownMod);
+		if(modState.isSubmod())
+			submodsByTopParent[modState.getTopParentID()].push_back(knownMod);
 	}
 
 	if (!activatingPreset.isEmpty())
@@ -1133,12 +1141,11 @@ void CModListView::installMods(QStringList archives)
 	{
 		if(modStateModel->isModExists(mod) && modStateModel->getMod(mod).isInstalled())
 		{
-			for(const auto & knownMod : modStateModel->getAllMods())
+			for(const auto & knownMod : submodsByTopParent.value(mod))
 			{
-				if(!knownMod.startsWith(mod + '.'))
-					continue;
+				const QString settingID = knownMod.mid(mod.size() + 1);
 
-				if(modStateModel->isModSettingEnabled(mod, knownMod.section('.', 1)))
+				if(modStateModel->isModSettingEnabled(mod, settingID))
 					submodsEnabledBeforeUpdate[mod].insert(knownMod);
 				else
 					submodsDisabledBeforeUpdate[mod].insert(knownMod);
