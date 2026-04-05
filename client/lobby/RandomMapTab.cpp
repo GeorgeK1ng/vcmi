@@ -57,6 +57,8 @@ std::optional<int> mapSizeFromStringId(const std::string & id)
 		return CMapHeader::MAP_SIZE_XHUGE;
 	if(boost::ends_with(upper, ".XL") || boost::ends_with(upper, "XL"))
 		return CMapHeader::MAP_SIZE_XLARGE;
+	if(boost::ends_with(upper, ".HG") || boost::ends_with(upper, "HG"))
+		return CMapHeader::MAP_SIZE_HUGE;
 	if(boost::ends_with(upper, ".G") || boost::ends_with(upper, "G"))
 		return CMapHeader::MAP_SIZE_GIANT;
 	if(boost::ends_with(upper, ".H") || boost::ends_with(upper, "H"))
