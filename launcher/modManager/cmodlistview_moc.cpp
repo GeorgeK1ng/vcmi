@@ -1135,8 +1135,7 @@ void CModListView::installMods(QStringList archives)
 		{
 			for(const auto & knownMod : allKnownMods)
 			{
-				const auto knownModState = modStateModel->getMod(knownMod);
-				if(!knownModState.isSubmod() || knownModState.getTopParentID() != mod)
+				if(!knownMod.startsWith(mod + '.') || !modStateModel->isModInstalled(knownMod))
 					continue;
 
 				const QString settingID = knownMod.mid(mod.size() + 1);
