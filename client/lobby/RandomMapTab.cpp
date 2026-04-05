@@ -619,7 +619,7 @@ void RandomMapTab::deactivateButtonsFrom(CToggleGroup & group, const std::set<in
 	}
 }
 
-std::vector<int> RandomMapTab::getStandardMapSizes()
+std::vector<int> RandomMapTab::getStandardMapSizes() const
 {
 	return {CMapHeader::MAP_SIZE_SMALL, CMapHeader::MAP_SIZE_MIDDLE, CMapHeader::MAP_SIZE_LARGE, CMapHeader::MAP_SIZE_XLARGE, CMapHeader::MAP_SIZE_HUGE, CMapHeader::MAP_SIZE_XHUGE, CMapHeader::MAP_SIZE_GIANT};
 }

@@ -50,7 +50,7 @@ public:
 private:
 	void initializeMapSizeButtons(const JsonNode & config);
 	void deactivateButtonsFrom(CToggleGroup & group, const std::set<int> & allowed);
-	std::vector<int> getStandardMapSizes();
+	std::vector<int> getStandardMapSizes() const;
 	std::optional<int> getMapSizeForButtonId(int btnId) const;
 	bool isCustomSizeButtonId(int btnId) const;
 	void onToggleMapSize(int btnId);
