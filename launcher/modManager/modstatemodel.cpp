@@ -73,14 +73,6 @@ bool ModStateModel::isModSettingEnabled(QString rootModName, QString modSettingN
 	return modManager->isModSettingActive(rootModName.toStdString(), modSettingName.toStdString());
 }
 
-QMap<QString, bool> ModStateModel::getModSettings(QString rootModName) const
-{
-	QMap<QString, bool> result;
-	for (const auto & entry : modManager->getModSettings(rootModName.toStdString()))
-		result[QString::fromStdString(entry.first)] = entry.second;
-	return result;
-}
-
 bool ModStateModel::isModEnabled(QString modName) const
 {
 	return modManager->isModActive(modName.toStdString());
