@@ -665,6 +665,13 @@ bool RandomMapTab::isCustomSizeButtonId(int btnId) const
 	return customSizeButtons.count(btnId) > 0;
 }
 
+size_t RandomMapTab::getCustomMapSizeIconFrame() const
+{
+	// SCNRMPSZ convention: standard size icons first, then custom icon.
+	// Number of recognized standard map-size buttons gives custom icon frame index.
+	return mapSizeButtons.size();
+}
+
 void TeamAlignmentsWidget::checkTeamCount()
 {
 	//Do not allow to select one team only

@@ -45,6 +45,7 @@ public:
 	void loadOptions();
 	CMapGenOptions & obtainMapGenOptions() {return *mapGenOptions;}
 	bool isCustomMapSizeMode() const { return customMapSizeMode; }
+	size_t getCustomMapSizeIconFrame() const;
 
 	CFunctionList<void(std::shared_ptr<CMapInfo>, std::shared_ptr<CMapGenOptions>)> mapInfoChanged;
 

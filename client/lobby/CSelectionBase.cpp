@@ -260,7 +260,7 @@ void InfoCard::changeSelection()
 	size_t mapSizeIconFrame = mapInfo->getMapSizeIconId();
 	if(const auto * selectionScreen = dynamic_cast<const CSelectionBase *>(SEL);
 	   mapInfo->isRandomMap && selectionScreen && selectionScreen->tabRand && selectionScreen->tabRand->isCustomMapSizeMode())
-		mapSizeIconFrame = 7; // custom map size icon slot
+		mapSizeIconFrame = selectionScreen->tabRand->getCustomMapSizeIconFrame();
 	iconsMapSizes->setFrame(std::min<size_t>(mapSizeIconFrame, iconsMapSizes->size() - 1));
 
 	iconsVictoryCondition->setFrame(header->victoryIconIndex);
