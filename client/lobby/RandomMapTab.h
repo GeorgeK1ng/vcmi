@@ -16,8 +16,6 @@
 #include "../../lib/rmg/CRmgTemplate.h"
 #include "../gui/InterfaceObjectConfigurable.h"
 
-#include <optional>
-
 VCMI_LIB_NAMESPACE_BEGIN
 
 class CMapGenOptions;
