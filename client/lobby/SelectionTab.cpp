@@ -248,7 +248,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		pos = background->pos;
 		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
 		inputName->setFilterFilename();
-		if(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT")))
+		if(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")))
 			labelMapSizes = std::make_shared<CLabel>(87, 62, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, LIBRARY->generaltexth->allTexts[510]);
 
 		for(const auto & mapSizeButton : loadMapSizeFilterButtons())
