@@ -62,6 +62,25 @@ struct MapSizeFilterButtonConfig
 	EShortcut shortcut = {};
 };
 
+EShortcut mapSizeFilterShortcut(int mapSize)
+{
+	switch(mapSize)
+	{
+	case CMapHeader::MAP_SIZE_SMALL:
+		return EShortcut::MAPS_SIZE_S;
+	case CMapHeader::MAP_SIZE_MIDDLE:
+		return EShortcut::MAPS_SIZE_M;
+	case CMapHeader::MAP_SIZE_LARGE:
+		return EShortcut::MAPS_SIZE_L;
+	case CMapHeader::MAP_SIZE_XLARGE:
+		return EShortcut::MAPS_SIZE_XL;
+	case 0:
+		return EShortcut::MAPS_SIZE_ALL;
+	default:
+		return {};
+	}
+}
+
 std::vector<MapSizeFilterButtonConfig> loadMapSizeFilterButtons()
 {
 	const JsonNode config(JsonPath::builtin("config/widgets/selectionTab.json"));
@@ -76,13 +95,11 @@ std::vector<MapSizeFilterButtonConfig> loadMapSizeFilterButtons()
 		buttonConfig.mapSize = item["size"].Integer();
 		buttonConfig.position = Point(item["position"]["x"].Integer(), item["position"]["y"].Integer());
 		buttonConfig.image = item["image"].String();
+		buttonConfig.shortcut = mapSizeFilterShortcut(buttonConfig.mapSize);
 
 		if(!item["help"].isNull())
 		{
-			if(item["help"].isString())
-				buttonConfig.tooltip = CButton::tooltip("", LIBRARY->generaltexth->translate(item["help"].String()));
-			else
-				buttonConfig.tooltip = CButton::tooltip("", LIBRARY->generaltexth->zelp[item["help"].Integer()]);
+			buttonConfig.tooltip = CButton::tooltip("", LIBRARY->generaltexth->translate(item["help"].String()));
 		}
 
 		result.push_back(buttonConfig);
