@@ -105,7 +105,9 @@ std::vector<MapSizeFilterButtonConfig> loadMapSizeFilterButtons()
 
 		if(!item["help"].isNull())
 		{
-			buttonConfig.tooltip = CButton::tooltip("", LIBRARY->generaltexth->translate(item["help"].String()));
+			buttonConfig.tooltip = CButton::tooltip(
+				LIBRARY->generaltexth->translate(item["help"].String(), "hover"),
+				LIBRARY->generaltexth->translate(item["help"].String(), "help"));
 		}
 
 		result.push_back(buttonConfig);
