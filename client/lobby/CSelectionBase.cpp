@@ -257,8 +257,8 @@ void InfoCard::changeSelection()
 	const CMapHeader * header = mapInfo->mapHeader.get();
 
 	std::string mapSizeText = std::to_string(header->width) + "x" + std::to_string(header->height);
-	if(header->levels > 1)
-		mapSizeText += "x" + std::to_string(header->levels);
+	if(header->levels() > 1)
+		mapSizeText += "x" + std::to_string(header->levels());
 	labelMapSize->setText(mapSizeText);
 	size_t mapSizeIconFrame = mapInfo->getMapSizeIconId();
 	if(const auto * selectionScreen = dynamic_cast<const CSelectionBase *>(SEL);
