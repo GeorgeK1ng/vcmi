@@ -96,6 +96,7 @@ RandomMapTab::RandomMapTab():
 		if(mapGenOptions->getMapTemplate())
 			if(!mapGenOptions->getMapTemplate()->matchesSize(int3{mapGenOptions->getWidth(), mapGenOptions->getHeight(), mapGenOptions->getLevels()}))
 				setTemplate(nullptr);
+		customMapSizeMode = mapGenOptions->getWidth() != mapGenOptions->getHeight();
 		updateMapInfoByHost();
 	});
 	
@@ -314,6 +315,7 @@ void RandomMapTab::onToggleMapSize(int btnId)
 			mapGenOptions->setWidth(ret.x);
 			mapGenOptions->setHeight(ret.y);
 			mapGenOptions->setLevels(ret.z);
+			customMapSizeMode = true;
 			if(auto twoLevelsButton = widget<CToggleButton>("buttonTwoLevels"))
 				twoLevelsButton->setSelectedSilent(ret.z == 2);
 			setTemplateForSize();
@@ -327,6 +329,7 @@ void RandomMapTab::onToggleMapSize(int btnId)
 
 	mapGenOptions->setWidth(*mapSize);
 	mapGenOptions->setHeight(*mapSize);
+	customMapSizeMode = false;
 	const int targetLevelCount = mapGenOptions->getLevels() > 1 ? 2 : 1;
 	mapGenOptions->setLevels(targetLevelCount);
 	if(auto twoLevelsButton = widget<CToggleButton>("buttonTwoLevels"))
@@ -511,14 +514,21 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 			}
 		}
 
-		if(opts->getWidth() != opts->getHeight())
+		if(customMapSizeMode && customSizeButtons.count(w->getSelected()) > 0)
 		{
+			// Keep current custom button selection. Do not switch to preset button based on dimensions.
+		}
+		else if(opts->getWidth() != opts->getHeight())
+		{
+			customMapSizeMode = true;
 			w->setSelected(customSizeButtons.empty() ? -1 : *customSizeButtons.begin());
 		}
 		else
 		{
 			bool found = false;
 			auto selectedButton = vstd::findKey(mapSizeButtons, opts->getWidth(), &found);
+			if(!found && !customSizeButtons.empty())
+				customMapSizeMode = true;
 			w->setSelected(found ? selectedButton : -1);
 		}
 	}
@@ -589,6 +599,7 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 void RandomMapTab::setTemplate(const CRmgTemplate * tmpl)
 {
 	mapGenOptions->setMapTemplate(tmpl);
+	customMapSizeMode = false;
 	setMapGenOptions(mapGenOptions);
 	if(auto w = widget<CButton>("templateButton"))
 	{
