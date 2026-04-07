@@ -258,7 +258,8 @@ void InfoCard::changeSelection()
 
 	labelMapSize->setText(std::to_string(header->width) + "x" + std::to_string(header->height) + "x" + std::to_string(header->levels()));
 	size_t mapSizeIconFrame = mapInfo->getMapSizeIconId();
-	if(mapInfo->isRandomMap && SEL->tabRand && SEL->tabRand->isCustomMapSizeMode())
+	if(const auto * selectionScreen = dynamic_cast<const CSelectionBase *>(SEL);
+	   mapInfo->isRandomMap && selectionScreen && selectionScreen->tabRand && selectionScreen->tabRand->isCustomMapSizeMode())
 		mapSizeIconFrame = iconsMapSizes->size() - 1;
 	iconsMapSizes->setFrame(std::min<size_t>(mapSizeIconFrame, iconsMapSizes->size() - 1));
 
