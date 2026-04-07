@@ -183,7 +183,7 @@ InfoCard::InfoCard()
 		parent->children.pop_back();
 		pos.w = background->pos.w;
 		pos.h = background->pos.h;
-		iconsMapSizes = std::make_shared<CAnimImage>(AnimationPath::builtin("SCNRMPSZ"), 4, 0, 313, 25); //let it be custom size (frame 4) by default
+		iconsMapSizes = std::make_shared<CAnimImage>(AnimationPath::builtin("SCNRMPSZ"), 7, 0, 313, 25); // custom size icon by default
 
 		iconDifficulty = std::make_shared<CToggleGroup>(0);
 		{
