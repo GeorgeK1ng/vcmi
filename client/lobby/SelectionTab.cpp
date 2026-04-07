@@ -89,7 +89,7 @@ EShortcut mapSizeFilterShortcut(int mapSize)
 
 std::vector<MapSizeFilterButtonConfig> loadMapSizeFilterButtons()
 {
-	const JsonNode config(JsonPath::builtin("config/widgets/selectionTab.json"));
+	const JsonNode config(JsonPath::builtin("config/widgets/scenarioTab.json"));
 
 	std::vector<MapSizeFilterButtonConfig> result;
 	for(const auto & item : config["mapSizeFilterButtons"].Vector())
