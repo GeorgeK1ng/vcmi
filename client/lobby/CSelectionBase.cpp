@@ -183,7 +183,8 @@ InfoCard::InfoCard()
 		parent->children.pop_back();
 		pos.w = background->pos.w;
 		pos.h = background->pos.h;
-		iconsMapSizes = std::make_shared<CAnimImage>(AnimationPath::builtin("SCNRMPSZ"), 4, 0, 313, 25); //let it be custom size (frame 4) by default
+		iconsMapSizes = std::make_shared<CAnimImage>(AnimationPath::builtin("SCNRMPSZ"), 0, 0, 313, 25);
+		iconsMapSizes->setFrame(iconsMapSizes->size() - 1); // use last available frame as "custom" icon
 
 		iconDifficulty = std::make_shared<CToggleGroup>(0);
 		{
@@ -256,7 +257,7 @@ void InfoCard::changeSelection()
 	const CMapHeader * header = mapInfo->mapHeader.get();
 
 	labelMapSize->setText(std::to_string(header->width) + "x" + std::to_string(header->height) + "x" + std::to_string(header->levels()));
-	iconsMapSizes->setFrame(mapInfo->getMapSizeIconId());
+	iconsMapSizes->setFrame(std::min<size_t>(mapInfo->getMapSizeIconId(), iconsMapSizes->size() - 1));
 
 	iconsVictoryCondition->setFrame(header->victoryIconIndex);
 	labelVictoryConditionText->setText(header->victoryMessage.toString());
