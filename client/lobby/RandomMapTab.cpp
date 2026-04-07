@@ -89,7 +89,10 @@ RandomMapTab::RandomMapTab():
 	});
 	addCallback("toggleTwoLevels", [&](bool on)
 	{
-		mapGenOptions->setLevels(on ? 2 : 1);
+		if(mapGenOptions->getLevels() > 2)
+			mapGenOptions->setLevels(2); // standard setup supports at most 2 levels
+		else
+			mapGenOptions->setLevels(on ? 2 : 1);
 		if(mapGenOptions->getMapTemplate())
 			if(!mapGenOptions->getMapTemplate()->matchesSize(int3{mapGenOptions->getWidth(), mapGenOptions->getHeight(), mapGenOptions->getLevels()}))
 				setTemplate(nullptr);
@@ -311,6 +314,8 @@ void RandomMapTab::onToggleMapSize(int btnId)
 			mapGenOptions->setWidth(ret.x);
 			mapGenOptions->setHeight(ret.y);
 			mapGenOptions->setLevels(ret.z);
+			if(auto twoLevelsButton = widget<CToggleButton>("buttonTwoLevels"))
+				twoLevelsButton->setSelectedSilent(ret.z == 2);
 			setTemplateForSize();
 		});
 		return;
@@ -322,6 +327,9 @@ void RandomMapTab::onToggleMapSize(int btnId)
 
 	mapGenOptions->setWidth(*mapSize);
 	mapGenOptions->setHeight(*mapSize);
+	mapGenOptions->setLevels(2); // standard map size buttons always reset to 2 layers
+	if(auto twoLevelsButton = widget<CToggleButton>("buttonTwoLevels"))
+		twoLevelsButton->setSelectedSilent(true);
 	setTemplateForSize();
 }
 
