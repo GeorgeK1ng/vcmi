@@ -98,7 +98,9 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv
     - Specify the following CMake variable: `ENABLE_CCACHE=ON`
     - See the [Visual Studio documentation](https://learn.microsoft.com/en-us/cpp/build/customize-cmake-settings?view=msvc-170#cmake-variables-and-cache) for details
 4. Right click on `BUILD_ALL` project. This `BUILD_ALL` project should be in `CMakePredefinedTargets` tree in Solution Explorer. You can also build individual targets if you want.
-5. VCMI will be built in `%VCMI_DIR%/build/bin/<config>` folder where `<config>` is e.g. `RelWithDebInfo`. To launch the built executables from a file manager, use respective `bat` files, e.g. `VCMI_launcher.bat`.
+5. VCMI will be built in `%VCMI_DIR%/build/bin/<config>` folder where `<config>` is e.g. `RelWithDebInfo`.
+6. When building with Conan on Windows, required runtime DLLs are copied to the executable output directory as part of the build, so binaries in `%VCMI_DIR%/build/bin/<config>` are standalone for running from a file manager.
+7. `bat` launchers (e.g. `VCMI_launcher.bat`) are still generated and can be used as before.
 
 ### Compile VCMI with MinGW64 or UCRT64 via MSYS2
 
