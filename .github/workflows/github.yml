@@ -412,8 +412,9 @@ jobs:
 
     - name: Upload Artifact
       id: upload_artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: false
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}
         compression-level: 9
         path: |
@@ -422,8 +423,9 @@ jobs:
     - name: Upload AAB Artifact
       id: upload_aab
       if: ${{ startsWith(matrix.platform, 'android') && github.ref == 'refs/heads/master' }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: false
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}-aab
         compression-level: 9
         path: |
@@ -432,8 +434,9 @@ jobs:
     - name: Upload MSVC debug symbols
       id: upload_symbols
       if: ${{ startsWith(matrix.platform, 'msvc') }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: true
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}-symbols
         compression-level: 9
         path: |
@@ -449,8 +452,9 @@ jobs:
         echo IOS_APPSTORE_SYMBOLS_DIR="$IOS_APPSTORE_SYMBOLS_DIR" >> $GITHUB_ENV
     - name: Upload iOS AppStore debug symbols
       if: ${{ matrix.platform == 'ios' }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: true
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}-symbols
         compression-level: 9
         path: |
@@ -478,8 +482,9 @@ jobs:
         python3 CI/emit_partial.py
 
     - name: Upload partial JSON with build informations
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: true
         name: partial-json-${{ matrix.platform }}
         path: .summary/${{ matrix.platform }}.json
 
@@ -509,8 +514,9 @@ jobs:
 
         - name: Upload source code archive
           id: upload_source
-          uses: actions/upload-artifact@v6
+          uses: actions/upload-artifact@v7
           with:
+            archive: true
             name: ${{ env.VCMI_PACKAGE_FILE_NAME }}
             compression-level: 9
             path: |
@@ -525,8 +531,9 @@ jobs:
             JSON
 
         - name: Upload partial JSON with source informations
-          uses: actions/upload-artifact@v6
+          uses: actions/upload-artifact@v7
           with:
+            archive: true
             name: partial-json-source
             path: .summary/source.json
 
@@ -765,8 +772,9 @@ jobs:
 
     - name: Upload VCMI Installer Artifacts
       id: upload_installer
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: false
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}-${{ matrix.platform }}-installer
         compression-level: 9
         path: |
@@ -793,8 +801,9 @@ jobs:
         JSON
 
     - name: Upload partial JSON with installer informations
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
+        archive: true
         name: partial-json-${{ matrix.platform }}-installer
         path: .summary/installer-${{ matrix.platform }}.json
 
