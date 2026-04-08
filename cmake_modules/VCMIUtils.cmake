@@ -161,6 +161,17 @@ endfunction()
 
 # generate .bat for .exe with proper PATH
 function(vcmi_create_exe_shim tgt)
+	if(WIN32 AND USING_CONAN AND EXISTS "${CONAN_RUNTIME_LIBS_FILE}")
+		file(STRINGS "${CONAN_RUNTIME_LIBS_FILE}" runtimeLibs)
+		if(runtimeLibs)
+			add_custom_command(TARGET ${tgt} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different ${runtimeLibs} "$<TARGET_FILE_DIR:${tgt}>"
+				COMMAND_EXPAND_LISTS
+				VERBATIM
+			)
+		endif()
+	endif()
+
 	if(NOT CONAN_RUNENV_SCRIPT)
 		return()
 	endif()
