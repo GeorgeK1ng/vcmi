@@ -456,10 +456,8 @@ CGarrisonSlot::CGarrisonSlot(CGarrisonInt * Owner, int x, int y, SlotID IID, EGa
 	creatureImage->disable();
 
 	artifactImage = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), 0, 0, 0, 0);
-	if(Owner->smallIcons)
-	{
-		artifactImage->setScale(Point(20, 20));
-	}
+	artifactImage->setScale(Point(22, 22));
+	artifactImage->moveTo(Point(0, 0));
 	artifactImage->disable();
 
 	selectionImage = std::make_shared<CAnimImage>(imgName, 1);
