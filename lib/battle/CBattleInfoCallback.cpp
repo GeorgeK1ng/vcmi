@@ -693,7 +693,7 @@ BattleHex CBattleInfoCallback::fromWhichHexAttack(const battle::Unit * attacker,
 
 	BattleHex adjacentAttackFrom = target.cloneInDirection(direction, false);
 
-	if(attacker->hasBonusOfType(BonusType::LONG_WEAPON) && !attacker->doubleWide() && attacker->getPosition() != adjacentAttackFrom)
+	if(attacker->hasBonusOfType(BonusType::LONG_WEAPON) && !attacker->doubleWide())
 	{
 		BattleHex middleHex = adjacentAttackFrom;
 		BattleHex longAttackFrom;
@@ -706,8 +706,15 @@ BattleHex CBattleInfoCallback::fromWhichHexAttack(const battle::Unit * attacker,
 			return adjacentAttackFrom;
 		}
 
-		if(attacker->getPosition() == longAttackFrom && battleGetUnitByPos(middleHex, false) == nullptr)
-			return longAttackFrom;
+		if(battleGetUnitByPos(middleHex, false) == nullptr)
+		{
+			const auto availableHexes = battleGetAvailableHexes(attacker, false);
+			const bool adjacentReachable = availableHexes.contains(adjacentAttackFrom);
+			const bool longReachable = availableHexes.contains(longAttackFrom);
+
+			if(longReachable && (!adjacentReachable || attacker->getPosition() == longAttackFrom))
+				return longAttackFrom;
+		}
 	}
 
 	return adjacentAttackFrom;
@@ -1706,7 +1713,7 @@ AttackableTiles CBattleInfoCallback::getPotentiallyAttackableHexes(
 		attackDirection = BattleHex::mutualPosition(attackOriginHex, defender->occupiedHex(defenderPos));
 
 	if (attackDirection == BattleHex::NONE)
-		throw std::runtime_error("!!!");
+		return at;
 
 	const auto & processTargets = [&](const std::vector<int> & additionalTargets) -> BattleHexArray
 	{

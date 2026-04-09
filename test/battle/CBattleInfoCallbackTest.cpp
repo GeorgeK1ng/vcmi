@@ -393,6 +393,17 @@ TEST_F(AttackableHexesTest, LongWeaponRequiresEmptyMiddleHex)
 	EXPECT_FALSE(subject.battleCanAttackHex(availableHexes, &attacker, defender.getPosition(), BattleHex::LEFT));
 }
 
+TEST_F(AttackableHexesTest, LongWeaponAttackableTilesRangeDoesNotThrow)
+{
+	UnitFake & attacker = addLongWeaponUnit(60, BattleSide::ATTACKER);
+	UnitFake & defender = addRegularMelee(attacker.getPosition().cloneInDirection(BattleHex::RIGHT).cloneInDirection(BattleHex::RIGHT), BattleSide::DEFENDER);
+
+	EXPECT_NO_THROW({
+		auto attacked = getAttackedUnits(attacker, defender, defender.getPosition());
+		EXPECT_TRUE(attacked.empty());
+	});
+}
+
 //// CERBERI 3-HEADED ATTACKS
 
 TEST_F(AttackableHexesTest, CerberiAttackerRight)
