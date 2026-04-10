@@ -669,17 +669,6 @@ BattleHex CBattleInfoCallback::fromWhichHexAttack(const battle::Unit * attacker,
 	if (!target.isValid() || direction == BattleHex::NONE)
 		return BattleHex::INVALID;
 
-	if(attacker->hasBonusOfType(BonusType::LONG_WEAPON) && direction != BattleHex::TOP && direction != BattleHex::BOTTOM)
-	{
-		const auto longLine = getLongWeaponLineHexes(target, direction);
-		if(longLine)
-		{
-			const auto [middleHex, longAttackFrom] = *longLine;
-			if(attacker->coversPos(longAttackFrom) && battleGetUnitByPos(middleHex, false) == nullptr)
-				return attacker->getPosition();
-		}
-	}
-
 	bool isAttacker = attacker->unitSide() == BattleSide::ATTACKER;
 	if (attacker->doubleWide())
 	{

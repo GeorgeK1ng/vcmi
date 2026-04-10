@@ -256,13 +256,6 @@ public:
 		return unit;
 	}
 
-	UnitFake & addLongWeaponDoubleWide(BattleHex hex, BattleSide side)
-	{
-		auto & unit = addLongWeaponUnit(hex, side);
-		unit.makeDoubleWide();
-		return unit;
-	}
-
 	Units getAttackedUnits(UnitFake & attacker, UnitFake & defender, BattleHex defenderHex)
 	{
 		startBattle();
@@ -409,17 +402,6 @@ TEST_F(AttackableHexesTest, LongWeaponAttackableTilesRangeDoesNotThrow)
 		auto attacked = getAttackedUnits(attacker, defender, defender.getPosition());
 		EXPECT_TRUE(attacked.empty());
 	});
-}
-
-TEST_F(AttackableHexesTest, LongWeaponDoubleWideKeepsPositionAtOneHexGap)
-{
-	UnitFake & attacker = addLongWeaponDoubleWide(60, BattleSide::ATTACKER);
-	UnitFake & defender = addRegularMelee(attacker.getPosition().cloneInDirection(BattleHex::RIGHT).cloneInDirection(BattleHex::RIGHT), BattleSide::DEFENDER);
-
-	startBattle();
-	redirectUnitsToFake();
-
-	EXPECT_EQ(subject.fromWhichHexAttack(&attacker, defender.getPosition(), BattleHex::LEFT), attacker.getPosition());
 }
 
 //// CERBERI 3-HEADED ATTACKS
