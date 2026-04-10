@@ -25,6 +25,7 @@
 #include "../spells/CSpellHandler.h"
 #include "../gameState/CGameState.h"
 #include "../mapping/CMap.h"
+#include "../MapLayerHandler.h"
 #include "../CPlayerState.h"
 #include "../StartInfo.h"
 #include "../serializer/JsonSerializeFormat.h"
