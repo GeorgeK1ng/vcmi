@@ -136,10 +136,11 @@ class MinimapWithIcons : public CIntObject
 
 	std::vector<std::shared_ptr<CPicture>> iconsOverlay;
 	std::shared_ptr<CSlider> slider;
+	int preferredLevel;
 
 	std::vector<std::pair<const int3, const ImagePath>> icons;
 public:
-	MinimapWithIcons(const Point & position);
+	MinimapWithIcons(const Point & position, int preferredLevel = 0);
 
 	void recreate();
 	void addIcon(const int3 & coordinates, const ImagePath & image);

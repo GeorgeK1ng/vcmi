@@ -483,6 +483,50 @@ void CGSubterraneanGate::initObj(IGameRandomizer & gameRandomizer)
 	type = BOTH;
 }
 
+std::string CGSubterraneanGate::getObjectName() const
+{
+	const auto * mapHeader = cb->getMapHeader();
+	if(!mapHeader)
+		return CGObjectInstance::getObjectName();
+
+	const int currentLayerIndex = visitablePos().z;
+	if(currentLayerIndex < 0 || currentLayerIndex >= mapHeader->mapLayers.size())
+		return CGObjectInstance::getObjectName();
+
+	const auto currentLayer = mapHeader->mapLayers.at(currentLayerIndex);
+
+	// default destination follows legacy behavior: surface <-> underground
+	MapLayerId destinationLayer = currentLayer == MapLayerId::UNDERGROUND ? MapLayerId::SURFACE : MapLayerId::UNDERGROUND;
+
+	// if gate is already linked, infer destination from linked gate layer (important for custom map layers)
+	for(const auto & exitId : getAllExits(true))
+	{
+		const auto * exitObject = cb->getObjInstance(exitId);
+		if(!exitObject)
+			continue;
+
+		const int destinationLayerIndex = exitObject->visitablePos().z;
+		if(destinationLayerIndex == currentLayerIndex)
+			continue;
+
+		if(destinationLayerIndex < 0 || destinationLayerIndex >= mapHeader->mapLayers.size())
+			continue;
+
+		destinationLayer = mapHeader->mapLayers.at(destinationLayerIndex);
+		break;
+	}
+
+	if(destinationLayer == MapLayerId::UNDERGROUND)
+		return LIBRARY->generaltexth->translate("object.core.subterraneanGate.toUnderground.name");
+
+	if(destinationLayer == MapLayerId::SURFACE)
+		return LIBRARY->generaltexth->translate("object.core.subterraneanGate.toSurface.name");
+
+	auto text = LIBRARY->generaltexth->translate("object.core.subterraneanGate.toLayer.name");
+	boost::replace_first(text, "%s", destinationLayer.toEntity(LIBRARY)->getNameTranslated());
+	return text;
+}
+
 void CGSubterraneanGate::postInit(IGameInfoCallback * cb) //matches subterranean gates into pairs
 {
 	// for > 2 layers it's still choosing the nearest in x/y axis independent from level
