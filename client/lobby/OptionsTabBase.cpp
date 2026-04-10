@@ -445,6 +445,15 @@ void OptionsTabBase::recreate(bool campaign)
 		buttonTurnOptions->block(GAME->server().isGuest() || campaign);
 	}
 
+	if(SEL->screenType == ESelectionScreen::scenarioInfo)
+	{
+		if(auto timerPresetSelector = widget<CIntObject>("timerPresetSelector"))
+			timerPresetSelector->setEnabled(false);
+
+		if(auto buttonTurnOptions = widget<CIntObject>("buttonTurnOptions"))
+			buttonTurnOptions->setEnabled(false);
+	}
+
 	if(auto textureCampaignOverdraw = widget<CFilledTexture>("textureCampaignOverdraw"))
 		textureCampaignOverdraw->setEnabled(campaign);
 }
