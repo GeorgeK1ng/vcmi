@@ -655,6 +655,13 @@ void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 		town->namesCount += 1;
 	}
 
+	town->tavernRumorsCount = 0;
+	for(const auto & rumor : source["tavernRumors"].Vector())
+	{
+		LIBRARY->generaltexth->registerString(town->faction->modScope, town->getTavernRumorTextID(town->tavernRumorsCount), rumor);
+		town->tavernRumorsCount += 1;
+	}
+
 	if (!source["moatAbility"].isNull()) // VCMI 1.2 compatibility code
 	{
 		LIBRARY->identifiers()->requestIdentifier( "spell", source["moatAbility"], [=](si32 ability)

@@ -42,6 +42,7 @@ class DLL_LINKAGE CTown : boost::noncopyable
 {
 	friend class CTownHandler;
 	size_t namesCount = 0;
+	size_t tavernRumorsCount = 0;
 
 public:
 	CTown();
@@ -54,6 +55,8 @@ public:
 
 	std::string getRandomNameTextID(size_t index) const;
 	size_t getRandomNamesCount() const;
+	std::string getTavernRumorTextID(size_t index) const;
+	size_t getTavernRumorsCount() const;
 
 	CFaction * faction;
 
