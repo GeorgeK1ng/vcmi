@@ -335,6 +335,9 @@ CSplitWindow::CSplitWindow(const CCreature * creature, std::function<void(int, i
 	int total = leftAmount + rightAmount;
 	int leftMax = total - rightMin;
 	int rightMax = total - leftMin;
+	int defaultRightAmount = std::clamp(total / 2, rightMin, rightMax);
+	leftAmount = total - defaultRightAmount;
+	rightAmount = defaultRightAmount;
 
 	ok = std::make_shared<CButton>(Point(20, 263), AnimationPath::builtin("IOK6432"), CButton::tooltip(), std::bind(&CSplitWindow::apply, this), EShortcut::GLOBAL_ACCEPT);
 	cancel = std::make_shared<CButton>(Point(214, 263), AnimationPath::builtin("ICN6432"), CButton::tooltip(), std::bind(&CSplitWindow::close, this), EShortcut::GLOBAL_CANCEL);
@@ -357,7 +360,7 @@ CSplitWindow::CSplitWindow(const CCreature * creature, std::function<void(int, i
 	animLeft = std::make_shared<CCreaturePic>(20, 54, creature, true, false);
 	animRight = std::make_shared<CCreaturePic>(177, 54,creature, true, false);
 
-	slider = std::make_shared<CSlider>(Point(21, 194), 257, std::bind(&CSplitWindow::sliderMoved, this, _1), 0, sliderPosition, rightAmount - rightMin, Orientation::HORIZONTAL);
+	slider = std::make_shared<CSlider>(Point(21, 194), 257, std::bind(&CSplitWindow::sliderMoved, this, _1), 0, sliderPosition, defaultRightAmount - rightMin, Orientation::HORIZONTAL);
 
 	std::string titleStr = LIBRARY->generaltexth->allTexts[256];
 	boost::algorithm::replace_first(titleStr,"%s", creature->getNamePluralTranslated());
