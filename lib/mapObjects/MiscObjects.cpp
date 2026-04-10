@@ -489,6 +489,14 @@ std::string CGSubterraneanGate::getObjectName() const
 	if(!settings["general"]["enableUiEnhancements"].Bool())
 		return CGObjectInstance::getObjectName();
 
+	const auto translateGateText = [&](const std::string & textId) -> std::string
+	{
+		auto translated = LIBRARY->generaltexth->translate(textId);
+		if(translated == textId)
+			return CGObjectInstance::getObjectName(); // fallback to object.core.subterraneanGate.name
+		return translated;
+	};
+
 	const auto * mapHeader = cb->getMapHeader();
 	if(!mapHeader)
 		return CGObjectInstance::getObjectName();
@@ -521,13 +529,17 @@ std::string CGSubterraneanGate::getObjectName() const
 	}
 
 	if(destinationLayer == MapLayerId::UNDERGROUND)
-		return LIBRARY->generaltexth->translate("object.core.subterraneanGate.toUnderground.name");
+		return translateGateText("object.core.subterraneanGate.toUnderground.name");
 
 	if(destinationLayer == MapLayerId::SURFACE)
-		return LIBRARY->generaltexth->translate("object.core.subterraneanGate.toSurface.name");
+		return translateGateText("object.core.subterraneanGate.toSurface.name");
 
-	auto text = LIBRARY->generaltexth->translate("object.core.subterraneanGate.toLayer.name");
-	boost::replace_first(text, "%s", destinationLayer.toEntity(LIBRARY)->getNameTranslated());
+	auto text = translateGateText("object.core.subterraneanGate.toLayer.name");
+	auto layerName = destinationLayer.toEntity(LIBRARY)->getNameTranslated();
+	if(layerName == destinationLayer.toEntity(LIBRARY)->getNameTextID())
+		return CGObjectInstance::getObjectName(); // layer name missing, fallback to default gate name
+
+	boost::replace_first(text, "%s", layerName);
 	return text;
 }
 
