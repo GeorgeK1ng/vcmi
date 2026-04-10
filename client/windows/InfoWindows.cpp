@@ -379,8 +379,14 @@ void MinimapWithIcons::recreate()
 
 	int levels = GAME->interface()->cb->getMapSize().z;
 	int currentLevel = slider ? slider->getValue() : preferredLevel;
-	currentLevel = std::clamp(currentLevel, 0, levels - 1);
 	bool singleLevelMap = levels == 1;
+	int maxFirstLevel = 0;
+	if(levels == 2)
+		maxFirstLevel = 1; // allow explicit underground-first view for 2-layer maps
+	else if(levels > 2)
+		maxFirstLevel = levels - 2; // 2 minimap panes => first pane cannot be the last layer
+
+	currentLevel = std::clamp(currentLevel, 0, maxFirstLevel);
 	int secondLevel = currentLevel + 1;
 
 	if(levels > 2)
