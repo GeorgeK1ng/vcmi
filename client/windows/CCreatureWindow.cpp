@@ -515,7 +515,10 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 		{
 			for(auto skillID : parent->info->levelupInfo->skills)
 			{
-				if(index == 0 && skillID >= 100)
+				if(skillID < 100)
+					continue;
+
+				if(index == 0)
 				{
 					const auto bonuses = LIBRARY->creh->skillRequirements[skillID-100].first;
 					const CStackInstance * stack = parent->info->commander;
@@ -538,6 +541,8 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 
 					return icon;
 				}
+
+				--index;
 			}
 			return nullptr;
 		};
