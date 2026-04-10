@@ -656,7 +656,15 @@ std::string CGameInfoCallback::getTavernRumor(const CGObjectInstance * townOrTav
 			for(size_t rumorIndex = 0; rumorIndex < rumorsCount; rumorIndex++)
 				availableRumors.push_back(LIBRARY->generaltexth->translate(town->getTown()->getTavernRumorTextID(rumorIndex)));
 
-			const auto selectedRumor = static_cast<size_t>(CRandomGenerator::getDefault().nextInt(static_cast<int>(availableRumors.size() - 1)));
+			static thread_local std::unordered_map<si32, size_t> lastRumorByTown;
+			const auto objectId = townOrTavern->id.getNum();
+			const auto previous = lastRumorByTown.find(objectId);
+
+			size_t selectedRumor = static_cast<size_t>(CRandomGenerator::getDefault().nextInt(static_cast<int>(availableRumors.size() - 1)));
+			if(availableRumors.size() > 1 && previous != lastRumorByTown.end() && selectedRumor == previous->second)
+				selectedRumor = (selectedRumor + 1 + static_cast<size_t>(CRandomGenerator::getDefault().nextInt(static_cast<int>(availableRumors.size() - 2)))) % availableRumors.size();
+
+			lastRumorByTown[objectId] = selectedRumor;
 			return availableRumors[selectedRumor];
 		}
 	}
