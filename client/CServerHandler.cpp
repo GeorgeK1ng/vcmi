@@ -570,8 +570,38 @@ void CServerHandler::sendRestartGame() const
 	sendLobbyPack(endGame);
 }
 
+bool CServerHandler::validateMultiplayerGuestPresence() const
+{
+	if(!requiresRemoteGuestForStart())
+		return true;
+
+	if(hasRemoteGuestInMultiplayerLobby())
+		return true;
+
+	showServerError("Unable to start multiplayer game: at least one guest player must join first.");
+	return false;
+}
+
+bool CServerHandler::hasRemoteGuestInMultiplayerLobby() const
+{
+	for(const auto & playerData : playerNames)
+	{
+		if(playerData.second.connection != hostClientId)
+			return true;
+	}
+	return false;
+}
+
+bool CServerHandler::requiresRemoteGuestForStart() const
+{
+	return isHost() && loadMode == ELoadMode::MULTI;
+}
+
 bool CServerHandler::validateGameStart(bool allowOnlyAI) const
 {
+	if(!validateMultiplayerGuestPresence())
+		return false;
+
 	try
 	{
 		verifyStateBeforeStart(allowOnlyAI ? true : settings["session"]["onlyai"].Bool());
@@ -595,6 +625,9 @@ bool CServerHandler::validateGameStart(bool allowOnlyAI) const
 
 void CServerHandler::sendStartGame(bool allowOnlyAI, bool verify) const
 {
+	if(verify && !validateMultiplayerGuestPresence())
+		return;
+
 	if(verify)
 		verifyStateBeforeStart(allowOnlyAI ? true : settings["session"]["onlyai"].Bool());
 

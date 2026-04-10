@@ -161,7 +161,9 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	}
 	else
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
+			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
+		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 
@@ -300,7 +302,9 @@ void CLobbyScreen::updateAfterStateChange()
 
 	if(curTab && curTab != tabBattleOnlyMode)
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
+			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
+		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 
