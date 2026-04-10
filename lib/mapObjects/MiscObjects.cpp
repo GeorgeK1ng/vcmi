@@ -485,6 +485,9 @@ void CGSubterraneanGate::initObj(IGameRandomizer & gameRandomizer)
 
 std::string CGSubterraneanGate::getObjectName() const
 {
+	if(!settings["general"]["enableUiEnhancements"].Bool())
+		return CGObjectInstance::getObjectName();
+
 	const auto * mapHeader = cb->getMapHeader();
 	if(!mapHeader)
 		return CGObjectInstance::getObjectName();

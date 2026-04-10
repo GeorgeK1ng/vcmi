@@ -443,7 +443,8 @@ TeleporterPopup::TeleporterPopup(const Point & position, const CGTeleport * tele
 
 	filledBackground = std::make_shared<FilledTexturePlayerColored>(Rect(0, 0, pos.w, pos.h));
 	labelTitle = std::make_shared<CLabel>(pos.w / 2, 20, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, teleporter->getPopupText(GAME->interface()->playerID));
-	minimap = std::make_shared<MinimapWithIcons>(Point(0,0), teleporter->visitablePos().z);
+	const int preferredLevel = settings["general"]["enableUiEnhancements"].Bool() ? teleporter->visitablePos().z : 0;
+	minimap = std::make_shared<MinimapWithIcons>(Point(0,0), preferredLevel);
 
 	const auto & entrances = teleporter->getAllEntrances();
 	const auto & exits = teleporter->getAllExits();
