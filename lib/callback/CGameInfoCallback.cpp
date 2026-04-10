@@ -25,6 +25,7 @@
 #include "../mapping/CMap.h"
 #include "../CPlayerState.h"
 #include "../CRandomGenerator.h"
+#include "../texts/CGeneralTextHandler.h"
 
 #define ASSERT_IF_CALLED_WITH_PLAYER if(!getPlayerID()) {logGlobal->error(BOOST_CURRENT_FUNCTION); assert(0);}
 
