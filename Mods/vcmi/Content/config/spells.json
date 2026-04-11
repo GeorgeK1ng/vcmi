@@ -66,4 +66,51 @@
 	"core:fortressMoat": {
 		"name": "Boiling Tar"
 	}
+
+	,"core:reinforcements" : {
+		"name": "Reinforcements",
+		"school": {
+			"air": true
+		},
+		"level": 4,
+		"power": 0,
+		"defaultGainChance": 0,
+		"gainChance": {},
+		"targetType": "NO_TARGET",
+		"levels" : {
+			"base": {
+				"description" : "Summon creatures from the closest town garrison once per day",
+				"cost" : 12,
+				"range" : "X",
+				"adventureEffect" : {
+					"type" : "reinforcements",
+					"allowTownSelection" : false,
+					"castsPerDay" : 1
+				}
+			},
+			"basic": {
+				"description" : "Summon creatures from the closest town garrison up to 2 times per day",
+				"adventureEffect" : {
+					"castsPerDay" : 2
+				}
+			},
+			"advanced": {
+				"description" : "Summon creatures from any town garrison up to 3 times per day",
+				"adventureEffect" : {
+					"allowTownSelection" : true,
+					"castsPerDay" : 3
+				}
+			},
+			"expert": {
+				"description" : "Summon creatures from any town garrison up to 4 times per day",
+				"adventureEffect" : {
+					"allowTownSelection" : true,
+					"castsPerDay" : 4
+				}
+			}
+		},
+		"flags" : {
+			"indifferent": true
+		}
+	}
 }
