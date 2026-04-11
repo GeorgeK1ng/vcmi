@@ -213,7 +213,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
 		inputName->setFilterFilename();
 
-		scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
+		const auto scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
 		mapSizeFilterButtons = scenarioTabConfigurable->mapSizeFilterGroup();
 
 		if(mapSizeFilterButtons)
