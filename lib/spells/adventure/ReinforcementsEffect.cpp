@@ -51,11 +51,22 @@ ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, con
 
 	if(!parameters.pos.isValid() && allowTownSelection)
 	{
-		auto queryCallback = [&mechanics, env, parameters](std::optional<int32_t> reply) -> void
+		std::vector<ObjectInstanceID> offeredTownIDs;
+		offeredTownIDs.reserve(towns.size());
+
+		for(const auto * town : towns)
+			offeredTownIDs.push_back(town->id);
+
+		auto queryCallback = [&mechanics, env, parameters, offeredTownIDs](std::optional<int32_t> reply) -> void
 		{
 			if(reply.has_value())
 			{
 				ObjectInstanceID townId(*reply);
+				if(!vstd::contains(offeredTownIDs, townId))
+				{
+					env->complain("Invalid town selected in reinforcement dialog");
+					return;
+				}
 
 				const CGObjectInstance * object = env->getCb()->getObj(townId, true);
 				if(object == nullptr)
@@ -83,8 +94,7 @@ ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, con
 		request.description.appendLocalString(EMetaText::JK_TXT, 41);
 		request.icon = Component(ComponentType::SPELL, owner->id);
 
-		for(const auto * town : towns)
-			request.objects.push_back(town->id);
+		request.objects = offeredTownIDs;
 
 		env->genericQuery(&request, request.player, queryCallback);
 		return ESpellCastResult::PENDING;
@@ -110,10 +120,13 @@ ESpellCastResult ReinforcementsEffect::applyAdventureEffects(SpellCastEnvironmen
 	}
 	else if(env->getMap()->isInTheMap(parameters.pos))
 	{
-		const TerrainTile & tile = env->getMap()->getTile(parameters.pos);
-		ObjectInstanceID topObjID = tile.topVisitableObj(false);
-		const CGObjectInstance * topObj = env->getMap()->getObject(topObjID);
-		destination = dynamic_cast<const CGTownInstance *>(topObj);
+		auto selectedTown = std::find_if(towns.begin(), towns.end(), [&parameters](const CGTownInstance * town)
+		{
+			return town->visitablePos() == parameters.pos;
+		});
+
+		if(selectedTown != towns.end())
+			destination = *selectedTown;
 	}
 
 	if(destination == nullptr)
