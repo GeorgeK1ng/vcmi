@@ -223,6 +223,11 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState &
 	auto previousMapInfo = handler.mi;
 	pack.hostChanged = pack.state.hostClientId != handler.hostClientId;
 	static_cast<LobbyState &>(handler) = pack.state;
+	for(const auto & playerData : handler.playerNames)
+	{
+		if(playerData.second.connection != handler.hostClientId)
+			handler.joinedRemoteClients.insert(playerData.second.connection);
+	}
 	if(!handler.mi && previousMapInfo)
 		handler.mi = previousMapInfo;
 
