@@ -673,11 +673,22 @@ void CMultiPlayers::onChange(std::string newText)
 
 void CMultiPlayers::enterSelectionScreen()
 {
+	const bool compactHostDialog = host && inputNames[1] == nullptr;
 	std::vector<std::string> playerNames;
 	for(auto playerName : inputNames)
 	{
 		if(playerName && playerName->getText().length())
 			playerNames.push_back(playerName->getText());
+	}
+
+	if(compactHostDialog)
+	{
+		for(const auto & playerName : settings["general"]["multiPlayerNames"].Vector())
+		{
+			const std::string & name = playerName.String();
+			if(!name.empty())
+				playerNames.push_back(name);
+		}
 	}
 
 	Settings playerName = settings.write["general"]["playerName"];
