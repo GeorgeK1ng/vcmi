@@ -584,10 +584,18 @@ bool CServerHandler::validateMultiplayerGuestPresence() const
 
 bool CServerHandler::hasRemoteGuestInMultiplayerLobby() const
 {
-	for(const auto & playerData : playerNames)
+	for(const auto & playerInfoPair : si->playerInfos)
 	{
-		if(playerData.second.connection != hostClientId)
-			return true;
+		const auto & playerSettings = playerInfoPair.second;
+		if(!playerSettings.isControlledByHuman())
+			continue;
+
+		for(const auto & playerId : playerSettings.connectedPlayerIDs)
+		{
+			auto playerData = playerNames.find(playerId);
+			if(playerData != playerNames.end() && playerData->second.connection != hostClientId)
+				return true;
+		}
 	}
 	return false;
 }
