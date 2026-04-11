@@ -515,37 +515,6 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 	logGlobal->trace("Received disconnection request");
 	vstd::erase(activeConnections, connection);
 
-	if(getState() == EServerState::LOBBY)
-	{
-		std::set<PlayerConnectionID> disconnectedPlayerIds;
-		for(auto it = playerNames.begin(); it != playerNames.end();)
-		{
-			if(it->second.connection == connection->connectionID)
-			{
-				disconnectedPlayerIds.insert(it->first);
-				it = playerNames.erase(it);
-			}
-			else
-			{
-				++it;
-			}
-		}
-
-		for(auto & playerPair : si->playerInfos)
-		{
-			auto & playerSettings = playerPair.second;
-			if(!playerSettings.isControlledByHuman())
-				continue;
-
-			if(playerSettings.connectedPlayerIDs.empty())
-				continue;
-
-			PlayerConnectionID playerId = *playerSettings.connectedPlayerIDs.begin();
-			if(vstd::contains(disconnectedPlayerIds, playerId))
-				setPlayerConnectedId(playerSettings, PlayerConnectionID::PLAYER_AI);
-		}
-	}
-
 	if(activeConnections.empty() || hostClientId == connection->connectionID)
 	{
 		setState(EServerState::SHUTDOWN);
@@ -1227,3 +1196,4 @@ void CVCMIServer::sendPack(CPackForClient & pack, GameConnectionID connectionID)
 		if (c->connectionID == connectionID)
 			c->sendPack(pack);
 }
+

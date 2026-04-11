@@ -53,7 +53,6 @@ public:
 	{
 	}
 
-	void visitLobbyClientConnected(LobbyClientConnected & pack) override;
 	void visitLobbyClientDisconnected(LobbyClientDisconnected & pack) override;
 	void visitLobbyChatMessage(LobbyChatMessage & pack) override;
 	void visitLobbyGuiAction(LobbyGuiAction & pack) override;

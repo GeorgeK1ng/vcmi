@@ -108,7 +108,6 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 	std::unique_ptr<NetworkLagCompensator> networkLagCompensator;
 	std::shared_ptr<CMapInfo> mapToStart;
 	std::vector<std::string> localPlayerNames;
-	std::set<GameConnectionID> joinedRemoteClients;
 
 	std::thread threadNetwork;
 

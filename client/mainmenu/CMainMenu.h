@@ -131,6 +131,7 @@ public:
 class CMultiPlayers : public WindowBase
 {
 	bool host;
+	ELoadMode loadMode;
 	ESelectionScreen screenType;
 	std::shared_ptr<CPicture> background;
 	std::shared_ptr<CTextBox> textTitle;
@@ -226,4 +227,5 @@ public:
 
 	void tick(uint32_t msPassed) override;
 };
+
 

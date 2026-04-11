@@ -52,12 +52,9 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
 	result = false;
-	const bool isOurConnection = pack.uuid == handler.logicConnection->uuid;
-	if(!isOurConnection)
-		handler.joinedRemoteClients.insert(pack.clientId);
 
 	// Check if it's LobbyClientConnected for our client
-	if(isOurConnection)
+	if(pack.uuid == handler.logicConnection->uuid)
 	{
 		handler.logicConnection->setSerializationVersion(pack.version);
 		handler.logicConnection->connectionID = pack.clientId;
@@ -100,9 +97,6 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
 {
 	if(pack.clientId != handler.logicConnection->connectionID)
-		handler.joinedRemoteClients.erase(pack.clientId);
-
-	if(pack.clientId != handler.logicConnection->connectionID)
 	{
 		result = false;
 		return;
@@ -116,31 +110,6 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 	
 	if(ENGINE->windows().count() > 0)
 		ENGINE->windows().popWindows(1);
-}
-
-void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
-{
-	if(!lobby)
-		return;
-
-	if(pack.clientId == handler.logicConnection->connectionID)
-		return;
-
-	if(!handler.isHost() || !handler.requiresRemoteGuestForStart())
-		return;
-
-	if(!handler.mi && lobby->tabSel)
-	{
-		auto selectedMap = lobby->tabSel->getSelectedMapInfo();
-		if(selectedMap)
-			handler.setMapInfo(selectedMap);
-	}
-
-	if(handler.mi)
-	{
-		lobby->buttonStart->block(false);
-		lobby->redraw();
-	}
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
@@ -227,17 +196,8 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyLoadProgress(LobbyLoadProgress 
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState & pack)
 {
-	auto previousMapInfo = handler.mi;
 	pack.hostChanged = pack.state.hostClientId != handler.hostClientId;
 	static_cast<LobbyState &>(handler) = pack.state;
-	for(const auto & playerData : handler.playerNames)
-	{
-		if(playerData.second.connection != handler.hostClientId)
-			handler.joinedRemoteClients.insert(playerData.second.connection);
-	}
-	if(!handler.mi && previousMapInfo)
-		handler.mi = previousMapInfo;
-
 	if(handler.mapToStart && handler.mi)
 	{
 		handler.startMapAfterConnection(nullptr);
@@ -277,8 +237,6 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState & 
 
 	if(pack.hostChanged || pack.refreshList)
 		lobby->toggleMode(handler.isHost());
-
-	lobby->redraw();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyShowMessage(LobbyShowMessage & pack)

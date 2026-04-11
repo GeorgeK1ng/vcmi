@@ -37,7 +37,6 @@ void AssetGenerator::initialize()
 		boost::filesystem::remove_all(VCMIDirs::get().userDataPath() / "Generated");
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
-	imageFiles[ImagePath::builtin("muplayer.png")] = [this](){ return createMultiplayerImage();};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
 
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowDefault.png")]  = [this](){ return createCombatUnitNumberWindow(0.6f, 0.2f, 1.0f);};
@@ -173,20 +172,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground(
 	canvas.draw(img, Point(53, 520), Rect(53, 264, 339, 47));
 
 	return image;
-}
-
-AssetGenerator::CanvasPtr AssetGenerator::createMultiplayerImage() const
-{
-	auto locator = ImageLocator(ImagePath::builtin("muhotsea"), EImageBlitMode::OPAQUE);
-	std::shared_ptr<IImage> src = ENGINE->renderHandler().loadImage(locator);
-
-	auto out = ENGINE->renderHandler().createImage(Point(363, 196), CanvasScalingPolicy::IGNORE);
-	Canvas canvas = out->getCanvas();
-
-	canvas.draw(src, Point(0, 0), Rect(0, 0, 363, 104));
-	canvas.draw(src, Point(0, 104), Rect(0, 315, 363, 92));
-
-	return out;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
