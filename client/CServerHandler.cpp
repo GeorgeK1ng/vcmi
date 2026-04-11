@@ -144,6 +144,7 @@ void CServerHandler::resetStateForLobby(EStartMode mode, ESelectionScreen screen
 	logicConnection.reset();
 	si = std::make_shared<StartInfo>();
 	localPlayerNames.clear();
+	joinedRemoteClients.clear();
 	si->difficulty = 1;
 	si->mode = mode;
 	screenType = screen;
@@ -584,6 +585,9 @@ bool CServerHandler::validateMultiplayerGuestPresence() const
 
 bool CServerHandler::hasRemoteGuestInMultiplayerLobby() const
 {
+	if(!joinedRemoteClients.empty())
+		return true;
+
 	for(const auto & playerData : playerNames)
 	{
 		if(playerData.second.connection != hostClientId)

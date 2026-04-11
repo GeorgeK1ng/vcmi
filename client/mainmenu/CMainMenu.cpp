@@ -614,7 +614,8 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 	: loadMode(LoadMode), screenType(ScreenType), host(Host)
 {
 	OBJECT_CONSTRUCTION;
-	background = std::make_shared<CPicture>(ImagePath::builtin("MUHOTSEA.bmp"));
+	const bool compactHostDialog = shortcut == EShortcut::MAIN_MENU_HOST_GAME;
+	background = std::make_shared<CPicture>(ImagePath::builtin(compactHostDialog ? "muplayer.png" : "MUHOTSEA.bmp"));
 	pos = background->center(); //center, window has size of bg graphic
 
 	std::string text;
@@ -634,19 +635,32 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 
 	textTitle = std::make_shared<CTextBox>(text, Rect(25, 10, 315, 60), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
 
-	for(int i = 0; i < inputNames.size(); i++)
+	if(compactHostDialog)
 	{
-		inputNames[i] = std::make_shared<CTextInput>(Rect(60, 85 + i * 30, 280, 16), background->getSurface());
-		inputNames[i]->setCallback(std::bind(&CMultiPlayers::onChange, this, _1));
+		inputNames[0] = std::make_shared<CTextInput>(Rect(60, 85, 280, 16), background->getSurface());
+		inputNames[0]->setCallback(std::bind(&CMultiPlayers::onChange, this, _1));
+		for(size_t i = 1; i < inputNames.size(); ++i)
+			inputNames[i].reset();
+		buttonOk = std::make_shared<CButton>(Point(95, 127), AnimationPath::builtin("MUBCHCK.DEF"), LIBRARY->generaltexth->zelp[560], std::bind(&CMultiPlayers::enterSelectionScreen, this), EShortcut::GLOBAL_ACCEPT);
+		buttonCancel = std::make_shared<CButton>(Point(205, 127), AnimationPath::builtin("MUBCANC.DEF"), LIBRARY->generaltexth->zelp[561], [this](){ close();}, EShortcut::GLOBAL_CANCEL);
+		statusBar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(7, 170, 348, 18), 7, 170));
+	}
+	else
+	{
+		for(int i = 0; i < inputNames.size(); i++)
+		{
+			inputNames[i] = std::make_shared<CTextInput>(Rect(60, 85 + i * 30, 280, 16), background->getSurface());
+			inputNames[i]->setCallback(std::bind(&CMultiPlayers::onChange, this, _1));
+		}
+		buttonOk = std::make_shared<CButton>(Point(95, 338), AnimationPath::builtin("MUBCHCK.DEF"), LIBRARY->generaltexth->zelp[560], std::bind(&CMultiPlayers::enterSelectionScreen, this), EShortcut::GLOBAL_ACCEPT);
+		buttonCancel = std::make_shared<CButton>(Point(205, 338), AnimationPath::builtin("MUBCANC.DEF"), LIBRARY->generaltexth->zelp[561], [this](){ close();}, EShortcut::GLOBAL_CANCEL);
+		statusBar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(7, 381, 348, 18), 7, 381));
 	}
 
-	buttonOk = std::make_shared<CButton>(Point(95, 338), AnimationPath::builtin("MUBCHCK.DEF"), LIBRARY->generaltexth->zelp[560], std::bind(&CMultiPlayers::enterSelectionScreen, this), EShortcut::GLOBAL_ACCEPT);
-	buttonCancel = std::make_shared<CButton>(Point(205, 338), AnimationPath::builtin("MUBCANC.DEF"), LIBRARY->generaltexth->zelp[561], [this](){ close();}, EShortcut::GLOBAL_CANCEL);
-	statusBar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(7, 381, 348, 18), 7, 381));
-
-	for(int i = 0; i < playerNames.size(); i++)
+	for(size_t i = 0; i < playerNames.size() && i < inputNames.size(); i++)
 	{
-		inputNames[i]->setText(playerNames[i]);
+		if(inputNames[i])
+			inputNames[i]->setText(playerNames[i]);
 	}
 #ifndef VCMI_MOBILE
 	inputNames[0]->giveFocus();
@@ -662,7 +676,7 @@ void CMultiPlayers::enterSelectionScreen()
 	std::vector<std::string> playerNames;
 	for(auto playerName : inputNames)
 	{
-		if (playerName->getText().length())
+		if(playerName && playerName->getText().length())
 			playerNames.push_back(playerName->getText());
 	}
 

@@ -52,6 +52,8 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
 	result = false;
+	if(pack.clientId != handler.logicConnection->connectionID)
+		handler.joinedRemoteClients.insert(pack.clientId);
 
 	// Check if it's LobbyClientConnected for our client
 	if(pack.uuid == handler.logicConnection->uuid)
@@ -96,6 +98,9 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
 {
+	if(pack.clientId != handler.logicConnection->connectionID)
+		handler.joinedRemoteClients.erase(pack.clientId);
+
 	if(pack.clientId != handler.logicConnection->connectionID)
 	{
 		result = false;
