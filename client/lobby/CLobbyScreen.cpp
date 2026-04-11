@@ -72,7 +72,10 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
-		if(GAME->server().getLoadMode() == ELoadMode::MULTI && !card->showChat)
+		const bool shouldShowChatByDefault = GAME->server().getLoadMode() == ELoadMode::MULTI && GAME->server().howManyPlayerInterfaces() == 1;
+		if(shouldShowChatByDefault && !card->showChat)
+			toggleChat();
+		else if(!shouldShowChatByDefault && card->showChat)
 			toggleChat();
 	}
 
@@ -166,7 +169,10 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	{
 		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
 			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
+		bool mapMissing = GAME->server().mi == nullptr;
+		if(GAME->server().requiresRemoteGuestForStart() && GAME->server().hasRemoteGuestInMultiplayerLobby())
+			mapMissing = false;
+		buttonStart->block(mapMissing || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 
@@ -307,7 +313,10 @@ void CLobbyScreen::updateAfterStateChange()
 	{
 		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
 			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
+		bool mapMissing = GAME->server().mi == nullptr;
+		if(GAME->server().requiresRemoteGuestForStart() && GAME->server().hasRemoteGuestInMultiplayerLobby())
+			mapMissing = false;
+		buttonStart->block(mapMissing || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 
