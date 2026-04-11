@@ -25,6 +25,7 @@
 #include "../spells/CSpellHandler.h"
 #include "../gameState/CGameState.h"
 #include "../mapping/CMap.h"
+#include "../MapLayerHandler.h"
 #include "../CPlayerState.h"
 #include "../StartInfo.h"
 #include "../serializer/JsonSerializeFormat.h"
@@ -481,6 +482,65 @@ void CGSubterraneanGate::onHeroVisit(IGameEventCallback & gameEvents, const CGHe
 void CGSubterraneanGate::initObj(IGameRandomizer & gameRandomizer)
 {
 	type = BOTH;
+}
+
+std::string CGSubterraneanGate::getObjectName() const
+{
+	if(!settings["general"]["enableUiEnhancements"].Bool())
+		return CGObjectInstance::getObjectName();
+
+	const auto translateGateText = [&](const std::string & textId) -> std::string
+	{
+		auto translated = LIBRARY->generaltexth->translate(textId);
+		if(translated == textId)
+			return CGObjectInstance::getObjectName(); // fallback to object.core.subterraneanGate.name
+		return translated;
+	};
+
+	const auto * mapHeader = cb->getMapHeader();
+	if(!mapHeader)
+		return CGObjectInstance::getObjectName();
+
+	const int currentLayerIndex = visitablePos().z;
+	if(currentLayerIndex < 0 || currentLayerIndex >= mapHeader->mapLayers.size())
+		return CGObjectInstance::getObjectName();
+
+	const auto currentLayer = mapHeader->mapLayers.at(currentLayerIndex);
+
+	// default destination follows legacy behavior: surface <-> underground
+	MapLayerId destinationLayer = currentLayer == MapLayerId::UNDERGROUND ? MapLayerId::SURFACE : MapLayerId::UNDERGROUND;
+
+	// if gate is already linked, infer destination from linked gate layer (important for custom map layers)
+	for(const auto & exitId : getAllExits(true))
+	{
+		const auto * exitObject = cb->getObjInstance(exitId);
+		if(!exitObject)
+			continue;
+
+		const int destinationLayerIndex = exitObject->visitablePos().z;
+		if(destinationLayerIndex == currentLayerIndex)
+			continue;
+
+		if(destinationLayerIndex < 0 || destinationLayerIndex >= mapHeader->mapLayers.size())
+			continue;
+
+		destinationLayer = mapHeader->mapLayers.at(destinationLayerIndex);
+		break;
+	}
+
+	if(destinationLayer == MapLayerId::UNDERGROUND)
+		return translateGateText("object.core.subterraneanGate.toUnderground.name");
+
+	if(destinationLayer == MapLayerId::SURFACE)
+		return translateGateText("object.core.subterraneanGate.toSurface.name");
+
+	auto text = translateGateText("object.core.subterraneanGate.toLayer.name");
+	auto layerName = destinationLayer.toEntity(LIBRARY)->getNameTranslated();
+	if(layerName == destinationLayer.toEntity(LIBRARY)->getNameTextID())
+		return CGObjectInstance::getObjectName(); // layer name missing, fallback to default gate name
+
+	boost::replace_first(text, "%s", layerName);
+	return text;
 }
 
 void CGSubterraneanGate::postInit(IGameInfoCallback * cb) //matches subterranean gates into pairs

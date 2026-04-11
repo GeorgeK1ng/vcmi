@@ -358,7 +358,8 @@ CInfoBoxPopup::CInfoBoxPopup(Point position, const CGCreature * creature)
 	fitToScreen(10);
 }
 
-MinimapWithIcons::MinimapWithIcons(const Point & position)
+MinimapWithIcons::MinimapWithIcons(const Point & position, int preferredLevel)
+	: preferredLevel(preferredLevel)
 {
 	OBJECT_CONSTRUCTION;
 	pos += position;
@@ -377,13 +378,25 @@ void MinimapWithIcons::recreate()
 	Rect border2(166, 40, 147, 147);
 
 	int levels = GAME->interface()->cb->getMapSize().z;
-	int currentLevel = slider ? slider->getValue() : 0;
+	int currentLevel = slider ? slider->getValue() : preferredLevel;
 	bool singleLevelMap = levels == 1;
+	int maxFirstLevel = 0;
+	if(levels == 2)
+		maxFirstLevel = 1; // allow explicit underground-first view for 2-layer maps
+	else if(levels > 2)
+		maxFirstLevel = levels - 2; // 2 minimap panes => first pane cannot be the last layer
+
+	currentLevel = std::clamp(currentLevel, 0, maxFirstLevel);
+	int secondLevel = currentLevel + 1;
 
 	if(levels > 2)
 	{
 		slider = std::make_shared<CSlider>(Point(10, 192), 303, [this](int value){ recreate(); setRedrawParent(true); redraw(); }, 2, levels, currentLevel, Orientation::HORIZONTAL);
 		slider->setPanningStep(147);
+	}
+	else if(levels == 2 && currentLevel == 1)
+	{
+		secondLevel = 0; // prefer map that matches clicked object layer as first minimap
 	}
 
 	if (singleLevelMap)
@@ -398,7 +411,7 @@ void MinimapWithIcons::recreate()
 	if (!singleLevelMap)
 	{
 		background2 = std::make_shared<TransparentFilledRectangle>(border2, Colors::TRANSPARENCY, Colors::YELLOW);
-		map2 = std::make_shared<CMinimapInstance>(area2.topLeft(), area2.dimensions(), currentLevel + 1);
+		map2 = std::make_shared<CMinimapInstance>(area2.topLeft(), area2.dimensions(), secondLevel);
 	}
 
 	iconsOverlay.clear();
@@ -413,7 +426,7 @@ void MinimapWithIcons::recreate()
 
 		if (icon.first.z == currentLevel)
 			iconPosition += area1.topLeft();
-		else if (icon.first.z == currentLevel + 1)
+		else if (icon.first.z == secondLevel)
 			iconPosition += area2.topLeft();
 		else
 			continue;
@@ -436,7 +449,8 @@ TeleporterPopup::TeleporterPopup(const Point & position, const CGTeleport * tele
 
 	filledBackground = std::make_shared<FilledTexturePlayerColored>(Rect(0, 0, pos.w, pos.h));
 	labelTitle = std::make_shared<CLabel>(pos.w / 2, 20, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, teleporter->getPopupText(GAME->interface()->playerID));
-	minimap = std::make_shared<MinimapWithIcons>(Point(0,0));
+	const int preferredLevel = settings["general"]["enableUiEnhancements"].Bool() ? teleporter->visitablePos().z : 0;
+	minimap = std::make_shared<MinimapWithIcons>(Point(0,0), preferredLevel);
 
 	const auto & entrances = teleporter->getAllEntrances();
 	const auto & exits = teleporter->getAllExits();

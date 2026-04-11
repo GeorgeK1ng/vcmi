@@ -275,6 +275,7 @@ class DLL_LINKAGE CGSubterraneanGate : public CGMonolith
 {
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
 	void initObj(IGameRandomizer & gameRandomizer) override;
+	std::string getObjectName() const override;
 
 public:
 	using CGMonolith::CGMonolith;
