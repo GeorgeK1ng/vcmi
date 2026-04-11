@@ -611,9 +611,10 @@ void JoinScreen::onServerDiscovered(const DiscoveredServer & server)
 }
 
 CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelectionScreen ScreenType, bool Host, ELoadMode LoadMode, EShortcut shortcut)
-	: loadMode(LoadMode), screenType(ScreenType), host(Host)
+	: screenType(ScreenType), host(Host)
 {
 	OBJECT_CONSTRUCTION;
+	(void) LoadMode;
 	const bool compactHostDialog = shortcut == EShortcut::MAIN_MENU_HOST_GAME;
 	background = std::make_shared<CPicture>(ImagePath::builtin(compactHostDialog ? "muplayer.png" : "MUHOTSEA.bmp"));
 	pos = background->center(); //center, window has size of bg graphic
