@@ -508,9 +508,11 @@ void CMultiMode::hostTCP(EShortcut shortcut)
 
 void CMultiMode::joinTCP(EShortcut shortcut)
 {
+	(void) shortcut;
 	auto savedScreenType = screenType;
+	auto savedPlayerNames = getPlayersNames();
 	close();
-	ENGINE->windows().createAndPushWindow<CMultiPlayers>(getPlayersNames(), savedScreenType, false, ELoadMode::MULTI, shortcut);
+	ENGINE->windows().createAndPushWindow<JoinScreen>(savedScreenType, savedPlayerNames);
 }
 
 std::vector<std::string> CMultiMode::getPlayersNames()
@@ -552,11 +554,6 @@ JoinScreen::JoinScreen(ESelectionScreen ScreenType, std::vector<std::string> Pla
 	textTitle->setText(LIBRARY->generaltexth->zelp[263].second);
 
 	statusBar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(7, 465, 440, 18), 7, 465));
-
-	playerName = std::make_shared<CTextInput>(Rect(19, 436, 334, 16), background->getSurface());
-	playerName->setText(CMultiMode::getPlayersNames()[0]);
-	playerName->removeFocus();
-	playerName->deactivate();
 
 	buttonSearch = std::make_shared<CButton>(Point(373, 78 + 57 * 0), AnimationPath::builtin("MUBSRCH.DEF"), LIBRARY->generaltexth->zelp[273], [this](){
 		auto savedScreenType = screenType;

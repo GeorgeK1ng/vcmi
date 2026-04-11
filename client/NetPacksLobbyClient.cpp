@@ -112,6 +112,21 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 		ENGINE->windows().popWindows(1);
 }
 
+void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
+{
+	if(!lobby)
+		return;
+
+	if(pack.clientId == handler.logicConnection->connectionID)
+		return;
+
+	if(!handler.isHost() || !handler.requiresRemoteGuestForStart())
+		return;
+
+	if(handler.mi)
+		lobby->buttonStart->block(false);
+}
+
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
 {
 	handler.getGameChat().onNewLobbyMessageReceived(pack.playerName, pack.message.toString());
