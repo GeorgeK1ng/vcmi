@@ -554,6 +554,20 @@ JoinScreen::JoinScreen(ESelectionScreen ScreenType, std::vector<std::string> Pla
 	textTitle->setText(LIBRARY->generaltexth->zelp[263].second);
 
 	statusBar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(7, 465, 440, 18), 7, 465));
+	playerName = std::make_shared<CTextInput>(Rect(19, 436, 334, 16), background->getSurface());
+	if(!playerNames.empty())
+		playerName->setText(playerNames.front());
+	else
+		playerName->setText(CMultiMode::getPlayersNames().front());
+	playerName->setCallback([this](const std::string & newText)
+	{
+		Settings name = settings.write["general"]["playerName"];
+		name->String() = newText;
+		if(playerNames.empty())
+			playerNames.push_back(newText);
+		else
+			playerNames.front() = newText;
+	});
 
 	buttonSearch = std::make_shared<CButton>(Point(373, 78 + 57 * 0), AnimationPath::builtin("MUBSRCH.DEF"), LIBRARY->generaltexth->zelp[273], [this](){
 		auto savedScreenType = screenType;
