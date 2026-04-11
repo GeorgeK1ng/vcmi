@@ -24,6 +24,8 @@
 #include "../spells/CSpellHandler.h"
 #include "../mapping/CMap.h"
 #include "../CPlayerState.h"
+#include "../CRandomGenerator.h"
+#include "../texts/CGeneralTextHandler.h"
 
 #define ASSERT_IF_CALLED_WITH_PLAYER if(!getPlayerID()) {logGlobal->error(BOOST_CURRENT_FUNCTION); assert(0);}
 
@@ -617,29 +619,54 @@ std::string CGameInfoCallback::getTavernRumor(const CGObjectInstance * townOrTav
 {
 	MetaString text;
 	text.appendLocalString(EMetaText::GENERAL_TXT, 216);
-	
-	std::string extraText;
-	if(gameState().currentRumor.type == RumorState::TYPE_NONE)
-		return text.toString();
 
-	auto rumor = gameState().currentRumor.last.at(gameState().currentRumor.type);
-	switch(gameState().currentRumor.type)
+	if(gameState().currentRumor.type != RumorState::TYPE_NONE)
 	{
-	case RumorState::TYPE_SPECIAL:
-		text.replaceLocalString(EMetaText::GENERAL_TXT, rumor.first);
-		if(rumor.first == RumorState::RUMOR_GRAIL)
-			text.replaceTextID(TextIdentifier("core", "arraytxt", 158 + rumor.second).get());
-		else
-			text.replaceTextID(TextIdentifier("core", "plcolors", rumor.second).get());
+		auto rumor = gameState().currentRumor.last.at(gameState().currentRumor.type);
+		switch(gameState().currentRumor.type)
+		{
+		case RumorState::TYPE_SPECIAL:
+			text.replaceLocalString(EMetaText::GENERAL_TXT, rumor.first);
+			if(rumor.first == RumorState::RUMOR_GRAIL)
+				text.replaceTextID(TextIdentifier("core", "arraytxt", 158 + rumor.second).get());
+			else
+				text.replaceTextID(TextIdentifier("core", "plcolors", rumor.second).get());
+			break;
 
-		break;
-	case RumorState::TYPE_MAP:
-		text.replaceRawString(gameState().getMap().rumors[rumor.first].text.toString());
-		break;
+		case RumorState::TYPE_MAP:
+			text.replaceRawString(gameState().getMap().rumors[rumor.first].text.toString());
+			break;
 
-	case RumorState::TYPE_RAND:
-		text.replaceTextID(TextIdentifier("core", "randtvrn", rumor.first).get());
-		break;
+		case RumorState::TYPE_RAND:
+			text.replaceTextID(TextIdentifier("core", "randtvrn", rumor.first).get());
+			break;
+		}
+	}
+
+	const auto * town = dynamic_cast<const CGTownInstance *>(townOrTavern);
+	if(town != nullptr)
+	{
+		const auto rumorsCount = town->getTown()->getTavernRumorsCount();
+		if(rumorsCount > 0)
+		{
+			std::vector<std::string> availableRumors;
+			availableRumors.reserve(rumorsCount + 1);
+			availableRumors.push_back(text.toString());
+
+			for(size_t rumorIndex = 0; rumorIndex < rumorsCount; rumorIndex++)
+				availableRumors.push_back(LIBRARY->generaltexth->translate(town->getTown()->getTavernRumorTextID(rumorIndex)));
+
+			static thread_local std::unordered_map<si32, size_t> lastRumorByTown;
+			const auto objectId = townOrTavern->id.getNum();
+			const auto previous = lastRumorByTown.find(objectId);
+
+			size_t selectedRumor = static_cast<size_t>(CRandomGenerator::getDefault().nextInt(static_cast<int>(availableRumors.size() - 1)));
+			if(availableRumors.size() > 1 && previous != lastRumorByTown.end() && selectedRumor == previous->second)
+				selectedRumor = (selectedRumor + 1 + static_cast<size_t>(CRandomGenerator::getDefault().nextInt(static_cast<int>(availableRumors.size() - 2)))) % availableRumors.size();
+
+			lastRumorByTown[objectId] = selectedRumor;
+			return availableRumors[selectedRumor];
+		}
 	}
 
 	return text.toString();

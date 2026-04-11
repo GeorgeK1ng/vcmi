@@ -167,6 +167,13 @@
 					"description" : "Video for tavern window",
 					"format" : "videoFile"
 				},
+				"tavernRumors" : {
+					"type" : "array",
+					"description" : "Localized rumors that can be randomly shown in the tavern window for this town",
+					"items" : {
+						"type" : "string"
+					}
+				},
 				"townBackground" : {
 					"type" : "string",
 					"description" : "Background for town screen",

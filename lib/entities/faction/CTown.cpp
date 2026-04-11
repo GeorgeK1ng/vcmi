@@ -34,6 +34,16 @@ size_t CTown::getRandomNamesCount() const
 	return namesCount;
 }
 
+std::string CTown::getTavernRumorTextID(size_t index) const
+{
+	return TextIdentifier("faction", faction->modScope, faction->identifier, "tavernRumor", index).get();
+}
+
+size_t CTown::getTavernRumorsCount() const
+{
+	return tavernRumorsCount;
+}
+
 std::string CTown::getBuildingScope() const
 {
 	if(faction == nullptr)
