@@ -129,6 +129,13 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConn
 	if(!handler.isHost() || !handler.requiresRemoteGuestForStart())
 		return;
 
+	if(!handler.mi && lobby->tabSel)
+	{
+		auto selectedMap = lobby->tabSel->getSelectedMapInfo();
+		if(selectedMap)
+			handler.setMapInfo(selectedMap);
+	}
+
 	if(handler.mi)
 	{
 		lobby->buttonStart->block(false);
