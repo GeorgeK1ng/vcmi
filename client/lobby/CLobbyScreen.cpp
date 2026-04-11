@@ -72,7 +72,8 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
-		const bool shouldShowChatByDefault = GAME->server().getLoadMode() == ELoadMode::MULTI && GAME->server().howManyPlayerInterfaces() == 1;
+		const bool shouldShowChatByDefault = GAME->server().getLoadMode() == ELoadMode::MULTI
+			&& (GAME->server().requiresRemoteGuestForStart() || GAME->server().isGuest());
 		if(shouldShowChatByDefault && !card->showChat)
 			toggleChat();
 		else if(!shouldShowChatByDefault && card->showChat)
