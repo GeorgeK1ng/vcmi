@@ -27,6 +27,7 @@
 #include "../windows/InfoWindows.h"
 #include "../render/Colors.h"
 #include "../globalLobby/GlobalLobbyClient.h"
+#include "../mainmenu/CMainMenu.h"
 
 #include "../../lib/CConfigHandler.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -71,7 +72,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
-		if(!card->showChat)
+		if(GAME->server().getLoadMode() == ELoadMode::MULTI && !card->showChat)
 			toggleChat();
 	}
 
