@@ -67,7 +67,8 @@
 		"name": "Boiling Tar"
 	}
 
-	,"core:reinforcements" : {
+	,"reinforcements" : {
+		"index" : 82,
 		"name": "Reinforcements",
 		"school": {
 			"air": true
