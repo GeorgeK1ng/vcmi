@@ -55,16 +55,16 @@ namespace
 {
 struct MapSizeFilterButtonConfig
 {
-	int mapSize = 0;
+	int filterIndex = 0;
 	Point position;
 	std::string image;
 	std::pair<std::string, std::string> tooltip;
 	EShortcut shortcut = {};
 };
 
-EShortcut mapSizeFilterShortcut(int mapSize)
+EShortcut mapSizeFilterShortcut(int filterIndex)
 {
-	switch(mapSize)
+	switch(filterIndex)
 	{
 	case CMapHeader::MAP_SIZE_SMALL:
 		return EShortcut::MAPS_SIZE_S;
@@ -94,14 +94,14 @@ std::vector<MapSizeFilterButtonConfig> loadMapSizeFilterButtons()
 	std::vector<MapSizeFilterButtonConfig> result;
 	for(const auto & item : config["mapSizeFilterButtons"].Vector())
 	{
-		if(item["position"].isNull() || item["image"].isNull() || item["size"].isNull())
+		if(item["position"].isNull() || item["image"].isNull() || (item["index"].isNull() && item["size"].isNull()))
 			continue;
 
 		MapSizeFilterButtonConfig buttonConfig;
-		buttonConfig.mapSize = item["size"].Integer();
+		buttonConfig.filterIndex = item["index"].isNull() ? item["size"].Integer() : item["index"].Integer();
 		buttonConfig.position = Point(item["position"]["x"].Integer(), item["position"]["y"].Integer());
 		buttonConfig.image = item["image"].String();
-		buttonConfig.shortcut = mapSizeFilterShortcut(buttonConfig.mapSize);
+		buttonConfig.shortcut = mapSizeFilterShortcut(buttonConfig.filterIndex);
 
 		if(!item["help"].isNull())
 		{
@@ -257,7 +257,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 				mapSizeButton.position,
 				AnimationPath::builtin(mapSizeButton.image),
 				mapSizeButton.tooltip,
-				std::bind(&SelectionTab::filter, this, mapSizeButton.mapSize, true),
+				std::bind(&SelectionTab::filter, this, mapSizeButton.filterIndex, true),
 				mapSizeButton.shortcut));
 		}
 
