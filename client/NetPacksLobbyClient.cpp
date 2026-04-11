@@ -130,7 +130,10 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConn
 		return;
 
 	if(handler.mi)
+	{
 		lobby->buttonStart->block(false);
+		lobby->redraw();
+	}
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
@@ -262,6 +265,8 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState & 
 
 	if(pack.hostChanged || pack.refreshList)
 		lobby->toggleMode(handler.isHost());
+
+	lobby->redraw();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyShowMessage(LobbyShowMessage & pack)
