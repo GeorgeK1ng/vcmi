@@ -221,12 +221,19 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 			for(const auto & mapSizeButton : mapSizeFilterButtons->buttons)
 			{
 				if(auto button = std::dynamic_pointer_cast<CButton>(mapSizeButton.second))
+				{
 					buttonsSortBy.push_back(button);
+					addChild(button.get(), false);
+				}
 			}
 		}
 
 		if(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")))
+		{
 			labelMapSizes = scenarioTabConfigurable->mapSizeFilterLabel();
+			if(labelMapSizes)
+				addChild(labelMapSizes.get(), false);
+		}
 
 		constexpr std::array xpos = {23, 55, 88, 121, 306, 339};
 		constexpr std::array sortIconNames = {"SCBUTT1.DEF", "SCBUTT2.DEF", "SCBUTCP.DEF", "SCBUTT3.DEF", "SCBUTT4.DEF", "SCBUTT5.DEF"};
