@@ -52,11 +52,12 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
 	result = false;
-	if(pack.clientId != handler.logicConnection->connectionID)
+	const bool isOurConnection = pack.uuid == handler.logicConnection->uuid;
+	if(!isOurConnection)
 		handler.joinedRemoteClients.insert(pack.clientId);
 
 	// Check if it's LobbyClientConnected for our client
-	if(pack.uuid == handler.logicConnection->uuid)
+	if(isOurConnection)
 	{
 		handler.logicConnection->setSerializationVersion(pack.version);
 		handler.logicConnection->connectionID = pack.clientId;
