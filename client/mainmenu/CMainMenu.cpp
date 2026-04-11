@@ -708,7 +708,9 @@ void CMultiPlayers::enterSelectionScreen()
 		ENGINE->windows().createAndPushWindow<JoinScreen>(savedScreenType, savedPlayerNames);
 		return;
 	}
-	CMainMenu::openLobby(screenType, host, playerNames, loadMode, false);
+
+	// Host game must always run in multiplayer mode, even when using compact host dialog.
+	CMainMenu::openLobby(screenType, host, playerNames, ELoadMode::MULTI, false);
 }
 
 CSimpleJoinScreen::CSimpleJoinScreen(bool host, std::string server, ui16 port)
