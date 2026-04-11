@@ -1135,10 +1135,8 @@ void CModListView::installMods(QStringList archives)
 			// Update flow is uninstall + install. Save submod states now so we can restore
 			// user configuration after reinstall (including nested "main.sub.another" ids).
 			const auto modSettings = modStateModel->getModSettings(mod);
-			for (auto settingIt = modSettings.cbegin(); settingIt != modSettings.cend(); ++settingIt)
-			{
-				submodStateBeforeUpdate[mod][mod + '.' + settingIt.key()] = settingIt.value();
-			}
+			for (const auto & settingID : modSettings.keys())
+				submodStateBeforeUpdate[mod][mod + '.' + settingID] = modSettings.value(settingID);
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
 			if (modStateModel->isModEnabled(mod))
@@ -1183,10 +1181,10 @@ void CModListView::installMods(QStringList archives)
 		if (!modStateModel->isModExists(mod) || !modStateModel->isModEnabled(mod))
 			continue;
 
-		for (auto submodIt = submodStateBeforeUpdate[mod].cbegin(); submodIt != submodStateBeforeUpdate[mod].cend(); ++submodIt)
+		const auto submodsForMod = submodStateBeforeUpdate.value(mod);
+		for (const auto & submod : submodsForMod.keys())
 		{
-			const QString & submod = submodIt.key();
-			const bool wasEnabled = submodIt.value();
+			const bool wasEnabled = submodsForMod.value(submod);
 
 			if(!modStateModel->isModExists(submod))
 				continue;
