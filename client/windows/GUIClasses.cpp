@@ -490,11 +490,11 @@ void CLevelWindow::updateLevelUpData(const CGHeroInstance * hero, PrimarySkill p
 			if(skillViewOffset > 0)
 				skillViewOffset--;
 			else
-				skillViewOffset = skills.size() - 1;
+				skillViewOffset = this->skills.size() - 1;
 			createSkillBox();
 		}, EShortcut::MOVE_LEFT);
 		buttonRight = std::make_shared<CButton>(Point(pos.w - 45, 309), AnimationPath::builtin("HSBTNS5"), CButton::tooltip(), [this](){
-			if(skillViewOffset < skills.size() - 1)
+			if(skillViewOffset < this->skills.size() - 1)
 				skillViewOffset++;
 			else
 				skillViewOffset = 0;
