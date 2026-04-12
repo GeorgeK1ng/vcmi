@@ -102,6 +102,8 @@ void CDownloadManager::downloadFinished(QNetworkReply * reply)
 		file.status = FileEntry::FINISHED;
 	}
 
+	Q_EMIT downloadFileFinished(file.filename);
+
 	bool downloadComplete = true;
 	for(auto & entry : currentDownloads)
 	{
