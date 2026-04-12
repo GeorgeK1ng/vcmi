@@ -20,6 +20,7 @@
 
 #include "../CServerHandler.h"
 #include "../GameEngine.h"
+#include "../GameChatHandler.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
 #include "../widgets/Buttons.h"
@@ -71,6 +72,17 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
+
+		const bool showChatByDefault = GAME->server().requiresRemoteGuestForStart();
+		if(showChatByDefault && !card->showChat)
+		{
+			toggleChat();
+			GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.waitingForOtherPlayers"));
+		}
+		else if(!showChatByDefault && card->showChat)
+		{
+			toggleChat();
+		}
 	}
 
 	switch(screenType)
@@ -161,7 +173,9 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	}
 	else
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
+			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
+		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 
@@ -300,7 +314,9 @@ void CLobbyScreen::updateAfterStateChange()
 
 	if(curTab && curTab != tabBattleOnlyMode)
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		const bool waitingForMultiplayerGuest = GAME->server().requiresRemoteGuestForStart()
+			&& !GAME->server().hasRemoteGuestInMultiplayerLobby();
+		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest() || waitingForMultiplayerGuest);
 		card->changeSelection();
 	}
 

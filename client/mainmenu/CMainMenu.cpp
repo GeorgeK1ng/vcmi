@@ -502,8 +502,9 @@ void CMultiMode::openLobby()
 void CMultiMode::hostTCP(EShortcut shortcut)
 {
 	auto savedScreenType = screenType;
+	ELoadMode mode = shortcut == EShortcut::MAIN_MENU_HOTSEAT ? ELoadMode::SINGLE : ELoadMode::MULTI;
 	close();
-	ENGINE->windows().createAndPushWindow<CMultiPlayers>(getPlayersNames(), savedScreenType, true, ELoadMode::MULTI, shortcut);
+	ENGINE->windows().createAndPushWindow<CMultiPlayers>(getPlayersNames(), savedScreenType, true, mode, shortcut);
 }
 
 void CMultiMode::joinTCP(EShortcut shortcut)

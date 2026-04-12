@@ -733,6 +733,7 @@
 	"vcmi.kingdomOverview.secSkillOverflow.hover": "Další druhotné dovednosti",
 	"vcmi.lobby.author": "Autor",
 	"vcmi.lobby.backToLobby": "Vrátit se do lobby",
+	"vcmi.lobby.waitingForOtherPlayers": "Čekání na připojení dalších hráčů",
 	"vcmi.lobby.battleOnlyMode": "Režim bitvy",
 	"vcmi.lobby.battleOnlyMode.help": "Hrát samostatnou bitvu bez mapy světa",
 	"vcmi.lobby.battleOnlyModeArtifactSelect": "Vybrat artefakt",

@@ -733,6 +733,7 @@
 	"vcmi.kingdomOverview.secSkillOverflow.hover": "More skills",
 	"vcmi.lobby.author": "Author",
 	"vcmi.lobby.backToLobby": "Return to lobby",
+	"vcmi.lobby.waitingForOtherPlayers": "Waiting for other players to join",
 	"vcmi.lobby.battleOnlyMode": "Battle Mode",
 	"vcmi.lobby.battleOnlyMode.help": "Play a simple battle without adventure map",
 	"vcmi.lobby.battleOnlyModeArtifactSelect": "Select Artifact",

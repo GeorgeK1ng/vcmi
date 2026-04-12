@@ -123,6 +123,7 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 	void onTimer() override;
 
 	void applyPackOnLobbyScreen(CPackForLobby & pack);
+	bool validateMultiplayerGuestPresence() const;
 
 	std::string serverHostname;
 	ui16 serverPort;
@@ -171,6 +172,8 @@ public:
 
 	bool isHost() const;
 	bool isGuest() const;
+	bool hasRemoteGuestInMultiplayerLobby() const;
+	bool requiresRemoteGuestForStart() const;
 	bool inLobbyRoom() const;
 	bool inGame() const;
 
