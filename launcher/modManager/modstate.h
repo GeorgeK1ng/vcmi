@@ -56,6 +56,7 @@ public:
 	QString getDownloadUrl() const;
 
 	QPair<QString, QString> getCompatibleVersionRange() const;
+	QPair<QString, QString> getRepositoryCompatibleVersionRange() const;
 
 	bool isSubmod() const;
 	bool isCompatibility() const;

@@ -764,12 +764,11 @@ void CModListView::on_updateButton_clicked()
 		return;
 	}
 
-	doUpdateMod(modName);
-
-	ui->updateButton->setEnabled(false);
+	if(doUpdateMod(modName))
+		ui->updateButton->setEnabled(false);
 }
 
-void CModListView::doUpdateMod(const QString & modName)
+bool CModListView::doUpdateMod(const QString & modName)
 {
 	auto targetMod = modStateModel->getMod(modName);
 	QStringList modsToDownload;
@@ -777,7 +776,7 @@ void CModListView::doUpdateMod(const QString & modName)
 
 	auto describeRequiredVersion = [this](const ModState & mod)
 	{
-		const auto compatibilityInfo = mod.getCompatibleVersionRange();
+		const auto compatibilityInfo = mod.getRepositoryCompatibleVersionRange();
 		const auto & minStr = compatibilityInfo.first;
 		const auto & maxStr = compatibilityInfo.second;
 
@@ -798,7 +797,7 @@ void CModListView::doUpdateMod(const QString & modName)
 
 	auto isCompatibleWithCurrentVcmi = [](const ModState & mod)
 	{
-		const auto compatibilityInfo = mod.getCompatibleVersionRange();
+		const auto compatibilityInfo = mod.getRepositoryCompatibleVersionRange();
 		const auto minVersion = CModVersion::fromString(compatibilityInfo.first.toStdString());
 		const auto maxVersion = CModVersion::fromString(compatibilityInfo.second.toStdString());
 
@@ -840,7 +839,7 @@ void CModListView::doUpdateMod(const QString & modName)
 			QMessageBox::No);
 
 		if(result != QMessageBox::Yes)
-			return;
+			return false;
 	}
 
 	for(const auto & id : modsToDownload)
@@ -848,6 +847,8 @@ void CModListView::doUpdateMod(const QString & modName)
 		auto mod = modStateModel->getMod(id);
 		downloadMod(mod);
 	}
+
+	return !modsToDownload.empty();
 }
 
 void CModListView::openModDictionary(const QString & modName)

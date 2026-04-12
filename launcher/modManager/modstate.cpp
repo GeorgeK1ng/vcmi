@@ -177,9 +177,19 @@ QString ModState::getDownloadUrl() const
 
 QPair<QString, QString> ModState::getCompatibleVersionRange() const
 {
-	const JsonNode & compatibility = (!impl.isInstalled() || impl.isUpdateAvailable()) ?
-		impl.getRepositoryValue("compatibility") :
-		impl.getLocalValue("compatibility");
+	const JsonNode & compatibility = impl.getLocalValue("compatibility");
+
+	if (compatibility.isNull())
+		return {};
+
+	auto min = QString::fromStdString(compatibility["min"].String());
+	auto max = QString::fromStdString(compatibility["max"].String());
+	return { min, max};
+}
+
+QPair<QString, QString> ModState::getRepositoryCompatibleVersionRange() const
+{
+	const JsonNode & compatibility = impl.getRepositoryValue("compatibility");
 
 	if (compatibility.isNull())
 		return {};
