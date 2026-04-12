@@ -594,8 +594,7 @@ bool CServerHandler::hasRemoteGuestInMultiplayerLobby() const
 
 bool CServerHandler::requiresRemoteGuestForStart() const
 {
-	const bool isLocalHotseat = localPlayerNames.size() > 1;
-	return isHost() && loadMode == ELoadMode::MULTI && !isLocalHotseat;
+	return isHost() && loadMode == ELoadMode::MULTI;
 }
 
 bool CServerHandler::validateGameStart(bool allowOnlyAI) const
