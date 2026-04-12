@@ -109,7 +109,7 @@ void CHeroOverview::genControls()
 	r = Rect(2 * borderOffset + 44, 6 * borderOffset + yOffset + 278, 235, 44);
 	backgroundRectangles.push_back(std::make_shared<TransparentFilledRectangle>(r.resize(1), rectangleColor, borderColor));
 	labelHeroSpeciality = std::make_shared<CLabel>(r.x + borderOffset, r.y + borderOffset, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::YELLOW, LIBRARY->generaltexth->allTexts[78]);
-	labelSpecialityName = std::make_shared<CLabel>(r.x + borderOffset, r.y + borderOffset + 20, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, (*LIBRARY->heroh)[heroIdx]->getSpecialtyNameTranslated());
+	labelSpecialityName = std::make_shared<CMultiLineLabel>(Rect(r.x + borderOffset, r.y + borderOffset + 18, r.w - 2 * borderOffset, 22), FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, (*LIBRARY->heroh)[heroIdx]->getSpecialtyNameTranslated());
 
 	// speciality image
 	r = Rect(borderOffset, 6 * borderOffset + yOffset + 278, 44, 44);

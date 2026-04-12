@@ -399,7 +399,7 @@ void OptionsTab::CPlayerOptionTooltipBox::genHeroWindow()
 	labelHeroSpeciality = std::make_shared<CLabel>(pos.w / 2 + 4, 117, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, LIBRARY->generaltexth->allTexts[78]);
 
 	imageSpeciality = std::make_shared<CAnimImage>(AnimationPath::builtin("UN44"), (*LIBRARY->heroh)[heroIndex]->imageIndex, 0, pos.w / 2 - 22, 134);
-	labelSpecialityName = std::make_shared<CLabel>(pos.w / 2, 188, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, (*LIBRARY->heroh)[heroIndex]->getSpecialtyNameTranslated());
+	labelSpecialityName = std::make_shared<CMultiLineLabel>(Rect(pos.w / 2 - 90, 184, 180, 24), FONT_SMALL, ETextAlignment::TOPCENTER, Colors::WHITE, (*LIBRARY->heroh)[heroIndex]->getSpecialtyNameTranslated());
 }
 
 void OptionsTab::CPlayerOptionTooltipBox::genBonusWindow()

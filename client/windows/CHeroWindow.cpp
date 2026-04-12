@@ -139,7 +139,7 @@ CHeroWindow::CHeroWindow(const CGHeroInstance * hero)
 
 	specImage = std::make_shared<CAnimImage>(AnimationPath::builtin("UN44"), 0, 0, 18, 180);
 	specArea = std::make_shared<LRClickableAreaWText>(Rect(18, 180, 136, 42), LIBRARY->generaltexth->heroscrn[27]);
-	specName = std::make_shared<CLabel>(69, 205);
+	specName = std::make_shared<CMultiLineLabel>(Rect(64, 199, 88, 24), FONT_SMALL, ETextAlignment::TOPCENTER, Colors::WHITE);
 
 	expArea = std::make_shared<LRClickableAreaWText>(Rect(18, 228, 136, 42), LIBRARY->generaltexth->heroscrn[9]);
 	morale = std::make_shared<MoraleLuckBox>(true, Rect(175, 179, 53, 45));
