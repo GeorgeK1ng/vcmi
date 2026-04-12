@@ -461,6 +461,7 @@ void CLevelWindow::createSkillBox()
 void CLevelWindow::updateLevelUpData(const CGHeroInstance * hero, PrimarySkill pskill, std::vector<SecondarySkill> & skills, std::function<void(ui32)> callback)
 {
 	OBJECT_CONSTRUCTION;
+	waitingForNextUpdate = false;
 
 	this->hero = hero;
 	cb = callback;
@@ -525,8 +526,23 @@ void CLevelWindow::updateLevelUpData(const CGHeroInstance * hero, PrimarySkill p
 	redraw();
 }
 
+void CLevelWindow::tick(uint32_t msPassed)
+{
+	CWindowObject::tick(msPassed);
+
+	if(waitingForNextUpdate && std::chrono::steady_clock::now() >= closeDeadline)
+	{
+		waitingForNextUpdate = false;
+		GAME->interface()->showingDialog->setFree();
+		CWindowObject::close();
+	}
+}
+
 void CLevelWindow::close()
 {
+	if(waitingForNextUpdate)
+		return;
+
 	int idx = -1;
 
 	if(box)
@@ -547,12 +563,11 @@ void CLevelWindow::close()
 		const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
 		auto it = std::find(skills.begin(), skills.end(), chosen);
 
-		cb(std::distance(skills.begin(), it));
+			cb(std::distance(skills.begin(), it));
 	}
 
-	GAME->interface()->showingDialog->setFree();
-
-	CWindowObject::close();
+	waitingForNextUpdate = true;
+	closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
 }
 
 CTavernWindow::CTavernWindow(const CGObjectInstance * TavernObj, const std::function<void()> & onWindowClosed)

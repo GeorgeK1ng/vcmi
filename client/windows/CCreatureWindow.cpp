@@ -836,6 +836,7 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui3
 void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * commander, std::vector<ui32> & skills, std::function<void(ui32)> callback)
 {
 	OBJECT_CONSTRUCTION;
+	waitingForNextUpdate = false;
 
 	info->stackNode = commander;
 	info->creature = commander->getCreature();
@@ -878,12 +879,27 @@ bool CStackWindow::isCommanderLevelUpDialog() const
 
 CStackWindow::~CStackWindow() = default;
 
+void CStackWindow::tick(uint32_t msPassed)
+{
+	CWindowObject::tick(msPassed);
+
+	if(waitingForNextUpdate && std::chrono::steady_clock::now() >= closeDeadline)
+	{
+		waitingForNextUpdate = false;
+		CWindowObject::close();
+	}
+}
+
 void CStackWindow::close()
 {
+	if(waitingForNextUpdate)
+		return;
+
 	if(info->levelupInfo && !info->levelupInfo->skills.empty())
 		info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
 
-	CWindowObject::close();
+	waitingForNextUpdate = true;
+	closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
 }
 
 void CStackWindow::init()
