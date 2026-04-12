@@ -541,6 +541,11 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 
 			icon->hoverText = abilityDescription;
 			icon->text = abilityDescription;
+			if(parent->selectedSkill == skillID)
+			{
+				parent->selectedIcon = icon;
+				parent->setSelection(skillID, icon);
+			}
 
 			return icon;
 		};
