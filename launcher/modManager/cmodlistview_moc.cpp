@@ -774,7 +774,7 @@ bool CModListView::doUpdateMod(const QString & modName)
 	QStringList modsToDownload;
 	QStringList incompatibleMods;
 
-	auto describeRequiredVersion = [this](const ModState & mod)
+	auto describeRequiredVersion = [](const ModState & mod)
 	{
 		const auto compatibilityInfo = mod.getRepositoryCompatibleVersionRange();
 		const auto & minStr = compatibilityInfo.first;
