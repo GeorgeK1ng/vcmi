@@ -864,7 +864,7 @@ void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * command
 	stackArtifactButton.reset();
 	background.reset();
 
-	pos = Rect();
+	pos = Rect(pos.x, pos.y, 0, 0);
 	init();
 
 	setRedrawParent(true);
