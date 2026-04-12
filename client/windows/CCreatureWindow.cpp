@@ -849,6 +849,29 @@ void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * command
 
 	fakeNode.reset();
 	activeBonuses.clear();
+
+	if(mainSection)
+		removeChild(mainSection.get());
+	if(activeSpellsSection)
+		removeChild(activeSpellsSection.get());
+	if(commanderMainSection)
+		removeChild(commanderMainSection.get());
+	if(commanderBonusesSection)
+		removeChild(commanderBonusesSection.get());
+	if(bonusesSection)
+		removeChild(bonusesSection.get());
+	if(buttonsSection)
+		removeChild(buttonsSection.get());
+	if(commanderTab)
+		removeChild(commanderTab.get());
+	for(const auto & button : switchButtons)
+		if(button.second)
+			removeChild(button.second.get());
+	if(stackArtifact)
+		removeChild(stackArtifact.get());
+	if(stackArtifactButton)
+		removeChild(stackArtifactButton.get());
+
 	switchButtons.clear();
 
 	mainSection.reset();
