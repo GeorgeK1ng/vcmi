@@ -142,6 +142,12 @@ void CCommanderSkillIcon::deselect()
 	redraw();
 }
 
+void CCommanderSkillIcon::select()
+{
+	isSelected = true;
+	redraw();
+}
+
 bool CCommanderSkillIcon::getIsMasterAbility()
 {
 	return isMasterAbility;
@@ -1201,6 +1207,8 @@ void CStackWindow::setSelection(si32 newSkill, std::shared_ptr<CCommanderSkillIc
 	}
 
 	selectedIcon = newIcon; // update new selection
+	if(selectedIcon)
+		selectedIcon->select();
 	if(newSkill < 100)
 	{
 		newIcon->setObject(std::make_shared<CPicture>(getSkillImage(newSkill)));
