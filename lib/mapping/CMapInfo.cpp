@@ -146,7 +146,7 @@ std::string CMapInfo::getDescriptionTranslated() const
 int CMapInfo::getMapSizeIconId() const
 {
 	if(!mapHeader)
-		return 4;
+		return 7; // custom size
 
 	switch(mapHeader->width)
 	{
@@ -165,7 +165,7 @@ int CMapInfo::getMapSizeIconId() const
 	case CMapHeader::MAP_SIZE_GIANT:
 		return 6;
 	default:
-		return 4;
+		return 7; // custom size
 	}
 }
 
