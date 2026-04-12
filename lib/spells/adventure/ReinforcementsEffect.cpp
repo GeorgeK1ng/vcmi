@@ -90,8 +90,8 @@ ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, con
 
 		MapObjectSelectDialog request;
 		request.player = parameters.caster->getCasterOwner();
-		request.title.appendLocalString(EMetaText::JK_TXT, 40);
-		request.description.appendLocalString(EMetaText::JK_TXT, 41);
+		request.title.appendTextID("vcmi.spells.reinforcements.selectTown.title");
+		request.description.appendTextID("vcmi.spells.reinforcements.selectTown.description");
 		request.icon = Component(ComponentType::SPELL, owner->id);
 
 		request.objects = offeredTownIDs;

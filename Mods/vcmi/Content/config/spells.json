@@ -70,14 +70,26 @@
 	,"reinforcements" : {
 		"index" : 82,
 		"name": "Reinforcements",
-		"school": {
-			"air": true
+		"school" : {
+			"air" : true,
+			"earth" : true,
+			"fire" : true,
+			"water" : true
 		},
 		"level": 4,
 		"power": 0,
+		"type" : "adventure",
 		"defaultGainChance": 0,
 		"gainChance": {},
 		"targetType": "NO_TARGET",
+
+		"graphics" : {
+			"iconBook" : "reinforcements/spellBook",
+			"iconScroll" : "reinforcements/spellScroll",
+			"iconScenarioBonus" : "reinforcements/spellBonus",
+			"iconEffect" : "reinforcements/spellEffect"
+		},
+
 		"levels" : {
 			"base": {
 				"description" : "Summon creatures from the closest town garrison once per day",
@@ -87,7 +99,8 @@
 					"type" : "reinforcements",
 					"allowTownSelection" : false,
 					"castsPerDay" : 1
-				}
+				},
+				"power" : 0
 			},
 			"basic": {
 				"description" : "Summon creatures from the closest town garrison up to 2 times per day",
