@@ -13,7 +13,6 @@
 #include "../../lib/filesystem/ResourcePath.h"
 #include "../widgets/MiscWidgets.h"
 #include "CWindowObject.h"
-#include <chrono>
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -184,8 +183,6 @@ class CStackWindow : public CWindowObject
 
 	std::shared_ptr<CCommanderSkillIcon> selectedIcon;
 	si32 selectedSkill;
-	bool waitingForNextUpdate = false;
-	std::chrono::steady_clock::time_point closeDeadline;
 
 	void setSelection(si32 newSkill, std::shared_ptr<CCommanderSkillIcon> newIcon);
 	std::shared_ptr<CIntObject> switchTab(size_t index);
