@@ -1143,7 +1143,10 @@ CGarrisonWindow::CGarrisonWindow(const CArmedInstance * up, const CGHeroInstance
 		const bool isReinforcementsDialog = town != nullptr && down->getVisitedTown() != town;
 
 		if(isReinforcementsDialog)
+		{
 			titleText = LIBRARY->generaltexth->translate("vcmi.spells.reinforcements.garrison.title");
+			spellIcon = std::make_shared<CPicture>(ImagePath::builtin("reinforcements/spellScroll"), 243, 48);
+		}
 		else
 			titleText = LIBRARY->generaltexth->allTexts[709];
 	}
