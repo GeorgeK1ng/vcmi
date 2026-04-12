@@ -864,13 +864,6 @@ void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * command
 		removeChild(buttonsSection.get());
 	if(commanderTab)
 		removeChild(commanderTab.get());
-	for(const auto & button : switchButtons)
-		if(button.second)
-			removeChild(button.second.get());
-	if(stackArtifact)
-		removeChild(stackArtifact.get());
-	if(stackArtifactButton)
-		removeChild(stackArtifactButton.get());
 
 	switchButtons.clear();
 
