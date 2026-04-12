@@ -424,7 +424,6 @@ class CGarrisonWindow : public CWindowObject, public IGarrisonHolder
 	std::shared_ptr<CLabel> title;
 	std::shared_ptr<CAnimImage> banner;
 	std::shared_ptr<CAnimImage> portrait;
-	std::shared_ptr<CPicture> spellIcon;
 
 	std::shared_ptr<CGarrisonInt> garr;
 
