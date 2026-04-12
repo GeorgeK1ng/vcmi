@@ -1098,4 +1098,8 @@
 	"vcmi.tutorialWindow.decription.RadialWheel": "Přejetí otevře kruhovou nabídku pro různé akce, třeba správa hrdiny/jednotek a příkazy měst.",
 	"vcmi.tutorialWindow.decription.RightClick": "Klepněte a držte prvek, na který byste chtěli použít pravé tlačítko myši. Klepněte na volnou oblast pro zavření.",
 	"vcmi.tutorialWindow.title": "Úvod ovládání dotykem"
+,
+	"vcmi.spells.reinforcements.selectTown.title": "Posily",
+	"vcmi.spells.reinforcements.selectTown.description": "Vyber město, odkud chceš povolat posily.",
+	"vcmi.spells.reinforcements.garrison.title": "Převzít posily"
 }
