@@ -836,6 +836,7 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui3
 void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * commander, std::vector<ui32> & skills, std::function<void(ui32)> callback)
 {
 	OBJECT_CONSTRUCTION;
+	waitingForNextUpdate = false;
 
 	info->stackNode = commander;
 	info->creature = commander->getCreature();
@@ -848,23 +849,9 @@ void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * command
 
 	fakeNode.reset();
 	activeBonuses.clear();
-
-	if(mainSection)
-		removeChild(mainSection.get());
-	if(activeSpellsSection)
-		removeChild(activeSpellsSection.get());
-	if(commanderMainSection)
-		removeChild(commanderMainSection.get());
-	if(commanderBonusesSection)
-		removeChild(commanderBonusesSection.get());
-	if(bonusesSection)
-		removeChild(bonusesSection.get());
-	if(buttonsSection)
-		removeChild(buttonsSection.get());
-	if(commanderTab)
-		removeChild(commanderTab.get());
-
 	switchButtons.clear();
+	while(!children.empty())
+		removeChild(children.back());
 
 	mainSection.reset();
 	activeSpellsSection.reset();
@@ -873,15 +860,12 @@ void CStackWindow::updateCommanderLevelUpData(const CCommanderInstance * command
 	bonusesSection.reset();
 	buttonsSection.reset();
 	commanderTab.reset();
-
-	selectedIcon = nullptr;
-	selectedSkill = skills.empty() ? -1 : skills.front();
-	activeTab = 0;
+	stackArtifact.reset();
+	stackArtifactButton.reset();
+	background.reset();
 
 	pos = Rect();
-	initBonusesList();
-	initSections();
-	background->pos = pos;
+	init();
 
 	setRedrawParent(true);
 	redraw();
@@ -897,14 +881,32 @@ CStackWindow::~CStackWindow() = default;
 void CStackWindow::tick(uint32_t msPassed)
 {
 	CWindowObject::tick(msPassed);
+
+	if(waitingForNextUpdate && std::chrono::steady_clock::now() >= closeDeadline)
+	{
+		waitingForNextUpdate = false;
+		CWindowObject::close();
+	}
 }
 
 void CStackWindow::close()
 {
+	if(waitingForNextUpdate)
+		return;
+
 	if(info->levelupInfo && !info->levelupInfo->skills.empty())
 		info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
 
-	CWindowObject::close();
+	const bool expectAnotherCommanderLevelUp = info->commander && info->commander->gainsLevel();
+	if(expectAnotherCommanderLevelUp)
+	{
+		waitingForNextUpdate = true;
+		closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+	}
+	else
+	{
+		CWindowObject::close();
+	}
 }
 
 void CStackWindow::init()
