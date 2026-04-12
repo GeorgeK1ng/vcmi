@@ -898,8 +898,16 @@ void CStackWindow::close()
 	if(info->levelupInfo && !info->levelupInfo->skills.empty())
 		info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
 
-	waitingForNextUpdate = true;
-	closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+	const bool expectAnotherCommanderLevelUp = info->commander && info->commander->gainsLevel();
+	if(expectAnotherCommanderLevelUp)
+	{
+		waitingForNextUpdate = true;
+		closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+	}
+	else
+	{
+		CWindowObject::close();
+	}
 }
 
 void CStackWindow::init()

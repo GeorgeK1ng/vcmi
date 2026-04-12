@@ -563,11 +563,20 @@ void CLevelWindow::close()
 		const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
 		auto it = std::find(skills.begin(), skills.end(), chosen);
 
-			cb(std::distance(skills.begin(), it));
+				cb(std::distance(skills.begin(), it));
 	}
 
-	waitingForNextUpdate = true;
-	closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+	const bool expectAnotherHeroLevelUp = hero && hero->gainsLevel();
+	if(expectAnotherHeroLevelUp)
+	{
+		waitingForNextUpdate = true;
+		closeDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+	}
+	else
+	{
+		GAME->interface()->showingDialog->setFree();
+		CWindowObject::close();
+	}
 }
 
 CTavernWindow::CTavernWindow(const CGObjectInstance * TavernObj, const std::function<void()> & onWindowClosed)
