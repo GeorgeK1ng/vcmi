@@ -177,7 +177,9 @@ QString ModState::getDownloadUrl() const
 
 QPair<QString, QString> ModState::getCompatibleVersionRange() const
 {
-	const JsonNode & compatibility = impl.getLocalValue("compatibility");
+	const JsonNode & compatibility = (!impl.isInstalled() || impl.isUpdateAvailable()) ?
+		impl.getRepositoryValue("compatibility") :
+		impl.getLocalValue("compatibility");
 
 	if (compatibility.isNull())
 		return {};

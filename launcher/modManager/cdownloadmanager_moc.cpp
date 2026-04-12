@@ -151,7 +151,7 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 	if(received > total)
 		total = received;
 
-	Q_EMIT downloadProgress(received, total);
+	Q_EMIT downloadProgress(entry.filename, received, total);
 }
 
 bool CDownloadManager::downloadInProgress(const QUrl & url) const

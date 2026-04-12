@@ -772,16 +772,81 @@ void CModListView::on_updateButton_clicked()
 void CModListView::doUpdateMod(const QString & modName)
 {
 	auto targetMod = modStateModel->getMod(modName);
+	QStringList modsToDownload;
+	QStringList incompatibleMods;
 
-	if(targetMod.isUpdateAvailable())
-		downloadMod(targetMod);
+	auto describeRequiredVersion = [this](const ModState & mod)
+	{
+		const auto compatibilityInfo = mod.getCompatibleVersionRange();
+		const auto & minStr = compatibilityInfo.first;
+		const auto & maxStr = compatibilityInfo.second;
+
+		if(minStr == maxStr && !minStr.isEmpty())
+			return tr("%1 (requires VCMI %2)").arg(mod.getName(), minStr);
+
+		if(minStr.isEmpty() && !maxStr.isEmpty())
+			return tr("%1 (supports up to VCMI %2)").arg(mod.getName(), maxStr);
+
+		if(!minStr.isEmpty() && maxStr.isEmpty())
+			return tr("%1 (requires VCMI %2 or newer)").arg(mod.getName(), minStr);
+
+		if(!minStr.isEmpty() && !maxStr.isEmpty())
+			return tr("%1 (supports VCMI %2 - %3)").arg(mod.getName(), minStr, maxStr);
+
+		return mod.getName();
+	};
+
+	auto isCompatibleWithCurrentVcmi = [](const ModState & mod)
+	{
+		const auto compatibilityInfo = mod.getCompatibleVersionRange();
+		const auto minVersion = CModVersion::fromString(compatibilityInfo.first.toStdString());
+		const auto maxVersion = CModVersion::fromString(compatibilityInfo.second.toStdString());
+
+		bool compatible = true;
+		compatible &= (minVersion.isNull() || CModVersion::GameVersion().compatible(minVersion, true, true));
+		compatible &= (maxVersion.isNull() || maxVersion.compatible(CModVersion::GameVersion(), true, true));
+		return compatible;
+	};
+
+	auto enqueueForDownload = [&](const ModState & mod)
+	{
+		if(mod.isUpdateAvailable() || !mod.isInstalled())
+		{
+			modsToDownload.push_back(mod.getID());
+			if(!isCompatibleWithCurrentVcmi(mod))
+				incompatibleMods.push_back(describeRequiredVersion(mod));
+		}
+	};
+
+	enqueueForDownload(targetMod);
 
 	for(const auto & name : getModsToInstall(modName))
 	{
 		auto mod = modStateModel->getMod(name);
 		// update required mod, install missing (can be new dependency)
-		if(mod.isUpdateAvailable() || !mod.isInstalled())
-			downloadMod(mod);
+		enqueueForDownload(mod);
+	}
+
+	if(!incompatibleMods.empty())
+	{
+		incompatibleMods.removeDuplicates();
+		const auto warningText = tr("Selected update contains mods that are incompatible with your current VCMI version:\n\n%1\n\nDo you want to continue download anyway?")
+			.arg(incompatibleMods.join("\n"));
+
+		const int result = QMessageBox::warning(this,
+			tr("Mod is incompatible"),
+			warningText,
+			QMessageBox::Yes | QMessageBox::No,
+			QMessageBox::No);
+
+		if(result != QMessageBox::Yes)
+			return;
+	}
+
+	for(const auto & id : modsToDownload)
+	{
+		auto mod = modStateModel->getMod(id);
+		downloadMod(mod);
 	}
 }
 
@@ -830,25 +895,28 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 	{
 		dlManager = new CDownloadManager();
 		ui->progressWidget->setVisible(true);
-		connect(dlManager, SIGNAL(downloadProgress(qint64,qint64)),
-			this, SLOT(downloadProgress(qint64,qint64)));
+		connect(dlManager, SIGNAL(downloadProgress(QString,qint64,qint64)),
+			this, SLOT(downloadProgress(QString,qint64,qint64)));
 
 		connect(dlManager, SIGNAL(finished(QStringList,QStringList,QStringList)),
 			this, SLOT(downloadFinished(QStringList,QStringList,QStringList)));
 
 		connect(modModel, &ModStateItemModel::dataChanged, filterModel, &QAbstractItemModel::dataChanged);
 
-		const auto progressBarFormat = tr("Downloading %1. %p% (%v MB out of %m MB) finished").arg(description);
-		ui->progressBar->setFormat(progressBarFormat);
 	}
 
+	enqueuedDownloadDescriptions[file] = description;
 	Helper::keepScreenOn(true);
 	dlManager->downloadFile(url, file, sizeBytes);
 }
 
-void CModListView::downloadProgress(qint64 current, qint64 max)
+void CModListView::downloadProgress(QString currentFile, qint64 current, qint64 max)
 {
 	// display progress, in megabytes
+	const auto currentDescription = enqueuedDownloadDescriptions.value(currentFile, currentFile);
+	const auto progressBarFormat = tr("Downloading %1. %p% (%v MB out of %m MB) finished").arg(currentDescription);
+	ui->progressBar->setFormat(progressBarFormat);
+
 	ui->progressBar->setVisible(true);
 	ui->progressBar->setMaximum(max / (1024 * 1024));
 	ui->progressBar->setValue(current / (1024 * 1024));
@@ -876,7 +944,7 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 {
 	QString title = tr("Download failed");
 	QString firstLine = tr("Unable to download all files.\n\nEncountered errors:\n\n");
-	QString lastLine = tr("\n\nInstall successfully downloaded?");
+	QString lastLine = tr("\n\nProcess successfully downloaded files?");
 	bool doInstallFiles = false;
 
 	// if all files were d/loaded there should be no errors. And on failure there must be an error
@@ -903,6 +971,7 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	}
 
 	enqueuedModDownloads.clear();
+	enqueuedDownloadDescriptions.clear();
 	dlManager->deleteLater();
 	dlManager = nullptr;
 
@@ -1336,6 +1405,8 @@ void CModListView::on_abortButton_clicked()
 {
 	delete dlManager;
 	dlManager = nullptr;
+	enqueuedModDownloads.clear();
+	enqueuedDownloadDescriptions.clear();
 	Helper::keepScreenOn(false);
 	hideProgressBar();
 }
