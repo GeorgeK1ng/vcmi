@@ -525,7 +525,7 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 
 	closePendingLevelUpDialog();
 
-	const bool closeImmediately = queryID < 0;
+	pendingLevelUpRequestID = -1;
 	auto levelWindow = std::make_shared<CLevelWindow>(hero, pskill, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
@@ -533,9 +533,8 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
 	});
-	levelWindow->setCloseOnSelection(closeImmediately);
-	if(!closeImmediately)
-		pendingLevelUpDialog = levelWindow;
+	levelWindow->setCloseOnSelection(false);
+	pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);
 }
 
@@ -547,7 +546,7 @@ void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, s
 
 	closePendingLevelUpDialog();
 
-	const bool closeImmediately = queryID < 0;
+	pendingLevelUpRequestID = -1;
 	auto levelWindow = std::make_shared<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
@@ -555,9 +554,8 @@ void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, s
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
 	});
-	levelWindow->setCloseOnSelection(closeImmediately);
-	if(!closeImmediately)
-		pendingLevelUpDialog = levelWindow;
+	levelWindow->setCloseOnSelection(false);
+	pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);
 }
 
@@ -1312,6 +1310,12 @@ void CPlayerInterface::requestRealized( PackageApplied *pa )
 		if(pendingLevelUpRequestID == static_cast<int>(pa->requestID))
 			closePendingLevelUpDialog();
 		movementController->onQueryReplyApplied();
+	}
+	else if(pendingLevelUpDialog && pendingLevelUpRequestID < 0)
+	{
+		// Auto-resolved levelups (queryID < 0) have no QueryReply from client,
+		// so close pending window once current server request is fully applied.
+		closePendingLevelUpDialog();
 	}
 }
 
