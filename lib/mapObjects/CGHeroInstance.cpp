@@ -545,7 +545,7 @@ CGHeroInstance::~CGHeroInstance() = default;
 
 bool CGHeroInstance::needsLastStack() const
 {
-	return !isGarrisoned();
+	return true;
 }
 
 void CGHeroInstance::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const
