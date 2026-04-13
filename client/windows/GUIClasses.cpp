@@ -505,32 +505,47 @@ void CLevelWindow::createSkillBox()
 	redraw();
 }
 
+void CLevelWindow::setCloseOnSelection(bool value)
+{
+	closeOnSelection = value;
+}
+
 void CLevelWindow::close()
 {
-	int idx = -1;
-
-	if(box)
-		idx = box->selectedIndex();
-
-	// If there are skills available, we must not close without producing a valid choice
-	// For a single available option, auto-pick it
-	if(!skills.empty())
+	if(!selectionSubmitted)
 	{
-		if(idx == -1)
+		int idx = -1;
+
+		if(box)
+			idx = box->selectedIndex();
+
+		// If there are skills available, we must not close without producing a valid choice
+		// For a single available option, auto-pick it
+		if(!skills.empty())
 		{
-			if(skills.size() == 1)
-				idx = 0;
-			else
-				return; // require explicit selection
+			if(idx == -1)
+			{
+				if(skills.size() == 1)
+					idx = 0;
+				else
+					return; // require explicit selection
+			}
+
+			const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
+			auto it = std::find(skills.begin(), skills.end(), chosen);
+
+			cb(std::distance(skills.begin(), it));
 		}
 
-		const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
-		auto it = std::find(skills.begin(), skills.end(), chosen);
+		selectionSubmitted = true;
+		GAME->interface()->showingDialog->setFree();
 
-		cb(std::distance(skills.begin(), it));
+		if(!closeOnSelection)
+		{
+			deactivate();
+			return;
+		}
 	}
-
-	GAME->interface()->showingDialog->setFree();
 
 	CWindowObject::close();
 }

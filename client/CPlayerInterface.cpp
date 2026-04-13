@@ -522,13 +522,23 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 	EVENT_HANDLER_CALLED_BY_CLIENT;
 	waitWhileDialog();
 	ENGINE->sound().playSound(soundBase::heroNewLevel);
-	ENGINE->windows().createAndPushWindow<CLevelWindow>(hero, pskill, skills, [this, queryID](ui32 selection)
+
+	if(pendingLevelUpDialog)
+	{
+		pendingLevelUpDialog->close();
+		pendingLevelUpDialog.reset();
+	}
+
+	auto levelWindow = std::make_shared<CLevelWindow>(hero, pskill, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
 			return;
 
 		cb->selectionMade(selection, queryID);
 	});
+	levelWindow->setCloseOnSelection(false);
+	pendingLevelUpDialog = levelWindow;
+	ENGINE->windows().pushWindow(levelWindow);
 }
 
 void CPlayerInterface::commanderGotLevel (const CCommanderInstance * commander, std::vector<ui32> skills, QueryID queryID)
@@ -536,13 +546,23 @@ void CPlayerInterface::commanderGotLevel (const CCommanderInstance * commander, 
 	EVENT_HANDLER_CALLED_BY_CLIENT;
 	waitWhileDialog();
 	ENGINE->sound().playSound(soundBase::heroNewLevel);
-	ENGINE->windows().createAndPushWindow<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
+
+	if(pendingLevelUpDialog)
+	{
+		pendingLevelUpDialog->close();
+		pendingLevelUpDialog.reset();
+	}
+
+	auto levelWindow = std::make_shared<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
 			return;
 
 		cb->selectionMade(selection, queryID);
 	});
+	levelWindow->setCloseOnSelection(false);
+	pendingLevelUpDialog = levelWindow;
+	ENGINE->windows().pushWindow(levelWindow);
 }
 
 void CPlayerInterface::heroInGarrisonChange(const CGTownInstance *town)
@@ -1292,7 +1312,12 @@ void CPlayerInterface::requestRealized( PackageApplied *pa )
 		movementController->onMoveHeroApplied();
 
 	if(pa->packType == CTypeList::getInstance().getTypeID<QueryReply>(nullptr))
+	{
+		if(pendingLevelUpDialog)
+			pendingLevelUpDialog->close();
+		pendingLevelUpDialog.reset();
 		movementController->onQueryReplyApplied();
+	}
 }
 
 void CPlayerInterface::showHeroExchange(ObjectInstanceID hero1, ObjectInstanceID hero2)

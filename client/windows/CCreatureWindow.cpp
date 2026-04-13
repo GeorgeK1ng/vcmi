@@ -835,10 +835,26 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui3
 
 CStackWindow::~CStackWindow() = default;
 
+void CStackWindow::setCloseOnSelection(bool value)
+{
+	closeOnSelection = value;
+}
+
 void CStackWindow::close()
 {
-	if(info->levelupInfo && !info->levelupInfo->skills.empty())
-		info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
+	if(!selectionSubmitted)
+	{
+		if(info->levelupInfo && !info->levelupInfo->skills.empty())
+			info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
+
+		selectionSubmitted = true;
+
+		if(!closeOnSelection)
+		{
+			deactivate();
+			return;
+		}
+	}
 
 	CWindowObject::close();
 }
