@@ -32,6 +32,11 @@
 #include <SDL_hints.h>
 #include <SDL_timer.h>
 
+namespace
+{
+const Point TOUCH_CANCEL_POSITION(-1, -1);
+}
+
 InputSourceTouch::InputSourceTouch()
 	: lastTapTimeTicks(0), lastLeftClickTimeTicks(0), numTouchFingers(0)
 {
@@ -170,6 +175,7 @@ void InputSourceTouch::handleEventFingerDown(const SDL_TouchFingerEvent & tfinge
 		case TouchState::TAP_DOWN_SHORT:
 		{
 			ENGINE->input().setCursorPosition(convertTouchToMouse(tfinger));
+			ENGINE->events().dispatchMouseLeftButtonReleased(TOUCH_CANCEL_POSITION, params.touchToleranceDistance);
 			ENGINE->events().dispatchGesturePanningStarted(lastTapPosition);
 			state = TouchState::TAP_DOWN_DOUBLE;
 			break;
@@ -282,7 +288,7 @@ void InputSourceTouch::handleUpdate()
 		uint32_t currentTime = SDL_GetTicks();
 		if (currentTime > lastTapTimeTicks + params.longTouchTimeMilliseconds)
 		{
-			ENGINE->events().dispatchMouseLeftButtonReleased(Point(-100000, -100000), params.touchToleranceDistance);
+			ENGINE->events().dispatchMouseLeftButtonReleased(TOUCH_CANCEL_POSITION, params.touchToleranceDistance);
 			ENGINE->events().dispatchShowPopup(ENGINE->getCursorPosition(), params.touchToleranceDistance);
 
 			if (ENGINE->windows().isTopWindowPopup())
