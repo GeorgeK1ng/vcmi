@@ -523,11 +523,7 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 	waitWhileDialog();
 	ENGINE->sound().playSound(soundBase::heroNewLevel);
 
-	if(pendingLevelUpDialog)
-	{
-		pendingLevelUpDialog->close();
-		pendingLevelUpDialog.reset();
-	}
+	closePendingLevelUpDialog();
 
 	auto levelWindow = std::make_shared<CLevelWindow>(hero, pskill, skills, [this, queryID](ui32 selection)
 	{
@@ -541,17 +537,13 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 	ENGINE->windows().pushWindow(levelWindow);
 }
 
-void CPlayerInterface::commanderGotLevel (const CCommanderInstance * commander, std::vector<ui32> skills, QueryID queryID)
+void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, std::vector<ui32> skills, QueryID queryID)
 {
 	EVENT_HANDLER_CALLED_BY_CLIENT;
 	waitWhileDialog();
 	ENGINE->sound().playSound(soundBase::heroNewLevel);
 
-	if(pendingLevelUpDialog)
-	{
-		pendingLevelUpDialog->close();
-		pendingLevelUpDialog.reset();
-	}
+	closePendingLevelUpDialog();
 
 	auto levelWindow = std::make_shared<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
 	{
@@ -1313,11 +1305,18 @@ void CPlayerInterface::requestRealized( PackageApplied *pa )
 
 	if(pa->packType == CTypeList::getInstance().getTypeID<QueryReply>(nullptr))
 	{
-		if(pendingLevelUpDialog)
-			pendingLevelUpDialog->close();
-		pendingLevelUpDialog.reset();
+		closePendingLevelUpDialog();
 		movementController->onQueryReplyApplied();
 	}
+}
+
+void CPlayerInterface::closePendingLevelUpDialog()
+{
+	if(!pendingLevelUpDialog)
+		return;
+
+	pendingLevelUpDialog->close();
+	pendingLevelUpDialog.reset();
 }
 
 void CPlayerInterface::showHeroExchange(ObjectInstanceID hero1, ObjectInstanceID hero2)

@@ -242,6 +242,7 @@ private:
 	};
 
 	void heroKilled(const CGHeroInstance* hero);
+	void closePendingLevelUpDialog();
 	void townRemoved(const CGTownInstance* town);
 	void garrisonsChanged(std::vector<const CArmedInstance *> objs);
 	void requestReturningToMainMenu(bool won);
