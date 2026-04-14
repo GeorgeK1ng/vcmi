@@ -542,6 +542,9 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 			icon->hoverText = abilityDescription;
 			icon->text = abilityDescription;
 
+			if(parent->selectedSkill == static_cast<si32>(skillID))
+				parent->setSelection(skillID, icon);
+
 			return icon;
 		};
 
