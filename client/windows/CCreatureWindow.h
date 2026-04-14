@@ -47,6 +47,7 @@ public:
 	void clickPressed(const Point & cursorPosition) override;
 
 	void setObject(std::shared_ptr<CIntObject> object);
+	void select();
 	void deselect(); //TODO: consider using observer pattern instead?
 	bool getIsMasterAbility();
 

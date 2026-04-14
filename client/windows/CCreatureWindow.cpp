@@ -132,6 +132,11 @@ void CCommanderSkillIcon::setObject(std::shared_ptr<CIntObject> newObject)
 void CCommanderSkillIcon::clickPressed(const Point & cursorPosition)
 {
 	callback();
+	select();
+}
+
+void CCommanderSkillIcon::select()
+{
 	isSelected = true;
 	redraw();
 }
@@ -1157,6 +1162,7 @@ void CStackWindow::setSelection(si32 newSkill, std::shared_ptr<CCommanderSkillIc
 			newIcon->text = getSkillDescription(newSkill, true); //update currently selected icon's message to show upgrade description
 		}
 	}
+	newIcon->select();
 }
 
 std::shared_ptr<CIntObject> CStackWindow::switchTab(size_t index)
