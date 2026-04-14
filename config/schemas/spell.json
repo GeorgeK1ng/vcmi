@@ -541,18 +541,6 @@
 			"type" : "string",
 			"description" : "Localizable name of this spell"
 		},
-		"casterInTownText" : {
-			"type" : "string",
-			"description" : "Text shown when Reinforcements is cast while hero is in town"
-		},
-		"selectTownTitleText" : {
-			"type" : "string",
-			"description" : "Title shown in Reinforcements town selection dialog"
-		},
-		"selectTownDescriptionText" : {
-			"type" : "string",
-			"description" : "Description shown in Reinforcements town selection dialog"
-		},
 		"type" : {
 			"type" : "string",
 			"enum" : ["adventure", "combat", "ability"],
