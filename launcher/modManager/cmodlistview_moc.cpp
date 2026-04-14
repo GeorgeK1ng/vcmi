@@ -849,9 +849,10 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 
 void CModListView::downloadProgress(QString currentFile, qint64 current, qint64 max)
 {
-	Q_UNUSED(currentFile);
-
 	// display progress, in megabytes
+	if(!currentFile.isEmpty())
+		activeDownloadFile = currentFile;
+
 	const auto currentDescription = enqueuedDownloadDescriptions.value(activeDownloadFile, activeDownloadFile);
 	const auto progressBarFormat = tr("Downloading %1. %p% (%v MB out of %m MB) finished").arg(currentDescription);
 	ui->progressBar->setFormat(progressBarFormat);
