@@ -37,6 +37,7 @@ void CDownloadManager::downloadFile(const QUrl & url, const QString & file, qint
 	{
 		entry.status = FileEntry::IN_PROGRESS;
 		entry.reply = manager.get(request);
+		Q_EMIT downloadFileStarted(entry.filename);
 
 		connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
 			SLOT(downloadProgressChanged(qint64,qint64)));
@@ -102,6 +103,8 @@ void CDownloadManager::downloadFinished(QNetworkReply * reply)
 		file.status = FileEntry::FINISHED;
 	}
 
+	Q_EMIT downloadFileFinished(file.filename);
+
 	bool downloadComplete = true;
 	for(auto & entry : currentDownloads)
 	{
@@ -151,7 +154,7 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 	if(received > total)
 		total = received;
 
-	Q_EMIT downloadProgress(received, total);
+	Q_EMIT downloadProgress(entry.filename, received, total);
 }
 
 bool CDownloadManager::downloadInProgress(const QUrl & url) const
