@@ -553,7 +553,6 @@ void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, s
 
 	closePendingLevelUpDialog();
 
-	const bool closeImmediately = queryID < 0 && skills.empty();
 	pendingLevelUpRequestID = queryID < 0 ? LEVEL_UP_REQUEST_AUTO_RESOLVED : LEVEL_UP_REQUEST_WAITING_FOR_REPLY;
 	auto levelWindow = std::make_shared<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
 	{
@@ -562,9 +561,8 @@ void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, s
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
 	});
-	levelWindow->setCloseOnSelection(closeImmediately);
-	if(!closeImmediately)
-		pendingLevelUpDialog = levelWindow;
+	levelWindow->setCloseOnSelection(false);
+	pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);
 }
 
