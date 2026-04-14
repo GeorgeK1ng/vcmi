@@ -143,12 +143,7 @@ SpellID CSpell::getId() const
 
 std::string CSpell::getNameTextID() const
 {
-	return getBaseTextID() + ".name";
-}
-
-std::string CSpell::getBaseTextID() const
-{
-	TextIdentifier id("spell", modScope, identifier);
+	TextIdentifier id("spell", modScope, identifier, "name");
 	return id.get();
 }
 
@@ -745,14 +740,6 @@ std::shared_ptr<CSpell> CSpellHandler::loadFromJson(const std::string & scope, c
 	}
 
 	LIBRARY->generaltexth->registerString(scope, spell->getNameTextID(), json["name"]);
-
-	const std::string baseTextID = spell->getBaseTextID();
-	if(!json["casterInTownText"].String().empty())
-		LIBRARY->generaltexth->registerString(scope, baseTextID + ".casterInTown", json["casterInTownText"]);
-	if(!json["selectTownTitleText"].String().empty())
-		LIBRARY->generaltexth->registerString(scope, baseTextID + ".selectTown.title", json["selectTownTitleText"]);
-	if(!json["selectTownDescriptionText"].String().empty())
-		LIBRARY->generaltexth->registerString(scope, baseTextID + ".selectTown.description", json["selectTownDescriptionText"]);
 
 	logMod->trace("%s: loading spell %s", __FUNCTION__, spell->getNameTranslated());
 

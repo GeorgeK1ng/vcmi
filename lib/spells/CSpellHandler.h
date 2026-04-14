@@ -181,7 +181,6 @@ public:
 	std::string getModScope() const override;
 	SpellID getId() const override;
 
-	std::string getBaseTextID() const;
 	std::string getNameTextID() const override;
 	std::string getNameTranslated() const override;
 
