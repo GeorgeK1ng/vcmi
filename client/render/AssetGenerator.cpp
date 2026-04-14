@@ -1133,8 +1133,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 			if(distanceToCenter > radius)
 				continue;
 
-			const double normalizedDistance = std::min(distanceToCenter / radius, 1.0);
-			const uint8_t alpha = static_cast<uint8_t>(120 - 55 * normalizedDistance);
+			const double edgeOpacity = std::clamp(radius - distanceToCenter, 0.0, 1.0);
+			const double alphaValue = 204.0 * edgeOpacity;
+			const uint8_t alpha = static_cast<uint8_t>(alphaValue);
 			canvas.drawPoint(Point(x, y), ColorRGBA(160, 160, 160, alpha));
 		}
 	}
