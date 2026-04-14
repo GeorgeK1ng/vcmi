@@ -20,6 +20,9 @@ class DLL_LINKAGE ReinforcementsEffect final : public IAdventureSpellEffect
 {
 	const CSpell * owner;
 	bool allowTownSelection;
+	std::string casterInTownTextID;
+	std::string selectTownTitleTextID;
+	std::string selectTownDescriptionTextID;
 
 public:
 	ReinforcementsEffect(const CSpell * s, const JsonNode & config);

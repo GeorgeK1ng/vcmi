@@ -29,6 +29,19 @@ ReinforcementsEffect::ReinforcementsEffect(const CSpell * s, const JsonNode & co
 	: owner(s)
 	, allowTownSelection(config["allowTownSelection"].Bool())
 {
+	std::string baseTextID = owner->getNameTextID();
+	if(baseTextID.ends_with(".name"))
+		baseTextID.resize(baseTextID.size() - 5);
+
+	auto getTextIDOrDefault = [&config](const std::string & key, const std::string & fallback) -> std::string
+	{
+		const std::string value = config[key].String();
+		return value.empty() ? fallback : value;
+	};
+
+	casterInTownTextID = getTextIDOrDefault("casterInTownTextID", baseTextID + ".casterInTown");
+	selectTownTitleTextID = getTextIDOrDefault("selectTownTitleTextID", baseTextID + ".selectTown.title");
+	selectTownDescriptionTextID = getTextIDOrDefault("selectTownDescriptionTextID", baseTextID + ".selectTown.description");
 }
 
 ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const AdventureSpellMechanics & mechanics) const
@@ -46,7 +59,7 @@ ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, con
 	{
 		InfoWindow iw;
 		iw.player = parameters.caster->getCasterOwner();
-		iw.text.appendTextID("vcmi.spells.reinforcements.casterInTown");
+		iw.text.appendTextID(casterInTownTextID);
 		env->apply(iw);
 		return ESpellCastResult::CANCEL;
 	}
@@ -101,8 +114,8 @@ ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, con
 
 		MapObjectSelectDialog request;
 		request.player = parameters.caster->getCasterOwner();
-		request.title.appendTextID("vcmi.spells.reinforcements.selectTown.title");
-		request.description.appendTextID("vcmi.spells.reinforcements.selectTown.description");
+		request.title.appendTextID(selectTownTitleTextID);
+		request.description.appendTextID(selectTownDescriptionTextID);
 		request.icon = Component(ComponentType::SPELL, owner->id);
 
 		request.objects = offeredTownIDs;

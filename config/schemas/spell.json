@@ -139,7 +139,10 @@
 							"castsPerDayXL" : {},
 							"bonuses" : {},
 							"type" : {},
-							"allowTownSelection" : { "type" : "boolean" }
+							"allowTownSelection" : { "type" : "boolean" },
+							"casterInTownTextID" : { "type" : "string" },
+							"selectTownTitleTextID" : { "type" : "string" },
+							"selectTownDescriptionTextID" : { "type" : "string" }
 						},
 						"additionalProperties" : false
 					}
