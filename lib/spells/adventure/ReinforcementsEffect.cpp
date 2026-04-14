@@ -32,16 +32,9 @@ ReinforcementsEffect::ReinforcementsEffect(const CSpell * s, const JsonNode & co
 	std::string baseTextID = owner->getNameTextID();
 	if(baseTextID.ends_with(".name"))
 		baseTextID.resize(baseTextID.size() - 5);
-
-	auto getTextIDOrDefault = [&config](const std::string & key, const std::string & fallback) -> std::string
-	{
-		const std::string value = config[key].String();
-		return value.empty() ? fallback : value;
-	};
-
-	casterInTownTextID = getTextIDOrDefault("casterInTownTextID", baseTextID + ".casterInTown");
-	selectTownTitleTextID = getTextIDOrDefault("selectTownTitleTextID", baseTextID + ".selectTown.title");
-	selectTownDescriptionTextID = getTextIDOrDefault("selectTownDescriptionTextID", baseTextID + ".selectTown.description");
+	casterInTownTextID = baseTextID + ".casterInTown";
+	selectTownTitleTextID = baseTextID + ".selectTown.title";
+	selectTownDescriptionTextID = baseTextID + ".selectTown.description";
 }
 
 ESpellCastResult ReinforcementsEffect::beginCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const AdventureSpellMechanics & mechanics) const
