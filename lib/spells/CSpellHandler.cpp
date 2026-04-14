@@ -143,7 +143,12 @@ SpellID CSpell::getId() const
 
 std::string CSpell::getNameTextID() const
 {
-	TextIdentifier id("spell", modScope, identifier, "name");
+	return getBaseTextID() + ".name";
+}
+
+std::string CSpell::getBaseTextID() const
+{
+	TextIdentifier id("spell", modScope, identifier);
 	return id.get();
 }
 

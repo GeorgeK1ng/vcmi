@@ -29,11 +29,7 @@ ReinforcementsEffect::ReinforcementsEffect(const CSpell * s, const JsonNode & co
 	: owner(s)
 	, allowTownSelection(config["allowTownSelection"].Bool())
 {
-	static constexpr std::string_view NAME_TEXT_ID_SUFFIX = ".name";
-
-	std::string baseTextID = owner->getNameTextID();
-	if(baseTextID.ends_with(NAME_TEXT_ID_SUFFIX))
-		baseTextID.resize(baseTextID.size() - NAME_TEXT_ID_SUFFIX.size());
+	const std::string baseTextID = owner->getBaseTextID();
 	casterInTownTextID = baseTextID + ".casterInTown";
 	selectTownTitleTextID = baseTextID + ".selectTown.title";
 	selectTownDescriptionTextID = baseTextID + ".selectTown.description";
