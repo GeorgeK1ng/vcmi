@@ -150,8 +150,7 @@ ESpellCastResult ReinforcementsEffect::applyAdventureEffects(SpellCastEnvironmen
 		return ESpellCastResult::ERROR;
 	}
 
-	const auto * sourceArmy = destination->getUpperArmy();
-	env->showGarrisonDialog(sourceArmy->id, ObjectInstanceID(parameters.caster->getCasterUnitId()), true);
+	env->showGarrisonDialog(destination->id, ObjectInstanceID(parameters.caster->getCasterUnitId()), true);
 	return ESpellCastResult::OK;
 }
 
