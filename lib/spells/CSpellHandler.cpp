@@ -746,6 +746,14 @@ std::shared_ptr<CSpell> CSpellHandler::loadFromJson(const std::string & scope, c
 
 	LIBRARY->generaltexth->registerString(scope, spell->getNameTextID(), json["name"]);
 
+	const std::string baseTextID = spell->getBaseTextID();
+	if(!json["casterInTownText"].String().empty())
+		LIBRARY->generaltexth->registerString(scope, baseTextID + ".casterInTown", json["casterInTownText"]);
+	if(!json["selectTownTitleText"].String().empty())
+		LIBRARY->generaltexth->registerString(scope, baseTextID + ".selectTown.title", json["selectTownTitleText"]);
+	if(!json["selectTownDescriptionText"].String().empty())
+		LIBRARY->generaltexth->registerString(scope, baseTextID + ".selectTown.description", json["selectTownDescriptionText"]);
+
 	logMod->trace("%s: loading spell %s", __FUNCTION__, spell->getNameTranslated());
 
 	for(const auto & schoolJson : json["school"].Struct())
