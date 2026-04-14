@@ -187,18 +187,6 @@ QPair<QString, QString> ModState::getCompatibleVersionRange() const
 	return { min, max};
 }
 
-QPair<QString, QString> ModState::getRepositoryCompatibleVersionRange() const
-{
-	const JsonNode & compatibility = impl.getRepositoryValue("compatibility");
-
-	if (compatibility.isNull())
-		return {};
-
-	auto min = QString::fromStdString(compatibility["min"].String());
-	auto max = QString::fromStdString(compatibility["max"].String());
-	return { min, max};
-}
-
 bool ModState::isSubmod() const
 {
 	return !getParentID().isEmpty();

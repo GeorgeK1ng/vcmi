@@ -764,91 +764,23 @@ void CModListView::on_updateButton_clicked()
 		return;
 	}
 
-	if(doUpdateMod(modName))
-		ui->updateButton->setEnabled(false);
+	doUpdateMod(modName);
+	ui->updateButton->setEnabled(false);
 }
 
-bool CModListView::doUpdateMod(const QString & modName)
+void CModListView::doUpdateMod(const QString & modName)
 {
 	auto targetMod = modStateModel->getMod(modName);
-	QStringList modsToDownload;
-	QStringList incompatibleMods;
-
-	auto describeRequiredVersion = [](const ModState & mod)
-	{
-		const auto compatibilityInfo = mod.getRepositoryCompatibleVersionRange();
-		const auto & minStr = compatibilityInfo.first;
-		const auto & maxStr = compatibilityInfo.second;
-
-		if(minStr == maxStr && !minStr.isEmpty())
-			return tr("%1 (requires VCMI %2)").arg(mod.getName(), minStr);
-
-		if(minStr.isEmpty() && !maxStr.isEmpty())
-			return tr("%1 (supports up to VCMI %2)").arg(mod.getName(), maxStr);
-
-		if(!minStr.isEmpty() && maxStr.isEmpty())
-			return tr("%1 (requires VCMI %2 or newer)").arg(mod.getName(), minStr);
-
-		if(!minStr.isEmpty() && !maxStr.isEmpty())
-			return tr("%1 (supports VCMI %2 - %3)").arg(mod.getName(), minStr, maxStr);
-
-		return mod.getName();
-	};
-
-	auto isCompatibleWithCurrentVcmi = [](const ModState & mod)
-	{
-		const auto compatibilityInfo = mod.getRepositoryCompatibleVersionRange();
-		const auto minVersion = CModVersion::fromString(compatibilityInfo.first.toStdString());
-		const auto maxVersion = CModVersion::fromString(compatibilityInfo.second.toStdString());
-
-		bool compatible = true;
-		compatible &= (minVersion.isNull() || CModVersion::GameVersion().compatible(minVersion, true, true));
-		compatible &= (maxVersion.isNull() || maxVersion.compatible(CModVersion::GameVersion(), true, true));
-		return compatible;
-	};
-
-	auto enqueueForDownload = [&](const ModState & mod)
-	{
-		if(mod.isUpdateAvailable() || !mod.isInstalled())
-		{
-			modsToDownload.push_back(mod.getID());
-			if(!isCompatibleWithCurrentVcmi(mod))
-				incompatibleMods.push_back(describeRequiredVersion(mod));
-		}
-	};
-
-	enqueueForDownload(targetMod);
+	if(targetMod.isUpdateAvailable())
+		downloadMod(targetMod);
 
 	for(const auto & name : getModsToInstall(modName))
 	{
 		auto mod = modStateModel->getMod(name);
 		// update required mod, install missing (can be new dependency)
-		enqueueForDownload(mod);
+		if(mod.isUpdateAvailable() || !mod.isInstalled())
+			downloadMod(mod);
 	}
-
-	if(!incompatibleMods.empty())
-	{
-		incompatibleMods.removeDuplicates();
-		const auto warningText = tr("Selected update contains mods that are incompatible with your current VCMI version:\n\n%1\n\nDo you want to continue download anyway?")
-			.arg(incompatibleMods.join("\n"));
-
-		const int result = QMessageBox::warning(this,
-			tr("Mod is incompatible"),
-			warningText,
-			QMessageBox::Yes | QMessageBox::No,
-			QMessageBox::No);
-
-		if(result != QMessageBox::Yes)
-			return false;
-	}
-
-	for(const auto & id : modsToDownload)
-	{
-		auto mod = modStateModel->getMod(id);
-		downloadMod(mod);
-	}
-
-	return !modsToDownload.empty();
 }
 
 void CModListView::openModDictionary(const QString & modName)

@@ -92,7 +92,7 @@ public:
 	void doUninstallMod(const QString & modName, bool silent = false);
 
 	/// update mod by name
-	bool doUpdateMod(const QString & modName);
+	void doUpdateMod(const QString & modName);
 
 	/// open mod dictionary by name
 	void openModDictionary(const QString & modName);
