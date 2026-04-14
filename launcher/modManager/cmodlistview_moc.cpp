@@ -832,6 +832,8 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 			this, SLOT(downloadProgress(QString,qint64,qint64)));
 		connect(dlManager, SIGNAL(downloadFileStarted(QString)),
 			this, SLOT(onDownloadFileStarted(QString)));
+		connect(dlManager, SIGNAL(downloadFileFinished(QString)),
+			this, SLOT(onDownloadFileFinished(QString)));
 
 		connect(dlManager, SIGNAL(finished(QStringList,QStringList,QStringList)),
 			this, SLOT(downloadFinished(QStringList,QStringList,QStringList)));
@@ -841,6 +843,7 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 	}
 
 	enqueuedDownloadDescriptions[file] = description;
+	enqueuedDownloadFiles.push_back(file);
 	if(activeDownloadFile.isEmpty())
 		activeDownloadFile = file;
 	Helper::keepScreenOn(true);
@@ -850,7 +853,7 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 void CModListView::downloadProgress(QString currentFile, qint64 current, qint64 max)
 {
 	// display progress, in megabytes
-	if(!currentFile.isEmpty())
+	if(activeDownloadFile.isEmpty() && !currentFile.isEmpty())
 		activeDownloadFile = currentFile;
 
 	const auto currentDescription = enqueuedDownloadDescriptions.value(activeDownloadFile, activeDownloadFile);
@@ -864,7 +867,15 @@ void CModListView::downloadProgress(QString currentFile, qint64 current, qint64 
 
 void CModListView::onDownloadFileStarted(QString fileName)
 {
-	activeDownloadFile = fileName;
+	Q_UNUSED(fileName);
+}
+
+void CModListView::onDownloadFileFinished(QString fileName)
+{
+	enqueuedDownloadFiles.removeAll(fileName);
+
+	if(activeDownloadFile == fileName)
+		activeDownloadFile = enqueuedDownloadFiles.empty() ? QString() : enqueuedDownloadFiles.front();
 }
 
 void CModListView::extractionProgress(qint64 current, qint64 max)
@@ -916,6 +927,7 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	}
 
 	enqueuedModDownloads.clear();
+	enqueuedDownloadFiles.clear();
 	enqueuedDownloadDescriptions.clear();
 	activeDownloadFile.clear();
 	dlManager->deleteLater();
@@ -1352,6 +1364,7 @@ void CModListView::on_abortButton_clicked()
 	delete dlManager;
 	dlManager = nullptr;
 	enqueuedModDownloads.clear();
+	enqueuedDownloadFiles.clear();
 	enqueuedDownloadDescriptions.clear();
 	activeDownloadFile.clear();
 	Helper::keepScreenOn(false);

@@ -40,6 +40,7 @@ class CModListView : public QWidget
 	QString activatingPreset;
 
 	QStringList enqueuedModDownloads;
+	QStringList enqueuedDownloadFiles;
 	QHash<QString, QString> enqueuedDownloadDescriptions;
 	QString activeDownloadFile;
 
@@ -142,6 +143,7 @@ private slots:
 	void modSelected(const QModelIndex & current, const QModelIndex & previous);
 	void downloadProgress(QString currentFile, qint64 current, qint64 max);
 	void onDownloadFileStarted(QString fileName);
+	void onDownloadFileFinished(QString fileName);
 	void extractionProgress(qint64 current, qint64 max);
 	void contentExtractionProgress(QString modName, qint64 current, qint64 max);
 	void downloadFinished(QStringList savedFiles, QStringList failedFiles, QStringList errors);
