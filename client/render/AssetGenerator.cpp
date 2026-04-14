@@ -81,6 +81,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
+	imageFiles[ImagePath::builtin("stackArtifactIndicatorLarge.png")] = [this](){ return createStackArtifactIndicator(Point(22, 22));};
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
@@ -1107,6 +1109,35 @@ AssetGenerator::CanvasPtr AssetGenerator::createHeroSlotsColored(PlayerColor bac
 	for(int x = 0; x<7; x++)
 		for(int y = 0; y<2; y++)
 			canvas.draw(img, Point(x * 36, 130 + y * 36), Rect(3, 75, 36, 36));
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Point & size) const
+{
+	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.applyTransparency(true);
+
+	const Point center(size.x / 2, size.y / 2);
+	const double radius = std::min(size.x, size.y) / 2.0;
+
+	for(int y = 0; y < size.y; ++y)
+	{
+		for(int x = 0; x < size.x; ++x)
+		{
+			const double dx = x + 0.5 - center.x;
+			const double dy = y + 0.5 - center.y;
+			const double distanceToCenter = std::sqrt(dx * dx + dy * dy);
+
+			if(distanceToCenter > radius)
+				continue;
+
+			const double normalizedDistance = std::min(distanceToCenter / radius, 1.0);
+			const uint8_t alpha = static_cast<uint8_t>(120 - 55 * normalizedDistance);
+			canvas.drawPoint(Point(x, y), ColorRGBA(160, 160, 160, alpha));
+		}
+	}
 
 	return image;
 }
