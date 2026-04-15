@@ -1,0 +1,35 @@
+{
+	"mapSizeFilterButtons":
+	[
+		{
+			"size": 36,
+			"image": "SCSMBUT.DEF",
+			"help": "core.help.198",
+			"position": {"x": 158, "y": 46}
+		},
+		{
+			"size": 72,
+			"image": "SCMDBUT.DEF",
+			"help": "core.help.199",
+			"position": {"x": 205, "y": 46}
+		},
+		{
+			"size": 108,
+			"image": "SCLGBUT.DEF",
+			"help": "core.help.200",
+			"position": {"x": 252, "y": 46}
+		},
+		{
+			"size": 144,
+			"image": "SCXLBUT.DEF",
+			"help": "core.help.201",
+			"position": {"x": 299, "y": 46}
+		},
+		{
+			"size": 0,
+			"image": "SCALBUT.DEF",
+			"help": "core.help.202",
+			"position": {"x": 346, "y": 46}
+		}
+	]
+}
