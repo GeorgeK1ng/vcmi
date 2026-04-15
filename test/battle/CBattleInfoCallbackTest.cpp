@@ -388,6 +388,18 @@ TEST_F(AttackableHexesTest, LongWeaponCanAttackWithOneEmptyHexGap)
 	EXPECT_TRUE(subject.battleCanAttackHex(availableHexes, &attacker, defender.getPosition(), BattleHex::LEFT));
 }
 
+TEST_F(AttackableHexesTest, LongWeaponCanBeDisabledForManualAttack)
+{
+	UnitFake & attacker = addLongWeaponUnit(60, BattleSide::ATTACKER);
+	UnitFake & defender = addRegularMelee(attacker.getPosition().cloneInDirection(BattleHex::RIGHT).cloneInDirection(BattleHex::RIGHT), BattleSide::DEFENDER);
+
+	startBattle();
+	redirectUnitsToFake();
+
+	const BattleHex adjacentAttackHex = defender.getPosition().cloneInDirection(BattleHex::LEFT);
+	EXPECT_EQ(subject.fromWhichHexAttack(&attacker, defender.getPosition(), BattleHex::LEFT, false), adjacentAttackHex);
+}
+
 TEST_F(AttackableHexesTest, LongWeaponRequiresEmptyMiddleHex)
 {
 	UnitFake & attacker = addLongWeaponUnit(60, BattleSide::ATTACKER);
