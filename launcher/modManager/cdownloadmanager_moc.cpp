@@ -70,6 +70,10 @@ void CDownloadManager::downloadFinished(QNetworkReply * reply)
 
 	if(possibleRedirectUrl.isValid())
 	{
+		file.file->resize(0);
+		file.file->seek(0);
+		file.bytesReceived = 0;
+
 		file.reply->deleteLater();
 		file.reply = nullptr;
 		file.url = reply->url().resolved(redirectUrl);
