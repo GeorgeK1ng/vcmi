@@ -694,6 +694,21 @@ BattleHex CBattleInfoCallback::fromWhichHexAttack(const battle::Unit * attacker,
 	bool isAttacker = attacker->unitSide() == BattleSide::ATTACKER;
 	if (attacker->doubleWide())
 	{
+		if(allowLongWeapon && attacker->hasBonusOfType(BonusType::LONG_WEAPON) && direction != BattleHex::TOP && direction != BattleHex::BOTTOM)
+		{
+			const auto longLine = getLongWeaponLineHexes(target, direction);
+			if(longLine)
+			{
+				const auto [middleHex, longAttackFrom] = *longLine;
+				if(isLongWeaponMiddleHexClear(*this, middleHex))
+				{
+					const auto availableHexes = battleGetAvailableHexes(attacker, false);
+					if(availableHexes.contains(longAttackFrom))
+						return longAttackFrom;
+				}
+			}
+		}
+
 		// We need to find position of right hex of double-hex creature (or left for defending side)
 		// | TOP_LEFT | TOP_RIGHT |  RIGHT  |BOTTOM_RIGHT|BOTTOM_LEFT|  LEFT   |  TOP   | BOTTOM
 		// |  o o -   |    - o o  |  - -    |   - -      |    - -    |    - -  |  o o   |   - -
