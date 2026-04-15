@@ -54,12 +54,14 @@ public:
 	void makeAlive()
 	{
 		EXPECT_CALL(*this, alive()).WillRepeatedly(Return(true));
+		EXPECT_CALL(*this, isValidTarget(_)).WillRepeatedly(Return(true));
 	}
 
 	void makeDead()
 	{
 		EXPECT_CALL(*this, alive()).WillRepeatedly(Return(false));
 		EXPECT_CALL(*this, isGhost()).WillRepeatedly(Return(false));
+		EXPECT_CALL(*this, isValidTarget(_)).WillRepeatedly(Return(false));
 	}
 
 	void setupPoisition(BattleHex pos)

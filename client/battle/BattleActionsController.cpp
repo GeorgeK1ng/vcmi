@@ -342,14 +342,11 @@ void BattleActionsController::reorderPossibleActionsPriority(const CStack * stac
 			case PossiblePlayerBattleAction::ATTACK_AND_RETURN:
 				return 5;
 				break;
-			case PossiblePlayerBattleAction::ATTACK_WITHOUT_LONG_WEAPON:
+			case PossiblePlayerBattleAction::ATTACK:
 				return 6;
 				break;
-			case PossiblePlayerBattleAction::ATTACK:
-				return 7;
-				break;
 			case PossiblePlayerBattleAction::WALK_AND_ATTACK:
-				return 8;
+				return 7;
 				break;
 			case PossiblePlayerBattleAction::WALK_AND_SPELLCAST:
 				return 8;
@@ -371,6 +368,9 @@ void BattleActionsController::reorderPossibleActionsPriority(const CStack * stac
 				break;
 			case PossiblePlayerBattleAction::TELEPORT:
 				return 14;
+				break;
+			case PossiblePlayerBattleAction::ATTACK_WITHOUT_LONG_WEAPON:
+				return 15;
 				break;
 			default:
 				assert(0);
