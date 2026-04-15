@@ -454,6 +454,23 @@ TEST_F(AttackableHexesTest, LongWeaponDoubleWideCanAttackWithOneEmptyHexGap)
 	EXPECT_TRUE(subject.battleCanAttackHex(availableHexes, &attacker, defender.getPosition(), BattleHex::LEFT));
 }
 
+TEST_F(AttackableHexesTest, LongWeaponDoubleWideHasDisableActionInActionList)
+{
+	UnitFake & attacker = addLongWeaponDoubleWide(60, BattleSide::ATTACKER);
+
+	startBattle();
+	redirectUnitsToFake();
+
+	BattleClientInterfaceData data;
+	data.tacticsMode = false;
+
+	const auto actions = subject.getClientActionsForStack(&attacker, data);
+	EXPECT_TRUE(std::any_of(actions.begin(), actions.end(), [](const PossiblePlayerBattleAction & action)
+	{
+		return action.get() == PossiblePlayerBattleAction::ATTACK_WITHOUT_LONG_WEAPON;
+	}));
+}
+
 //// CERBERI 3-HEADED ATTACKS
 
 TEST_F(AttackableHexesTest, CerberiAttackerRight)
