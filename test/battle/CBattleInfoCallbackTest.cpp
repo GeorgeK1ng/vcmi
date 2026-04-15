@@ -454,6 +454,20 @@ TEST_F(AttackableHexesTest, LongWeaponDoubleWideCanAttackWithOneEmptyHexGap)
 	EXPECT_TRUE(subject.battleCanAttackHex(availableHexes, &attacker, defender.getPosition(), BattleHex::LEFT));
 }
 
+TEST_F(AttackableHexesTest, LongWeaponSingleWideInvalidDirectionReturnsInvalidHex)
+{
+	UnitFake & attacker = addLongWeaponUnit(60, BattleSide::ATTACKER);
+
+	startBattle();
+	redirectUnitsToFake();
+
+	EXPECT_NO_THROW(
+	{
+		const BattleHex attackFrom = subject.fromWhichHexAttack(&attacker, BattleHex(0), BattleHex::LEFT);
+		EXPECT_EQ(attackFrom, BattleHex::INVALID);
+	});
+}
+
 //// CERBERI 3-HEADED ATTACKS
 
 TEST_F(AttackableHexesTest, CerberiAttackerRight)

@@ -700,34 +700,49 @@ BattleHex CBattleInfoCallback::fromWhichHexAttack(const battle::Unit * attacker,
 		// |   - x -  |   - x -   | - x o o |  - x -     |   - x -   | o o x - | - x -  |  - x -
 		// |    - -   |    - -    |  - -    |   - o o    |  o o -    |    - -  |  - -   |   o o
 
-		switch (direction)
+		try
 		{
-			case BattleHex::TOP_LEFT:
-			case BattleHex::LEFT:
-			case BattleHex::BOTTOM_LEFT:
-				return target.cloneInDirection(direction, false)
-					.cloneInDirection(isAttacker ? BattleHex::NONE : BattleHex::LEFT, false);
+			switch (direction)
+			{
+				case BattleHex::TOP_LEFT:
+				case BattleHex::LEFT:
+				case BattleHex::BOTTOM_LEFT:
+					return target.cloneInDirection(direction, false)
+						.cloneInDirection(isAttacker ? BattleHex::NONE : BattleHex::LEFT, false);
 
-			case BattleHex::TOP_RIGHT:
-			case BattleHex::RIGHT:
-			case BattleHex::BOTTOM_RIGHT:
-				return target.cloneInDirection(direction, false)
-					.cloneInDirection(isAttacker ? BattleHex::RIGHT : BattleHex::NONE, false);
+				case BattleHex::TOP_RIGHT:
+				case BattleHex::RIGHT:
+				case BattleHex::BOTTOM_RIGHT:
+					return target.cloneInDirection(direction, false)
+						.cloneInDirection(isAttacker ? BattleHex::RIGHT : BattleHex::NONE, false);
 
-			case BattleHex::TOP:
-				return target.cloneInDirection(isAttacker ? BattleHex::TOP_RIGHT : BattleHex::TOP_LEFT, false);
+				case BattleHex::TOP:
+					return target.cloneInDirection(isAttacker ? BattleHex::TOP_RIGHT : BattleHex::TOP_LEFT, false);
 
-			case BattleHex::BOTTOM:
-				return target.cloneInDirection(isAttacker ? BattleHex::BOTTOM_RIGHT : BattleHex::BOTTOM_LEFT, false);
+				case BattleHex::BOTTOM:
+					return target.cloneInDirection(isAttacker ? BattleHex::BOTTOM_RIGHT : BattleHex::BOTTOM_LEFT, false);
 
-			default:
-				return BattleHex::INVALID;
+				default:
+					return BattleHex::INVALID;
+			}
+		}
+		catch(const std::out_of_range &)
+		{
+			return BattleHex::INVALID;
 		}
 	}
 	if (direction == BattleHex::TOP || direction == BattleHex::BOTTOM)
 		return BattleHex::INVALID;
 
-	BattleHex adjacentAttackFrom = target.cloneInDirection(direction, false);
+	BattleHex adjacentAttackFrom = BattleHex::INVALID;
+	try
+	{
+		adjacentAttackFrom = target.cloneInDirection(direction, false);
+	}
+	catch(const std::out_of_range &)
+	{
+		return BattleHex::INVALID;
+	}
 
 	if(allowLongWeapon && attacker->hasBonusOfType(BonusType::LONG_WEAPON))
 	{
