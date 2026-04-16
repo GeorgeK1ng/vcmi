@@ -481,6 +481,18 @@ TEST_F(AttackableHexesTest, LongWeaponSingleWideInvalidDirectionReturnsInvalidHe
 	});
 }
 
+TEST_F(AttackableHexesTest, LongWeaponSingleWideGetAttackedUnitsFromGapDoesNotThrow)
+{
+	UnitFake & attacker = addLongWeaponUnit(60, BattleSide::ATTACKER);
+	UnitFake & defender = addRegularMelee(attacker.getPosition().cloneInDirection(BattleHex::RIGHT).cloneInDirection(BattleHex::RIGHT), BattleSide::DEFENDER);
+
+	EXPECT_NO_THROW(
+	{
+		auto attacked = getAttackedUnits(attacker, defender, defender.getPosition());
+		EXPECT_TRUE(vstd::contains(attacked, &defender));
+	});
+}
+
 //// CERBERI 3-HEADED ATTACKS
 
 TEST_F(AttackableHexesTest, CerberiAttackerRight)

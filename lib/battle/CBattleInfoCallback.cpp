@@ -1762,7 +1762,39 @@ AttackableTiles CBattleInfoCallback::getPotentiallyAttackableHexes(
 		attackDirection = BattleHex::mutualPosition(attackOriginHex, defender->occupiedHex(defenderPos));
 
 	if (attackDirection == BattleHex::NONE)
-		throw std::runtime_error("!!!");
+	{
+		if(attacker->hasBonusOfType(BonusType::LONG_WEAPON))
+		{
+			const auto tryResolveLongWeaponDirection = [&](BattleHex defendedHex) -> BattleHex::EDir
+			{
+				for(int direction = 0; direction < 6; ++direction)
+				{
+					const auto longLine = getLongWeaponLineHexes(defendedHex, static_cast<BattleHex::EDir>(direction));
+					if(!longLine)
+						continue;
+
+					const auto [middleHex, longAttackFrom] = *longLine;
+					if(!isLongWeaponMiddleHexClear(*this, middleHex))
+						continue;
+
+					if(longAttackFrom == attackOriginHex)
+						return static_cast<BattleHex::EDir>(direction);
+
+					if(attacker->doubleWide() && longAttackFrom == attacker->occupiedHex(attackOriginHex))
+						return static_cast<BattleHex::EDir>(direction);
+				}
+				return BattleHex::NONE;
+			};
+
+			attackDirection = tryResolveLongWeaponDirection(defenderPos);
+
+			if(attackDirection == BattleHex::NONE && defender->doubleWide())
+				attackDirection = tryResolveLongWeaponDirection(defender->occupiedHex(defenderPos));
+		}
+
+		if(attackDirection == BattleHex::NONE)
+			return at;
+	}
 
 	const auto & processTargets = [&](const std::vector<int> & additionalTargets) -> BattleHexArray
 	{
