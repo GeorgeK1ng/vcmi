@@ -1153,7 +1153,7 @@ CGarrisonWindow::CGarrisonWindow(const CArmedInstance * up, const CGHeroInstance
 	{
 		if(isReinforcementsDialog)
 		{
-			const auto * reinforcementsSpell = SpellID::decode("vcmi:reinforcements").toSpell();
+			const auto * reinforcementsSpell = SpellID(SpellID::decode("vcmi:reinforcements")).toSpell();
 			if(reinforcementsSpell != nullptr)
 				titleText = LIBRARY->generaltexth->translate(reinforcementsSpell->getAdventureEffectTextID("reinforcements", "garrisonTitle"));
 			else
