@@ -357,14 +357,19 @@ bool CMap::checkForVisitableDir(const int3 & src, const TerrainTile * pom, const
 {
 	if (!pom->entrableTerrain()) //rock is never accessible
 		return false;
-	for(const auto & objID : pom->visitableObjects) //checking destination tile
+
+	// Only topmost blocking visitable object should define entry direction.
+	// Checking all stacked visitable objects can reject valid movement when hidden/lower objects
+	// have incompatible visit masks (common near shorelines / map edges).
+	for(auto objIter = pom->visitableObjects.rbegin(); objIter != pom->visitableObjects.rend(); ++objIter)
 	{
+		const auto objID = *objIter;
 		if(!vstd::contains(pom->blockingObjects, objID)) //this visitable object is not blocking, ignore
 			continue;
 
-		if (!getObject(objID)->appearance->isVisitableFrom(src.x - dst.x, src.y - dst.y))
-			return false;
+		return getObject(objID)->appearance->isVisitableFrom(src.x - dst.x, src.y - dst.y);
 	}
+
 	return true;
 }
 
