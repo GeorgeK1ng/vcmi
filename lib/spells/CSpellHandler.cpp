@@ -1017,6 +1017,7 @@ std::shared_ptr<CSpell> CSpellHandler::loadFromJson(const std::string & scope, c
 			registerField("casterInTown");
 			registerField("selectTownTitle");
 			registerField("selectTownDescription");
+			registerField("garrisonTitle");
 		}
 
 		if(!levelNode["battleEffects"].Struct().empty())

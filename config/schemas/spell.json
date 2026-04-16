@@ -142,7 +142,8 @@
 							"allowTownSelection" : { "type" : "boolean" },
 							"casterInTown" : { "type" : "string" },
 							"selectTownTitle" : { "type" : "string" },
-							"selectTownDescription" : { "type" : "string" }
+							"selectTownDescription" : { "type" : "string" },
+							"garrisonTitle" : { "type" : "string" }
 						},
 						"additionalProperties" : false
 					}
