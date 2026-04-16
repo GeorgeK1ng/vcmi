@@ -340,7 +340,17 @@ bool CMap::canMoveBetween(const int3 &src, const int3 &dst) const
 {
 	const TerrainTile * dstTile = &getTile(dst);
 	const TerrainTile * srcTile = &getTile(src);
-	return checkForVisitableDir(src, dstTile, dst) && checkForVisitableDir(dst, srcTile, src);
+
+	if(!checkForVisitableDir(src, dstTile, dst))
+		return false;
+
+	// Direction checks on source tile can incorrectly block valid movement from a tile occupied by
+	// blocked-visitable object (especially near map edges where approach options are limited).
+	// Hero standing on such tile should be able to leave it to any adjacent tile permitted by the destination.
+	if(srcTile->visitable())
+		return true;
+
+	return checkForVisitableDir(dst, srcTile, src);
 }
 
 bool CMap::checkForVisitableDir(const int3 & src, const TerrainTile * pom, const int3 & dst) const
