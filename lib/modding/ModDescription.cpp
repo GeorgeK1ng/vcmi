@@ -89,13 +89,10 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 	const auto baseLanguageIt = knownLanguages.find(baseLanguage);
 	if (baseLanguageIt != knownLanguages.end() && sections.count(baseLanguageIt->second) != 0)
 		modConfig["description"].String() = sections[baseLanguageIt->second];
-	else if (modConfig["description"].isNull())
-	{
-		if (sections.count("english") != 0)
-			modConfig["description"].String() = sections["english"];
-		else
-			modConfig["description"].String() = sections.begin()->second;
-	}
+	else if (sections.count("english") != 0)
+		modConfig["description"].String() = sections["english"];
+	else
+		modConfig["description"].String() = sections.begin()->second;
 
 	if (!defaultSection.empty())
 		modConfig["description"].String() = defaultSection;
