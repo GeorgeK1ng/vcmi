@@ -192,7 +192,8 @@ const JsonNode & ModDescription::getLocalConfig() const
 const JsonNode & ModDescription::getLocalizedValue(const std::string & keyName) const
 {
 	const JsonNode & baseValue = getValue(keyName);
-	const JsonNode & preferredLanguageValue = getValue(CGeneralTextHandler::getPreferredLanguage())[keyName];
+	const std::string preferredLanguage = boost::algorithm::to_lower_copy(CGeneralTextHandler::getPreferredLanguage());
+	const JsonNode & preferredLanguageValue = getValue(preferredLanguage)[keyName];
 
 	if (!preferredLanguageValue.isNull())
 		return preferredLanguageValue;
