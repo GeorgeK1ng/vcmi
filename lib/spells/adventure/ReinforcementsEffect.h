@@ -18,6 +18,10 @@ class CGTownInstance;
 
 class DLL_LINKAGE ReinforcementsEffect final : public spells::adventure::TownRelatedAdventureSpellEffect
 {
+	std::string casterInTownTextID;
+	std::string selectTownTitleTextID;
+	std::string selectTownDescriptionTextID;
+
 public:
 	ReinforcementsEffect(const CSpell * s, const JsonNode & config);
 

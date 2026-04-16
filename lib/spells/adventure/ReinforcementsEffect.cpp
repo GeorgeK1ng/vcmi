@@ -24,13 +24,16 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 ReinforcementsEffect::ReinforcementsEffect(const CSpell * s, const JsonNode & config)
 	: TownRelatedAdventureSpellEffect(s, config["allowTownSelection"].Bool(), false)
+	, casterInTownTextID(config["casterInTown"].String().starts_with("@") ? config["casterInTown"].String().substr(1) : s->getAdventureEffectTextID("reinforcements", "casterInTown"))
+	, selectTownTitleTextID(config["selectTownTitle"].String().starts_with("@") ? config["selectTownTitle"].String().substr(1) : s->getAdventureEffectTextID("reinforcements", "selectTownTitle"))
+	, selectTownDescriptionTextID(config["selectTownDescription"].String().starts_with("@") ? config["selectTownDescription"].String().substr(1) : s->getAdventureEffectTextID("reinforcements", "selectTownDescription"))
 {
 }
 
 void ReinforcementsEffect::configureDialogTitleAndDescription(MetaString & title, MetaString & description) const
 {
-	title.appendTextID("vcmi.spells.reinforcements.selectTown.title");
-	description.appendTextID("vcmi.spells.reinforcements.selectTown.description");
+	title.appendTextID(selectTownTitleTextID);
+	description.appendTextID(selectTownDescriptionTextID);
 }
 
 ESpellCastResult ReinforcementsEffect::beginCastExtraChecks(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> &) const
@@ -40,7 +43,7 @@ ESpellCastResult ReinforcementsEffect::beginCastExtraChecks(SpellCastEnvironment
 	{
 		InfoWindow iw;
 		iw.player = parameters.caster->getCasterOwner();
-		iw.text.appendTextID("vcmi.spells.reinforcements.casterInTown");
+		iw.text.appendTextID(casterInTownTextID);
 		env->apply(iw);
 		return ESpellCastResult::CANCEL;
 	}
