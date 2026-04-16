@@ -13,6 +13,8 @@
 
 #include "TownRelatedSpellUtils.h"
 
+#include "../CSpellHandler.h"
+
 #include "../../CPlayerState.h"
 #include "../../callback/IGameInfoCallback.h"
 #include "../../mapObjects/CGHeroInstance.h"

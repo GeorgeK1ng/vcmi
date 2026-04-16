@@ -16,7 +16,7 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 class CGTownInstance;
 class CSpell;
-class MapObjectSelectDialog;
+struct MapObjectSelectDialog;
 class MetaString;
 
 namespace spells
