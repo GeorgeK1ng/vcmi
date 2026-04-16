@@ -22,30 +22,26 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::string & fullDescription)
 {
-	if (modConfig["description"].isString())
-		modConfig["description"].String() = modConfig["description"].String();
-
-	for (const auto & language : Languages::getLanguageList())
-	{
-		if (modConfig[language.identifier]["description"].isString())
-			modConfig[language.identifier]["description"].String() = modConfig[language.identifier]["description"].String();
-	}
-
 	if (fullDescription.empty())
 		return;
 
-	std::set<std::string> knownLanguages;
+	std::map<std::string, std::string> knownLanguages;
 	for (const auto & language : Languages::getLanguageList())
-		knownLanguages.insert(boost::algorithm::to_lower_copy(language.identifier));
+		knownLanguages.emplace(boost::algorithm::to_lower_copy(language.identifier), language.identifier);
+
 	std::map<std::string, std::string> sections;
+	std::string defaultSection;
 	std::string currentLanguage;
 	std::string currentContent;
-	const std::string baseLanguage = boost::algorithm::to_lower_copy(modConfig.Struct().count("language") ? modConfig["language"].String() : "english");
+	const std::string baseLanguage = boost::algorithm::to_lower_copy(modConfig["language"].isString() ? modConfig["language"].String() : "english");
 
 	auto flushCurrentSection = [&]()
 	{
 		if (!currentLanguage.empty())
 			sections[currentLanguage] = currentContent;
+		else if (!currentContent.empty())
+			defaultSection += currentContent;
+
 		currentLanguage.clear();
 		currentContent.clear();
 	};
@@ -70,7 +66,7 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 			if (knownLanguages.count(languageID) != 0)
 			{
 				flushCurrentSection();
-				currentLanguage = languageID;
+				currentLanguage = knownLanguages.at(languageID);
 				continue;
 			}
 		}
@@ -88,17 +84,21 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 	}
 
 	for (const auto & [languageID, description] : sections)
+		modConfig[languageID]["description"].String() = description;
+
+	const auto baseLanguageIt = knownLanguages.find(baseLanguage);
+	if (baseLanguageIt != knownLanguages.end() && sections.count(baseLanguageIt->second) != 0)
+		modConfig["description"].String() = sections[baseLanguageIt->second];
+	else if (modConfig["description"].isNull())
 	{
-		if (languageID != baseLanguage)
-			modConfig[languageID]["description"].String() = description;
+		if (sections.count("english") != 0)
+			modConfig["description"].String() = sections["english"];
+		else
+			modConfig["description"].String() = sections.begin()->second;
 	}
 
-	if (sections.count(baseLanguage) != 0)
-		modConfig["description"].String() = sections[baseLanguage];
-	else if (sections.count("english") != 0)
-		modConfig["description"].String() = sections["english"];
-	else
-		modConfig["description"].String() = sections.begin()->second;
+	if (!defaultSection.empty())
+		modConfig["description"].String() = defaultSection;
 }
 
 ModDescription::ModDescription(const TModID & fullID, const JsonNode & localConfig, const JsonNode & repositoryConfig)
@@ -194,15 +194,17 @@ const JsonNode & ModDescription::getLocalConfig() const
 
 const JsonNode & ModDescription::getLocalizedValue(const std::string & keyName) const
 {
-	const std::string language = CGeneralTextHandler::getPreferredLanguage();
-	const JsonNode & languageNode = getValue(language);
 	const JsonNode & baseValue = getValue(keyName);
-	const JsonNode & localizedValue = languageNode[keyName];
+	const JsonNode & preferredLanguageValue = getValue(CGeneralTextHandler::getPreferredLanguage())[keyName];
 
-	if (localizedValue.isNull())
-		return baseValue;
-	else
-		return localizedValue;
+	if (!preferredLanguageValue.isNull())
+		return preferredLanguageValue;
+
+	const JsonNode & englishValue = getValue("english")[keyName];
+	if (!englishValue.isNull())
+		return englishValue;
+
+	return baseValue;
 }
 
 const JsonNode & ModDescription::getValue(const std::string & keyName) const
