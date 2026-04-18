@@ -32,11 +32,6 @@
 #include <SDL_hints.h>
 #include <SDL_timer.h>
 
-namespace
-{
-	const Point TOUCH_CANCEL_POSITION(-1, -1);
-}
-
 InputSourceTouch::InputSourceTouch()
 	: lastTapTimeTicks(0), lastLeftClickTimeTicks(0), numTouchFingers(0)
 {
