@@ -32,8 +32,13 @@
 #include <SDL_hints.h>
 #include <SDL_timer.h>
 
+namespace
+{
+	const Point TOUCH_CANCEL_POSITION(-1, -1);
+}
+
 InputSourceTouch::InputSourceTouch()
-	: lastTapTimeTicks(0), lastLeftClickTimeTicks(0), numTouchFingers(0)
+	: lastTapTimeTicks(0), shortTapPressDispatched(false), lastLeftClickTimeTicks(0), numTouchFingers(0)
 {
 	params.useRelativeMode = settings["general"]["userRelativePointer"].Bool();
 	params.relativeModeSpeedFactor = settings["general"]["relativePointerSpeedMultiplier"].Float();
@@ -98,6 +103,11 @@ void InputSourceTouch::handleEventFingerMotion(const SDL_TouchFingerEvent & tfin
 			Point distance = convertTouchToMouse(tfinger) - lastTapPosition;
 			if ( std::abs(distance.x) > params.panningSensitivityThreshold || std::abs(distance.y) > params.panningSensitivityThreshold)
 			{
+				if (state == TouchState::TAP_DOWN_SHORT && shortTapPressDispatched)
+				{
+					ENGINE->events().dispatchMouseLeftButtonReleased(TOUCH_CANCEL_POSITION, params.touchToleranceDistance);
+					shortTapPressDispatched = false;
+				}
 				state = state == TouchState::TAP_DOWN_SHORT ? TouchState::TAP_DOWN_PANNING : TouchState::TAP_DOWN_PANNING_POPUP;
 				ENGINE->events().dispatchGesturePanningStarted(lastTapPosition);
 			}
@@ -162,12 +172,23 @@ void InputSourceTouch::handleEventFingerDown(const SDL_TouchFingerEvent & tfinge
 		{
 			lastTapPosition = convertTouchToMouse(tfinger);
 			ENGINE->input().setCursorPosition(lastTapPosition);
+			shortTapPressDispatched = false;
+			if (!ENGINE->events().isGestureTarget(lastTapPosition))
+			{
+				ENGINE->events().dispatchMouseLeftButtonPressed(lastTapPosition, params.touchToleranceDistance);
+				shortTapPressDispatched = true;
+			}
 			state = TouchState::TAP_DOWN_SHORT;
 			break;
 		}
 		case TouchState::TAP_DOWN_SHORT:
 		{
 			ENGINE->input().setCursorPosition(convertTouchToMouse(tfinger));
+			if (shortTapPressDispatched)
+			{
+				ENGINE->events().dispatchMouseLeftButtonReleased(TOUCH_CANCEL_POSITION, params.touchToleranceDistance);
+				shortTapPressDispatched = false;
+			}
 			ENGINE->events().dispatchGesturePanningStarted(lastTapPosition);
 			state = TouchState::TAP_DOWN_DOUBLE;
 			break;
@@ -221,7 +242,8 @@ void InputSourceTouch::handleEventFingerUp(const SDL_TouchFingerEvent & tfinger)
 		{
 			Point tapPosition = convertTouchToMouse(tfinger);
 			ENGINE->input().setCursorPosition(tapPosition);
-			ENGINE->events().dispatchMouseLeftButtonPressed(tapPosition, params.touchToleranceDistance);
+			if (!shortTapPressDispatched)
+				ENGINE->events().dispatchMouseLeftButtonPressed(tapPosition, params.touchToleranceDistance);
 			if(tfinger.timestamp - lastLeftClickTimeTicks < params.doubleTouchTimeMilliseconds && (tapPosition - lastLeftClickPosition).length() < params.doubleTouchToleranceDistance)
 			{
 				ENGINE->events().dispatchMouseDoubleClick(tapPosition, params.touchToleranceDistance);
@@ -233,6 +255,7 @@ void InputSourceTouch::handleEventFingerUp(const SDL_TouchFingerEvent & tfinger)
 				lastLeftClickTimeTicks = tfinger.timestamp;
 				lastLeftClickPosition = tapPosition;
 			}
+			shortTapPressDispatched = false;
 			state = TouchState::IDLE;
 			break;
 		}
@@ -282,6 +305,11 @@ void InputSourceTouch::handleUpdate()
 		uint32_t currentTime = SDL_GetTicks();
 		if (currentTime > lastTapTimeTicks + params.longTouchTimeMilliseconds)
 		{
+			if (shortTapPressDispatched)
+			{
+				ENGINE->events().dispatchMouseLeftButtonReleased(TOUCH_CANCEL_POSITION, params.touchToleranceDistance);
+				shortTapPressDispatched = false;
+			}
 			ENGINE->events().dispatchShowPopup(ENGINE->getCursorPosition(), params.touchToleranceDistance);
 
 			if (ENGINE->windows().isTopWindowPopup())

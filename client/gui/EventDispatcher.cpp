@@ -416,6 +416,16 @@ void EventDispatcher::dispatchGesturePinch(const Point & initialPosition, double
 	}
 }
 
+bool EventDispatcher::isGestureTarget(const Point & position) const
+{
+	for(auto it : panningInterested)
+	{
+		if (it->receiveEvent(position, AEventsReceiver::GESTURE))
+			return true;
+	}
+	return false;
+}
+
 void EventDispatcher::dispatchMouseMoved(const Point & distance, const Point & position)
 {
 	EventReceiversList newlyHovered;
