@@ -408,7 +408,7 @@ void CSplitWindow::sliderMoved(int to)
 	setAmount(rightMin + to, false);
 }
 
-CLevelWindow::CLevelWindow(const CGHeroInstance * hero, PrimarySkill pskill, std::vector<SecondarySkill> & skills, std::function<void(ui32)> callback)
+CLevelWindow::CLevelWindow(const CGHeroInstance * hero, PrimarySkill pskill, std::vector<SecondarySkill> & skills, std::function<bool(ui32)> callback)
 	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("LVLUPBKG")),
 	cb(callback),
 	skills(skills),
@@ -448,7 +448,7 @@ CLevelWindow::CLevelWindow(const CGHeroInstance * hero, PrimarySkill pskill, std
 	portrait = std::make_shared<CHeroArea>(170, 66, hero);
 	portrait->addClickCallback(nullptr);
 	portrait->addRClickCallback([hero](){ ENGINE->windows().createAndPushWindow<CRClickPopupInt>(std::make_shared<CHeroWindow>(hero)); });
-	ok = std::make_shared<CButton>(Point(297, 413), AnimationPath::builtin("IOKAY"), CButton::tooltip(), std::bind(&CLevelWindow::close, this), EShortcut::GLOBAL_ACCEPT);
+	ok = std::make_shared<CButton>(Point(297, 413), AnimationPath::builtin("IOKAY"), CButton::tooltip(), std::bind(&CLevelWindow::onCloseClicked, this), EShortcut::GLOBAL_ACCEPT);
 
 	//%s has gained a level.
 	mainTitle = std::make_shared<CLabel>(192, 33, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, boost::str(boost::format(LIBRARY->generaltexth->allTexts[444]) % hero->getNameTranslated()));
@@ -494,7 +494,7 @@ void CLevelWindow::createSkillBox()
 		for(auto & skill : skillsToShow)
 		{
 			auto comp = std::make_shared<CSelectableComponent>(ComponentType::SEC_SKILL, skill, hero->getSecSkillLevel(SecondarySkill(skill))+1, CComponent::medium);
-			comp->onChoose = std::bind(&CLevelWindow::close, this);
+			comp->onChoose = std::bind(&CLevelWindow::onCloseClicked, this);
 			comps.push_back(comp);
 		}
 
@@ -505,16 +505,18 @@ void CLevelWindow::createSkillBox()
 	redraw();
 }
 
-void CLevelWindow::setCloseOnSelection(bool value)
+void CLevelWindow::close()
 {
-	closeOnSelection = value;
+	GAME->interface()->showingDialog->setFree();
+	CWindowObject::close();
 }
 
-void CLevelWindow::close()
+void CLevelWindow::onCloseClicked()
 {
 	if(!selectionSubmitted)
 	{
 		int idx = -1;
+		bool shouldCloseWindow = true;
 
 		if(box)
 			idx = box->selectedIndex();
@@ -534,20 +536,19 @@ void CLevelWindow::close()
 			const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
 			auto it = std::find(skills.begin(), skills.end(), chosen);
 
-			cb(std::distance(skills.begin(), it));
+			shouldCloseWindow = cb(std::distance(skills.begin(), it));
 		}
 
 		selectionSubmitted = true;
-		GAME->interface()->showingDialog->setFree();
 
-		if(!closeOnSelection)
+		if(!shouldCloseWindow)
 		{
 			deactivate();
 			return;
 		}
 	}
 
-	CWindowObject::close();
+	close();
 }
 
 CTavernWindow::CTavernWindow(const CGObjectInstance * TavernObj, const std::function<void()> & onWindowClosed)
