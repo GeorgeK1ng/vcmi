@@ -340,9 +340,14 @@ bool CServerHandler::isGuest() const
 
 bool CServerHandler::hasRemoteClientInLobby() const
 {
-	return std::any_of(playerNames.cbegin(), playerNames.cend(), [this](const auto & playerEntry)
+	return std::any_of(si->playerInfos.cbegin(), si->playerInfos.cend(), [this](const auto & playerInfoEntry)
 	{
-		return playerEntry.second.connection != hostClientId;
+		const auto & connectedPlayerIds = playerInfoEntry.second.connectedPlayerIDs;
+		return std::any_of(connectedPlayerIds.cbegin(), connectedPlayerIds.cend(), [this](const auto & playerId)
+		{
+			auto playerIt = playerNames.find(playerId);
+			return playerIt != playerNames.end() && playerIt->second.connection != hostClientId;
+		});
 	});
 }
 
