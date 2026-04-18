@@ -516,7 +516,10 @@ void CLevelWindow::onCloseClicked()
 	if(!selectionSubmitted)
 	{
 		int idx = -1;
-		bool shouldCloseWindow = true;
+		// Hero level-up can be emitted with no secondary-skill choices.
+		// In that case we still wait for follow-up sync packet and keep window
+		// deactivated instead of closing immediately.
+		bool shouldCloseWindow = skills.empty() ? false : true;
 
 		if(box)
 			idx = box->selectedIndex();
