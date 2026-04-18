@@ -81,6 +81,7 @@ public:
 	void dispatchGesturePanningEnded(const Point & initialPosition, const Point & finalPosition);
 	void dispatchGesturePanning(const Point & initialPosition, const Point & currentPosition, const Point & lastUpdateDistance);
 	void dispatchGesturePinch(const Point & initialPosition, double distance);
+	bool isGestureTarget(const Point & position) const;
 
 	/// Text input events
 	void dispatchTextInput(const std::string & text);

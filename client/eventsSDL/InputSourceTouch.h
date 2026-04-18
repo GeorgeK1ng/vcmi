@@ -106,6 +106,7 @@ class InputSourceTouch
 	TouchState state;
 	uint32_t lastTapTimeTicks;
 	Point lastTapPosition;
+	bool shortTapPressDispatched;
 
 	uint32_t lastLeftClickTimeTicks;
 	Point lastLeftClickPosition;
