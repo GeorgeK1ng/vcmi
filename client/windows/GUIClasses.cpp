@@ -525,16 +525,11 @@ void CLevelWindow::onCloseClicked()
 			idx = box->selectedIndex();
 
 		// If there are skills available, we must not close without producing a valid choice
-		// For a single available option, auto-pick it
+		// If nothing is explicitly selected yet, use first visible option.
 		if(!skills.empty())
 		{
 			if(idx == -1)
-			{
-				if(skills.size() == 1)
-					idx = 0;
-				else
-					return; // require explicit selection
-			}
+				idx = 0;
 
 			const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
 			auto it = std::find(skills.begin(), skills.end(), chosen);
