@@ -36,6 +36,24 @@
 #include "../../lib/rmg/CMapGenOptions.h"
 #include "../../lib/GameLibrary.h"
 
+namespace
+{
+bool canStartMultiplayerLobby(const CServerHandler & server)
+{
+	if(server.isGuest() || server.mi == nullptr)
+		return false;
+
+	const bool isLanMultiplayerHost = server.loadMode == ELoadMode::MULTI
+		&& server.serverMode == EServerMode::LOCAL
+		&& server.isHost();
+
+	if(isLanMultiplayerHost && !server.hasRemoteClientInLobby())
+		return false;
+
+	return true;
+}
+}
+
 CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	: CSelectionBase(screenType), bonusSel(nullptr)
 {
@@ -67,7 +85,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		}
 	};
 
-	if(screenType != ESelectionScreen::campaignList)
+	if(screenType != ESelectionScreen::campaignList && GAME->server().loadMode == ELoadMode::MULTI)
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
@@ -161,7 +179,7 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	}
 	else
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		buttonStart->block(!canStartMultiplayerLobby(GAME->server()));
 		card->changeSelection();
 	}
 
@@ -300,7 +318,7 @@ void CLobbyScreen::updateAfterStateChange()
 
 	if(curTab && curTab != tabBattleOnlyMode)
 	{
-		buttonStart->block(GAME->server().mi == nullptr || GAME->server().isGuest());
+		buttonStart->block(!canStartMultiplayerLobby(GAME->server()));
 		card->changeSelection();
 	}
 

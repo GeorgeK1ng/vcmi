@@ -171,6 +171,7 @@ public:
 
 	bool isHost() const;
 	bool isGuest() const;
+	bool hasRemoteClientInLobby() const;
 	bool inLobbyRoom() const;
 	bool inGame() const;
 

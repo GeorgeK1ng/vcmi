@@ -338,6 +338,14 @@ bool CServerHandler::isGuest() const
 	return !logicConnection || hostClientId != logicConnection->connectionID;
 }
 
+bool CServerHandler::hasRemoteClientInLobby() const
+{
+	return std::any_of(playerNames.cbegin(), playerNames.cend(), [this](const auto & playerEntry)
+	{
+		return playerEntry.second.connection != hostClientId;
+	});
+}
+
 const std::string & CServerHandler::getLocalHostname() const
 {
 	return settings["server"]["localHostname"].String();
