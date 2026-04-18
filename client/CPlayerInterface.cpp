@@ -536,11 +536,11 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 	auto levelWindow = std::make_shared<CLevelWindow>(hero, pskill, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
-			return;
+			return false;
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
+		return false;
 	});
-	levelWindow->setCloseOnSelection(false);
 	pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);
 }
@@ -558,11 +558,11 @@ void CPlayerInterface::commanderGotLevel(const CCommanderInstance * commander, s
 	auto levelWindow = std::make_shared<CStackWindow>(commander, skills, [this, queryID](ui32 selection)
 	{
 		if(queryID < 0)
-			return;
+			return true;
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
+		return false;
 	});
-	levelWindow->setCloseOnSelection(closeImmediately);
 	if(!closeImmediately)
 		pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);

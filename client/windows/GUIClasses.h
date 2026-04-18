@@ -150,7 +150,7 @@ class CLevelWindow : public CWindowObject
 	std::shared_ptr<CLabel> skillValue;
 
 	std::shared_ptr<CComponentBox> box; //skills to select
-	std::function<void(ui32)> cb;
+	std::function<bool(ui32)> cb;
 
 	int skillViewOffset = 0;
 	std::shared_ptr<CButton> buttonLeft;
@@ -164,14 +164,13 @@ class CLevelWindow : public CWindowObject
 	void createSkillBox();
 
 public:
-	CLevelWindow(const CGHeroInstance *hero, PrimarySkill pskill, std::vector<SecondarySkill> &skills, std::function<void(ui32)> callback);
-	void setCloseOnSelection(bool value);
+	CLevelWindow(const CGHeroInstance *hero, PrimarySkill pskill, std::vector<SecondarySkill> &skills, std::function<bool(ui32)> callback);
 
 	void close() override;
 
 private:
-	bool closeOnSelection = true;
 	bool selectionSubmitted = false;
+	void onCloseClicked();
 };
 
 /// Town portal, castle gate window

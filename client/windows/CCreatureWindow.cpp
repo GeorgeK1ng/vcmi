@@ -54,7 +54,7 @@ public:
 	struct CommanderLevelInfo
 	{
 		std::vector<ui32> skills;
-		std::function<void(ui32)> callback;
+		std::function<bool(ui32)> callback;
 	};
 	struct StackDismissInfo
 	{
@@ -440,7 +440,7 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 		parent->switchButtons[parent->activeTab]->disable();
 	}
 
-	exit = std::make_shared<CButton>(Point(382, 5), AnimationPath::builtin("hsbtns.def"), LIBRARY->generaltexth->zelp[447], [this](){ parent->close(); }, EShortcut::GLOBAL_RETURN);
+	exit = std::make_shared<CButton>(Point(382, 5), AnimationPath::builtin("hsbtns.def"), LIBRARY->generaltexth->zelp[447], [this](){ parent->onCloseClicked(); }, EShortcut::GLOBAL_RETURN);
 }
 
 CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, int yOffset)
@@ -826,7 +826,7 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, bool popup)
 	init();
 }
 
-CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui32> &skills, std::function<void(ui32)> callback)
+CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui32> &skills, std::function<bool(ui32)> callback)
 	: CWindowObject(BORDERED),
 	info(std::make_unique<UnitView>())
 {
@@ -843,28 +843,30 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui3
 
 CStackWindow::~CStackWindow() = default;
 
-void CStackWindow::setCloseOnSelection(bool value)
+void CStackWindow::close()
 {
-	closeOnSelection = value;
+	CWindowObject::close();
 }
 
-void CStackWindow::close()
+void CStackWindow::onCloseClicked()
 {
 	if(!selectionSubmitted)
 	{
+		bool shouldCloseWindow = true;
+
 		if(info->levelupInfo && !info->levelupInfo->skills.empty())
-			info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
+			shouldCloseWindow = info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
 
 		selectionSubmitted = true;
 
-		if(!closeOnSelection)
+		if(!shouldCloseWindow)
 		{
 			deactivate();
 			return;
 		}
 	}
 
-	CWindowObject::close();
+	close();
 }
 
 void CStackWindow::init()
