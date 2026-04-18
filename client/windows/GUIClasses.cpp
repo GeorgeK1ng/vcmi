@@ -1126,7 +1126,7 @@ void CUnivConfirmWindow::makeDeal(SecondarySkill skill)
 	close();
 }
 
-CGarrisonWindow::CGarrisonWindow(const CArmedInstance * up, const CGHeroInstance * down, bool removableUnits)
+CGarrisonWindow::CGarrisonWindow(const CArmedInstance * up, const CGHeroInstance * down, bool removableUnits, const MetaString & customTitle)
 	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("GARRISON"))
 {
 	OBJECT_CONSTRUCTION;
@@ -1151,14 +1151,10 @@ CGarrisonWindow::CGarrisonWindow(const CArmedInstance * up, const CGHeroInstance
 	std::string titleText;
 	if(down->tempOwner == up->tempOwner)
 	{
-		if(isReinforcementsDialog)
-		{
-			const auto * reinforcementsSpell = SpellID(SpellID::decode("vcmi:reinforcements")).toSpell();
-			if(reinforcementsSpell != nullptr)
-				titleText = LIBRARY->generaltexth->translate(reinforcementsSpell->getAdventureEffectTextID("reinforcements", "garrisonTitle"));
-			else
-				titleText = LIBRARY->generaltexth->allTexts[709];
-		}
+		if(!customTitle.empty())
+			titleText = customTitle.toString();
+		else if(isReinforcementsDialog)
+			titleText = LIBRARY->generaltexth->allTexts[709];
 		else
 			titleText = LIBRARY->generaltexth->allTexts[709];
 	}
