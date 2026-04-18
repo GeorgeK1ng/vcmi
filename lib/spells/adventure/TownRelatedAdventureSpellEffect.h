@@ -1,5 +1,5 @@
 /*
- * TownRelatedSpellUtils.h, part of VCMI engine
+ * TownRelatedAdventureSpellEffect.h, part of VCMI engine
  *
  * Authors: listed in file AUTHORS in main folder
  *
@@ -22,10 +22,7 @@ class MetaString;
 namespace spells
 {
 namespace adventure
-{
-std::vector<const CGTownInstance *> getPlayerTeamTowns(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, bool skipOccupiedTowns);
-const CGTownInstance * findNearestTown(const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> & pool);
-
+{	
 class DLL_LINKAGE TownRelatedAdventureSpellEffect : public IAdventureSpellEffect
 {
 protected:
@@ -34,6 +31,8 @@ protected:
 	bool skipOccupiedTowns;
 
 	explicit TownRelatedAdventureSpellEffect(const CSpell * owner, bool allowTownSelection, bool skipOccupiedTowns);
+	std::vector<const CGTownInstance *> getPlayerTeamTowns(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
+	const CGTownInstance * findNearestTown(const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> & pool) const;
 
 	virtual bool shouldOfferTownInDialog(const CGTownInstance * town) const;
 	virtual void configureDialogTitleAndDescription(MetaString & title, MetaString & description) const = 0;

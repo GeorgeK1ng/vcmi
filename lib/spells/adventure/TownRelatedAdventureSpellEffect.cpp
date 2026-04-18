@@ -1,5 +1,5 @@
 /*
- * TownRelatedSpellUtils.cpp, part of VCMI engine
+ * TownRelatedAdventureSpellEffect.cpp, part of VCMI engine
  *
  * Authors: listed in file AUTHORS in main folder
  *
@@ -9,7 +9,7 @@
  */
 
 #include "StdInc.h"
-#include "TownRelatedSpellUtils.h"
+#include "TownRelatedAdventureSpellEffect.h"
 
 #include "AdventureSpellMechanics.h"
 
@@ -27,7 +27,7 @@ namespace spells
 {
 namespace adventure
 {
-std::vector<const CGTownInstance *> getPlayerTeamTowns(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, bool skipOccupiedTowns)
+std::vector<const CGTownInstance *> TownRelatedAdventureSpellEffect::getPlayerTeamTowns(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
 {
 	std::vector<const CGTownInstance *> result;
 
@@ -44,7 +44,7 @@ std::vector<const CGTownInstance *> getPlayerTeamTowns(SpellCastEnvironment * en
 	return result;
 }
 
-const CGTownInstance * findNearestTown(const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> & pool)
+const CGTownInstance * TownRelatedAdventureSpellEffect::findNearestTown(const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> & pool) const
 {
 	if(pool.empty() || !parameters.caster->getHeroCaster())
 		return nullptr;
@@ -94,7 +94,7 @@ ESpellCastResult TownRelatedAdventureSpellEffect::onNoTownToSelect(SpellCastEnvi
 
 ESpellCastResult TownRelatedAdventureSpellEffect::beginCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const AdventureSpellMechanics & mechanics) const
 {
-	std::vector<const CGTownInstance *> towns = getPlayerTeamTowns(env, parameters, skipOccupiedTowns);
+	std::vector<const CGTownInstance *> towns = getPlayerTeamTowns(env, parameters);
 
 	if(!parameters.caster->getHeroCaster())
 	{
