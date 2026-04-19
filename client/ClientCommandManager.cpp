@@ -543,8 +543,13 @@ void ClientCommandManager::handleVsLog(std::istringstream & singleWordBuffer)
 
 void ClientCommandManager::handleGenerateAssets()
 {
+	const boost::filesystem::path outPath = VCMIDirs::get().userDataPath() / "Generated";
+	boost::filesystem::create_directories(outPath);
+
+	printCommandMessage("Starting generated assets export");
 	ENGINE->renderHandler().exportGeneratedAssets();
-	printCommandMessage("All assets generated");
+	printCommandMessage("Generated assets export complete");
+	printCommandMessage("Extracted files can be found in " + outPath.string() + " directory\n");
 }
 
 void ClientCommandManager::printCommandMessage(const std::string &commandMessage, ELogLevel::ELogLevel messageType)
