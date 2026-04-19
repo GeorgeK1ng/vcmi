@@ -543,7 +543,7 @@ void ClientCommandManager::handleVsLog(std::istringstream & singleWordBuffer)
 
 void ClientCommandManager::handleGenerateAssets()
 {
-	const boost::filesystem::path outPath = VCMIDirs::get().userDataPath() / "Generated";
+	const boost::filesystem::path outPath = VCMIDirs::get().userExtractedPath() / "generated";
 	boost::filesystem::create_directories(outPath);
 
 	printCommandMessage("Starting generated assets export");
