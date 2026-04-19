@@ -70,6 +70,8 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	const std::string backgroundName = "heroBackpackDialog" + (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
 
 	stretchedBackground = std::make_shared<CFilledTexture>(ImagePath::builtin(backgroundName), Rect(0, 0, pos.w, pos.h));
+	if(stretchedBackground->parent == this)
+		removeChild(stretchedBackground.get());
 
 	auto buttonPos = Point(pos.x + windowMargin, pos.y + arts->pos.h + 2 * windowMargin);
 	for(const auto & button : buttons)
@@ -83,6 +85,7 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	statusbar->pos.h = 19;
 	addUsedEvents(LCLICK);
 	center();
+	updateShadow();
 }
 
 void CHeroBackpackWindow::notFocusedClick()
@@ -98,7 +101,8 @@ void CHeroBackpackWindow::keyPressed(EShortcut key)
 
 void CHeroBackpackWindow::showAll(Canvas & to)
 {
-	CIntObject::showAll(to);
+	stretchedBackground->showAll(to);
+	CWindowObject::showAll(to);
 }
 
 CHeroQuickBackpackWindow::CHeroQuickBackpackWindow(const CGHeroInstance * hero, ArtifactPosition targetSlot)
