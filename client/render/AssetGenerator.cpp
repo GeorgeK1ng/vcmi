@@ -879,7 +879,34 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 		{ 6, Point(704, 394) },
 	};
 
-	return createDialogWithStatusBarBackground(sizes.at(creaturesAmount));
+	auto image = createDialogWithStatusBarBackground(sizes.at(creaturesAmount));
+	Canvas canvas = image->getCanvas();
+
+	// Additional overlays used by original TPRCRT (semi-transparent plates, input area and button backgrounds).
+	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
+	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
+
+	auto drawPlate = [&canvas, rectangleColor, borderColor](const Rect & rect, bool blackFill = false)
+	{
+		if(blackFill)
+			canvas.drawColor(rect, Colors::BLACK);
+		else
+			canvas.drawColorBlended(rect, rectangleColor);
+		canvas.drawBorder(rect, borderColor);
+	};
+
+	drawPlate(Rect(64, 192, 99, 19));
+	drawPlate(Rect(323, 192, 99, 19));
+	drawPlate(Rect(172, 222, 67, 19));
+	drawPlate(Rect(246, 222, 67, 19));
+	drawPlate(Rect(64, 222, 99, 43));
+	drawPlate(Rect(323, 222, 99, 43));
+	drawPlate(Rect(174, 245, 139, 19), true);
+	drawPlate(Rect(133, 312, 66, 34));
+	drawPlate(Rect(211, 312, 66, 34));
+	drawPlate(Rect(289, 312, 66, 34));
+
+	return image;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createResourceWindow(CreateResourceWindowType type, int count, PlayerColor color) const
