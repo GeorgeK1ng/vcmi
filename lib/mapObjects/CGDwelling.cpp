@@ -277,7 +277,7 @@ void CGDwelling::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstan
 			"core.advevent.35",
 			"vcmi.adventureMap.dwelling2",
 			"vcmi.adventureMap.dwelling3",
-			"vcmi.adventureMap.dwelling4",
+			"core.advevent.36",
 			"vcmi.adventureMap.dwelling5",
 			"vcmi.adventureMap.dwelling6"
 		};
