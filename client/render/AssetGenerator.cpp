@@ -886,7 +886,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
 	const Point originalSize(484, 362);
-	const Point offset((image->width() - originalSize.x) / 2, (image->height() - originalSize.y) / 2);
+	const int offsetX = (image->width() - originalSize.x) / 2;
 
 	auto drawPlate = [&canvas, rectangleColor, borderColor](const Rect & rect, bool blackFill = false)
 	{
@@ -897,17 +897,24 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 		canvas.drawBorder(rect, borderColor);
 	};
 
-	auto centered = [offset](const Rect & rect)
+	auto centered = [offsetX](const Rect & rect)
 	{
-		return Rect(rect.x + offset.x, rect.y + offset.y, rect.w, rect.h);
+		return Rect(rect.x + offsetX, rect.y, rect.w, rect.h);
 	};
 
+	// Top row side plates (left / right) - 97x19
 	drawPlate(centered(Rect(64, 223, 97, 19)));
 	drawPlate(centered(Rect(323, 223, 97, 19)));
+
+	// Bottom row side plates (left / right) - 97x19
 	drawPlate(centered(Rect(64, 279, 97, 19)));
 	drawPlate(centered(Rect(323, 279, 97, 19)));
+
+	// Small middle plates above central bar (left / right) - 65x19
 	drawPlate(centered(Rect(172, 244, 65, 19)));
 	drawPlate(centered(Rect(247, 244, 65, 19)));
+
+	// Central black input bar - 142x21
 	drawPlate(centered(Rect(171, 277, 142, 21)), true);
 
 	return image;
