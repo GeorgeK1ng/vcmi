@@ -141,9 +141,9 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 	animationFiles[path] = anim;
 }
 
-void AssetGenerator::registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size)
+void AssetGenerator::registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size, const PlayerColor & playerColor)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogWithStatusBarBackground(size, PlayerColor(1));};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size, playerColor](){ return createDialogWithStatusBarBackground(size, playerColor);};
 }
 
 void AssetGenerator::registerRecruitmentBackground(const std::string & fileName, const Point & size)

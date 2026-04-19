@@ -34,7 +34,7 @@ public:
 
 	void addImageFile(const ImagePath & path, ImageGenerationFunctor & img);
 	void addAnimationFile(const AnimationPath & path, AnimationLayoutMap & anim);
-	void registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size);
+	void registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size, const PlayerColor & playerColor);
 	void registerRecruitmentBackground(const std::string & fileName, const Point & size);
 
 	AnimationLayoutMap createAdventureMapButton(const ImagePath & overlay, bool small);

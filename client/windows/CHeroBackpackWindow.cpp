@@ -20,6 +20,7 @@
 #include "CMessage.h"
 #include "render/Canvas.h"
 #include "CPlayerInterface.h"
+#include "../render/IRenderHandler.h"
 
 #include "../../lib/GameLibrary.h"
 #include "../../lib/callback/CCallback.h"
@@ -33,7 +34,6 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	OBJECT_CONSTRUCTION;
 	addUsedEvents(KEYBOARD);
 
-	stretchedBackground = std::make_shared<CFilledTexture>(ImagePath::builtin("DIBOXBCK"), Rect(0, 0, 0, 0));
 	arts = std::make_shared<CArtifactsOfHeroBackpack>();
 	arts->moveBy(Point(windowMargin, windowMargin));
 	arts->clickPressedCallback = [this](const CArtPlace & artPlace, const Point & cursorPosition)
@@ -64,9 +64,18 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 		[hero]() { GAME->interface()->cb->sortBackpackArtifactsByClass(hero->id); }));
 	buttons.back()->setTextOverlay(sortByClass, EFonts::FONT_SMALL, Colors::YELLOW);
 
-	pos.w = stretchedBackground->pos.w = arts->pos.w + 2 * windowMargin;
-	pos.h = stretchedBackground->pos.h = arts->pos.h + buttons.back()->pos.h + 3 * windowMargin;
-	
+	constexpr int statusbarHeight = 26;
+	pos.w = arts->pos.w + 2 * windowMargin;
+	pos.h = arts->pos.h + buttons.back()->pos.h + 3 * windowMargin + statusbarHeight;
+
+	const PlayerColor playerColor = GAME->interface()->playerID;
+	const PlayerColor backgroundColor = playerColor.isValidPlayer() ? playerColor : PlayerColor(1);
+	const std::string backgroundName = "heroBackpackDialog-" + std::to_string(pos.w) + "x" + std::to_string(pos.h)
+		+ (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
+	ENGINE->renderHandler().getAssetGenerator()->registerDialogWithStatusBarBackground(backgroundName, Point(pos.w, pos.h), backgroundColor);
+
+	stretchedBackground = std::make_shared<CFilledTexture>(ImagePath::builtin(backgroundName), Rect(0, 0, pos.w, pos.h));
+
 	auto buttonPos = Point(pos.x + windowMargin, pos.y + arts->pos.h + 2 * windowMargin);
 	for(const auto & button : buttons)
 	{
@@ -74,8 +83,7 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 		buttonPos += Point(button->pos.w + 10, 0);
 	}
 
-	statusbar = CGStatusBar::create(0, pos.h, ImagePath::builtin("ADROLLVR.bmp"), pos.w);
-	pos.h += statusbar->pos.h;
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(ImagePath::builtin(backgroundName), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 	addUsedEvents(LCLICK);
 	center();
 }
@@ -94,7 +102,6 @@ void CHeroBackpackWindow::keyPressed(EShortcut key)
 void CHeroBackpackWindow::showAll(Canvas & to)
 {
 	CIntObject::showAll(to);
-	CMessage::drawBorder(PlayerColor(GAME->interface()->playerID), to, pos.w+28, pos.h+29, pos.x-14, pos.y-15);
 }
 
 CHeroQuickBackpackWindow::CHeroQuickBackpackWindow(const CGHeroInstance * hero, ArtifactPosition targetSlot)
