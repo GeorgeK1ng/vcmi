@@ -81,15 +81,15 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	registerRecruitmentBackground("TPRCRT4", Point(484, 394));
-	registerRecruitmentBackground("TPRCRT5", Point(594, 394));
-	registerRecruitmentBackground("TPRCRT6", Point(704, 394));
+	addRecruitmentBackground("TPRCRT4", Point(484, 394));
+	addRecruitmentBackground("TPRCRT5", Point(594, 394));
+	addRecruitmentBackground("TPRCRT6", Point(704, 394));
 
 	for (PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
 		const std::string name = "heroBackpackDialog" + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		registerDialogWithStatusBarBackground(name, Point(426, 454), playerColor);
+		addDialogBackgroundWithStatusBar(name, Point(426, 454), playerColor);
 	}
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
@@ -149,18 +149,18 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 	animationFiles[path] = anim;
 }
 
-void AssetGenerator::registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size, const PlayerColor & playerColor)
+void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size, const PlayerColor & playerColor)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size, playerColor](){ return createDialogWithStatusBarBackground(size, playerColor);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size, playerColor](){ return createDialogBackgroundWithStatusBar(size, playerColor);};
 }
 
-void AssetGenerator::registerRecruitmentBackground(const std::string & fileName, const Point & size)
+void AssetGenerator::addRecruitmentBackground(const std::string & fileName, const Point & size)
 {
 	for (PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
 		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createRecruitmentBackground(size, playerColor);};
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createRecruitmentDialogBackground(size, playerColor);};
 	}
 }
 
@@ -836,7 +836,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanel(int boxesAmoun
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size, const PlayerColor & playerColor) const
 {
 	// Generic compositing helper:
 	// 1) tile DiBoxBck over full target size
@@ -898,9 +898,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(co
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size, const PlayerColor & playerColor) const
 {
-	auto image = createDialogWithStatusBarBackground(size, playerColor);
+	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
 	Canvas canvas = image->getCanvas();
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
