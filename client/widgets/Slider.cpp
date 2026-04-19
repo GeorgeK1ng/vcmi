@@ -226,8 +226,10 @@ CSlider::CSlider(Point position, int totalw, const SliderMovingFunctor & Moved, 
 		left = std::make_shared<CButton>(Point(), name, CButton::tooltip());
 		right = std::make_shared<CButton>(Point(), name, CButton::tooltip());
 
-		left->setImageOrder(0, 1, 1, 1);
-		right->setImageOrder(2, 3, 3, 3);
+		// IGPCRDIV does not provide dedicated blocked frames for arrows.
+		// Reuse normal frame for blocked state to avoid "pressed-looking" 1px shift when amount == 0.
+		left->setImageOrder(0, 1, 1, 0);
+		right->setImageOrder(2, 3, 3, 2);
 	}
 	else
 	{
