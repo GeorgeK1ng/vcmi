@@ -81,7 +81,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	registerRecruitmentBackground("TPRCRT4", Point(484, 362));
+	registerRecruitmentBackground("TPRCRT4", Point(484, 394));
 	registerRecruitmentBackground("TPRCRT5", Point(594, 394));
 	registerRecruitmentBackground("TPRCRT6", Point(704, 394));
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
