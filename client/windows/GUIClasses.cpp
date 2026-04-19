@@ -224,11 +224,11 @@ void CRecruitmentWindow::showAll(Canvas & to)
 	Rect(172 + layoutOffsetX, 222, 67, 42) + pos.topLeft();
 
 	// recruit\total values
-	to.drawBorder(Rect(172 + layoutOffsetX, 222, 67, 42) + pos.topLeft(), Colors::YELLOW);
+	to.drawBorder(Rect(171 + layoutOffsetX, 222, 67, 42) + pos.topLeft(), Colors::YELLOW);
 	to.drawBorder(Rect(246 + layoutOffsetX, 222, 67, 42) + pos.topLeft(), Colors::YELLOW);
 
 	//cost boxes
-	to.drawBorder(Rect(64 + layoutOffsetX, 222, 99, 76) + pos.topLeft(), Colors::YELLOW);
+	to.drawBorder(Rect(63 + layoutOffsetX, 222, 99, 76) + pos.topLeft(), Colors::YELLOW);
 	to.drawBorder(Rect(322 + layoutOffsetX, 222, 99, 76) + pos.topLeft(), Colors::YELLOW);
 
 	//buttons borders
@@ -260,13 +260,13 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 	cancelButton = std::make_shared<CButton>(Point(290 + layoutOffsetX, 313), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], std::bind(&CRecruitmentWindow::close, this), EShortcut::GLOBAL_CANCEL);
 
 	title = std::make_shared<CLabel>(243 + layoutOffsetX, 32, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW);
-	availableValue = std::make_shared<CLabel>(205 + layoutOffsetX, 253, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	availableValue = std::make_shared<CLabel>(204 + layoutOffsetX, 253, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	toRecruitValue = std::make_shared<CLabel>(279 + layoutOffsetX, 253, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
-	costPerTroopValue = std::make_shared<CreatureCostBox>(Rect(65 + layoutOffsetX, 222, 97, 74), LIBRARY->generaltexth->allTexts[346]);
+	costPerTroopValue = std::make_shared<CreatureCostBox>(Rect(64 + layoutOffsetX, 222, 97, 74), LIBRARY->generaltexth->allTexts[346]);
 	totalCostValue = std::make_shared<CreatureCostBox>(Rect(323 + layoutOffsetX, 222, 97, 74), LIBRARY->generaltexth->allTexts[466]);
 
-	availableTitle = std::make_shared<CLabel>(205 + layoutOffsetX, 233, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->allTexts[465]);
+	availableTitle = std::make_shared<CLabel>(204 + layoutOffsetX, 233, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->allTexts[465]);
 	toRecruitTitle = std::make_shared<CLabel>(279 + layoutOffsetX, 233, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->allTexts[16]);
 
 	availableCreaturesChanged();
