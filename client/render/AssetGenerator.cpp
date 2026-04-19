@@ -882,9 +882,11 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 	auto image = createDialogWithStatusBarBackground(sizes.at(creaturesAmount));
 	Canvas canvas = image->getCanvas();
 
-	// Additional overlays used by original TPRCRT (semi-transparent plates, input area and button backgrounds).
+	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
+	const Point originalSize(484, 362);
+	const Point offset((image->width() - originalSize.x) / 2, (image->height() - originalSize.y) / 2);
 
 	auto drawPlate = [&canvas, rectangleColor, borderColor](const Rect & rect, bool blackFill = false)
 	{
@@ -895,16 +897,18 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 		canvas.drawBorder(rect, borderColor);
 	};
 
-	drawPlate(Rect(64, 192, 99, 19));
-	drawPlate(Rect(323, 192, 99, 19));
-	drawPlate(Rect(172, 222, 67, 19));
-	drawPlate(Rect(246, 222, 67, 19));
-	drawPlate(Rect(64, 222, 99, 43));
-	drawPlate(Rect(323, 222, 99, 43));
-	drawPlate(Rect(174, 245, 139, 19), true);
-	drawPlate(Rect(133, 312, 66, 34));
-	drawPlate(Rect(211, 312, 66, 34));
-	drawPlate(Rect(289, 312, 66, 34));
+	auto centered = [offset](const Rect & rect)
+	{
+		return Rect(rect.x + offset.x, rect.y + offset.y, rect.w, rect.h);
+	};
+
+	drawPlate(centered(Rect(64, 192, 99, 19)));
+	drawPlate(centered(Rect(321, 192, 99, 19)));
+	drawPlate(centered(Rect(171, 222, 67, 19)));
+	drawPlate(centered(Rect(246, 222, 67, 19)));
+	drawPlate(centered(Rect(64, 222, 99, 43)));
+	drawPlate(centered(Rect(321, 222, 99, 43)));
+	drawPlate(centered(Rect(173, 245, 139, 19)), true);
 
 	return image;
 }
