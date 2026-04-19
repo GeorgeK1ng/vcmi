@@ -81,6 +81,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("TPRCRT-R5")] = [this](){ return createRecruitmentBackground(5);};
+	imageFiles[ImagePath::builtin("TPRCRT-R6")] = [this](){ return createRecruitmentBackground(6);};
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
@@ -808,6 +810,76 @@ AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanel(int boxesAmoun
 	}
 
 	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(const Point & size) const
+{
+	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+	Canvas canvas = image->getCanvas();
+
+	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
+	auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
+
+	// Fill whole area with DiBoxBck texture first.
+	for (int y = 0; y < size.y; y += background->height())
+	{
+		for (int x = 0; x < size.x; x += background->width())
+		{
+			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
+		}
+	}
+
+	auto drawHorizontal = [&canvas](const std::shared_ptr<IImage> & source, int y, int xBegin, int xEnd)
+	{
+		for(int x = xBegin; x < xEnd; x += source->width())
+		{
+			int width = std::min(source->width(), xEnd - x);
+			canvas.draw(source, Point(x, y), Rect(0, 0, width, source->height()));
+		}
+	};
+
+	auto drawVertical = [&canvas](const std::shared_ptr<IImage> & source, int x, int yBegin, int yEnd)
+	{
+		for(int y = yBegin; y < yEnd; y += source->height())
+		{
+			int height = std::min(source->height(), yEnd - y);
+			canvas.draw(source, Point(x, y), Rect(0, 0, source->width(), height));
+		}
+	};
+
+	auto topLeft = dialogBox->getImage(0, 0);
+	auto topRight = dialogBox->getImage(1, 0);
+	auto leftEdge = dialogBox->getImage(4, 0);
+	auto rightEdge = dialogBox->getImage(5, 0);
+	auto topEdge = dialogBox->getImage(6, 0);
+	auto bottomLeft = dialogBox->getImage(8, 0);
+	auto bottomRight = dialogBox->getImage(9, 0);
+	auto bottomEdge = dialogBox->getImage(10, 0);
+
+	drawHorizontal(topEdge, 0, topLeft->width(), size.x - topRight->width());
+	drawHorizontal(bottomEdge, size.y - bottomEdge->height(), bottomLeft->width(), size.x - bottomRight->width());
+	drawVertical(leftEdge, 0, topLeft->height(), size.y - bottomLeft->height());
+	drawVertical(rightEdge, size.x - rightEdge->width(), topRight->height(), size.y - bottomRight->height());
+
+	canvas.draw(topLeft, Point(0, 0));
+	canvas.draw(topRight, Point(size.x - topRight->width(), 0));
+	canvas.draw(bottomLeft, Point(0, size.y - bottomLeft->height()));
+	canvas.draw(bottomRight, Point(size.x - bottomRight->width(), size.y - bottomRight->height()));
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creaturesAmount) const
+{
+	assert(creaturesAmount >= 5 && creaturesAmount <= 6);
+
+	// 6-stack requirement from design: 704x394. Keep 5-stack variant proportional.
+	const std::map<int, Point> sizes = {
+		{ 5, Point(594, 394) },
+		{ 6, Point(704, 394) },
+	};
+
+	return createDialogWithStatusBarBackground(sizes.at(creaturesAmount));
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createResourceWindow(CreateResourceWindowType type, int count, PlayerColor color) const

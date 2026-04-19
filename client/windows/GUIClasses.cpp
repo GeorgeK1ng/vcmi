@@ -72,6 +72,28 @@
 
 #include <boost/lexical_cast.hpp>
 
+namespace
+{
+ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level)
+{
+	int cardsCount = 0;
+	for(int i = 0; i < dwelling->creatures.size(); i++)
+	{
+		if(level >= 0 && i != level)
+			continue;
+
+		cardsCount += static_cast<int>(dwelling->creatures[i].second.size());
+	}
+
+	if(cardsCount >= 6)
+		return ImagePath::builtin("TPRCRT-R6");
+	if(cardsCount >= 5)
+		return ImagePath::builtin("TPRCRT-R5");
+
+	return ImagePath::builtin("TPRCRT");
+}
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -219,7 +241,7 @@ void CRecruitmentWindow::showAll(Canvas & to)
 }
 
 CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, const CArmedInstance * Dst, const std::function<void(CreatureID,int)> & Recruit, const std::function<void()> & onClose, int y_offset):
-	CWindowObject(PLAYER_COLORED, ImagePath::builtin("TPRCRT")),
+	CWindowObject(PLAYER_COLORED, getRecruitmentBackground(Dwelling, Level)),
 	onRecruit(Recruit),
 	onClose(onClose),
 	level(Level),
