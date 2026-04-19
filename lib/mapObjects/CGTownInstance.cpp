@@ -483,10 +483,16 @@ void CGTownInstance::initObj(IGameRandomizer & gameRandomizer) ///initialize tow
 		BuildingID buildID = BuildingID(BuildingID::getDwellingFromLevel(level, 0));
 		int upgradeNum = 0;
 
-		for (; getTown()->buildings.count(buildID); upgradeNum++, BuildingID::advanceDwelling(buildID))
+		for (; buildID != BuildingID::NONE && getTown()->creatures.at(level).size() > upgradeNum; upgradeNum++, BuildingID::advanceDwelling(buildID))
 		{
-			if (hasBuilt(buildID) && getTown()->creatures.at(level).size() > upgradeNum)
-				creatures[level].second.push_back(getTown()->creatures[level][upgradeNum]);
+			// For legacy factions, each upgrade usually has a corresponding building entry.
+			// For extended custom factions (more than 4 alternatives) higher upgrades may intentionally
+			// omit dedicated building configs, in which case we still want to expose the creature choices.
+			const bool hasBuildingEntry = getTown()->buildings.count(buildID);
+			if (hasBuildingEntry && !hasBuilt(buildID))
+				continue;
+
+			creatures[level].second.push_back(getTown()->creatures[level][upgradeNum]);
 		}
 	}
 	initializeConfigurableBuildings(gameRandomizer);
