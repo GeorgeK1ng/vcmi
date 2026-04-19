@@ -902,13 +902,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 		return Rect(rect.x + offset.x, rect.y + offset.y, rect.w, rect.h);
 	};
 
-	drawPlate(centered(Rect(64, 192, 99, 19)));
-	drawPlate(centered(Rect(321, 192, 99, 19)));
-	drawPlate(centered(Rect(171, 222, 67, 19)));
-	drawPlate(centered(Rect(246, 222, 67, 19)));
-	drawPlate(centered(Rect(64, 222, 99, 43)));
-	drawPlate(centered(Rect(321, 222, 99, 43)));
-	drawPlate(centered(Rect(173, 245, 139, 19)), true);
+	drawPlate(centered(Rect(64, 223, 97, 19)));
+	drawPlate(centered(Rect(323, 223, 97, 19)));
+	drawPlate(centered(Rect(64, 279, 97, 19)));
+	drawPlate(centered(Rect(323, 279, 97, 19)));
+	drawPlate(centered(Rect(172, 244, 65, 19)));
+	drawPlate(centered(Rect(247, 244, 65, 19)));
+	drawPlate(centered(Rect(171, 277, 142, 21)), true);
 
 	return image;
 }
