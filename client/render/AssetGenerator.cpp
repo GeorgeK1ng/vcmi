@@ -143,12 +143,17 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 
 void AssetGenerator::registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogWithStatusBarBackground(size);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogWithStatusBarBackground(size, PlayerColor(1));};
 }
 
 void AssetGenerator::registerRecruitmentBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createRecruitmentBackground(size);};
+	for (PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	{
+		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
+		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createRecruitmentBackground(size, playerColor);};
+	}
 }
 
 auto getColorFilters()
@@ -823,7 +828,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanel(int boxesAmoun
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(const Point & size) const
+AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(const Point & size, const PlayerColor & playerColor) const
 {
 	// Generic compositing helper:
 	// 1) tile DiBoxBck over full target size
@@ -833,6 +838,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(co
 
 	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
 	auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
+	if (playerColor.isValidPlayer() && playerColor != PlayerColor(1))
+		dialogBox->playerColored(playerColor);
 
 	// Fill whole area with DiBoxBck texture first.
 	for (int y = 0; y < size.y; y += background->height())
@@ -883,9 +890,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(co
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(const Point & size) const
+AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(const Point & size, const PlayerColor & playerColor) const
 {
-	auto image = createDialogWithStatusBarBackground(size);
+	auto image = createDialogWithStatusBarBackground(size, playerColor);
 	Canvas canvas = image->getCanvas();
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).

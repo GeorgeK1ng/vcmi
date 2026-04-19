@@ -83,11 +83,12 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 		cardsCount += static_cast<int>(dwelling->creatures[i].second.size());
 	}
 
-	if(cardsCount >= 6)
-		return ImagePath::builtin("TPRCRT6");
-	if(cardsCount == 5)
-		return ImagePath::builtin("TPRCRT5");
-	return ImagePath::builtin("TPRCRT4");
+	std::string fileName = cardsCount >= 6 ? "TPRCRT6" : cardsCount == 5 ? "TPRCRT5" : "TPRCRT4";
+
+	if (dwelling->tempOwner.isValidPlayer())
+		fileName += "-" + dwelling->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
 }
 
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
