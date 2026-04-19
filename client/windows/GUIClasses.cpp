@@ -84,12 +84,10 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	}
 
 	if(cardsCount >= 6)
-		return ImagePath::builtin("TPRCRT-R6");
+		return ImagePath::builtin("TPRCRT6");
 	if(cardsCount == 5)
-		return ImagePath::builtin("TPRCRT-R5");
-	if(cardsCount == 4)
-		return ImagePath::builtin("TPRCRT-R4");
-	return ImagePath::builtin("TPRCRT-R3");
+		return ImagePath::builtin("TPRCRT5");
+	return ImagePath::builtin("TPRCRT4");
 }
 
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)

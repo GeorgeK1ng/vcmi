@@ -34,6 +34,8 @@ public:
 
 	void addImageFile(const ImagePath & path, ImageGenerationFunctor & img);
 	void addAnimationFile(const AnimationPath & path, AnimationLayoutMap & anim);
+	void registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size);
+	void registerRecruitmentBackground(const std::string & fileName, const Point & size);
 
 	AnimationLayoutMap createAdventureMapButton(const ImagePath & overlay, bool small);
 	AnimationLayoutMap createSliderBar(bool brown, bool horizontal, int length);
@@ -62,7 +64,7 @@ private:
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
 	CanvasPtr createDialogWithStatusBarBackground(const Point & size) const;
-	CanvasPtr createRecruitmentBackground(int creaturesAmount) const;
+	CanvasPtr createRecruitmentBackground(const Point & size) const;
 	enum CreateResourceWindowType{ ARTIFACTS_BUYING, ARTIFACTS_SELLING, MARKET_RESOURCES, FREELANCERS_GUILD, TRANSFER_RESOURCES };
 	CanvasPtr createResourceWindow(CreateResourceWindowType type, int count, PlayerColor color) const;
 	enum CreatureInfoPanelElement{ BONUS_EFFECTS, SPELL_EFFECTS, BUTTON_PANEL, COMMANDER_BACKGROUND, COMMANDER_ABILITIES };

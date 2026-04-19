@@ -81,10 +81,9 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	imageFiles[ImagePath::builtin("TPRCRT-R3")] = [this](){ return createRecruitmentBackground(3);};
-	imageFiles[ImagePath::builtin("TPRCRT-R4")] = [this](){ return createRecruitmentBackground(4);};
-	imageFiles[ImagePath::builtin("TPRCRT-R5")] = [this](){ return createRecruitmentBackground(5);};
-	imageFiles[ImagePath::builtin("TPRCRT-R6")] = [this](){ return createRecruitmentBackground(6);};
+	registerRecruitmentBackground("TPRCRT4", Point(484, 362));
+	registerRecruitmentBackground("TPRCRT5", Point(594, 394));
+	registerRecruitmentBackground("TPRCRT6", Point(704, 394));
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
@@ -140,6 +139,16 @@ void AssetGenerator::addImageFile(const ImagePath & path, ImageGenerationFunctor
 void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayoutMap & anim)
 {
 	animationFiles[path] = anim;
+}
+
+void AssetGenerator::registerDialogWithStatusBarBackground(const std::string & fileName, const Point & size)
+{
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogWithStatusBarBackground(size);};
+}
+
+void AssetGenerator::registerRecruitmentBackground(const std::string & fileName, const Point & size)
+{
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createRecruitmentBackground(size);};
 }
 
 auto getColorFilters()
@@ -816,6 +825,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanel(int boxesAmoun
 
 AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(const Point & size) const
 {
+	// Generic compositing helper:
+	// 1) tile DiBoxBck over full target size
+	// 2) build border and status-bar frame from DIALGBOX pieces
 	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 
@@ -871,19 +883,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(co
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creaturesAmount) const
+AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(const Point & size) const
 {
-	assert(creaturesAmount >= 3 && creaturesAmount <= 6);
-
-	// 6-stack requirement from design: 704x394. Keep smaller variants compatible with original layout.
-	const std::map<int, Point> sizes = {
-		{ 3, Point(484, 362) },
-		{ 4, Point(484, 362) },
-		{ 5, Point(594, 394) },
-		{ 6, Point(704, 394) },
-	};
-
-	auto image = createDialogWithStatusBarBackground(sizes.at(creaturesAmount));
+	auto image = createDialogWithStatusBarBackground(size);
 	Canvas canvas = image->getCanvas();
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
