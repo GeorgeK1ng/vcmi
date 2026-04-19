@@ -81,6 +81,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("TPRCRT-R3")] = [this](){ return createRecruitmentBackground(3);};
+	imageFiles[ImagePath::builtin("TPRCRT-R4")] = [this](){ return createRecruitmentBackground(4);};
 	imageFiles[ImagePath::builtin("TPRCRT-R5")] = [this](){ return createRecruitmentBackground(5);};
 	imageFiles[ImagePath::builtin("TPRCRT-R6")] = [this](){ return createRecruitmentBackground(6);};
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
@@ -871,10 +873,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogWithStatusBarBackground(co
 
 AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creaturesAmount) const
 {
-	assert(creaturesAmount >= 5 && creaturesAmount <= 6);
+	assert(creaturesAmount >= 3 && creaturesAmount <= 6);
 
-	// 6-stack requirement from design: 704x394. Keep 5-stack variant proportional.
+	// 6-stack requirement from design: 704x394. Keep smaller variants compatible with original layout.
 	const std::map<int, Point> sizes = {
+		{ 3, Point(484, 362) },
+		{ 4, Point(484, 362) },
 		{ 5, Point(594, 394) },
 		{ 6, Point(704, 394) },
 	};
@@ -907,8 +911,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentBackground(int creatu
 	drawPlate(centered(Rect(323, 223, 97, 19)));
 
 	// Bottom row side plates (left / right) - 97x19
-	drawPlate(centered(Rect(64, 279, 97, 19)));
-	drawPlate(centered(Rect(323, 279, 97, 19)));
+	drawPlate(centered(Rect(64, 278, 97, 19)));
+	drawPlate(centered(Rect(323, 278, 97, 19)));
 
 	// Small middle plates above central bar (left / right) - 65x19
 	drawPlate(centered(Rect(172, 244, 65, 19)));

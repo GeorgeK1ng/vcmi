@@ -72,9 +72,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-namespace
-{
-ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level)
+static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level)
 {
 	int cardsCount = 0;
 	for(int i = 0; i < dwelling->creatures.size(); i++)
@@ -87,11 +85,11 @@ ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level)
 
 	if(cardsCount >= 6)
 		return ImagePath::builtin("TPRCRT-R6");
-	if(cardsCount >= 5)
+	if(cardsCount == 5)
 		return ImagePath::builtin("TPRCRT-R5");
-
-	return ImagePath::builtin("TPRCRT");
-}
+	if(cardsCount == 4)
+		return ImagePath::builtin("TPRCRT-R4");
+	return ImagePath::builtin("TPRCRT-R3");
 }
 
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
