@@ -254,7 +254,7 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
-	slider = std::make_shared<CSlider>(Point(176 + layoutOffsetX, 279), 135, std::bind(&CRecruitmentWindow::sliderMoved, this, _1), 0, 0, 0, Orientation::HORIZONTAL);
+	slider = std::make_shared<CSlider>(Point(173 + layoutOffsetX, 280), 138, std::bind(&CRecruitmentWindow::sliderMoved, this, _1), 0, 0, 0, Orientation::HORIZONTAL);
 
 	maxButton = std::make_shared<CButton>(Point(134 + layoutOffsetX, 313), AnimationPath::builtin("IRCBTNS.DEF"), LIBRARY->generaltexth->zelp[553], std::bind(&CSlider::scrollToMax, slider), EShortcut::RECRUITMENT_MAX);
 	buyButton = std::make_shared<CButton>(Point(212 + layoutOffsetX, 313), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], std::bind(&CRecruitmentWindow::buy, this), EShortcut::GLOBAL_ACCEPT);
