@@ -36,8 +36,9 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	const std::string backgroundName = "heroBackpackDialog" + (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
 	setBackground(ImagePath::builtin(backgroundName));
 
+	const Point artifactsOffset(18, 18);
 	arts = std::make_shared<CArtifactsOfHeroBackpack>();
-	arts->moveBy(Point(windowMargin, windowMargin));
+	arts->moveBy(Point(windowMargin, windowMargin) + artifactsOffset);
 	arts->clickPressedCallback = [this](const CArtPlace & artPlace, const Point & cursorPosition)
 	{
 		clickPressedOnArtPlace(arts->getHero(), artPlace.slot, true, false, true, cursorPosition);
@@ -66,9 +67,9 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 		[hero]() { GAME->interface()->cb->sortBackpackArtifactsByClass(hero->id); }));
 	buttons.back()->setTextOverlay(sortByClass, EFonts::FONT_SMALL, Colors::YELLOW);
 
-	const int buttonsY = arts->pos.h + 2 * windowMargin;
+	const int buttonsY = arts->pos.y + arts->pos.h + windowMargin;
 
-	auto buttonPos = Point(windowMargin, buttonsY);
+	auto buttonPos = Point(arts->pos.x, buttonsY);
 	for(const auto & button : buttons)
 	{
 		button->moveTo(buttonPos);
