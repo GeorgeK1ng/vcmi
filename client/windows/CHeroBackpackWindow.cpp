@@ -10,7 +10,6 @@
 #include "StdInc.h"
 #include "CHeroBackpackWindow.h"
 
-#include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
 
@@ -20,7 +19,6 @@
 #include "CMessage.h"
 #include "render/Canvas.h"
 #include "CPlayerInterface.h"
-#include "../render/IRenderHandler.h"
 
 #include "../../lib/GameLibrary.h"
 #include "../../lib/callback/CCallback.h"
@@ -69,10 +67,7 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	pos.h = arts->pos.h + buttons.back()->pos.h + 3 * windowMargin + statusbarHeight;
 
 	const PlayerColor playerColor = GAME->interface()->playerID;
-	const PlayerColor backgroundColor = playerColor.isValidPlayer() ? playerColor : PlayerColor(1);
-	const std::string backgroundName = "heroBackpackDialog-" + std::to_string(pos.w) + "x" + std::to_string(pos.h)
-		+ (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
-	ENGINE->renderHandler().getAssetGenerator()->registerDialogWithStatusBarBackground(backgroundName, Point(pos.w, pos.h), backgroundColor);
+	const std::string backgroundName = "heroBackpackDialog" + (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
 
 	stretchedBackground = std::make_shared<CFilledTexture>(ImagePath::builtin(backgroundName), Rect(0, 0, pos.w, pos.h));
 
