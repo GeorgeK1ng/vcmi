@@ -84,6 +84,14 @@ void AssetGenerator::initialize()
 	registerRecruitmentBackground("TPRCRT4", Point(484, 394));
 	registerRecruitmentBackground("TPRCRT5", Point(594, 394));
 	registerRecruitmentBackground("TPRCRT6", Point(704, 394));
+
+	for (PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	{
+		const std::string name = "heroBackpackDialog" + (color == -1 ? "" : "-" + color.toString());
+		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
+		registerDialogWithStatusBarBackground(name, Point(426, 454), playerColor);
+	}
+
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
