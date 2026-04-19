@@ -32,6 +32,10 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	OBJECT_CONSTRUCTION;
 	addUsedEvents(KEYBOARD);
 
+	const PlayerColor playerColor = GAME->interface()->playerID;
+	const std::string backgroundName = "heroBackpackDialog" + (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
+	setBackground(ImagePath::builtin(backgroundName));
+
 	arts = std::make_shared<CArtifactsOfHeroBackpack>();
 	arts->moveBy(Point(windowMargin, windowMargin));
 	arts->clickPressedCallback = [this](const CArtPlace & artPlace, const Point & cursorPosition)
@@ -62,18 +66,9 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 		[hero]() { GAME->interface()->cb->sortBackpackArtifactsByClass(hero->id); }));
 	buttons.back()->setTextOverlay(sortByClass, EFonts::FONT_SMALL, Colors::YELLOW);
 
-	constexpr int statusbarHeight = 26;
-	pos.w = arts->pos.w + 2 * windowMargin;
-	pos.h = arts->pos.h + buttons.back()->pos.h + 3 * windowMargin + statusbarHeight;
+	const int buttonsY = arts->pos.h + 2 * windowMargin;
 
-	const PlayerColor playerColor = GAME->interface()->playerID;
-	const std::string backgroundName = "heroBackpackDialog" + (playerColor.isValidPlayer() ? "-" + playerColor.toString() : "");
-
-	stretchedBackground = std::make_shared<CFilledTexture>(ImagePath::builtin(backgroundName), Rect(0, 0, pos.w, pos.h));
-	if(stretchedBackground->parent == this)
-		removeChild(stretchedBackground.get());
-
-	auto buttonPos = Point(pos.x + windowMargin, pos.y + arts->pos.h + 2 * windowMargin);
+	auto buttonPos = Point(windowMargin, buttonsY);
 	for(const auto & button : buttons)
 	{
 		button->moveTo(buttonPos);
@@ -85,7 +80,6 @@ CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std:
 	statusbar->pos.h = 19;
 	addUsedEvents(LCLICK);
 	center();
-	updateShadow();
 }
 
 void CHeroBackpackWindow::notFocusedClick()
@@ -97,12 +91,6 @@ void CHeroBackpackWindow::keyPressed(EShortcut key)
 {
 	if(key == EShortcut::GLOBAL_RETURN)
 		close();
-}
-
-void CHeroBackpackWindow::showAll(Canvas & to)
-{
-	stretchedBackground->showAll(to);
-	CWindowObject::showAll(to);
 }
 
 CHeroQuickBackpackWindow::CHeroQuickBackpackWindow(const CGHeroInstance * hero, ArtifactPosition targetSlot)
