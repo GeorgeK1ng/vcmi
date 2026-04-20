@@ -65,6 +65,8 @@ private:
 	CanvasPtr createResourceWindow(CreateResourceWindowType type, int count, PlayerColor color) const;
 	enum CreatureInfoPanelElement{ BONUS_EFFECTS, SPELL_EFFECTS, BUTTON_PANEL, COMMANDER_BACKGROUND, COMMANDER_ABILITIES };
 	CanvasPtr createCreatureInfoPanelElement(CreatureInfoPanelElement element) const;
+	CanvasPtr createStackWindowUpgradeButton(bool pressed) const;
+	CanvasPtr createStackWindowUpgradeArrows() const;
 	CanvasPtr createQuestWindow() const;
 	AnimationLayoutMap createGSPButtonClear();
 	AnimationLayoutMap createGSPButton2Arrow();
