@@ -584,7 +584,8 @@ TeamAlignmentsWidget::TeamAlignmentsWidget(RandomMapTab & randomMapTab):
 	{
 		for(int plId = 0; plId < players.size(); ++plId)
 		{
-			randomMapTab.obtainMapGenOptions().setPlayerTeam(PlayerColor(plId), TeamID(players[plId]->getSelected()));
+			const auto playerColor = playerColors.at(plId);
+			randomMapTab.obtainMapGenOptions().setPlayerTeam(playerColor, TeamID(players[plId]->getSelected()));
 		}
 		randomMapTab.updateMapInfoByHost();
 
@@ -623,6 +624,7 @@ TeamAlignmentsWidget::TeamAlignmentsWidget(RandomMapTab & randomMapTab):
 	for (const auto & player : playerSettings)
 	{
 		settingsVec.push_back(player.second);
+		playerColors.push_back(player.second.getColor());
 	}
 
 	for(int plId = 0; plId < totalPlayers; ++plId)

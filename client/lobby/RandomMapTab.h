@@ -75,6 +75,7 @@ private:
 	std::shared_ptr<CButton> buttonOk;
 	std::shared_ptr<CButton> buttonCancel;
 	std::vector<std::shared_ptr<CToggleGroup>> players;
+	std::vector<PlayerColor> playerColors;
 	std::vector<std::shared_ptr<CIntObject>> placeholders;
 };
 
