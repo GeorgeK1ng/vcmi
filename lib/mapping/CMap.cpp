@@ -340,21 +340,36 @@ bool CMap::canMoveBetween(const int3 &src, const int3 &dst) const
 {
 	const TerrainTile * dstTile = &getTile(dst);
 	const TerrainTile * srcTile = &getTile(src);
-	return checkForVisitableDir(src, dstTile, dst) && checkForVisitableDir(dst, srcTile, src);
+
+	if(!checkForVisitableDir(src, dstTile, dst))
+		return false;
+
+	// Direction checks on source tile can incorrectly block valid movement from a tile occupied by
+	// blocked-visitable object (especially near map edges where approach options are limited).
+	// Hero standing on such tile should be able to leave it to any adjacent tile permitted by the destination.
+	if(srcTile->visitable())
+		return true;
+
+	return checkForVisitableDir(dst, srcTile, src);
 }
 
 bool CMap::checkForVisitableDir(const int3 & src, const TerrainTile * pom, const int3 & dst) const
 {
 	if (!pom->entrableTerrain()) //rock is never accessible
 		return false;
-	for(const auto & objID : pom->visitableObjects) //checking destination tile
+
+	// Only topmost blocking visitable object should define entry direction.
+	// Checking all stacked visitable objects can reject valid movement when hidden/lower objects
+	// have incompatible visit masks (common near shorelines / map edges).
+	for(auto objIter = pom->visitableObjects.rbegin(); objIter != pom->visitableObjects.rend(); ++objIter)
 	{
+		const auto objID = *objIter;
 		if(!vstd::contains(pom->blockingObjects, objID)) //this visitable object is not blocking, ignore
 			continue;
 
-		if (!getObject(objID)->appearance->isVisitableFrom(src.x - dst.x, src.y - dst.y))
-			return false;
+		return getObject(objID)->appearance->isVisitableFrom(src.x - dst.x, src.y - dst.y);
 	}
+
 	return true;
 }
 
