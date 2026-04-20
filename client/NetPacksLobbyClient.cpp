@@ -196,8 +196,16 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyLoadProgress(LobbyLoadProgress 
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState & pack)
 {
+	auto previousMapInfo = handler.mi;
 	pack.hostChanged = pack.state.hostClientId != handler.hostClientId;
 	static_cast<LobbyState &>(handler) = pack.state;
+
+	// In LAN lobby flow we can occasionally receive a transient state update with missing map info
+	// right after a client connection change. Keep previously selected map in that case so host UI
+	// does not incorrectly disable "Start" until user re-selects map manually.
+	if(!handler.mi && previousMapInfo && !handler.si->mapname.empty())
+		handler.mi = previousMapInfo;
+
 	if(handler.mapToStart && handler.mi)
 	{
 		handler.startMapAfterConnection(nullptr);
