@@ -51,7 +51,7 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
-	result = false;
+	result = handler.getState() == EClientState::LOBBY;
 
 	// Check if it's LobbyClientConnected for our client
 	if(pack.uuid == handler.logicConnection->uuid)
@@ -91,6 +91,7 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 			ENGINE->windows().createAndPushWindow<CLobbyScreen>(handler.screenType, hideScreen);
 		}
 		handler.setState(EClientState::LOBBY);
+		result = true;
 	}
 }
 
@@ -110,6 +111,17 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 	
 	if(ENGINE->windows().count() > 0)
 		ENGINE->windows().popWindows(1);
+}
+
+void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
+{
+	(void)pack;
+
+	if(!lobby)
+		return;
+
+	// Refresh host UI immediately when a remote client joins.
+	lobby->updateAfterStateChange();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
