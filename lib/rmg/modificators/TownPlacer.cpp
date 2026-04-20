@@ -85,10 +85,10 @@ void TownPlacer::placeTowns(ObjectManager & manager)
 		int player_id = *zone.getOwner() - 1;
 		const auto & playerSettings = map.getMapGenOptions().getPlayersSettings();
 		PlayerColor player;
+		PlayerColor zoneOwnerColor(player_id);
 
-		if (playerSettings.size() > player_id)
+		if (auto currentPlayerSettings = playerSettings.find(zoneOwnerColor); currentPlayerSettings != playerSettings.end())
 		{
-			const auto & currentPlayerSettings = std::next(playerSettings.begin(), player_id);
 			player = currentPlayerSettings->first;
 			zone.setTownType(currentPlayerSettings->second.getStartingTown());
 			
