@@ -16,7 +16,10 @@ class GraphicalPrimitiveCanvas;
 
 class CLobbyScreen final : public CSelectionBase
 {
+	bool waitingForPlayersMessageShown = false;
+
 	bool canStartLobbyGame() const;
+	void updateHostLobbyChatState();
 	void updateStartButtonState();
 
 public:

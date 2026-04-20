@@ -130,18 +130,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
 	}
 
-	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
-		&& GAME->server().serverMode == EServerMode::LOCAL
-		&& GAME->server().isHost();
-
-	if(buttonChat && isLanMultiplayerHost)
-	{
-		card->setChat(true);
-		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
-
-		if(!GAME->server().hasRemoteClientInLobby())
-			GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
-	}
+	updateHostLobbyChatState();
 }
 
 CLobbyScreen::~CLobbyScreen()
@@ -164,6 +153,32 @@ bool CLobbyScreen::canStartLobbyGame() const
 		return false;
 
 	return true;
+}
+
+void CLobbyScreen::updateHostLobbyChatState()
+{
+	const bool isLanMultiplayerHost = buttonChat
+		&& GAME->server().loadMode == ELoadMode::MULTI
+		&& GAME->server().serverMode == EServerMode::LOCAL
+		&& GAME->server().isHost();
+
+	if(!isLanMultiplayerHost)
+		return;
+
+	card->setChat(true);
+	buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
+
+	if(GAME->server().hasRemoteClientInLobby())
+	{
+		waitingForPlayersMessageShown = false;
+		return;
+	}
+
+	if(!waitingForPlayersMessageShown)
+	{
+		GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
+		waitingForPlayersMessageShown = true;
+	}
 }
 
 void CLobbyScreen::updateStartButtonState()
@@ -255,7 +270,7 @@ void CLobbyScreen::startScenario(bool allowOnlyAI)
 void CLobbyScreen::toggleMode(bool host)
 {
 	tabSel->toggleMode();
-	buttonStart->block(!host);
+	updateStartButtonState();
 	if(screenType == ESelectionScreen::campaignList)
 		return;
 
@@ -303,6 +318,8 @@ void CLobbyScreen::toggleChat()
 void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
+	updateHostLobbyChatState();
+
 	if(!tabBattleOnlyMode)
 	{
 		tabBattleOnlyMode = std::make_shared<BattleOnlyModeTab>();
