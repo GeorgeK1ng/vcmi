@@ -140,7 +140,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
 
 		if(!GAME->server().hasRemoteClientInLobby())
-			GAME->server().getGameChat().onNewLobbyMessageReceived("System", "Waiting for players to join...");
+			GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
 	}
 }
 

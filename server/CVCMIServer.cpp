@@ -495,7 +495,10 @@ void CVCMIServer::clientConnected(std::shared_ptr<GameConnection> c, std::vector
 		cp.connection = c->connectionID;
 		cp.name = name;
 		playerNames.try_emplace(id, cp);
-		announceTxt(boost::str(boost::format("%s (pid %d cid %d) joins the game") % name % static_cast<int>(id) % static_cast<int>(c->connectionID)));
+		MetaString joinMessage;
+		joinMessage.appendTextID("vcmi.lobby.system.playerJoined");
+		joinMessage.replaceRawString(name);
+		announceTxt(joinMessage);
 
 		//put new player in first slot with AI
 		for(auto & elem : si->playerInfos)
@@ -527,7 +530,12 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 	}
 
 	for(const auto & playerName : disconnectedPlayerNames)
-		announceTxt(boost::str(boost::format("%s disconnected") % playerName));
+	{
+		MetaString disconnectMessage;
+		disconnectMessage.appendTextID("vcmi.lobby.system.playerDisconnected");
+		disconnectMessage.replaceRawString(playerName);
+		announceTxt(disconnectMessage);
+	}
 
 	for(const auto & playerId : disconnectedPlayerIds)
 		playerNames.erase(playerId);
