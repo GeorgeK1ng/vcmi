@@ -20,6 +20,7 @@
 
 #include "../CServerHandler.h"
 #include "../GameEngine.h"
+#include "../GameChatHandler.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
 #include "../widgets/Buttons.h"
