@@ -270,9 +270,11 @@ void CLobbyScreen::startScenario(bool allowOnlyAI)
 void CLobbyScreen::toggleMode(bool host)
 {
 	tabSel->toggleMode();
-	updateStartButtonState();
 	if(screenType == ESelectionScreen::campaignList)
+	{
+		buttonStart->block(!host);
 		return;
+	}
 
 	auto buttonColor = host ? Colors::WHITE : Colors::ORANGE;
 	buttonSelect->setTextOverlay("  " + LIBRARY->generaltexth->allTexts[500], FONT_SMALL, buttonColor);
@@ -304,6 +306,8 @@ void CLobbyScreen::toggleMode(bool host)
 		tabTurnOptions->recreate();
 		tabExtraOptions->recreate();
 	}
+
+	updateStartButtonState();
 }
 
 void CLobbyScreen::toggleChat()
@@ -349,7 +353,7 @@ void CLobbyScreen::updateAfterStateChange()
 			tabExtraOptions->recreate();
 	}
 
-	if(curTab && curTab != tabBattleOnlyMode)
+	if(curTab != tabBattleOnlyMode)
 	{
 		updateStartButtonState();
 		card->changeSelection();
