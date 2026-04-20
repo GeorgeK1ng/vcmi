@@ -300,7 +300,7 @@
 	"vcmi.adventureOptions.smoothDragging.hover": "Smooth Map Dragging",
 	"vcmi.artifact.charges": "Charges",
 	"vcmi.battle.action.attack": "Use melee attack",
-	"vcmi.battle.action.attackNoLongWeapon": "Use melee attack without Long Weapon",
+	"vcmi.battle.action.attackNoLongWeapon": "Use Long Weapon attack",
 	"vcmi.battle.action.genie": "Cast random beneficial spell",
 	"vcmi.battle.action.info": "Show unit information",
 	"vcmi.battle.action.move": "Move unit to specified location",
