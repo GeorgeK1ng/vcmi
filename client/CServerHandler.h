@@ -108,6 +108,7 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 	std::unique_ptr<NetworkLagCompensator> networkLagCompensator;
 	std::shared_ptr<CMapInfo> mapToStart;
 	std::vector<std::string> localPlayerNames;
+	std::set<GameConnectionID> lobbyClientConnections;
 
 	std::thread threadNetwork;
 
@@ -172,6 +173,8 @@ public:
 	bool isHost() const;
 	bool isGuest() const;
 	bool hasRemoteClientInLobby() const;
+	void registerLobbyClientConnection(GameConnectionID connectionId);
+	void unregisterLobbyClientConnection(GameConnectionID connectionId);
 	bool inLobbyRoom() const;
 	bool inGame() const;
 
