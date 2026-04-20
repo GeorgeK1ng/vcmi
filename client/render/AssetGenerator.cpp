@@ -959,8 +959,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackWindowUpgradeArrows() const
 	Canvas sourceCanvas(arrowSource->dimensions(), CanvasScalingPolicy::IGNORE);
 	sourceCanvas.draw(arrowSource, Point(0, 0));
 
-	const int width = sourceCanvas.dimensions().x;
-	const int height = sourceCanvas.dimensions().y;
+	const int width = arrowSource->width();
+	const int height = arrowSource->height();
 
 	struct ComponentBounds
 	{
