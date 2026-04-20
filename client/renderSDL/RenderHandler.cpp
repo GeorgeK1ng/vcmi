@@ -626,8 +626,11 @@ std::shared_ptr<const IFont> RenderHandler::loadFont(EFonts font)
 
 void RenderHandler::exportGeneratedAssets()
 {
+	const auto outPath = VCMIDirs::get().userExtractedPath() / "generated";
+	boost::filesystem::create_directories(outPath);
+
 	for (const auto & entry : assetGenerator->generateAllImages())
-		entry.second->exportBitmap(VCMIDirs::get().userDataPath() / "Generated" / (entry.first.getOriginalName() + ".png"), nullptr);
+		entry.second->exportBitmap(outPath / (entry.first.getOriginalName() + ".png"), nullptr);
 }
 
 std::shared_ptr<AssetGenerator> RenderHandler::getAssetGenerator()
