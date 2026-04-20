@@ -89,7 +89,7 @@ void AssetGenerator::initialize()
 	{
 		const std::string name = "heroBackpackDialog" + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		addDialogBackgroundWithStatusBar(name, Point(426, 454), playerColor);
+		addDialogBackgroundWithStatusBar(name, Point(426, 465), playerColor);
 	}
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
