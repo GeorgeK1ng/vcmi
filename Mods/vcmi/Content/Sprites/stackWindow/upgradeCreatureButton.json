@@ -1,0 +1,8 @@
+{
+	"basepath" : "stackWindow/",
+	"images" :
+	[
+		{ "frame" : 0, "file" : "upgrade-creature-normal.png"},
+		{ "frame" : 1, "file" : "upgrade-creature-pressed.png"}
+	]
+}

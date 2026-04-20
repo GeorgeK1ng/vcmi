@@ -375,6 +375,12 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 
 		auto & upgradeInfo = parent->info->upgradeInfo.value();
 		const size_t buttonsToCreate = std::min<size_t>(upgradeInfo.info.size(), upgrade.size());
+		constexpr int upgradeButtonWidth = 50;
+		constexpr int upgradeButtonSpacing = 2;
+		constexpr int upgradeButtonsY = 5;
+		const int upgradeButtonsRightEdge = 338;
+		const int upgradeButtonsWidth = static_cast<int>(buttonsToCreate) * upgradeButtonWidth + static_cast<int>(buttonsToCreate > 0 ? buttonsToCreate - 1 : 0) * upgradeButtonSpacing;
+		const int upgradeButtonsStartX = upgradeButtonsRightEdge - upgradeButtonsWidth;
 
 		for(size_t buttonIndex = 0; buttonIndex < buttonsToCreate; buttonIndex++)
 		{
@@ -402,7 +408,11 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 					GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[314], resComps);
 				}
 			};
-			auto upgradeBtn = std::make_shared<CButton>(Point(221 + (int)buttonIndex * 40, 5), AnimationPath::builtin("stackWindow/upgradeButton"), LIBRARY->generaltexth->zelp[446], onClick);
+			auto upgradeBtn = std::make_shared<CButton>(
+				Point(upgradeButtonsStartX + static_cast<int>(buttonIndex) * (upgradeButtonWidth + upgradeButtonSpacing), upgradeButtonsY),
+				AnimationPath::builtin("stackWindow/upgradeCreatureButton"),
+				LIBRARY->generaltexth->zelp[446],
+				onClick);
 
 			upgradeBtn->setOverlay(std::make_shared<CAnimImage>(AnimationPath::builtin("CPRSMALL"), LIBRARY->creh->objects[upgradeInfo.info.getAvailableUpgrades()[buttonIndex]]->getIconIndex()));
 

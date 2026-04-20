@@ -30,6 +30,10 @@
 #include "../lib/RoadHandler.h"
 #include "../lib/TerrainHandler.h"
 
+#include <numeric>
+#include <queue>
+#include <set>
+
 void AssetGenerator::initialize()
 {
 	// clear to avoid non updated sprites after mod change (if base imnages are used)
@@ -81,6 +85,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("stackWindow/upgrade-creature-normal.png")] = [this](){ return createStackWindowUpgradeButton(false);};
+	imageFiles[ImagePath::builtin("stackWindow/upgrade-creature-pressed.png")] = [this](){ return createStackWindowUpgradeButton(true);};
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
@@ -943,6 +949,137 @@ AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanelElement(Creatur
 		}
 		break;
 	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackWindowUpgradeArrows() const
+{
+	auto arrowSource = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("IRCBTNS"), EImageBlitMode::COLORKEY)->getImage(1);
+	Canvas sourceCanvas(arrowSource->dimensions(), CanvasScalingPolicy::IGNORE);
+	sourceCanvas.draw(arrowSource, Point(0, 0));
+
+	const int width = sourceCanvas.dimensions().x;
+	const int height = sourceCanvas.dimensions().y;
+
+	struct ComponentBounds
+	{
+		int minX;
+		int maxX;
+		int minY;
+		int maxY;
+	};
+
+	std::vector<int> componentMap(width * height, -1);
+	std::vector<ComponentBounds> components;
+
+	auto pointToIndex = [width](int x, int y)
+	{
+		return y * width + x;
+	};
+
+	for(int y = 0; y < height; y++)
+	{
+		for(int x = 0; x < width; x++)
+		{
+			auto currentIndex = pointToIndex(x, y);
+			if(componentMap[currentIndex] != -1 || sourceCanvas.getPixel(Point(x, y)).a == 0)
+				continue;
+
+			ComponentBounds bounds {x, x, y, y};
+			std::queue<Point> bfsQueue;
+			bfsQueue.emplace(x, y);
+			componentMap[currentIndex] = static_cast<int>(components.size());
+
+			while(!bfsQueue.empty())
+			{
+				Point current = bfsQueue.front();
+				bfsQueue.pop();
+
+				bounds.minX = std::min(bounds.minX, current.x);
+				bounds.maxX = std::max(bounds.maxX, current.x);
+				bounds.minY = std::min(bounds.minY, current.y);
+				bounds.maxY = std::max(bounds.maxY, current.y);
+
+				for(const auto & direction : std::array<Point, 4>{Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1)})
+				{
+					Point next = current + direction;
+					if(next.x < 0 || next.y < 0 || next.x >= width || next.y >= height)
+						continue;
+
+					auto nextIndex = pointToIndex(next.x, next.y);
+					if(componentMap[nextIndex] != -1 || sourceCanvas.getPixel(next).a == 0)
+						continue;
+
+					componentMap[nextIndex] = static_cast<int>(components.size());
+					bfsQueue.push(next);
+				}
+			}
+
+			components.push_back(bounds);
+		}
+	}
+
+	if(components.size() < 3)
+		throw std::runtime_error("Unable to extract upgrade arrows from IRCBTNS frame 1");
+
+	std::vector<int> componentOrder(components.size());
+	std::iota(componentOrder.begin(), componentOrder.end(), 0);
+	std::sort(componentOrder.begin(), componentOrder.end(), [&components](int lhs, int rhs){
+		return components[lhs].minX < components[rhs].minX;
+	});
+
+	std::set<int> selectedComponents(componentOrder.end() - 3, componentOrder.end());
+
+	ComponentBounds selectedBounds {width, 0, height, 0};
+	for(int componentId : selectedComponents)
+	{
+		selectedBounds.minX = std::min(selectedBounds.minX, components[componentId].minX);
+		selectedBounds.maxX = std::max(selectedBounds.maxX, components[componentId].maxX);
+		selectedBounds.minY = std::min(selectedBounds.minY, components[componentId].minY);
+		selectedBounds.maxY = std::max(selectedBounds.maxY, components[componentId].maxY);
+	}
+
+	Point outputSize(selectedBounds.maxX - selectedBounds.minX + 1, selectedBounds.maxY - selectedBounds.minY + 1);
+	auto outputImage = ENGINE->renderHandler().createImage(outputSize, CanvasScalingPolicy::IGNORE);
+	Canvas outputCanvas = outputImage->getCanvas();
+
+	for(int y = selectedBounds.minY; y <= selectedBounds.maxY; y++)
+	{
+		for(int x = selectedBounds.minX; x <= selectedBounds.maxX; x++)
+		{
+			const int componentId = componentMap[pointToIndex(x, y)];
+			if(componentId == -1 || !selectedComponents.count(componentId))
+				continue;
+
+			outputCanvas.drawPoint(Point(x - selectedBounds.minX, y - selectedBounds.minY), sourceCanvas.getPixel(Point(x, y)));
+		}
+	}
+
+	return outputImage;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackWindowUpgradeButton(bool pressed) const
+{
+	auto baseButton = ENGINE->renderHandler().loadImage(ImageLocator(
+		ImagePath::builtin(pressed ? "stackWindow/upgrade-pressed.png" : "stackWindow/upgrade-normal.png"),
+		EImageBlitMode::COLORKEY));
+	auto arrows = createStackWindowUpgradeArrows();
+
+	constexpr int buttonWidth = 50;
+	constexpr int buttonHeight = 36;
+	constexpr int iconSectionWidth = 36;
+	constexpr int arrowPaddingLeft = 2;
+
+	auto image = ENGINE->renderHandler().createImage(Point(buttonWidth, buttonHeight), CanvasScalingPolicy::IGNORE);
+	Canvas canvas = image->getCanvas();
+
+	const int baseOffsetX = buttonWidth - iconSectionWidth;
+	const int baseOffsetY = pressed ? 1 : 0;
+	canvas.draw(baseButton, Point(baseOffsetX, baseOffsetY));
+
+	const Point arrowsOffset(arrowPaddingLeft + (pressed ? 1 : 0), (buttonHeight - arrows->height()) / 2 + (pressed ? 1 : 0));
+	canvas.draw(arrows, arrowsOffset);
 
 	return image;
 }
