@@ -36,24 +36,6 @@
 #include "../../lib/rmg/CMapGenOptions.h"
 #include "../../lib/GameLibrary.h"
 
-namespace
-{
-bool canStartMultiplayerLobby(const CServerHandler & server)
-{
-	if(server.isGuest() || server.mi == nullptr)
-		return false;
-
-	const bool isLanMultiplayerHost = server.loadMode == ELoadMode::MULTI
-		&& server.serverMode == EServerMode::LOCAL
-		&& server.isHost();
-
-	if(isLanMultiplayerHost && !server.hasRemoteClientInLobby())
-		return false;
-
-	return true;
-}
-}
-
 CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	: CSelectionBase(screenType), bonusSel(nullptr)
 {
@@ -155,6 +137,26 @@ CLobbyScreen::~CLobbyScreen()
 		GAME->server().sendClientDisconnecting();
 }
 
+bool CLobbyScreen::canStartLobbyGame() const
+{
+	if(GAME->server().isGuest() || GAME->server().mi == nullptr)
+		return false;
+
+	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
+		&& GAME->server().serverMode == EServerMode::LOCAL
+		&& GAME->server().isHost();
+
+	if(isLanMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
+		return false;
+
+	return true;
+}
+
+void CLobbyScreen::updateStartButtonState()
+{
+	buttonStart->block(!canStartLobbyGame());
+}
+
 void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 {
 	if(tab == curTab)
@@ -179,7 +181,7 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	}
 	else
 	{
-		buttonStart->block(!canStartMultiplayerLobby(GAME->server()));
+		updateStartButtonState();
 		card->changeSelection();
 	}
 
@@ -318,7 +320,7 @@ void CLobbyScreen::updateAfterStateChange()
 
 	if(curTab && curTab != tabBattleOnlyMode)
 	{
-		buttonStart->block(!canStartMultiplayerLobby(GAME->server()));
+		updateStartButtonState();
 		card->changeSelection();
 	}
 

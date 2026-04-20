@@ -16,6 +16,9 @@ class GraphicalPrimitiveCanvas;
 
 class CLobbyScreen final : public CSelectionBase
 {
+	bool canStartLobbyGame() const;
+	void updateStartButtonState();
+
 public:
 	std::shared_ptr<CButton> buttonChat;
 	std::shared_ptr<GraphicalPrimitiveCanvas> blackScreen;
