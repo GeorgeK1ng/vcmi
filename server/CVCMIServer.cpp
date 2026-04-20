@@ -495,6 +495,7 @@ void CVCMIServer::clientConnected(std::shared_ptr<GameConnection> c, std::vector
 		cp.connection = c->connectionID;
 		cp.name = name;
 		playerNames.try_emplace(id, cp);
+		logNetwork->info("Player joined lobby: name='%s', playerId=%d, connectionId=%d", name, static_cast<int>(id), static_cast<int>(c->connectionID));
 		MetaString joinMessage;
 		joinMessage.appendTextID("vcmi.lobby.system.playerJoined");
 		joinMessage.replaceRawString(name);
@@ -531,11 +532,15 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 
 	for(const auto & playerName : disconnectedPlayerNames)
 	{
+		logNetwork->info("Player disconnected from lobby: name='%s', connectionId=%d", playerName, static_cast<int>(connection->connectionID));
 		MetaString disconnectMessage;
 		disconnectMessage.appendTextID("vcmi.lobby.system.playerDisconnected");
 		disconnectMessage.replaceRawString(playerName);
 		announceTxt(disconnectMessage);
 	}
+
+	if(disconnectedPlayerNames.empty())
+		logNetwork->info("Connection %d disconnected from lobby with no mapped player names", static_cast<int>(connection->connectionID));
 
 	for(const auto & playerId : disconnectedPlayerIds)
 		playerNames.erase(playerId);
