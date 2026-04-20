@@ -516,11 +516,18 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 	vstd::erase(activeConnections, connection);
 
 	std::vector<PlayerConnectionID> disconnectedPlayerIds;
+	std::vector<std::string> disconnectedPlayerNames;
 	for(const auto & playerEntry : playerNames)
 	{
 		if(playerEntry.second.connection == connection->connectionID)
+		{
 			disconnectedPlayerIds.push_back(playerEntry.first);
+			disconnectedPlayerNames.push_back(playerEntry.second.name);
+		}
 	}
+
+	for(const auto & playerName : disconnectedPlayerNames)
+		announceTxt(boost::str(boost::format("%s disconnected") % playerName));
 
 	for(const auto & playerId : disconnectedPlayerIds)
 		playerNames.erase(playerId);

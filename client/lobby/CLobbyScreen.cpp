@@ -59,7 +59,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		if(settings["general"]["enableUiEnhancements"].Bool())
 		{
 			if(screenType == ESelectionScreen::newGame)
-				buttonBattleMode = std::make_shared<CButton>(Point(619, 105), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.battleOnlyMode.help")), [this](){
+				buttonBattleMode = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.battleOnlyMode.help")), [this](){
 					updateAfterStateChange(); // creates tabBattleOnlyMode -> cannot created by init of object because GAME->server().isGuest() isn't valid at that point
 					toggleTab(tabBattleOnlyMode);
 				}, EShortcut::LOBBY_BATTLE_MODE);
@@ -69,7 +69,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 
 	if(screenType != ESelectionScreen::campaignList && GAME->server().loadMode == ELoadMode::MULTI)
 	{
-		buttonChat = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
+		buttonChat = std::make_shared<CButton>(Point(619, 105), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 	}
 
@@ -127,6 +127,19 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	{
 		blackScreen = std::make_shared<GraphicalPrimitiveCanvas>(Rect(Point(0, 0), pos.dimensions()));
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
+	}
+
+	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
+		&& GAME->server().serverMode == EServerMode::LOCAL
+		&& GAME->server().isHost();
+
+	if(buttonChat && isLanMultiplayerHost)
+	{
+		card->setChat(true);
+		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
+
+		if(!GAME->server().hasRemoteClientInLobby())
+			GAME->server().getGameChat().onNewLobbyMessageReceived("System", "Waiting for players to join...");
 	}
 }
 
