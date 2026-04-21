@@ -325,6 +325,9 @@ void CLobbyScreen::toggleMode(bool host)
 void CLobbyScreen::toggleChat()
 {
 	card->toggleChat();
+	if(!buttonChat)
+		return;
+
 	if(card->showChat)
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
 	else
@@ -335,6 +338,7 @@ void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
 	updateHostLobbyChatState();
+	tabSel->filter(-1);
 
 	if(!tabBattleOnlyMode)
 	{
