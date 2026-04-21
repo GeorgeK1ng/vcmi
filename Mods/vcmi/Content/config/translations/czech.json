@@ -828,6 +828,7 @@
 	"vcmi.lobby.system.waitingForPlayers": "Čekání na připojení hráčů...",
 	"vcmi.lobby.system.playerJoined": "Hráč %s se připojil do lobby",
 	"vcmi.lobby.system.playerDisconnected": "Hráč %s se odpojil",
+	"vcmi.lobby.system.hidingIncompatibleMaps": "Skrývám nekompatibilní mapy pro %d hráčů",
 	"vcmi.lobby.pvp.randomTown.help": "Napsat náhodné město do chatu",
 	"vcmi.lobby.pvp.randomTown.hover": "Náhodné město",
 	"vcmi.lobby.pvp.randomTownVs.help": "Napsat 2 náhodná města do chatu",

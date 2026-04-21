@@ -16,6 +16,7 @@
 
 #include "../CPlayerInterface.h"
 #include "../CServerHandler.h"
+#include "../GameChatHandler.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
@@ -580,10 +581,19 @@ void SelectionTab::filter(int size, bool selectFirst)
 	if(buttonDeleteMode)
 		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
 
+	size_t hiddenIncompatibleMaps = 0;
+	size_t requiredHumanPlayers = GAME->server().playerNames.size();
+
 	for(auto elem : allItems)
 	{
 		if((elem->mapHeader && (!size || elem->mapHeader->width == size)) || tabType == ESelectionScreen::campaignList)
 		{
+			if(!isMapCompatibleWithLobbyPlayerCount(*elem))
+			{
+				++hiddenIncompatibleMaps;
+				continue;
+			}
+
 			if(showRandom)
 				curFolder = "RandomMaps/";
 
@@ -615,6 +625,25 @@ void SelectionTab::filter(int size, bool selectFirst)
 			if(fileInFolder)
 				curItems.push_back(elem);
 		}
+	}
+
+	if(hiddenIncompatibleMaps && tabType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI)
+	{
+		MetaString warningText;
+		warningText.appendTextID("vcmi.lobby.system.hidingIncompatibleMaps");
+		warningText.replaceNumber(requiredHumanPlayers);
+		const std::string warningTextFormatted = warningText.toString();
+
+		if(lastCompatibilityNotice != warningTextFormatted)
+		{
+			logGlobal->info("%s", warningTextFormatted);
+			GAME->server().getGameChat().onNewLobbyMessageReceived("System", warningTextFormatted);
+			lastCompatibilityNotice = warningTextFormatted;
+		}
+	}
+	else
+	{
+		lastCompatibilityNotice.clear();
 	}
 
 	if(curItems.size())
@@ -913,6 +942,23 @@ bool SelectionTab::isMapSupported(const CMapInfo & info)
 			return LIBRARY->engineSettings()->getValue(EGameSettings::MAP_FORMAT_JSON_VCMI)["supported"].Bool();
 	}
 	return false;
+}
+
+bool SelectionTab::isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const
+{
+	if(tabType != ESelectionScreen::newGame || GAME->server().loadMode != ELoadMode::MULTI || !info.mapHeader)
+		return true;
+
+	const auto requiredHumanPlayers = GAME->server().playerNames.size();
+	size_t supportedHumanPlayers = 0;
+
+	for(const auto & player : info.mapHeader->players)
+	{
+		if(player.canHumanPlay)
+			++supportedHumanPlayers;
+	}
+
+	return supportedHumanPlayers >= requiredHumanPlayers;
 }
 
 void SelectionTab::parseMaps(const std::unordered_set<ResourcePath> & files)
