@@ -148,6 +148,7 @@ bool CLobbyScreen::canStartLobbyGame() const
 
 	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
 		&& GAME->server().serverMode == EServerMode::LOCAL
+		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
 
 	if(isLanMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
@@ -161,6 +162,7 @@ void CLobbyScreen::updateHostLobbyChatState()
 	const bool isLanMultiplayerHost = buttonChat
 		&& GAME->server().loadMode == ELoadMode::MULTI
 		&& GAME->server().serverMode == EServerMode::LOCAL
+		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
 
 	if(!isLanMultiplayerHost)
