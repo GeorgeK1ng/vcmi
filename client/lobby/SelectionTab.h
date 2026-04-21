@@ -89,6 +89,7 @@ public:
 	bool sortModeAscending;
 	int currentMapSizeFilter = 0;
 	bool showRandom;
+	std::string lastCompatibilityNotice;
 
 	std::shared_ptr<CTextInput> inputName;
 
@@ -132,6 +133,7 @@ private:
 	std::shared_ptr<CButton> buttonCampaignSet;
 
 	auto checkSubfolder(std::string path);
+	bool isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const;
 
 	bool isMapSupported(const CMapInfo & info);
 	void parseMaps(const std::unordered_set<ResourcePath> & files);
