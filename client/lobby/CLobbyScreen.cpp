@@ -41,6 +41,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	: CSelectionBase(screenType), bonusSel(nullptr)
 {
 	OBJECT_CONSTRUCTION;
+	addUsedEvents(TIME);
 	tabSel = std::make_shared<SelectionTab>(screenType);
 	curTab = tabSel;
 
@@ -215,6 +216,15 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	}
 
 	CSelectionBase::toggleTab(tab);
+}
+
+void CLobbyScreen::tick(uint32_t msPassed)
+{
+	CSelectionBase::tick(msPassed);
+
+	updateHostLobbyChatState();
+	if(curTab != tabBattleOnlyMode)
+		updateStartButtonState();
 }
 
 void CLobbyScreen::start(bool campaign)
