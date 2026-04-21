@@ -865,6 +865,7 @@
 	"vcmi.mainMenu.ipAddressUnknown": "Unknown",
 	"vcmi.mainMenu.join": "Join",
 	"vcmi.mainMenu.joinTCP": "Join TCP/IP game",
+	"vcmi.mainMenu.chooseAvailableServers": "Choose available servers to join",
 	"vcmi.mainMenu.serverAddressEnter": "Enter address:",
 	"vcmi.mainMenu.serverClosing": "Closing...",
 	"vcmi.mainMenu.serverConnecting": "Connecting...",
