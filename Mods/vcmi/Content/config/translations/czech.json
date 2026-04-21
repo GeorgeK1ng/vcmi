@@ -826,7 +826,7 @@
 	"vcmi.lobby.pvp.coin.help": "Hodit mincí",
 	"vcmi.lobby.pvp.coin.hover": "Mince",
 	"vcmi.lobby.system.waitingForPlayers": "Čekání na připojení hráčů...",
-	"vcmi.lobby.system.playerJoined": "Hráč %s se připojil do lobby",
+	"vcmi.lobby.system.playerJoined": "Hráč %s se připojil",
 	"vcmi.lobby.system.playerDisconnected": "Hráč %s se odpojil",
 	"vcmi.lobby.system.hidingIncompatibleMaps": "Skrývám nekompatibilní mapy pro %d hráčů",
 	"vcmi.lobby.pvp.randomTown.help": "Napsat náhodné město do chatu",
