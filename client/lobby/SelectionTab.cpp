@@ -582,7 +582,7 @@ void SelectionTab::filter(int size, bool selectFirst)
 		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
 
 	size_t hiddenIncompatibleMaps = 0;
-	size_t requiredHumanPlayers = std::max<size_t>(1, GAME->server().playerNames.size());
+	size_t requiredHumanPlayers = std::max<size_t>(2, GAME->server().playerNames.size());
 
 	for(auto elem : allItems)
 	{
@@ -969,7 +969,7 @@ bool SelectionTab::isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info)
 	if(tabType != ESelectionScreen::newGame || GAME->server().loadMode != ELoadMode::MULTI || !info.mapHeader)
 		return true;
 
-	const auto requiredHumanPlayers = std::max<size_t>(1, GAME->server().playerNames.size());
+	const auto requiredHumanPlayers = std::max<size_t>(2, GAME->server().playerNames.size());
 	size_t supportedHumanPlayers = 0;
 
 	for(const auto & player : info.mapHeader->players)
