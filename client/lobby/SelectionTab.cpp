@@ -662,6 +662,25 @@ void SelectionTab::filter(int size, bool selectFirst)
 				selectAbs(firstPos);
 			}
 		}
+		else if(hiddenIncompatibleMaps)
+		{
+			const std::string selectedMapFileURI = GAME->server().mi ? GAME->server().mi->fileURI : "";
+			auto selectedMapIt = boost::range::find_if(curItems, [&selectedMapFileURI](std::shared_ptr<ElementInfo> e)
+			{
+				return !e->isFolder && e->fileURI == selectedMapFileURI;
+			});
+
+			if(selectedMapIt == curItems.end())
+			{
+				int firstPos = boost::range::find_if(curItems, [](std::shared_ptr<ElementInfo> e) { return !e->isFolder; }) - curItems.begin();
+				if(firstPos < curItems.size())
+				{
+					slider->scrollTo(firstPos);
+					callOnSelect(curItems[firstPos]);
+					selectAbs(firstPos);
+				}
+			}
+		}
 	}
 	else
 	{
