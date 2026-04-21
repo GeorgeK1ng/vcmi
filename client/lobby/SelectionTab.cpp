@@ -637,7 +637,8 @@ void SelectionTab::filter(int size, bool selectFirst)
 		if(lastCompatibilityNotice != warningTextFormatted)
 		{
 			logGlobal->info("%s", warningTextFormatted);
-			GAME->server().getGameChat().onNewLobbyMessageReceived("System", warningTextFormatted);
+			if(!GAME->server().hotseatMode)
+				GAME->server().getGameChat().onNewLobbyMessageReceived("System", warningTextFormatted);
 			lastCompatibilityNotice = warningTextFormatted;
 		}
 	}
