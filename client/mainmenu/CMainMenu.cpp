@@ -607,22 +607,31 @@ CMultiPlayers::CMultiPlayers(const std::vector<std::string>& playerNames, ESelec
 	background = std::make_shared<CPicture>(ImagePath::builtin("MUHOTSEA.bmp"));
 	pos = background->center(); //center, window has size of bg graphic
 
-	std::string text;
+	std::string textTitleValue;
+	std::string textSubtitleValue;
+	std::string hotseatText = LIBRARY->generaltexth->allTexts[446];
+	std::vector<std::string> hotseatLines;
+	boost::split(hotseatLines, hotseatText, boost::is_any_of("\t"));
+	if(!hotseatLines.empty())
+	{
+		textSubtitleValue = hotseatLines.back();
+	}
+
 	switch (shortcut)
 	{
 	case EShortcut::MAIN_MENU_HOTSEAT:
-		text = LIBRARY->generaltexth->allTexts[446];
-		boost::replace_all(text, "\t", "\n");
+		textTitleValue = hotseatLines.empty() ? hotseatText : hotseatLines.front();
 		break;
 	case EShortcut::MAIN_MENU_HOST_GAME:
-		text = LIBRARY->generaltexth->translate("vcmi.mainMenu.hostTCP");
+		textTitleValue = LIBRARY->generaltexth->translate("vcmi.mainMenu.hostTCP");
 		break;
 	case EShortcut::MAIN_MENU_JOIN_GAME:
-		text = LIBRARY->generaltexth->translate("vcmi.mainMenu.joinTCP");
+		textTitleValue = LIBRARY->generaltexth->translate("vcmi.mainMenu.joinTCP");
 		break;
 	}
 
-	textTitle = std::make_shared<CTextBox>(text, Rect(25, 10, 315, 60), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
+	textTitle = std::make_shared<CTextBox>(textTitleValue, Rect(25, 10, 315, 30), 0, FONT_BIG, ETextAlignment::CENTER, Colors::WHITE);
+	textSubtitle = std::make_shared<CTextBox>(textSubtitleValue, Rect(25, 40, 315, 35), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
 	for(int i = 0; i < inputNames.size(); i++)
 	{
