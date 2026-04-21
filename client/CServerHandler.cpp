@@ -109,6 +109,7 @@ CServerHandler::CServerHandler()
 	, screenType(ESelectionScreen::unknown)
 	, serverMode(EServerMode::NONE)
 	, loadMode(ELoadMode::NONE)
+	, hotseatMode(false)
 	, battleMode(false)
 	, client(nullptr)
 {
@@ -140,6 +141,7 @@ void CServerHandler::resetStateForLobby(EStartMode mode, ESelectionScreen screen
 	setState(EClientState::NONE);
 	serverMode = newServerMode;
 	mapToStart = nullptr;
+	hotseatMode = false;
 	th = std::make_unique<CStopWatch>();
 	logicConnection.reset();
 	si = std::make_shared<StartInfo>();
@@ -336,6 +338,15 @@ bool CServerHandler::isHost() const
 bool CServerHandler::isGuest() const
 {
 	return !logicConnection || hostClientId != logicConnection->connectionID;
+}
+
+bool CServerHandler::hasRemoteClientInLobby() const
+{
+	std::set<GameConnectionID> connectedClients;
+	for(const auto & playerEntry : playerNames)
+		connectedClients.insert(playerEntry.second.connection);
+
+	return connectedClients.size() > 1;
 }
 
 const std::string & CServerHandler::getLocalHostname() const
