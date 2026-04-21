@@ -680,13 +680,6 @@ void SelectionTab::filter(int size, bool selectFirst)
 					selectAbs(firstPos);
 				}
 			}
-			else
-			{
-				int selectedPos = static_cast<int>(std::distance(curItems.begin(), selectedMapIt));
-				slider->scrollTo(selectedPos);
-				callOnSelect(curItems[selectedPos]);
-				selectAbs(selectedPos);
-			}
 		}
 	}
 	else
