@@ -168,8 +168,7 @@ void CLobbyScreen::updateHostLobbyChatState()
 	if(!isLanMultiplayerHost)
 		return;
 
-	card->setChat(true);
-	buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[531], FONT_SMALL, Colors::WHITE);
+	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 
 	if(GAME->server().hasRemoteClientInLobby())
 	{

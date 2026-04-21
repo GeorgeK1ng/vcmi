@@ -140,8 +140,10 @@ void CServerHandler::resetStateForLobby(EStartMode mode, ESelectionScreen screen
 	hostClientId = GameConnectionID::INVALID;
 	setState(EClientState::NONE);
 	serverMode = newServerMode;
+	loadMode = ELoadMode::NONE;
 	mapToStart = nullptr;
 	hotseatMode = false;
+	battleMode = false;
 	th = std::make_unique<CStopWatch>();
 	logicConnection.reset();
 	si = std::make_shared<StartInfo>();
