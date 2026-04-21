@@ -829,6 +829,8 @@
 	"vcmi.lobby.system.playerJoined": "Player %s joined",
 	"vcmi.lobby.system.playerDisconnected": "Player %s disconnected",
 	"vcmi.lobby.system.hidingIncompatibleMaps": "Hiding incompatible maps for %d players",
+	"vcmi.lobby.system.unableStartMap": "Unable to start map!",
+	"vcmi.lobby.system.reason": "Reason: %s",
 	"vcmi.lobby.pvp.randomTown.help": "Write a random town in the chat",
 	"vcmi.lobby.pvp.randomTown.hover": "Random town",
 	"vcmi.lobby.pvp.randomTownVs.help": "Write two random towns in the chat",

@@ -133,6 +133,7 @@ private:
 	std::shared_ptr<CButton> buttonCampaignSet;
 
 	auto checkSubfolder(std::string path);
+	size_t getRequiredHumanPlayers() const;
 	bool isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const;
 
 	bool isMapSupported(const CMapInfo & info);

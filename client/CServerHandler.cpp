@@ -597,7 +597,12 @@ bool CServerHandler::validateGameStart(bool allowOnlyAI) const
 	catch(std::exception & e)
 	{
 		logGlobal->error("Exception during startScenario: %s", e.what());
-		showServerError(std::string("Unable to start map!\nReason: ") + e.what());
+		MetaString message;
+		message.appendTextID("vcmi.lobby.system.unableStartMap");
+		message.appendRawString("\n");
+		message.appendTextID("vcmi.lobby.system.reason");
+		message.replaceRawString(e.what());
+		showServerError(message.toString());
 		return false;
 	}
 
