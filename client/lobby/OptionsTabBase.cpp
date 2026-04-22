@@ -437,10 +437,10 @@ void OptionsTabBase::recreate(bool campaign)
 			}
 		}
 
-		if(matchingPreset >= 0 && matchingPreset < LIBRARY->generaltexth->turnDurations.size())
-			w->setText(LIBRARY->generaltexth->turnDurations[matchingPreset]);
+		if(matchingPreset >= 0 && matchingPreset < timerPresets.size())
+			w->setTextOverlay(LIBRARY->generaltexth->turnDurations[matchingPreset], EFonts::FONT_SMALL, Colors::WHITE);
 		else
-			w->setText(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnTime.select"));
+			w->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnTime.select"), EFonts::FONT_SMALL, Colors::WHITE);
 	}
 
 	if(auto w = widget<ComboBox>("simturnsPresetSelector"))
@@ -471,9 +471,9 @@ void OptionsTabBase::recreate(bool campaign)
 		}
 
 		if(matchingPreset >= 0 && matchingPreset < simturnPresetLabels.size())
-			w->setText(LIBRARY->generaltexth->translate(simturnPresetLabels[matchingPreset]));
+			w->setTextOverlay(LIBRARY->generaltexth->translate(simturnPresetLabels[matchingPreset]), EFonts::FONT_SMALL, Colors::WHITE);
 		else
-			w->setText(LIBRARY->generaltexth->translate("vcmi.optionsTab.simturns.select"));
+			w->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.simturns.select"), EFonts::FONT_SMALL, Colors::WHITE);
 	}
 
 	if(auto w = widget<ComboBox>("timerModeSwitch"))
