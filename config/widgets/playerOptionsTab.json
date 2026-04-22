@@ -75,23 +75,65 @@
 		},
 
 		{
+			"name": "buttonTimerPresetCaption",
+			"type" : "button",
+			"position" : {
+				"x" : 56,
+				"y" : 535
+			},
+			"image" : "GSPBUT2",
+			"items" : [
+				{
+					"type" : "label",
+					"position" : {
+						"x" : 0,
+						"y" : 0
+					},
+					"text" : "core.genrltxt.521",
+					"font" : "small",
+					"color" : "white"
+				}
+			]
+		},
+		{
 			"type" : "dropDownTimers",
 			"name": "timerPresetSelector",
-			"position": {"x": 56, "y": 535},
+			"position": {"x": 192, "y": 535},
 			"dropDownPosition": {"x": 0, "y": -260}
+		},
+		{
+			"name": "buttonSimturnsPresetCaption",
+			"type" : "button",
+			"position" : {
+				"x" : 56,
+				"y" : 555
+			},
+			"image" : "GSPBUT2",
+			"items" : [
+				{
+					"type" : "label",
+					"position" : {
+						"x" : 0,
+						"y" : 0
+					},
+					"text" : "vcmi.optionsTab.simturnsTitle",
+					"font" : "small",
+					"color" : "white"
+				}
+			]
 		},
 		{
 			"type" : "dropDownSimturns",
 			"name": "simturnsPresetSelector",
-			"position": {"x": 56, "y": 555},
+			"position": {"x": 192, "y": 555},
 			"dropDownPosition": {"x": 0, "y": -160}
 		},
 		{
 			"name": "buttonTurnOptions",
 			"type" : "button",
 			"position" : {
-				"x" : 260,
-				"y" : 535
+				"x" : 56,
+				"y" : 577
 			},
 			"image" : "GSPBUT2",
 			"items" : [
