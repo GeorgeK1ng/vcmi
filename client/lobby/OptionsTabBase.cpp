@@ -20,8 +20,10 @@
 #include "../widgets/Slider.h"
 #include "../widgets/TextControls.h"
 #include "../CServerHandler.h"
+#include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/WindowHandler.h"
+#include "../windows/GUIClasses.h"
 
 #include "../../lib/StartInfo.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -322,7 +324,7 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 				curItems.push_back((void*)i);
 		};
 
-		w->getItemText = [simturnPresetTexts](int, const void * item){
+		w->getItemText = [](int, const void * item){
 			size_t itemIndex = (size_t)item;
 			if(itemIndex < simturnPresetTexts.size())
 				return LIBRARY->generaltexth->translate(simturnPresetTexts[itemIndex]);
@@ -334,7 +336,7 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 			setSimturnsPresetCallback(itemIndex);
 		};
 
-		w->addCallback([this, simturnPresetTexts](){
+		w->addCallback([this](){
 			std::vector<std::string> texts;
 			texts.reserve(simturnPresetTexts.size());
 			for(const auto & textId : simturnPresetTexts)
@@ -379,7 +381,7 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 				curItems.push_back((void*)i);
 		};
 
-		w->getItemText = [timerPresetTexts](int, const void * item){
+		w->getItemText = [](int, const void * item){
 			size_t itemIndex = (size_t)item;
 			if(itemIndex < timerPresetTexts.size())
 				return LIBRARY->generaltexth->translate(timerPresetTexts[itemIndex]);
@@ -391,7 +393,7 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 			setTimerPresetCallback(itemIndex);
 		};
 
-		w->addCallback([this, timerPresetTexts](){
+		w->addCallback([this](){
 			std::vector<std::string> texts;
 			texts.reserve(timerPresetTexts.size());
 			for(const auto & textId : timerPresetTexts)
