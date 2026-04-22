@@ -199,7 +199,19 @@ InfoCard::InfoCard()
 			}
 		}
 
-		flagbox = std::make_shared<CFlagBox>(Rect(24, 400, 335, 23));
+		const bool showInlineHandicap = SEL->screenType == ESelectionScreen::newGame && GAME->server().loadMode != ELoadMode::MULTI;
+		flagbox = std::make_shared<CFlagBox>(Rect(24, 400, showInlineHandicap ? 160 : 335, 23));
+		if(showInlineHandicap)
+		{
+			labelHandicap = std::make_shared<CLabel>(186, 405, FONT_SMALL, ETextAlignment::TOPRIGHT, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.lobby.handicap"));
+			buttonHandicap = std::make_shared<CButton>(Point(190, 400), AnimationPath::builtin("GSPBUT2.DEF"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.handicap")), []()
+			{
+				if(!GAME->server().isHost())
+					return;
+				ENGINE->windows().createAndPushWindow<OptionsTab::HandicapWindow>();
+			}, EShortcut::LOBBY_HANDICAP);
+			buttonHandicap->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.randomMapTab.widgets.teamAlignmentsButton"), EFonts::FONT_SMALL, Colors::WHITE);
+		}
 		labelMapDiff = std::make_shared<CLabel>(33, 430, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::YELLOW, LIBRARY->generaltexth->allTexts[494]);
 		labelPlayerDifficulty = std::make_shared<CLabel>(133, 430, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::YELLOW, LIBRARY->generaltexth->allTexts[492] + ":");
 		labelRating = std::make_shared<CLabel>(290, 430, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::YELLOW, LIBRARY->generaltexth->allTexts[218] + ":");
