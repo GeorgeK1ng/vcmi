@@ -116,6 +116,8 @@ class InfoCard : public CIntObject
 	std::shared_ptr<CLabelGroup> labelGroupPlayers;
 	std::shared_ptr<CButton> buttonInvitePlayers;
 	std::shared_ptr<CButton> buttonOpenGlobalLobby;
+	std::shared_ptr<CLabel> labelHandicap;
+	std::shared_ptr<CButton> buttonHandicap;
 
 	std::shared_ptr<PvPBox> pvpBox;
 public:

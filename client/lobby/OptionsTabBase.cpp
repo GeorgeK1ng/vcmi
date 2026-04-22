@@ -418,6 +418,64 @@ void OptionsTabBase::recreate(bool campaign)
 	if(auto ww = widget<CTextInput>("chessFieldUnit"))
 		ww->setText(timeToString(turnTimerRemote.unitTimer));
 
+	if(auto w = widget<ComboBox>("timerPresetSelector"))
+	{
+		int matchingPreset = -1;
+		const auto timerPresets = getTimerPresets();
+		for(int idx = 0; idx < timerPresets.size(); ++idx)
+		{
+			const auto & preset = timerPresets[idx];
+			if(preset.baseTimer == turnTimerRemote.baseTimer
+				&& preset.turnTimer == turnTimerRemote.turnTimer
+				&& preset.battleTimer == turnTimerRemote.battleTimer
+				&& preset.unitTimer == turnTimerRemote.unitTimer
+				&& preset.accumulatingTurnTimer == turnTimerRemote.accumulatingTurnTimer
+				&& preset.accumulatingUnitTimer == turnTimerRemote.accumulatingUnitTimer)
+			{
+				matchingPreset = idx;
+				break;
+			}
+		}
+
+		if(matchingPreset >= 0 && matchingPreset < timerPresets.size())
+			w->setTextOverlay(LIBRARY->generaltexth->turnDurations[matchingPreset], EFonts::FONT_SMALL, Colors::WHITE);
+		else
+			w->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnTime.select"), EFonts::FONT_SMALL, Colors::WHITE);
+	}
+
+	if(auto w = widget<ComboBox>("simturnsPresetSelector"))
+	{
+		static const std::vector<std::string> simturnPresetLabels = {
+			"vcmi.optionsTab.simturns.none",
+			"vcmi.optionsTab.simturns.tillContactMax",
+			"vcmi.optionsTab.simturns.tillContact1",
+			"vcmi.optionsTab.simturns.tillContact2",
+			"vcmi.optionsTab.simturns.tillContact4",
+			"vcmi.optionsTab.simturns.blocked1",
+			"vcmi.optionsTab.simturns.blocked2",
+			"vcmi.optionsTab.simturns.blocked4"
+		};
+
+		int matchingPreset = -1;
+		const auto simturnPresets = getSimturnsPresets();
+		for(int idx = 0; idx < simturnPresets.size(); ++idx)
+		{
+			const auto & preset = simturnPresets[idx];
+			if(preset.requiredTurns == SEL->getStartInfo()->simturnsInfo.requiredTurns
+				&& preset.optionalTurns == SEL->getStartInfo()->simturnsInfo.optionalTurns
+				&& preset.allowHumanWithAI == SEL->getStartInfo()->simturnsInfo.allowHumanWithAI)
+			{
+				matchingPreset = idx;
+				break;
+			}
+		}
+
+		if(matchingPreset >= 0 && matchingPreset < simturnPresetLabels.size())
+			w->setTextOverlay(LIBRARY->generaltexth->translate(simturnPresetLabels[matchingPreset]), EFonts::FONT_SMALL, Colors::WHITE);
+		else
+			w->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.simturns.select"), EFonts::FONT_SMALL, Colors::WHITE);
+	}
+
 	if(auto w = widget<ComboBox>("timerModeSwitch"))
 	{
 		if(turnTimerRemote.battleTimer || turnTimerRemote.unitTimer || turnTimerRemote.baseTimer)

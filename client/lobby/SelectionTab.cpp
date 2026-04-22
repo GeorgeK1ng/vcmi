@@ -16,6 +16,7 @@
 
 #include "../CPlayerInterface.h"
 #include "../CServerHandler.h"
+#include "../GameChatHandler.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
@@ -580,10 +581,19 @@ void SelectionTab::filter(int size, bool selectFirst)
 	if(buttonDeleteMode)
 		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
 
+	size_t hiddenIncompatibleMaps = 0;
+	size_t requiredHumanPlayers = getRequiredHumanPlayers();
+
 	for(auto elem : allItems)
 	{
 		if((elem->mapHeader && (!size || elem->mapHeader->width == size)) || tabType == ESelectionScreen::campaignList)
 		{
+			if(!isMapCompatibleWithLobbyPlayerCount(*elem))
+			{
+				++hiddenIncompatibleMaps;
+				continue;
+			}
+
 			if(showRandom)
 				curFolder = "RandomMaps/";
 
@@ -617,6 +627,26 @@ void SelectionTab::filter(int size, bool selectFirst)
 		}
 	}
 
+	if(hiddenIncompatibleMaps && tabType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI)
+	{
+		MetaString warningText;
+		warningText.appendTextID("vcmi.lobby.system.hidingIncompatibleMaps");
+		warningText.replaceNumber(requiredHumanPlayers);
+		const std::string warningTextFormatted = warningText.toString();
+
+		if(lastCompatibilityNotice != warningTextFormatted)
+		{
+			logGlobal->info("%s", warningTextFormatted);
+			if(!GAME->server().hotseatMode)
+				GAME->server().getGameChat().onNewLobbyMessageReceived("System", warningTextFormatted);
+			lastCompatibilityNotice = warningTextFormatted;
+		}
+	}
+	else
+	{
+		lastCompatibilityNotice.clear();
+	}
+
 	if(curItems.size())
 	{
 		slider->block(false);
@@ -630,6 +660,28 @@ void SelectionTab::filter(int size, bool selectFirst)
 				slider->scrollTo(firstPos);
 				callOnSelect(curItems[firstPos]);
 				selectAbs(firstPos);
+			}
+		}
+		else if(tabType == ESelectionScreen::newGame || tabType == ESelectionScreen::campaignList)
+		{
+			const std::string selectedMapFileURI = GAME->server().mi ? GAME->server().mi->fileURI : "";
+			const bool selectedRandomMap = tabType == ESelectionScreen::newGame
+				&& GAME->server().mi
+				&& GAME->server().mi->isRandomMap;
+			auto selectedMapIt = boost::range::find_if(curItems, [&selectedMapFileURI](std::shared_ptr<ElementInfo> e)
+			{
+				return !e->isFolder && e->fileURI == selectedMapFileURI;
+			});
+
+			if(selectedMapIt == curItems.end() && !selectedRandomMap)
+			{
+				int firstPos = boost::range::find_if(curItems, [](std::shared_ptr<ElementInfo> e) { return !e->isFolder; }) - curItems.begin();
+				if(firstPos < curItems.size())
+				{
+					slider->scrollTo(firstPos);
+					callOnSelect(curItems[firstPos]);
+					selectAbs(firstPos);
+				}
 			}
 		}
 	}
@@ -913,6 +965,29 @@ bool SelectionTab::isMapSupported(const CMapInfo & info)
 			return LIBRARY->engineSettings()->getValue(EGameSettings::MAP_FORMAT_JSON_VCMI)["supported"].Bool();
 	}
 	return false;
+}
+
+bool SelectionTab::isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const
+{
+	if(tabType != ESelectionScreen::newGame || GAME->server().loadMode != ELoadMode::MULTI || !info.mapHeader)
+		return true;
+
+	const auto requiredHumanPlayers = getRequiredHumanPlayers();
+	size_t supportedHumanPlayers = 0;
+
+	for(const auto & player : info.mapHeader->players)
+	{
+		if(player.canHumanPlay)
+			++supportedHumanPlayers;
+	}
+
+	return supportedHumanPlayers >= requiredHumanPlayers;
+}
+
+size_t SelectionTab::getRequiredHumanPlayers() const
+{
+	const size_t minimumPlayers = (GAME->server().loadMode == ELoadMode::MULTI || GAME->server().hotseatMode) ? 2 : 1;
+	return std::max(minimumPlayers, GAME->server().playerNames.size());
 }
 
 void SelectionTab::parseMaps(const std::unordered_set<ResourcePath> & files)
