@@ -1329,14 +1329,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		drawPlate(Rect(stripX[i], secondRowY, smallBlockWidth, smallBlockHeight));
 	}
 
-	// Three icon boxes centered between neighboring strip centers
+	// Four icon boxes centered in each strip column
 	const int iconSize = 44;
 	const int iconY = firstRowY + smallBlockHeight + 3; // 3px below first row and 3px above second row
-	for(int i = 0; i < 3; ++i)
+	for(int i = 0; i < 4; ++i)
 	{
-		const double centerA = stripX[i] + smallBlockWidth / 2.0;
-		const double centerB = stripX[i + 1] + smallBlockWidth / 2.0;
-		const int iconX = static_cast<int>(std::lround((centerA + centerB) * 0.5 - iconSize * 0.5));
+		const int iconX = stripX[i] + (smallBlockWidth - iconSize) / 2;
 		drawSlot(Rect(iconX, iconY, iconSize, iconSize));
 	}
 
