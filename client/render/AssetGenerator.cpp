@@ -1306,22 +1306,38 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		canvas.drawBorder(rect, borderColor);
 	};
 
-	// Speech frame
-	drawPlate(Rect(23, 126, 419, 73));
+	// Main text block
+	const int horizontalMargin = 26;
+	const int largeBlockY = 127;
+	const int largeBlockHeight = 74;
+	drawPlate(Rect(horizontalMargin, largeBlockY, size.x - 2 * horizontalMargin, largeBlockHeight));
 
-	// Skill strips + icon slots for 4-skill layout
-	const int stripYTop = 230;
-	const int stripYBottom = 292;
-	const int slotY = 251;
-	const int firstX = 31;
-	const int stepX = 104;
+	// Four top/bottom strips distributed evenly between same left/right margins
+	const int smallBlockWidth = 102;
+	const int smallBlockHeight = 20;
+	const int firstRowY = largeBlockY + largeBlockHeight + 10; // 10px below large block
+	const int secondRowY = firstRowY + smallBlockHeight + 50; // 50px below first row (edge to edge)
 
+	std::array<int, 4> stripX;
 	for(int i = 0; i < 4; ++i)
 	{
-		const int x = firstX + i * stepX;
-		drawPlate(Rect(x, stripYTop, 97, 19));
-		drawPlate(Rect(x, stripYBottom, 97, 19));
-		drawSlot(Rect(x + 18, slotY, 45, 45));
+		double t = (i / 3.0);
+		double x = horizontalMargin + t * (size.x - 2 * horizontalMargin - smallBlockWidth);
+		stripX[i] = static_cast<int>(std::lround(x));
+
+		drawPlate(Rect(stripX[i], firstRowY, smallBlockWidth, smallBlockHeight));
+		drawPlate(Rect(stripX[i], secondRowY, smallBlockWidth, smallBlockHeight));
+	}
+
+	// Three icon boxes centered between neighboring strip centers
+	const int iconSize = 44;
+	const int iconY = firstRowY + smallBlockHeight + 3; // 3px below first row and 3px above second row
+	for(int i = 0; i < 3; ++i)
+	{
+		const double centerA = stripX[i] + smallBlockWidth / 2.0;
+		const double centerB = stripX[i + 1] + smallBlockWidth / 2.0;
+		const int iconX = static_cast<int>(std::lround((centerA + centerB) * 0.5 - iconSize * 0.5));
+		drawSlot(Rect(iconX, iconY, iconSize, iconSize));
 	}
 
 	return image;
