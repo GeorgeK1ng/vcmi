@@ -91,6 +91,14 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
+static ImagePath getUniversityBackground(const IMarket * market, std::string fileName)
+{
+	if(const auto * object = dynamic_cast<const CGObjectInstance *>(market); object && object->tempOwner.isValidPlayer())
+		fileName += "-" + object->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1049,7 +1057,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS1")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground(_market, "UNIVRS4")),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
@@ -1078,7 +1086,9 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 
 	titlePic->center(Point(232 + pos.x, 76 + pos.y));
 
-	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(24, 129, 413, 70), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	// University speech background block is 413x74 positioned at y=127.
+	// Keep 1px inner padding on each side to avoid text overlapping the frame.
+	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(25, 128, 411, 72), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	title = std::make_shared<CLabel>(231, 26, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, titleStr);
 
 	std::vector<TradeItemBuy> goods = market->availableItemsIds(EMarketMode::RESOURCE_SKILL);
@@ -1098,6 +1108,11 @@ void CUniversityWindow::close()
 	CStatusbarWindow::close();
 }
 
+const IMarket * CUniversityWindow::getMarket() const
+{
+	return market;
+}
+
 void CUniversityWindow::updateSecondarySkills()
 {
 	for (auto const & item : items)
@@ -1110,7 +1125,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS2.PCX")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground(owner_->getMarket(), "UNIVRS2")),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;
@@ -1122,7 +1137,9 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 
 	boost::replace_first(text, "%d", std::to_string(goldNeeded));
 
-	clerkSpeech = std::make_shared<CTextBox>(text, Rect(24, 129, 413, 70), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	// University speech background block is 413x74 positioned at y=127.
+	// Keep 1px inner padding on each side to avoid text overlapping the frame.
+	clerkSpeech = std::make_shared<CTextBox>(text, Rect(25, 128, 411, 72), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
 	name = std::make_shared<CLabel>(230, 37,  FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, SKILL.toEntity(LIBRARY)->getNameTranslated());
 	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL"), SKILL.getNum()*3+3, 0, 211, 51);
