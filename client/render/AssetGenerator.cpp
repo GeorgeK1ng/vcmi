@@ -85,6 +85,7 @@ void AssetGenerator::initialize()
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
 	addUniversityBackground("UNIVRS4", Point(466, 388));
+	addUniversityConfirmBackground("UNIVRS2", Point(466, 388));
 
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
@@ -174,6 +175,16 @@ void AssetGenerator::addUniversityBackground(const std::string & fileName, const
 		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
 		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createUniversityDialogBackground(size, playerColor);};
+	}
+}
+
+void AssetGenerator::addUniversityConfirmBackground(const std::string & fileName, const Point & size)
+{
+	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	{
+		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
+		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createUniversityConfirmDialogBackground(size, playerColor);};
 	}
 }
 
@@ -1341,6 +1352,31 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		const int iconX = stripX[i] + (smallBlockWidth - iconSize) / 2;
 		drawSlot(Rect(iconX, iconY, iconSize, iconSize));
 	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, const PlayerColor & playerColor) const
+{
+	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
+	Canvas canvas = image->getCanvas();
+
+	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
+	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
+
+	auto drawPlate = [&canvas, rectangleColor, borderColor](const Rect & rect)
+	{
+		canvas.drawColorBlended(rect, rectangleColor);
+		canvas.drawBorder(rect, borderColor);
+	};
+
+	// Text block: same geometry as UNIVRS4
+	drawPlate(Rect(26, 127, size.x - 52, 74));
+
+	// Centered header/action plates
+	drawPlate(Rect((size.x - 105) / 2, 26, 105, 21));
+	drawPlate(Rect((size.x - 105) / 2, 95, 105, 21));
+	drawPlate(Rect((size.x - 71) / 2, 258, 71, 19));
 
 	return image;
 }

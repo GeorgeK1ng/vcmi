@@ -104,6 +104,15 @@ static ImagePath getUniversityBackground(const IMarket * market)
 	return ImagePath::builtin(fileName);
 }
 
+static ImagePath getUniversityConfirmBackground(const IMarket * market)
+{
+	std::string fileName = "UNIVRS2";
+	if(auto town = dynamic_cast<const CGTownInstance *>(market); town && town->tempOwner.isValidPlayer())
+		fileName += "-" + town->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1133,7 +1142,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS2.PCX")),
+	: CWindowObject(PLAYER_COLORED, getUniversityConfirmBackground(owner_->getMarket())),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;
