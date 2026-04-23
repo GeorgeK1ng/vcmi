@@ -121,6 +121,13 @@
 				"type" : [ "string", "object" ]
 			},
 			"description" : "List of predefined or randomized items available on market from this building"
+		},
+		"marketCost" : {
+			"type" : "object",
+			"additionalProperties" : {
+				"type" : "number"
+			},
+			"description" : "Resource cost of one transaction in market modes that support configurable pricing"
 		}
 	}
 }

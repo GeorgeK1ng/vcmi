@@ -62,8 +62,10 @@ public:
 	std::string getSpeechTranslated() const;
 
 	std::vector<TradeItemBuy> skills; //available skills
+	TResources skillCost;
 
 	std::vector<TradeItemBuy> availableItemsIds(EMarketMode mode) const override;
+	TResources getSkillCost(SecondarySkill skill) const override;
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override; //open window
 	std::vector<Component> getPopupComponents(PlayerColor player) const override;
 	bool wasVisited (PlayerColor player) const override;
@@ -72,6 +74,7 @@ public:
 	{
 		h & static_cast<CGMarket&>(*this);
 		h & skills;
+		h & skillCost;
 	}
 };
 

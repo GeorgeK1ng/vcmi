@@ -61,6 +61,7 @@ void MarketInstanceConstructor::initTypeData(const JsonNode & input)
 
 	marketEfficiency = input["efficiency"].isNull() ? 5 : input["efficiency"].Integer();
 	predefinedOffer = input["offer"];
+	predefinedCost = input["cost"];
 }
 
 bool MarketInstanceConstructor::hasDescription() const
@@ -104,6 +105,9 @@ void MarketInstanceConstructor::randomizeObject(CGMarket * object, IGameRandomiz
 	{
 		for(auto skill : randomizer.loadSecondaries(predefinedOffer, emptyVariables))
 			university->skills.push_back(skill.first);
+
+		if(!predefinedCost.isNull())
+			university->skillCost = randomizer.loadResources(predefinedCost, emptyVariables);
 	}
 }
 

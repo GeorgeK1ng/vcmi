@@ -136,6 +136,14 @@ std::string CGUniversity::getSpeechTranslated() const
 	return getMarketHandler()->getSpeechTranslated();
 }
 
+TResources CGUniversity::getSkillCost(SecondarySkill skill) const
+{
+	(void)skill;
+	if(skillCost.nonZero())
+		return skillCost;
+	return IMarket::getSkillCost(skill);
+}
+
 void CGUniversity::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const
 {
 	ChangeObjectVisitors cow;

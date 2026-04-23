@@ -51,6 +51,7 @@ class DLL_LINKAGE CGTownInstance : public CGDwelling, public IShipyard, public I
 	std::map<BuildingID, TownRewardableBuildingInstance*> convertOldBuildings(std::vector<TownRewardableBuildingInstance*> oldVector);
 	std::set<BuildingID> builtBuildings;
 	std::map<BuildingID, std::vector<TradeItemBuy>> marketOffers;
+	std::map<BuildingID, TResources> marketCosts;
 
 	ObjectInstanceID garrisonHero;
 	ObjectInstanceID visitingHero;
@@ -107,6 +108,10 @@ public:
 			h & marketOffers;
 		else if(!h.saving)
 			marketOffers.clear();
+		if(h.hasFeature(Handler::Version::TOWN_MARKET_COSTS))
+			h & marketCosts;
+		else if(!h.saving)
+			marketCosts.clear();
 		h & bonusValue;
 		h & possibleSpells;
 		h & obligatorySpells;
@@ -154,6 +159,7 @@ public:
 	int getMarketEfficiency() const override; //=market count
 	std::set<EMarketMode> availableModes() const override;
 	std::vector<TradeItemBuy> availableItemsIds(EMarketMode mode) const override;
+	TResources getSkillCost(SecondarySkill skill) const override;
 	ObjectInstanceID getObjInstanceID() const override;
 	void updateAppearance();
 

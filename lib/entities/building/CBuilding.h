@@ -43,6 +43,8 @@ public:
 	std::set<EMarketMode> marketModes;
 	std::vector<TradeItemBuy> marketOffer;
 	JsonNode marketOfferConfig;
+	TResources marketCost;
+	JsonNode marketCostConfig;
 
 	BuildingID bid; //structure ID
 	BuildingID upgrade; /// indicates that building "upgrade" can be improved by this, -1 = empty

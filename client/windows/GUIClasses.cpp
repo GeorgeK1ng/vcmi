@@ -1017,9 +1017,9 @@ CUniversityWindow::CItem::CItem(CUniversityWindow * _parent, int _ID, int X, int
 
 			if(!skillKnown && canLearn)
 			{
-				int goldAmount = GAME->interface()->cb->getResourceAmount(EGameResID::GOLD);
-				int goldNeeded = GAME->interface()->cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
-				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(parent, ID, goldAmount >= goldNeeded);
+				TResources skillCost = parent->market->getSkillCost(ID);
+				bool canAfford = GAME->interface()->cb->getResourceAmount().canAfford(skillCost);
+				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(parent, ID, canAfford);
 			}
 		});
 	update();
@@ -1106,7 +1106,17 @@ void CUniversityWindow::updateSecondarySkills()
 
 void CUniversityWindow::makeDeal(SecondarySkill skill)
 {
-	GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::RESOURCE_SKILL, GameResID(GameResID::GOLD), skill, 1, hero);
+	std::vector<TradeItemSell> resources;
+	std::vector<ui32> amounts;
+	TResources skillCost = market->getSkillCost(skill);
+
+	for(auto it = TResources::nziterator(skillCost); it.valid(); ++it)
+	{
+		resources.push_back(it->resType);
+		amounts.push_back(it->resVal);
+	}
+
+	GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::RESOURCE_SKILL, resources, {skill}, amounts, hero);
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
@@ -1115,12 +1125,21 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 {
 	OBJECT_CONSTRUCTION;
 
-	int goldNeeded = GAME->interface()->cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	TResources skillCost = owner->market->getSkillCost(SKILL);
+	const int goldNeeded = skillCost[EGameResID::GOLD];
+	std::vector<std::string> costEntries;
+	for(auto it = TResources::nziterator(skillCost); it.valid(); ++it)
+		costEntries.push_back(std::to_string(it->resVal) + " " + it->resType.toResource()->getNameTranslated());
+
+	const std::string costSummary = boost::algorithm::join(costEntries, ", ");
+
 	std::string text = LIBRARY->generaltexth->allTexts[608];
 	boost::replace_first(text, "%s", LIBRARY->generaltexth->levels[0]);
 	boost::replace_first(text, "%s", SKILL.toEntity(LIBRARY)->getNameTranslated());
 
 	boost::replace_first(text, "%d", std::to_string(goldNeeded));
+	if(!costSummary.empty())
+		text += "\n" + costSummary;
 
 	clerkSpeech = std::make_shared<CTextBox>(text, Rect(24, 129, 413, 70), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
@@ -1129,7 +1148,7 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 	level = std::make_shared<CLabel>(230, 107, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->levels[1]);
 
 	costIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("RESOURCE"), GameResID(EGameResID::GOLD), 0, 210, 210);
-	cost = std::make_shared<CLabel>(230, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, "2000");
+	cost = std::make_shared<CLabel>(230, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(goldNeeded));
 
 	std::string hoverText = LIBRARY->generaltexth->allTexts[609];
 	boost::replace_first(hoverText, "%s", LIBRARY->generaltexth->levels[0]+ " " + SKILL.toEntity(LIBRARY)->getNameTranslated());
@@ -1138,6 +1157,8 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 	boost::replace_first(text, "%s", LIBRARY->generaltexth->levels[0]);
 	boost::replace_first(text, "%s", SKILL.toEntity(LIBRARY)->getNameTranslated());
 	boost::replace_first(text, "%d", std::to_string(goldNeeded));
+	if(!costSummary.empty())
+		text += "\n" + costSummary;
 
 	confirm = std::make_shared<CButton>(Point(148, 299), AnimationPath::builtin("IBY6432.DEF"), CButton::tooltip(hoverText, text), [this, SKILL](){makeDeal(SKILL);}, EShortcut::GLOBAL_ACCEPT);
 	confirm->block(!available);

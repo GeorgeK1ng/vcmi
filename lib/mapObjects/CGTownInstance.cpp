@@ -390,6 +390,8 @@ void CGTownInstance::initializeConfigurableBuildings(IGameRandomizer & gameRando
 {
 	JsonRandom randomizer(cb, gameRandomizer);
 	JsonRandom::Variables emptyVariables;
+	marketOffers.clear();
+	marketCosts.clear();
 
 	for(const auto & kvp : getTown()->buildings)
 	{
@@ -404,6 +406,10 @@ void CGTownInstance::initializeConfigurableBuildings(IGameRandomizer & gameRando
 				for(const auto & skill : randomizer.loadSecondaries(marketOffer, emptyVariables))
 					generatedOffer.push_back(skill.first);
 			}
+
+			const JsonNode & marketCost = kvp.second->marketCostConfig;
+			if(!marketCost.isNull())
+				marketCosts[kvp.first] = randomizer.loadResources(marketCost, emptyVariables);
 		}
 
 		if(kvp.second->rewardableObjectInfo.getParameters().isNull())
@@ -708,6 +714,25 @@ std::vector<TradeItemBuy> CGTownInstance::availableItemsIds(EMarketMode mode) co
 	}
 	else
 		return IMarket::availableItemsIds(mode);
+}
+
+TResources CGTownInstance::getSkillCost(SecondarySkill skill) const
+{
+	(void)skill;
+	for (const auto & buildingID : builtBuildings)
+	{
+		const auto * buildingPtr = getTown()->buildings.at(buildingID).get();
+		if(!vstd::contains(buildingPtr->marketModes, EMarketMode::RESOURCE_SKILL))
+			continue;
+
+		if(vstd::contains(marketCosts, buildingID))
+			return marketCosts.at(buildingID);
+		if(buildingPtr->marketCost.nonZero())
+			return buildingPtr->marketCost;
+		break;
+	}
+
+	return IMarket::getSkillCost(skill);
 }
 
 ObjectInstanceID CGTownInstance::getObjInstanceID() const
