@@ -33,6 +33,7 @@
 #include "../entities/building/CBuilding.h"
 #include "../entities/faction/CTownHandler.h"
 #include "../entities/ResourceTypeHandler.h"
+#include "../json/JsonRandom.h"
 #include "../mapObjectConstructors/AObjectTypeHandler.h"
 #include "../mapObjectConstructors/CObjectClassesHandler.h"
 #include "../mapObjects/CGHeroInstance.h"
@@ -387,8 +388,24 @@ bool CGTownInstance::townEnvisagesBuilding(BuildingSubID::EBuildingSubID subId) 
 
 void CGTownInstance::initializeConfigurableBuildings(IGameRandomizer & gameRandomizer)
 {
+	JsonRandom randomizer(cb, gameRandomizer);
+	JsonRandom::Variables emptyVariables;
+
 	for(const auto & kvp : getTown()->buildings)
 	{
+		if(vstd::contains(kvp.second->marketModes, EMarketMode::RESOURCE_SKILL))
+		{
+			const JsonNode & marketOffer = kvp.second->marketOfferConfig;
+			if(!marketOffer.isNull())
+			{
+				auto & generatedOffer = marketOffers[kvp.first];
+				generatedOffer.clear();
+
+				for(const auto & skill : randomizer.loadSecondaries(marketOffer, emptyVariables))
+					generatedOffer.push_back(skill.first);
+			}
+		}
+
 		if(kvp.second->rewardableObjectInfo.getParameters().isNull())
 			continue;
 
@@ -679,7 +696,11 @@ std::vector<TradeItemBuy> CGTownInstance::availableItemsIds(EMarketMode mode) co
 		{
 			const auto * buildingPtr = getTown()->buildings.at(buildingID).get();
 			if (vstd::contains(buildingPtr->marketModes, mode))
+			{
+				if(vstd::contains(marketOffers, buildingID))
+					return marketOffers.at(buildingID);
 				return buildingPtr->marketOffer;
+			}
 		}
 
 		logMod->warn("Town has resource-skill trade but has no skills to offer!");

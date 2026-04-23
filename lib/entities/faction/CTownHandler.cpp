@@ -393,14 +393,18 @@ void CTownHandler::loadBuilding(CTown * town, const std::string & stringID, cons
 
 			if (mode == EMarketMode::RESOURCE_SKILL)
 			{
+				ret->marketOfferConfig = source["marketOffer"];
 				const auto & items = source["marketOffer"].Vector();
 				ret->marketOffer.resize(items.size());
 				for (int i = 0; i < items.size(); ++i)
 				{
-					LIBRARY->identifiers()->requestIdentifier("secondarySkill", items[i], [ret, i](si32 identifier)
+					if(items[i].isString())
 					{
-						ret->marketOffer[i] = SecondarySkill(identifier);
-					});
+						LIBRARY->identifiers()->requestIdentifier("secondarySkill", items[i], [ret, i](si32 identifier)
+						{
+							ret->marketOffer[i] = SecondarySkill(identifier);
+						});
+					}
 				}
 			}
 		}

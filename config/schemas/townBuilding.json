@@ -118,9 +118,9 @@
 		"marketOffer" : {
 			"type" : "array",
 			"items" : {
-				"type" : "string"
+				"type" : [ "string", "object" ]
 			},
-			"description" : "List of predefined items available on market from this building"
+			"description" : "List of predefined or randomized items available on market from this building"
 		}
 	}
 }

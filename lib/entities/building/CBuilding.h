@@ -15,6 +15,7 @@
 #include "../../LogicalExpression.h"
 #include "../../ResourceSet.h"
 #include "../../bonuses/BonusList.h"
+#include "../../json/JsonNode.h"
 #include "../../networkPacks/TradeItem.h"
 #include "../../rewardable/Info.h"
 
@@ -41,6 +42,7 @@ public:
 	TownFortifications fortifications;
 	std::set<EMarketMode> marketModes;
 	std::vector<TradeItemBuy> marketOffer;
+	JsonNode marketOfferConfig;
 
 	BuildingID bid; //structure ID
 	BuildingID upgrade; /// indicates that building "upgrade" can be improved by this, -1 = empty

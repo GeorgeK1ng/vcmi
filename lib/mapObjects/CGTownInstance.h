@@ -50,6 +50,7 @@ class DLL_LINKAGE CGTownInstance : public CGDwelling, public IShipyard, public I
 
 	std::map<BuildingID, TownRewardableBuildingInstance*> convertOldBuildings(std::vector<TownRewardableBuildingInstance*> oldVector);
 	std::set<BuildingID> builtBuildings;
+	std::map<BuildingID, std::vector<TradeItemBuy>> marketOffers;
 
 	ObjectInstanceID garrisonHero;
 	ObjectInstanceID visitingHero;
@@ -102,6 +103,7 @@ public:
 		h & alignmentToPlayer;
 		h & forbiddenBuildings;
 		h & builtBuildings;
+		h & marketOffers;
 		h & bonusValue;
 		h & possibleSpells;
 		h & obligatorySpells;
