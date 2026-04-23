@@ -390,6 +390,7 @@ class CUniversityWindow final : public CStatusbarWindow, public IMarketHolder
 
 public:
 	CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed);
+	const IMarket * getMarket() const { return market; }
 
 	void makeDeal(SecondarySkill skill);
 	void close() override;

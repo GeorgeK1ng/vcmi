@@ -1138,7 +1138,7 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 {
 	OBJECT_CONSTRUCTION;
 
-	TResources skillCost = owner->market->getSkillCost(SKILL);
+	TResources skillCost = owner->getMarket()->getSkillCost(SKILL);
 	const int goldNeeded = skillCost[EGameResID::GOLD];
 	std::vector<std::string> costEntries;
 	for(auto it = TResources::nziterator(skillCost); it.valid(); ++it)
