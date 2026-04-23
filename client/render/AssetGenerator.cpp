@@ -84,6 +84,7 @@ void AssetGenerator::initialize()
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
+	addUniversityBackground("UNIVRS4", Point(465, 388));
 
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
@@ -163,6 +164,16 @@ void AssetGenerator::addRecruitmentBackground(const std::string & fileName, cons
 		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
 		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createRecruitmentDialogBackground(size, playerColor);};
+	}
+}
+
+void AssetGenerator::addUniversityBackground(const std::string & fileName, const Point & size)
+{
+	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	{
+		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
+		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createUniversityDialogBackground(size, playerColor);};
 	}
 }
 
@@ -1270,6 +1281,48 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 
 	// Central black input bar - 142x20
 	drawPlate(centered(Rect(171, 278, 142, 20)), true);
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, const PlayerColor & playerColor) const
+{
+	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
+	Canvas canvas = image->getCanvas();
+
+	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
+	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
+	const ColorRGBA slotColor = ColorRGBA(0, 0, 0, 95);
+
+	auto drawPlate = [&canvas, rectangleColor, borderColor](const Rect & rect)
+	{
+		canvas.drawColorBlended(rect, rectangleColor);
+		canvas.drawBorder(rect, borderColor);
+	};
+
+	auto drawSlot = [&canvas, slotColor, borderColor](const Rect & rect)
+	{
+		canvas.drawColorBlended(rect, slotColor);
+		canvas.drawBorder(rect, borderColor);
+	};
+
+	// Speech frame
+	drawPlate(Rect(23, 126, 419, 73));
+
+	// Skill strips + icon slots for 4-skill layout
+	const int stripYTop = 230;
+	const int stripYBottom = 292;
+	const int slotY = 251;
+	const int firstX = 31;
+	const int stepX = 104;
+
+	for(int i = 0; i < 4; ++i)
+	{
+		const int x = firstX + i * stepX;
+		drawPlate(Rect(x, stripYTop, 97, 19));
+		drawPlate(Rect(x, stripYBottom, 97, 19));
+		drawSlot(Rect(x + 18, slotY, 45, 45));
+	}
 
 	return image;
 }

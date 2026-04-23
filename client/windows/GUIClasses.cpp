@@ -91,6 +91,19 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
+static ImagePath getUniversityBackground(const IMarket * market)
+{
+	const auto skillCount = market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size();
+	if(skillCount != 4)
+		return ImagePath::builtin("UNIVERS1");
+
+	std::string fileName = "UNIVRS4";
+	if(auto town = dynamic_cast<const CGTownInstance *>(market); town && town->tempOwner.isValidPlayer())
+		fileName += "-" + town->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1049,7 +1062,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS1")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground(_market)),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
