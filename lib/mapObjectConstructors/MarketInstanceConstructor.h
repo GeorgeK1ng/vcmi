@@ -22,6 +22,7 @@ class MarketInstanceConstructor : public CDefaultObjectTypeHandler<CGMarket>
 
 	std::set<EMarketMode> marketModes;
 	JsonNode predefinedOffer;
+	JsonNode predefinedCost;
 	int marketEfficiency;
 
 	void initTypeData(const JsonNode & config) override;

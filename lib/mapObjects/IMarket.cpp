@@ -141,7 +141,7 @@ int IMarket::availableUnits(const EMarketMode mode, const int marketItemSerial) 
 }
 
 IMarket::IMarket(IGameInfoCallback *cb)
-	:altarArtifactsStorage(std::make_unique<CArtifactSetAltar>(cb))
+	: altarArtifactsStorage(std::make_unique<CArtifactSetAltar>(cb))
 {
 }
 
@@ -167,6 +167,12 @@ std::vector<TradeItemBuy> IMarket::availableItemsIds(const EMarketMode mode) con
 			ret.push_back(res);
 	}
 	return ret;
+}
+
+TResources IMarket::getSkillCost(SecondarySkill skill) const
+{
+	(void)skill;
+	return TResources();
 }
 
 VCMI_LIB_NAMESPACE_END

@@ -33,6 +33,7 @@
 #include "../entities/building/CBuilding.h"
 #include "../entities/faction/CTownHandler.h"
 #include "../entities/ResourceTypeHandler.h"
+#include "../json/JsonRandom.h"
 #include "../mapObjectConstructors/AObjectTypeHandler.h"
 #include "../mapObjectConstructors/CObjectClassesHandler.h"
 #include "../mapObjects/CGHeroInstance.h"
@@ -387,8 +388,30 @@ bool CGTownInstance::townEnvisagesBuilding(BuildingSubID::EBuildingSubID subId) 
 
 void CGTownInstance::initializeConfigurableBuildings(IGameRandomizer & gameRandomizer)
 {
+	JsonRandom randomizer(cb, gameRandomizer);
+	JsonRandom::Variables emptyVariables;
+	marketOffers.clear();
+	marketCosts.clear();
+
 	for(const auto & kvp : getTown()->buildings)
 	{
+		if(vstd::contains(kvp.second->marketModes, EMarketMode::RESOURCE_SKILL))
+		{
+			const JsonNode & marketOffer = kvp.second->marketOfferConfig;
+			if(!marketOffer.isNull())
+			{
+				auto & generatedOffer = marketOffers[kvp.first];
+				generatedOffer.clear();
+
+				for(const auto & skill : randomizer.loadSecondaries(marketOffer, emptyVariables))
+					generatedOffer.push_back(skill.first);
+			}
+
+			const JsonNode & marketCost = kvp.second->marketCostConfig;
+			if(!marketCost.isNull())
+				marketCosts[kvp.first] = randomizer.loadResources(marketCost, emptyVariables);
+		}
+
 		if(kvp.second->rewardableObjectInfo.getParameters().isNull())
 			continue;
 
@@ -679,7 +702,11 @@ std::vector<TradeItemBuy> CGTownInstance::availableItemsIds(EMarketMode mode) co
 		{
 			const auto * buildingPtr = getTown()->buildings.at(buildingID).get();
 			if (vstd::contains(buildingPtr->marketModes, mode))
+			{
+				if(vstd::contains(marketOffers, buildingID))
+					return marketOffers.at(buildingID);
 				return buildingPtr->marketOffer;
+			}
 		}
 
 		logMod->warn("Town has resource-skill trade but has no skills to offer!");
@@ -687,6 +714,26 @@ std::vector<TradeItemBuy> CGTownInstance::availableItemsIds(EMarketMode mode) co
 	}
 	else
 		return IMarket::availableItemsIds(mode);
+}
+
+TResources CGTownInstance::getSkillCost(SecondarySkill skill) const
+{
+	(void)skill;
+	for (const auto & buildingID : builtBuildings)
+	{
+		const auto * buildingPtr = getTown()->buildings.at(buildingID).get();
+		if(!vstd::contains(buildingPtr->marketModes, EMarketMode::RESOURCE_SKILL))
+			continue;
+
+		if(vstd::contains(marketCosts, buildingID))
+			return marketCosts.at(buildingID);
+		if(buildingPtr->marketCost.nonZero())
+			return buildingPtr->marketCost;
+		break;
+	}
+	TResources defaultCost;
+	defaultCost[EGameResID::GOLD] = cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	return defaultCost;
 }
 
 ObjectInstanceID CGTownInstance::getObjInstanceID() const

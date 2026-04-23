@@ -91,6 +91,28 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
+static ImagePath getUniversityBackground(const IMarket * market)
+{
+	const auto skillCount = market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size();
+	if(skillCount != 4)
+		return ImagePath::builtin("UNIVERS1");
+
+	std::string fileName = "UNIVRS4";
+	if(auto town = dynamic_cast<const CGTownInstance *>(market); town && town->tempOwner.isValidPlayer())
+		fileName += "-" + town->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
+}
+
+static ImagePath getUniversityConfirmBackground(const IMarket * market)
+{
+	std::string fileName = "UNIVRS2";
+	if(auto town = dynamic_cast<const CGTownInstance *>(market); town && town->tempOwner.isValidPlayer())
+		fileName += "-" + town->tempOwner.toString();
+
+	return ImagePath::builtin(fileName);
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1017,9 +1039,9 @@ CUniversityWindow::CItem::CItem(CUniversityWindow * _parent, int _ID, int X, int
 
 			if(!skillKnown && canLearn)
 			{
-				int goldAmount = GAME->interface()->cb->getResourceAmount(EGameResID::GOLD);
-				int goldNeeded = GAME->interface()->cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
-				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(parent, ID, goldAmount >= goldNeeded);
+				TResources skillCost = parent->market->getSkillCost(ID);
+				bool canAfford = GAME->interface()->cb->getResourceAmount().canAfford(skillCost);
+				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(parent, ID, canAfford);
 			}
 		});
 	update();
@@ -1049,7 +1071,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS1")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground(_market)),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
@@ -1078,13 +1100,13 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 
 	titlePic->center(Point(232 + pos.x, 76 + pos.y));
 
-	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(24, 129, 413, 70), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(27, 128, 412, 72), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	title = std::make_shared<CLabel>(231, 26, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, titleStr);
 
 	std::vector<TradeItemBuy> goods = market->availableItemsIds(EMarketMode::RESOURCE_SKILL);
 
 	for(int i=0; i<goods.size(); i++)//prepare clickable items
-		items.push_back(std::make_shared<CItem>(this, goods[i].as<SecondarySkill>().getNum(), 54+i*104, 234));
+		items.push_back(std::make_shared<CItem>(this, goods[i].as<SecondarySkill>().getNum(), 55+i*104, 234));
 
 	cancel = std::make_shared<CButton>(Point(200, 313), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [&](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
@@ -1106,21 +1128,40 @@ void CUniversityWindow::updateSecondarySkills()
 
 void CUniversityWindow::makeDeal(SecondarySkill skill)
 {
-	GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::RESOURCE_SKILL, GameResID(GameResID::GOLD), skill, 1, hero);
+	std::vector<TradeItemSell> resources;
+	std::vector<ui32> amounts;
+	TResources skillCost = market->getSkillCost(skill);
+
+	for(auto it = TResources::nziterator(skillCost); it.valid(); ++it)
+	{
+		resources.push_back(it->resType);
+		amounts.push_back(it->resVal);
+	}
+
+	GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::RESOURCE_SKILL, resources, {skill}, amounts, hero);
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("UNIVERS2.PCX")),
+	: CWindowObject(PLAYER_COLORED, getUniversityConfirmBackground(owner_->getMarket())),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;
 
-	int goldNeeded = GAME->interface()->cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	TResources skillCost = owner->getMarket()->getSkillCost(SKILL);
+	const int goldNeeded = skillCost[EGameResID::GOLD];
+	std::vector<std::string> costEntries;
+	for(auto it = TResources::nziterator(skillCost); it.valid(); ++it)
+		costEntries.push_back(std::to_string(it->resVal) + " " + it->resType.toResource()->getNameTranslated());
+
+	const std::string costSummary = boost::algorithm::join(costEntries, ", ");
+
 	std::string text = LIBRARY->generaltexth->allTexts[608];
 	boost::replace_first(text, "%s", LIBRARY->generaltexth->levels[0]);
 	boost::replace_first(text, "%s", SKILL.toEntity(LIBRARY)->getNameTranslated());
 
 	boost::replace_first(text, "%d", std::to_string(goldNeeded));
+	if(!costSummary.empty())
+		text += "\n" + costSummary;
 
 	clerkSpeech = std::make_shared<CTextBox>(text, Rect(24, 129, 413, 70), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
@@ -1129,7 +1170,7 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 	level = std::make_shared<CLabel>(230, 107, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->levels[1]);
 
 	costIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("RESOURCE"), GameResID(EGameResID::GOLD), 0, 210, 210);
-	cost = std::make_shared<CLabel>(230, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, "2000");
+	cost = std::make_shared<CLabel>(230, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(goldNeeded));
 
 	std::string hoverText = LIBRARY->generaltexth->allTexts[609];
 	boost::replace_first(hoverText, "%s", LIBRARY->generaltexth->levels[0]+ " " + SKILL.toEntity(LIBRARY)->getNameTranslated());
@@ -1138,6 +1179,8 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 	boost::replace_first(text, "%s", LIBRARY->generaltexth->levels[0]);
 	boost::replace_first(text, "%s", SKILL.toEntity(LIBRARY)->getNameTranslated());
 	boost::replace_first(text, "%d", std::to_string(goldNeeded));
+	if(!costSummary.empty())
+		text += "\n" + costSummary;
 
 	confirm = std::make_shared<CButton>(Point(148, 299), AnimationPath::builtin("IBY6432.DEF"), CButton::tooltip(hoverText, text), [this, SKILL](){makeDeal(SKILL);}, EShortcut::GLOBAL_ACCEPT);
 	confirm->block(!available);

@@ -19,6 +19,7 @@
 #include "../../IGameSettings.h"
 #include "../../TerrainHandler.h"
 #include "../../GameLibrary.h"
+#include "../../entities/ResourceTypeHandler.h"
 
 #include "../../bonuses/Propagators.h"
 #include "../../constants/StringConstants.h"
@@ -393,14 +394,29 @@ void CTownHandler::loadBuilding(CTown * town, const std::string & stringID, cons
 
 			if (mode == EMarketMode::RESOURCE_SKILL)
 			{
+				ret->marketOfferConfig = source["marketOffer"];
+				ret->marketCostConfig = source["marketCost"];
 				const auto & items = source["marketOffer"].Vector();
 				ret->marketOffer.resize(items.size());
 				for (int i = 0; i < items.size(); ++i)
 				{
-					LIBRARY->identifiers()->requestIdentifier("secondarySkill", items[i], [ret, i](si32 identifier)
+					if(items[i].isString())
 					{
-						ret->marketOffer[i] = SecondarySkill(identifier);
-					});
+						LIBRARY->identifiers()->requestIdentifier("secondarySkill", items[i], [ret, i](si32 identifier)
+						{
+							ret->marketOffer[i] = SecondarySkill(identifier);
+						});
+					}
+				}
+
+				if(source["marketCost"].isStruct())
+				{
+					for(const auto & resource : LIBRARY->resourceTypeHandler->getAllObjects())
+					{
+						const auto & value = source["marketCost"][resource.toResource()->getJsonKey()];
+						if(!value.isNull())
+							ret->marketCost[resource] = value.Integer();
+					}
 				}
 			}
 		}

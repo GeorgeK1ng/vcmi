@@ -12,6 +12,7 @@
 #include "../networkPacks/TradeItem.h"
 #include "../constants/Enumerations.h"
 #include "../entities/artifact/CArtifactSet.h"
+#include "../ResourceSet.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -42,6 +43,7 @@ public:
 	virtual std::set<EMarketMode> availableModes() const = 0;
 	CArtifactSet * getArtifactsStorage() const;
 	virtual bool getOffer(int id1, int id2, int &val1, int &val2, EMarketMode mode) const; //val1 - how many units of id1 player has to give to receive val2 units
+	virtual TResources getSkillCost(SecondarySkill skill) const;
 
 private:
 	std::unique_ptr<CArtifactSetAltar> altarArtifactsStorage;

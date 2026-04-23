@@ -3185,7 +3185,7 @@ bool CGameHandler::sellArtifact(const IMarket *m, const CGHeroInstance *h, Artif
 	return true;
 }
 
-bool CGameHandler::buySecSkill(const IMarket *m, const CGHeroInstance *h, SecondarySkill skill)
+bool CGameHandler::buySecSkill(const IMarket *m, const CGHeroInstance *h, SecondarySkill skill, const TResources & payment)
 {
 	if (!h)
 		COMPLAIN_RET("You need hero to buy a skill!");
@@ -3202,12 +3202,17 @@ bool CGameHandler::buySecSkill(const IMarket *m, const CGHeroInstance *h, Second
 	if (!vstd::contains(m->availableItemsIds(EMarketMode::RESOURCE_SKILL), skill))
 		COMPLAIN_RET("That skill is unavailable!");
 
-	int goldCost = gameInfo().getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	TResources expectedCost = m->getSkillCost(skill);
+	TResources actualCost = payment.nonZero() ? payment : expectedCost;
 
-	if (gameInfo().getResource(h->tempOwner, EGameResID::GOLD) < goldCost)
+	if(actualCost != expectedCost)
+		COMPLAIN_RET("Skill cost does not match market configuration");
+
+	if (!gameInfo().getPlayerState(h->tempOwner)->resources.canAfford(actualCost))
 		COMPLAIN_RET("You can't afford to buy this skill");
 
-	giveResource(h->tempOwner, EGameResID::GOLD, -goldCost);
+	for(auto it = TResources::nziterator(actualCost); it.valid(); ++it)
+		giveResource(h->tempOwner, it->resType, -it->resVal);
 
 	changeSecSkill(h, skill, 1, ChangeValueMode::ABSOLUTE);
 	return true;
