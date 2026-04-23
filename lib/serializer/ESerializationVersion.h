@@ -62,9 +62,10 @@ enum class ESerializationVersion : int32_t
 	DISABLE_TACTICS, // disable tactics
 	REWARDABLE_EXTENSIONS_2, // movement points limiter for rewardables
 	BONUS_TRIGGER, // bonus that allows triggered effects in combat
+	TOWN_MARKET_OFFERS, // generated market offers for town buildings
 
 	RELEASE_170 = HOTA_MAP_STACK_COUNT,
-	CURRENT = BONUS_TRIGGER,
+	CURRENT = TOWN_MARKET_OFFERS,
 };
 
 static_assert(ESerializationVersion::MINIMAL <= ESerializationVersion::CURRENT, "Invalid serialization version definition!");

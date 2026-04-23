@@ -103,7 +103,10 @@ public:
 		h & alignmentToPlayer;
 		h & forbiddenBuildings;
 		h & builtBuildings;
-		h & marketOffers;
+		if(h.hasFeature(Handler::Version::TOWN_MARKET_OFFERS))
+			h & marketOffers;
+		else if(!h.saving)
+			marketOffers.clear();
 		h & bonusValue;
 		h & possibleSpells;
 		h & obligatorySpells;
