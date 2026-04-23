@@ -1091,7 +1091,7 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 
 	titlePic->center(Point(232 + pos.x, 76 + pos.y));
 
-	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(27, 128, 411, 72), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(27, 128, 412, 72), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	title = std::make_shared<CLabel>(231, 26, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, titleStr);
 
 	std::vector<TradeItemBuy> goods = market->availableItemsIds(EMarketMode::RESOURCE_SKILL);
