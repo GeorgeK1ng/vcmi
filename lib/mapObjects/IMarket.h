@@ -18,9 +18,6 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 class DLL_LINKAGE IMarket : public virtual Serializeable, boost::noncopyable
 {
-protected:
-	IGameInfoCallback *cb;
-
 public:
 	explicit IMarket(IGameInfoCallback *cb);
 	~IMarket();

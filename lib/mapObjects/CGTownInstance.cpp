@@ -731,8 +731,9 @@ TResources CGTownInstance::getSkillCost(SecondarySkill skill) const
 			return buildingPtr->marketCost;
 		break;
 	}
-
-	return IMarket::getSkillCost(skill);
+	TResources defaultCost;
+	defaultCost[EGameResID::GOLD] = cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	return defaultCost;
 }
 
 ObjectInstanceID CGTownInstance::getObjInstanceID() const

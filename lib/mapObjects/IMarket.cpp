@@ -15,7 +15,6 @@
 #include "CGObjectInstance.h"
 
 #include "../GameLibrary.h"
-#include "../IGameSettings.h"
 #include "../entities/artifact/CArtHandler.h"
 #include "../entities/ResourceTypeHandler.h"
 
@@ -142,8 +141,7 @@ int IMarket::availableUnits(const EMarketMode mode, const int marketItemSerial) 
 }
 
 IMarket::IMarket(IGameInfoCallback *cb)
-	: cb(cb)
-	, altarArtifactsStorage(std::make_unique<CArtifactSetAltar>(cb))
+	: altarArtifactsStorage(std::make_unique<CArtifactSetAltar>(cb))
 {
 }
 
@@ -174,9 +172,7 @@ std::vector<TradeItemBuy> IMarket::availableItemsIds(const EMarketMode mode) con
 TResources IMarket::getSkillCost(SecondarySkill skill) const
 {
 	(void)skill;
-	TResources defaultCost;
-	defaultCost[EGameResID::GOLD] = cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
-	return defaultCost;
+	return TResources();
 }
 
 VCMI_LIB_NAMESPACE_END

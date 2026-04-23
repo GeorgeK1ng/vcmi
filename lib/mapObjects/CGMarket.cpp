@@ -141,7 +141,9 @@ TResources CGUniversity::getSkillCost(SecondarySkill skill) const
 	(void)skill;
 	if(skillCost.nonZero())
 		return skillCost;
-	return IMarket::getSkillCost(skill);
+	TResources defaultCost;
+	defaultCost[EGameResID::GOLD] = cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
+	return defaultCost;
 }
 
 void CGUniversity::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const
