@@ -94,11 +94,13 @@ class CHeroTooltip : public CArmyTooltip
 	std::vector<std::shared_ptr<CLabel>> labels;
 	std::shared_ptr<CAnimImage> morale;
 	std::shared_ptr<CAnimImage> luck;
+	std::shared_ptr<CLabel> threatLevel;
 
-	void init(const InfoAboutHero & hero);
+	void init(const InfoAboutHero & hero, const std::string & threatLevelText);
 public:
 	CHeroTooltip(Point pos, const InfoAboutHero & hero);
 	CHeroTooltip(Point pos, const CGHeroInstance * hero);
+	CHeroTooltip(Point pos, const InfoAboutHero & hero, const std::string & threatLevelText);
 };
 
 /// Class for HD mod-like interactable infobox tooltip. Does not have any background!

@@ -350,7 +350,7 @@ CArmyTooltip::CArmyTooltip(Point pos, const CArmedInstance * army):
 	init(InfoAboutArmy(army, true));
 }
 
-void CHeroTooltip::init(const InfoAboutHero & hero)
+void CHeroTooltip::init(const InfoAboutHero & hero, const std::string & threatLevelText)
 {
 	OBJECT_CONSTRUCTION;
 	portrait = std::make_shared<CAnimImage>(AnimationPath::builtin("PortraitsLarge"), hero.getIconIndex(), 0, 3, 2);
@@ -368,18 +368,27 @@ void CHeroTooltip::init(const InfoAboutHero & hero)
 		morale = std::make_shared<CAnimImage>(AnimationPath::builtin("IMRL22"), std::clamp(hero.details->morale + 3, 0 , 6), 0, 5, 74);
 		luck = std::make_shared<CAnimImage>(AnimationPath::builtin("ILCK22"), std::clamp(hero.details->luck + 3, 0, 6), 0, 5, 91);
 	}
+
+	if(!threatLevelText.empty())
+		threatLevel = std::make_shared<CLabel>(83, 176, FONT_TINY, ETextAlignment::CENTER, Colors::WHITE, threatLevelText, 166);
 }
 
 CHeroTooltip::CHeroTooltip(Point pos, const InfoAboutHero &hero):
 	CArmyTooltip(pos, hero)
 {
-	init(hero);
+	init(hero, "");
 }
 
 CHeroTooltip::CHeroTooltip(Point pos, const CGHeroInstance * hero):
 	CArmyTooltip(pos, InfoAboutHero(hero, InfoAboutHero::EInfoLevel::DETAILED))
 {
-	init(InfoAboutHero(hero, InfoAboutHero::EInfoLevel::DETAILED));
+	init(InfoAboutHero(hero, InfoAboutHero::EInfoLevel::DETAILED), "");
+}
+
+CHeroTooltip::CHeroTooltip(Point pos, const InfoAboutHero & hero, const std::string & threatLevelText):
+	CArmyTooltip(pos, hero)
+{
+	init(hero, threatLevelText);
 }
 
 CInteractableHeroTooltip::CInteractableHeroTooltip(Point pos, const CGHeroInstance * hero)

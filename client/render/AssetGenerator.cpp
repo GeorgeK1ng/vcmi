@@ -39,6 +39,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
+	imageFiles[ImagePath::builtin("HEROQVBK_EXTENDED.png")] = [this](){ return createHeroTooltipExtended();};
 
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowDefault.png")]  = [this](){ return createCombatUnitNumberWindow(0.6f, 0.2f, 1.0f);};
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowNeutral.png")]  = [this](){ return createCombatUnitNumberWindow(1.0f, 1.0f, 2.0f);};
@@ -239,6 +240,43 @@ AssetGenerator::CanvasPtr AssetGenerator::createMuPopUpCustom() const
 
 	canvas.draw(img, Point(0, 0), Rect(0, 0, 454, 449));
 	canvas.draw(img, Point(0, 420), Rect(0, img->dimensions().y - 29, 454, 29));
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createHeroTooltipExtended() const
+{
+	auto heroTooltipLocator = ImageLocator(ImagePath::builtin("HEROQVBK"), EImageBlitMode::OPAQUE);
+	auto dialogBackgroundLocator = ImageLocator(ImagePath::builtin("DIBOXBCK"), EImageBlitMode::OPAQUE);
+
+	std::shared_ptr<IImage> heroTooltip = ENGINE->renderHandler().loadImage(heroTooltipLocator);
+	std::shared_ptr<IImage> dialogBackground = ENGINE->renderHandler().loadImage(dialogBackgroundLocator);
+
+	const int targetWidth = heroTooltip->dimensions().x;
+	const int baseHeight = heroTooltip->dimensions().y;
+	const int extensionHeight = 40;
+	const int targetHeight = baseHeight + extensionHeight;
+
+	auto image = ENGINE->renderHandler().createImage(Point(targetWidth, targetHeight), CanvasScalingPolicy::IGNORE);
+	Canvas canvas = image->getCanvas();
+
+	canvas.draw(heroTooltip, Point(0, 0));
+
+	for(int y = baseHeight; y < targetHeight; y += dialogBackground->dimensions().y)
+	{
+		for(int x = 0; x < targetWidth; x += dialogBackground->dimensions().x)
+		{
+			const int drawWidth = std::min(dialogBackground->dimensions().x, targetWidth - x);
+			const int drawHeight = std::min(dialogBackground->dimensions().y, targetHeight - y);
+			canvas.draw(dialogBackground, Point(x, y), Rect(0, 0, drawWidth, drawHeight));
+		}
+	}
+
+	// Keep frame continuity from original tooltip for the extra area.
+	canvas.draw(heroTooltip, Point(0, baseHeight), Rect(0, baseHeight - 1, targetWidth, 1));
+	canvas.draw(heroTooltip, Point(0, baseHeight), Rect(0, 0, 1, extensionHeight));
+	canvas.draw(heroTooltip, Point(targetWidth - 1, baseHeight), Rect(targetWidth - 1, 0, 1, extensionHeight));
+	canvas.draw(heroTooltip, Point(0, targetHeight - 1), Rect(0, baseHeight - 1, targetWidth, 1));
 
 	return image;
 }
