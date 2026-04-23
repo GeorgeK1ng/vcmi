@@ -189,6 +189,9 @@
 				"special2":       {
 					"requires" : [ "mageGuild1" ],
 					"marketModes" : ["resource-skill"],
+					"marketCost" : {
+						"gold" : 2000
+					},
 					"marketOffer" : [
 						"fireMagic",
 						"airMagic",
