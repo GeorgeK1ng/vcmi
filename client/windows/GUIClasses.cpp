@@ -102,7 +102,7 @@ static ImagePath getUniversityBackground(const IMarket * market, std::string fil
 static int getUniversitySkillColumns(const IMarket * market)
 {
 	const int skillColumns = static_cast<int>(market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size());
-	return std::clamp(skillColumns, 4, 7);
+	return std::clamp(skillColumns, 3, 7);
 }
 
 static int getUniversitySkillPositionX(int windowWidth, int skillColumns, int index)

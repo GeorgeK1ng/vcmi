@@ -84,6 +84,7 @@ void AssetGenerator::initialize()
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
+	addUniversityBackground("UNIVRS3", Point(466, 388), 3);
 	addUniversityBackground("UNIVRS4", Point(466, 388), 4);
 	addUniversityBackground("UNIVRS5", Point(570, 388), 5);
 	addUniversityBackground("UNIVRS6", Point(674, 388), 6);
