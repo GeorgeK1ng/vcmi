@@ -25,6 +25,7 @@ public:
 	void exportBitmap(const boost::filesystem::path & path) const override;
 	Rect contentRect() const override;
 	Point dimensions() const override;
+	void convertToIndexed(const SDL_Palette * palette);
 
 	//no-op methods
 
@@ -42,4 +43,3 @@ private:
 	SDL_Surface * surface;
 	CanvasScalingPolicy scalingPolicy;
 };
-

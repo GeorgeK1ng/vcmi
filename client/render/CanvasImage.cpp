@@ -70,6 +70,27 @@ Point CanvasImage::dimensions() const
 	return {surface->w, surface->h};
 }
 
+void CanvasImage::convertToIndexed(const SDL_Palette * palette)
+{
+	if(palette == nullptr)
+		return;
+
+	SDL_Surface * indexed = SDL_CreateRGBSurfaceWithFormat(0, surface->w, surface->h, 8, SDL_PIXELFORMAT_INDEX8);
+	if(indexed == nullptr || indexed->format == nullptr || indexed->format->palette == nullptr)
+	{
+		if(indexed)
+			SDL_FreeSurface(indexed);
+		return;
+	}
+
+	const int colorsToCopy = std::min(indexed->format->palette->ncolors, palette->ncolors);
+	SDL_SetPaletteColors(indexed->format->palette, palette->colors, 0, colorsToCopy);
+	CSDL_Ext::blitSurface(surface, indexed, Point(0, 0));
+
+	SDL_FreeSurface(surface);
+	surface = indexed;
+}
+
 std::shared_ptr<ISharedImage> CanvasImage::toSharedImage()
 {
 	return std::make_shared<SDLImageShared>(surface);
