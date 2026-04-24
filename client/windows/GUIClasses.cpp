@@ -1175,11 +1175,11 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 
 	name = std::make_shared<CLabel>(centerX, 37,  FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, SKILL.toEntity(LIBRARY)->getNameTranslated());
 	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL"), SKILL.getNum()*3+3);
-	icon->center(Point(pos.x + centerX, pos.y + 73));
-	level = std::make_shared<CLabel>(centerX, 107, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->levels[1]);
+	icon->center(Point(pos.x + centerX, pos.y + 71));
+	level = std::make_shared<CLabel>(centerX, 105, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->levels[1]);
 
 	costIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("RESOURCE"), GameResID(EGameResID::GOLD));
-	costIcon->center(Point(pos.x + centerX, pos.y + 226));
+	costIcon->center(Point(pos.x + centerX, pos.y + 234));
 	cost = std::make_shared<CLabel>(centerX, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(goldNeeded));
 
 	std::string hoverText = LIBRARY->generaltexth->allTexts[609];
