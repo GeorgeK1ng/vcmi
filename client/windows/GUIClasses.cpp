@@ -116,12 +116,12 @@ static ImagePath getUniversityConfirmBackground(const CGHeroInstance * hero, int
 static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
 {
 	const int skillColumns = std::clamp(static_cast<int>(skillCount), 3, 7);
-	const int horizontalMargin = 26;
 	const int smallBlockWidth = 102;
+	const int smallBlockGap = 2;
 	const int iconHalfSize = 22;
-
-	const double t = skillColumns <= 1 ? 0.0 : static_cast<double>(itemIndex) / static_cast<double>(skillColumns - 1);
-	const int stripX = static_cast<int>(std::lround(horizontalMargin + t * (windowWidth - 2 * horizontalMargin - smallBlockWidth)));
+	const int stripSetWidth = skillColumns * smallBlockWidth + (skillColumns - 1) * smallBlockGap;
+	const int stripStartX = (windowWidth - stripSetWidth) / 2;
+	const int stripX = stripStartX + static_cast<int>(itemIndex) * (smallBlockWidth + smallBlockGap);
 
 	return stripX + (smallBlockWidth / 2) - iconHalfSize;
 }

@@ -1327,25 +1327,25 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 	};
 
 	// Main text block - fixed size, centered horizontally for all variants
-	const int horizontalMargin = 26;
 	const int largeBlockY = 127;
 	const int largeBlockHeight = 74;
 	const int largeBlockWidth = 414;
 	const int largeBlockX = (size.x - largeBlockWidth) / 2;
 	drawPlate(Rect(largeBlockX, largeBlockY, largeBlockWidth, largeBlockHeight));
 
-	// Skill rows (4/5/6 choices) distributed evenly between same left/right margins
+	// Skill rows. Keep 2px gap between columns and center the whole strip set.
 	const int smallBlockWidth = 102;
 	const int smallBlockHeight = 20;
+	const int smallBlockGap = 2;
 	const int firstRowY = largeBlockY + largeBlockHeight + 10; // 10px below large block
 	const int secondRowY = firstRowY + smallBlockHeight + 50; // 50px below first row (edge to edge)
 
 	std::vector<int> stripX(skillColumns);
+	const int stripSetWidth = skillColumns * smallBlockWidth + (skillColumns - 1) * smallBlockGap;
+	const int stripStartX = (size.x - stripSetWidth) / 2;
 	for(int i = 0; i < skillColumns; ++i)
 	{
-		double t = skillColumns == 1 ? 0.0 : static_cast<double>(i) / static_cast<double>(skillColumns - 1);
-		double x = horizontalMargin + t * (size.x - 2 * horizontalMargin - smallBlockWidth);
-		stripX[i] = static_cast<int>(std::lround(x));
+		stripX[i] = stripStartX + i * (smallBlockWidth + smallBlockGap);
 
 		drawPlate(Rect(stripX[i], firstRowY, smallBlockWidth, smallBlockHeight));
 		drawPlate(Rect(stripX[i], secondRowY, smallBlockWidth, smallBlockHeight));
