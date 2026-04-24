@@ -1304,8 +1304,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, const PlayerColor & playerColor, int skillColumns) const
 {
 	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
-	if(auto reference = ENGINE->renderHandler().loadScaledImage(ImageLocator(ImagePath::builtin("UNIVERS1"), EImageBlitMode::OPAQUE)))
-		image->convertToIndexed(reference->getPalette());
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -1358,14 +1356,15 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		drawSlot(Rect(iconX, iconY, iconSize, iconSize));
 	}
 
+	if(auto reference = ENGINE->renderHandler().loadScaledImage(ImageLocator(ImagePath::builtin("UNIVERS1"), EImageBlitMode::OPAQUE)))
+		image->convertToIndexed(reference->getPalette());
+
 	return image;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, const PlayerColor & playerColor, int costElements) const
 {
 	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
-	if(auto reference = ENGINE->renderHandler().loadScaledImage(ImageLocator(ImagePath::builtin("UNIVERS1"), EImageBlitMode::OPAQUE)))
-		image->convertToIndexed(reference->getPalette());
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -1399,6 +1398,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackgroun
 		drawPlate(Rect(firstX, costPlateY, costPlateWidth, costPlateHeight));
 		drawPlate(Rect(firstX + costPlateWidth + costPlateGap, costPlateY, costPlateWidth, costPlateHeight));
 	}
+
+	if(auto reference = ENGINE->renderHandler().loadScaledImage(ImageLocator(ImagePath::builtin("UNIVERS1"), EImageBlitMode::OPAQUE)))
+		image->convertToIndexed(reference->getPalette());
 
 	return image;
 }
