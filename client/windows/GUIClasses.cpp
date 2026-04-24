@@ -113,6 +113,19 @@ static ImagePath getUniversityConfirmBackground(const CGHeroInstance * hero, int
 	return ImagePath::builtin(fileName);
 }
 
+static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
+{
+	const int skillColumns = std::clamp(static_cast<int>(skillCount), 3, 7);
+	const int horizontalMargin = 26;
+	const int smallBlockWidth = 102;
+	const int iconHalfSize = 22;
+
+	const double t = skillColumns <= 1 ? 0.0 : static_cast<double>(itemIndex) / static_cast<double>(skillColumns - 1);
+	const int stripX = static_cast<int>(std::lround(horizontalMargin + t * (windowWidth - 2 * horizontalMargin - smallBlockWidth)));
+
+	return stripX + (smallBlockWidth / 2) - iconHalfSize;
+}
+
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1112,7 +1125,7 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 	std::vector<TradeItemBuy> goods = market->availableItemsIds(EMarketMode::RESOURCE_SKILL);
 
 	for(int i=0; i<goods.size(); i++)//prepare clickable items
-		items.push_back(std::make_shared<CItem>(this, goods[i].as<SecondarySkill>().getNum(), 55+i*104, 234));
+		items.push_back(std::make_shared<CItem>(this, goods[i].as<SecondarySkill>().getNum(), getUniversityItemPosX(i, goods.size(), pos.w), 234));
 
 	cancel = std::make_shared<CButton>(Point(centerX - 32, 313), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [&](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
@@ -1160,11 +1173,11 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 
 	name = std::make_shared<CLabel>(centerX, 37,  FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, SKILL.toEntity(LIBRARY)->getNameTranslated());
 	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL"), SKILL.getNum()*3+3);
-	icon->center(Point(centerX, 73));
+	icon->center(Point(pos.x + centerX, pos.y + 73));
 	level = std::make_shared<CLabel>(centerX, 107, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->levels[1]);
 
 	costIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("RESOURCE"), GameResID(EGameResID::GOLD));
-	costIcon->center(Point(centerX, 226));
+	costIcon->center(Point(pos.x + centerX, pos.y + 226));
 	cost = std::make_shared<CLabel>(centerX, 267, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(goldNeeded));
 
 	std::string hoverText = LIBRARY->generaltexth->allTexts[609];
