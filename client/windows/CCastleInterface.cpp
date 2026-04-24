@@ -75,7 +75,7 @@ static bool useAvailableAmountAsCreatureLabel()
 	return settings["gameTweaks"]["availableCreaturesAsDwellingLabel"].Bool();
 }
 
-class CSpellResearchDialog : public CWindowObject
+class CSpellResearchDialog : public CStatusbarWindow
 {
 public:
 	CSpellResearchDialog(
