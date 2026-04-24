@@ -93,7 +93,7 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 
 static ImagePath getUniversityBackground(const CGHeroInstance * hero, size_t skillCount)
 {
-	const int backgroundSkills = std::clamp(static_cast<int>(skillCount), 3, 7);
+	const int backgroundSkills = std::clamp(static_cast<int>(skillCount), 1, 7);
 	std::string fileName = "UNIVRS" + std::to_string(backgroundSkills);
 
 	if(hero && hero->tempOwner.isValidPlayer())
@@ -115,7 +115,7 @@ static ImagePath getUniversityConfirmBackground(const CGHeroInstance * hero, int
 
 static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
 {
-	const int skillColumns = std::clamp(static_cast<int>(skillCount), 3, 7);
+	const int skillColumns = std::clamp(static_cast<int>(skillCount), 1, 7);
 	const int smallBlockWidth = 102;
 	const int smallBlockGap = 2;
 	const int iconHalfSize = 22;
