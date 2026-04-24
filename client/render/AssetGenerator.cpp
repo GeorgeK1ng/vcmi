@@ -19,6 +19,7 @@
 #include "../render/IRenderHandler.h"
 #include "../render/CAnimation.h"
 #include "../render/Colors.h"
+#include "../renderSDL/SDLImage.h"
 
 #include "../lib/filesystem/Filesystem.h"
 #include "../lib/GameSettings.h"
