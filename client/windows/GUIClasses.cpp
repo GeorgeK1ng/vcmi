@@ -1118,8 +1118,9 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 	const int speechFrameHeight = 74;
 	const int speechFrameX = (pos.w - speechFrameWidth) / 2;
 	const int speechFrameY = 127;
-	const int clerkTextInset = 1; // keep text area 2px smaller than frame (1px margin on each side)
-	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(speechFrameX + clerkTextInset, speechFrameY + clerkTextInset, speechFrameWidth - 2 * clerkTextInset, speechFrameHeight - 2 * clerkTextInset), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	const int clerkTextInsetX = 2; // keep extra 1px horizontal clearance from frame
+	const int clerkTextInsetY = 1;
+	clerkSpeech = std::make_shared<CTextBox>(speechStr, Rect(speechFrameX + clerkTextInsetX, speechFrameY + clerkTextInsetY, speechFrameWidth - 2 * clerkTextInsetX, speechFrameHeight - 2 * clerkTextInsetY), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	title = std::make_shared<CLabel>(centerX, 26, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, titleStr);
 
 	std::vector<TradeItemBuy> goods = market->availableItemsIds(EMarketMode::RESOURCE_SKILL);
@@ -1168,8 +1169,9 @@ CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkil
 	const int speechFrameHeight = 74;
 	const int speechFrameX = (pos.w - speechFrameWidth) / 2;
 	const int speechFrameY = 127;
-	const int clerkTextInset = 1; // keep text area 2px smaller than frame (1px margin on each side)
-	clerkSpeech = std::make_shared<CTextBox>(text, Rect(speechFrameX + clerkTextInset, speechFrameY + clerkTextInset, speechFrameWidth - 2 * clerkTextInset, speechFrameHeight - 2 * clerkTextInset), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
+	const int clerkTextInsetX = 2; // keep extra 1px horizontal clearance from frame
+	const int clerkTextInsetY = 1;
+	clerkSpeech = std::make_shared<CTextBox>(text, Rect(speechFrameX + clerkTextInsetX, speechFrameY + clerkTextInsetY, speechFrameWidth - 2 * clerkTextInsetX, speechFrameHeight - 2 * clerkTextInsetY), 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
 	name = std::make_shared<CLabel>(centerX, 37,  FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, SKILL.toEntity(LIBRARY)->getNameTranslated());
 	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL"), SKILL.getNum()*3+3);
