@@ -102,7 +102,7 @@ static ImagePath getUniversityBackground(const IMarket * market, std::string fil
 static int getUniversitySkillColumns(const IMarket * market)
 {
 	const int skillColumns = static_cast<int>(market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size());
-	return std::clamp(skillColumns, 4, 6);
+	return std::clamp(skillColumns, 4, 7);
 }
 
 static int getUniversitySkillPositionX(int windowWidth, int skillColumns, int index)
@@ -1152,7 +1152,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, getUniversityBackground(owner_->getMarket(), "UNIVRS2")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground(owner_->getMarket(), "UNIVRSC1")),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;

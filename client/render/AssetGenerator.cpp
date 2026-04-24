@@ -87,7 +87,9 @@ void AssetGenerator::initialize()
 	addUniversityBackground("UNIVRS4", Point(466, 388), 4);
 	addUniversityBackground("UNIVRS5", Point(570, 388), 5);
 	addUniversityBackground("UNIVRS6", Point(674, 388), 6);
-	addUniversityConfirmBackground("UNIVRS2", Point(466, 388));
+	addUniversityBackground("UNIVRS7", Point(778, 388), 7);
+	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
+	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
@@ -180,13 +182,13 @@ void AssetGenerator::addUniversityBackground(const std::string & fileName, const
 	}
 }
 
-void AssetGenerator::addUniversityConfirmBackground(const std::string & fileName, const Point & size)
+void AssetGenerator::addUniversityConfirmBackground(const std::string & fileName, const Point & size, int costElements)
 {
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
 		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createUniversityConfirmDialogBackground(size, playerColor);};
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor, costElements](){ return createUniversityConfirmDialogBackground(size, playerColor, costElements);};
 	}
 }
 
@@ -1360,7 +1362,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, const PlayerColor & playerColor, int costElements) const
 {
 	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
 	Canvas canvas = image->getCanvas();
@@ -1375,12 +1377,27 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackgroun
 	};
 
 	// Text block: same geometry as UNIVRS4
-	drawPlate(Rect(26, 127, size.x - 52, 74));
+	drawPlate(Rect((size.x - 414) / 2, 127, 414, 74));
 
 	// Centered header/action plates
 	drawPlate(Rect((size.x - 105) / 2, 26, 105, 21));
 	drawPlate(Rect((size.x - 105) / 2, 95, 105, 21));
-	drawPlate(Rect((size.x - 71) / 2, 258, 71, 19));
+	const int costPlateWidth = 71;
+	const int costPlateHeight = 19;
+	const int costPlateY = 258;
+	const int costPlateGap = 10;
+
+	if(costElements <= 1)
+	{
+		drawPlate(Rect((size.x - costPlateWidth) / 2, costPlateY, costPlateWidth, costPlateHeight));
+	}
+	else
+	{
+		const int totalWidth = 2 * costPlateWidth + costPlateGap;
+		const int firstX = (size.x - totalWidth) / 2;
+		drawPlate(Rect(firstX, costPlateY, costPlateWidth, costPlateHeight));
+		drawPlate(Rect(firstX + costPlateWidth + costPlateGap, costPlateY, costPlateWidth, costPlateHeight));
+	}
 
 	return image;
 }
