@@ -91,11 +91,8 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
-static ImagePath getUniversityBackground(const IMarket * market, std::string fileName)
+static ImagePath getUniversityBackground(std::string fileName)
 {
-	if(const auto * object = dynamic_cast<const CGObjectInstance *>(market); object && object->tempOwner.isValidPlayer())
-		fileName += "-" + object->tempOwner.toString();
-
 	return ImagePath::builtin(fileName);
 }
 
@@ -1084,7 +1081,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED, getUniversityBackground(_market, "UNIVRS" + std::to_string(getUniversitySkillColumns(_market)))),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground("UNIVRS" + std::to_string(getUniversitySkillColumns(_market)))),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
@@ -1135,11 +1132,6 @@ void CUniversityWindow::close()
 	CStatusbarWindow::close();
 }
 
-const IMarket * CUniversityWindow::getMarket() const
-{
-	return market;
-}
-
 void CUniversityWindow::updateSecondarySkills()
 {
 	for (auto const & item : items)
@@ -1152,7 +1144,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, getUniversityBackground(owner_->getMarket(), "UNIVRSC1")),
+	: CWindowObject(PLAYER_COLORED, getUniversityBackground("UNIVRSC1")),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;

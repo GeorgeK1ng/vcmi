@@ -175,22 +175,18 @@ void AssetGenerator::addRecruitmentBackground(const std::string & fileName, cons
 
 void AssetGenerator::addUniversityBackground(const std::string & fileName, const Point & size, int skillColumns)
 {
-	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	imageFiles[ImagePath::builtin(fileName)] = [this, size, skillColumns]()
 	{
-		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
-		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor, skillColumns](){ return createUniversityDialogBackground(size, playerColor, skillColumns);};
-	}
+		return createUniversityDialogBackground(size, PlayerColor(1), skillColumns);
+	};
 }
 
 void AssetGenerator::addUniversityConfirmBackground(const std::string & fileName, const Point & size, int costElements)
 {
-	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	imageFiles[ImagePath::builtin(fileName)] = [this, size, costElements]()
 	{
-		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
-		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor, costElements](){ return createUniversityConfirmDialogBackground(size, playerColor, costElements);};
-	}
+		return createUniversityConfirmDialogBackground(size, PlayerColor(1), costElements);
+	};
 }
 
 auto getColorFilters()
