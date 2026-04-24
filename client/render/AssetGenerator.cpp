@@ -84,7 +84,9 @@ void AssetGenerator::initialize()
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
-	addUniversityBackground("UNIVRS4", Point(466, 388));
+	addUniversityBackground("UNIVRS4", Point(466, 388), 4);
+	addUniversityBackground("UNIVRS5", Point(570, 388), 5);
+	addUniversityBackground("UNIVRS6", Point(674, 388), 6);
 	addUniversityConfirmBackground("UNIVRS2", Point(466, 388));
 
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
@@ -168,13 +170,13 @@ void AssetGenerator::addRecruitmentBackground(const std::string & fileName, cons
 	}
 }
 
-void AssetGenerator::addUniversityBackground(const std::string & fileName, const Point & size)
+void AssetGenerator::addUniversityBackground(const std::string & fileName, const Point & size, int skillColumns)
 {
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
 		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
 		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createUniversityDialogBackground(size, playerColor);};
+		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor, skillColumns](){ return createUniversityDialogBackground(size, playerColor, skillColumns);};
 	}
 }
 
@@ -1300,7 +1302,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, const PlayerColor & playerColor, int skillColumns) const
 {
 	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
 	Canvas canvas = image->getCanvas();
@@ -1321,22 +1323,24 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		canvas.drawBorder(rect, borderColor);
 	};
 
-	// Main text block
+	// Main text block - fixed size, centered horizontally for all variants
 	const int horizontalMargin = 26;
 	const int largeBlockY = 127;
 	const int largeBlockHeight = 74;
-	drawPlate(Rect(horizontalMargin, largeBlockY, size.x - 2 * horizontalMargin, largeBlockHeight));
+	const int largeBlockWidth = 414;
+	const int largeBlockX = (size.x - largeBlockWidth) / 2;
+	drawPlate(Rect(largeBlockX, largeBlockY, largeBlockWidth, largeBlockHeight));
 
-	// Four top/bottom strips distributed evenly between same left/right margins
+	// Skill rows (4/5/6 choices) distributed evenly between same left/right margins
 	const int smallBlockWidth = 102;
 	const int smallBlockHeight = 20;
 	const int firstRowY = largeBlockY + largeBlockHeight + 10; // 10px below large block
 	const int secondRowY = firstRowY + smallBlockHeight + 50; // 50px below first row (edge to edge)
 
-	std::array<int, 4> stripX;
-	for(int i = 0; i < 4; ++i)
+	std::vector<int> stripX(skillColumns);
+	for(int i = 0; i < skillColumns; ++i)
 	{
-		double t = (i / 3.0);
+		double t = skillColumns == 1 ? 0.0 : static_cast<double>(i) / static_cast<double>(skillColumns - 1);
 		double x = horizontalMargin + t * (size.x - 2 * horizontalMargin - smallBlockWidth);
 		stripX[i] = static_cast<int>(std::lround(x));
 
@@ -1344,10 +1348,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 		drawPlate(Rect(stripX[i], secondRowY, smallBlockWidth, smallBlockHeight));
 	}
 
-	// Four icon boxes centered in each strip column
+	// Icon boxes centered in each strip column
 	const int iconSize = 44;
 	const int iconY = firstRowY + smallBlockHeight + 3; // 3px below first row and 3px above second row
-	for(int i = 0; i < 4; ++i)
+	for(int i = 0; i < skillColumns; ++i)
 	{
 		const int iconX = stripX[i] + (smallBlockWidth - iconSize) / 2;
 		drawSlot(Rect(iconX, iconY, iconSize, iconSize));
