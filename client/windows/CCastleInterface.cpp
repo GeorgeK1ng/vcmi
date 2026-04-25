@@ -90,15 +90,18 @@ public:
 
 			const int sideMargin = 16;
 			const int topMargin = 18;
-			const int textHeight = 136;
+			const int titleY = topMargin + 6;
+			const int textTop = 56;
+			const int textHeight = 98;
 			const int gapAfterText = 12;
 			const int statusbarHeight = 26;
 			const int gapBeforeStatusbar = 12;
+			const int costAreaHeight = 150;
 
 			const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
-			description = std::make_shared<CTextBox>(CInfoWindow::genText(titleText, textToShow), Rect(sideMargin, topMargin, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
-			components = std::make_shared<CComponentBox>(comps, Rect(0, 0, 0, 0), 8, 4, 6, 5);
-			components->moveBy(Point((pos.w - components->pos.w) / 2, topMargin + textHeight + gapAfterText));
+			title = std::make_shared<CLabel>(pos.w / 2, titleY, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, titleText);
+			description = std::make_shared<CTextBox>(textToShow, Rect(sideMargin, textTop, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
+			components = std::make_shared<CComponentBox>(comps, Rect(sideMargin, textTop + textHeight + gapAfterText, pos.w - 2 * sideMargin, costAreaHeight));
 
 			// Keep original button row position and only extend the lower empty area of the dialog.
 			const int buttonY = 448 - statusbarHeight - gapBeforeStatusbar - 32;
@@ -128,6 +131,7 @@ public:
 	}
 
 private:
+	std::shared_ptr<CLabel> title;
 	std::shared_ptr<CTextBox> description;
 	std::shared_ptr<CComponentBox> components;
 	std::shared_ptr<CButton> acceptButton;
