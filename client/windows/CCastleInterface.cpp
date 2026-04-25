@@ -90,13 +90,13 @@ public:
 
 			const int sideMargin = 16;
 			const int topMargin = 18;
-			const int titleY = topMargin + 6;
+			const int titleY = topMargin + 16;
 			const int textTop = 56;
 			const int textHeight = 98;
-			const int gapAfterText = 12;
+			const int gapAfterText = 24;
 			const int statusbarHeight = 26;
 			const int gapBeforeStatusbar = 12;
-			const int costAreaHeight = 150;
+			const int costAreaHeight = 138;
 
 			const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
 			title = std::make_shared<CLabel>(pos.w / 2, titleY, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, titleText);
