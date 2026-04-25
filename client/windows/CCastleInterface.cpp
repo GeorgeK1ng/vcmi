@@ -92,13 +92,13 @@ CSpellResearchDialog::CSpellResearchDialog(
 	const int statusbarHeight = 26;
 	const int gapBeforeStatusbar = 12;
 	const int componentsTop = 140;
+	const int componentsHeight = 164;
 
 	const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
 	title = std::make_shared<CLabel>(pos.w / 2, titleY, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, titleText);
 	description = std::make_shared<CTextBox>(textToShow, Rect(sideMargin, textTop, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
-	components = std::make_shared<CComponentBox>(comps, Rect(sideMargin, componentsTop, pos.w - 2 * sideMargin, 0));
+	components = std::make_shared<CComponentBox>(comps, Rect(sideMargin, componentsTop, pos.w - 2 * sideMargin, componentsHeight));
 
-	// Keep original button row position and only extend the lower empty area of the dialog.
 	const int buttonY = 448 - statusbarHeight - gapBeforeStatusbar - 32;
 	const int buttonSpacing = 22;
 	const int totalButtonsWidth = 3 * 80 + 2 * buttonSpacing;
