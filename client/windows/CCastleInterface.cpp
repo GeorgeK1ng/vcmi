@@ -98,7 +98,7 @@ CSpellResearchDialog::CSpellResearchDialog(
 	description = std::make_shared<CTextBox>(textToShow, Rect(sideMargin, textTop, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
 	components = std::make_shared<CComponentBox>(comps, Rect(sideMargin, componentsTop, pos.w - 2 * sideMargin, 0));
 
-	const int buttonY = 448 - statusbarHeight - gapBeforeStatusbar - 32;
+	const int buttonY = 468 - statusbarHeight - gapBeforeStatusbar - 32;
 	const int buttonSpacing = 22;
 	const int totalButtonsWidth = 3 * 80 + 2 * buttonSpacing;
 	int buttonX = (pos.w - totalButtonsWidth) / 2;
