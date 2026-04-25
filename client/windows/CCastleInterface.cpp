@@ -85,13 +85,13 @@ CSpellResearchDialog::CSpellResearchDialog(
 {
 	OBJECT_CONSTRUCTION;
 
-	const int sideMargin = 21;
+	const int sideMargin = 23;
 	const int titleY = 39;
-	const int textTop = 44;
+	const int textTop = 47;
 	const int textHeight = 88;
 	const int statusbarHeight = 26;
 	const int gapBeforeStatusbar = 12;
-	const int componentsTop = 160;
+	const int componentsTop = 175;
 	const int componentsHeight = 164;
 
 	const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
