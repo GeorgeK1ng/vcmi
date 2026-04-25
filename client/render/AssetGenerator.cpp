@@ -93,7 +93,7 @@ void AssetGenerator::initialize()
 	addUniversityBackground("UNIVRS7", Point(778, 388), 7);
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
-	addSpellResearchBackground("spellResearchDialog", Point(466, 420));
+	addSpellResearchBackground("spellResearchDialog", Point(352, 448));
 
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
