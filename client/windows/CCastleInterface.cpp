@@ -88,10 +88,10 @@ public:
 		{
 			OBJECT_CONSTRUCTION;
 
-			const int sideMargin = 16;
+			const int sideMargin = 21;
 			const int topMargin = 18;
 			const int titleY = topMargin + 16;
-			const int textTop = 51;
+			const int textTop = 36;
 			const int textHeight = 98;
 			const int gapAfterText = 39;
 			const int statusbarHeight = 26;
