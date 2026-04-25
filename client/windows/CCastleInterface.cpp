@@ -95,11 +95,13 @@ public:
 			const int statusbarHeight = 26;
 			const int gapBeforeStatusbar = 12;
 
-			description = std::make_shared<CTextBox>(textToShow, Rect(sideMargin, topMargin, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
+			const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
+			description = std::make_shared<CTextBox>(CInfoWindow::genText(titleText, textToShow), Rect(sideMargin, topMargin, pos.w - 2 * sideMargin, textHeight), 0, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE);
 			components = std::make_shared<CComponentBox>(comps, Rect(0, 0, 0, 0), 8, 4, 6, 5);
 			components->moveBy(Point((pos.w - components->pos.w) / 2, topMargin + textHeight + gapAfterText));
 
-			const int buttonY = pos.h - statusbarHeight - gapBeforeStatusbar - 32;
+			// Keep original button row position and only extend the lower empty area of the dialog.
+			const int buttonY = 448 - statusbarHeight - gapBeforeStatusbar - 32;
 			const int buttonSpacing = 22;
 			const int totalButtonsWidth = 3 * 80 + 2 * buttonSpacing;
 			int buttonX = (pos.w - totalButtonsWidth) / 2;
