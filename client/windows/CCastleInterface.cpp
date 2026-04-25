@@ -92,7 +92,7 @@ CSpellResearchDialog::CSpellResearchDialog(
 	const int statusbarHeight = 26;
 	const int gapBeforeStatusbar = 12;
 	const int componentsTop = 175;
-	const int componentsHeight = 164;
+	const int componentsHeight = 144;
 
 	const std::string titleText = LIBRARY->generaltexth->translate("vcmi.spellResearch.title");
 	title = std::make_shared<CLabel>(pos.w / 2, titleY, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, titleText);
