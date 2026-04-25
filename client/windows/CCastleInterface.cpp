@@ -86,8 +86,7 @@ CSpellResearchDialog::CSpellResearchDialog(
 	OBJECT_CONSTRUCTION;
 
 	const int sideMargin = 21;
-	const int topMargin = 18;
-	const int titleY = topMargin + 21;
+	const int titleY = 39;
 	const int textTop = 46;
 	const int textHeight = 88;
 	const int statusbarHeight = 26;
