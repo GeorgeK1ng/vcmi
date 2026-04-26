@@ -91,26 +91,16 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
-static ImagePath getUniversityBackground(const CGHeroInstance * hero, size_t skillCount)
+static ImagePath getUniversityBackground(size_t skillCount)
 {
 	const int backgroundSkills = std::clamp(static_cast<int>(skillCount), 1, 7);
-	std::string fileName = "UNIVRS" + std::to_string(backgroundSkills);
-
-	if(hero && hero->tempOwner.isValidPlayer())
-		fileName += "-" + hero->tempOwner.toString();
-
-	return ImagePath::builtin(fileName);
+	return ImagePath::builtin("UNIVRS" + std::to_string(backgroundSkills));
 }
 
-static ImagePath getUniversityConfirmBackground(const CGHeroInstance * hero, int costElements)
+static ImagePath getUniversityConfirmBackground(int costElements)
 {
 	const int backgroundCostElements = std::clamp(costElements, 1, 2);
-	std::string fileName = "UNIVRSC" + std::to_string(backgroundCostElements);
-
-	if(hero && hero->tempOwner.isValidPlayer())
-		fileName += "-" + hero->tempOwner.toString();
-
-	return ImagePath::builtin(fileName);
+	return ImagePath::builtin("UNIVRSC" + std::to_string(backgroundCostElements));
 }
 
 static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
@@ -1086,7 +1076,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED, getUniversityBackground(_hero, _market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size())),
+	: CWindowObject(BORDERED, getUniversityBackground(_market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size())),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
@@ -1163,7 +1153,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED, getUniversityConfirmBackground(owner_->getHero(), 1)),
+	: CWindowObject(BORDERED, getUniversityConfirmBackground(1)),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;
