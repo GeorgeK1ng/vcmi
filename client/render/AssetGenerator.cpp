@@ -168,20 +168,7 @@ void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileNa
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [size]()
-	{
-		auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
-		Canvas canvas = image->getCanvas();
-		auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-		for(int y = 0; y < size.y; y += background->height())
-		{
-			for(int x = 0; x < size.x; x += background->width())
-			{
-				canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
-			}
-		}
-		return image;
-	};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size, PlayerColor(1));};
 }
 
 void AssetGenerator::addRecruitmentBackground(const std::string & fileName, const Point & size)
@@ -1206,14 +1193,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 {
 	// Generic compositing helper:
 	// 1) tile DiBoxBck over full target size
-	// 2) build border and status-bar frame from DIALGBOX pieces
+	// 2) add darkened status-bar strip at the bottom
 	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 
 	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
-	if (playerColor.isValidPlayer() && playerColor != PlayerColor(1))
-		dialogBox->playerColored(playerColor);
+	(void)playerColor;
 
 	// Fill whole area with DiBoxBck texture first.
 	for (int y = 0; y < size.y; y += background->height())
@@ -1228,59 +1213,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 	const int statusBarOverlayHeight = 30;
 	canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
-	auto drawHorizontal = [&canvas](const std::shared_ptr<IImage> & source, int y, int xBegin, int xEnd)
-	{
-		for(int x = xBegin; x < xEnd; x += source->width())
-		{
-			int width = std::min(source->width(), xEnd - x);
-			canvas.draw(source, Point(x, y), Rect(0, 0, width, source->height()));
-		}
-	};
-
-	auto drawVertical = [&canvas](const std::shared_ptr<IImage> & source, int x, int yBegin, int yEnd)
-	{
-		for(int y = yBegin; y < yEnd; y += source->height())
-		{
-			int height = std::min(source->height(), yEnd - y);
-			canvas.draw(source, Point(x, y), Rect(0, 0, source->width(), height));
-		}
-	};
-
-	auto topLeft = dialogBox->getImage(0, 0);
-	auto topRight = dialogBox->getImage(1, 0);
-	auto leftEdge = dialogBox->getImage(4, 0);
-	auto rightEdge = dialogBox->getImage(5, 0);
-	auto topEdge = dialogBox->getImage(6, 0);
-	auto bottomLeft = dialogBox->getImage(8, 0);
-	auto bottomRight = dialogBox->getImage(9, 0);
-	auto bottomEdge = dialogBox->getImage(10, 0);
-
-	drawHorizontal(topEdge, 0, topLeft->width(), size.x - topRight->width());
-	drawHorizontal(bottomEdge, size.y - bottomEdge->height(), bottomLeft->width(), size.x - bottomRight->width());
-	drawVertical(leftEdge, 0, topLeft->height(), size.y - bottomLeft->height());
-	drawVertical(rightEdge, size.x - rightEdge->width(), topRight->height(), size.y - bottomRight->height());
-
-	canvas.draw(topLeft, Point(0, 0));
-	canvas.draw(topRight, Point(size.x - topRight->width(), 0));
-	canvas.draw(bottomLeft, Point(0, size.y - bottomLeft->height()));
-	canvas.draw(bottomRight, Point(size.x - bottomRight->width(), size.y - bottomRight->height()));
-
 	return image;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size) const
 {
-	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
 	Canvas canvas = image->getCanvas();
-
-	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	for(int y = 0; y < size.y; y += background->height())
-	{
-		for(int x = 0; x < size.x; x += background->width())
-		{
-			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
-		}
-	}
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -1322,17 +1261,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, int skillColumns) const
 {
-	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
 	Canvas canvas = image->getCanvas();
-
-	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	for(int y = 0; y < size.y; y += background->height())
-	{
-		for(int x = 0; x < size.x; x += background->width())
-		{
-			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
-		}
-	}
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
@@ -1389,17 +1319,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, int costElements) const
 {
-	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
 	Canvas canvas = image->getCanvas();
-
-	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	for(int y = 0; y < size.y; y += background->height())
-	{
-		for(int x = 0; x < size.x; x += background->width())
-		{
-			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
-		}
-	}
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);

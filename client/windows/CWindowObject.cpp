@@ -105,8 +105,6 @@ std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, i
 
 		const int width = composited->width();
 		const int height = composited->height();
-		const int statusBarOverlayHeight = 30;
-		canvas.drawColorBlended(Rect(0, height - statusBarOverlayHeight, width, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
 		auto drawHorizontal = [&canvas](const std::shared_ptr<IImage> & source, int y, int xBegin, int xEnd)
 		{
