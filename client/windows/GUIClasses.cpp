@@ -72,7 +72,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level)
+ImagePath CRecruitmentWindow::getRecruitmentBackground(const CGDwelling * dwelling, int level)
 {
 	int cardsCount = 0;
 	for(int i = 0; i < dwelling->creatures.size(); i++)
@@ -87,19 +87,19 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	return ImagePath::builtin(fileName);
 }
 
-static ImagePath getUniversityBackground(size_t skillCount)
+ImagePath CUniversityWindow::getUniversityBackground(size_t skillCount)
 {
 	const int backgroundSkills = std::clamp(static_cast<int>(skillCount), 1, 7);
 	return ImagePath::builtin("UNIVRS" + std::to_string(backgroundSkills));
 }
 
-static ImagePath getUniversityConfirmBackground(int costElements)
+ImagePath CUniversityWindow::getUniversityConfirmBackground(int costElements)
 {
 	const int backgroundCostElements = std::clamp(costElements, 1, 2);
 	return ImagePath::builtin("UNIVRSC" + std::to_string(backgroundCostElements));
 }
 
-static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
+int CUniversityWindow::getUniversityItemPosX(size_t itemIndex, size_t skillCount, int windowWidth)
 {
 	const int skillColumns = std::clamp(static_cast<int>(skillCount), 1, 7);
 	const int smallBlockWidth = 102;
@@ -1147,7 +1147,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getUniversityConfirmBackground(1)),
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, CUniversityWindow::getUniversityConfirmBackground(1)),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;
