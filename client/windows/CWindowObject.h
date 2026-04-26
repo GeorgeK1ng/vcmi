@@ -31,6 +31,7 @@ protected:
 	void updateShadow();
 	void setBackground(const ImagePath & filename);
 	std::shared_ptr<CPicture> createBg(const ImagePath & imageName, int windowOptions);
+	std::shared_ptr<CPicture> createPlayerColoredBorderedStatusbarBg(const std::shared_ptr<CPicture> & image, PlayerColor playerColor);
 public:
 	enum EOptions
 	{
@@ -39,7 +40,8 @@ public:
 		BORDERED=4, // window will have border if current resolution is bigger than size of window
 		SHADOW_DISABLED=8, //this window won't display any shadow
 		NEEDS_ANIMATED_BACKGROUND=16, //there are videos in the background that have to be played
-		PLAYER_COLORED_STATUSBAR=32 //overlay player-colored frame with status bar styling
+		PLAYER_COLORED_BORDERED_STATUSBAR=32, //composite player-colored bordered frame for statusbar dialogs
+		PLAYER_COLORED_STATUSBAR=PLAYER_COLORED_BORDERED_STATUSBAR // backwards-compatible alias
 	};
 
 	/*

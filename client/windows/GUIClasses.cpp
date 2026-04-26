@@ -262,7 +262,7 @@ void CRecruitmentWindow::showAll(Canvas & to)
 }
 
 CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, const CArmedInstance * Dst, const std::function<void(CreatureID,int)> & Recruit, const std::function<void()> & onClose, int y_offset):
-	CWindowObject(PLAYER_COLORED_STATUSBAR, getRecruitmentBackground(Dwelling, Level)),
+	CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getRecruitmentBackground(Dwelling, Level)),
 	onRecruit(Recruit),
 	onClose(onClose),
 	level(Level),
@@ -1072,7 +1072,7 @@ void CUniversityWindow::CItem::update()
 }
 
 CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID building, const IMarket * _market, const std::function<void()> & onWindowClosed)
-	: CWindowObject(PLAYER_COLORED_STATUSBAR, getUniversityBackground(_market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size())),
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getUniversityBackground(_market->availableItemsIds(EMarketMode::RESOURCE_SKILL).size())),
 	hero(_hero),
 	onWindowClosed(onWindowClosed),
 	market(_market)
@@ -1149,7 +1149,7 @@ void CUniversityWindow::makeDeal(SecondarySkill skill)
 }
 
 CUnivConfirmWindow::CUnivConfirmWindow(CUniversityWindow * owner_, SecondarySkill SKILL, bool available)
-	: CWindowObject(PLAYER_COLORED_STATUSBAR, getUniversityConfirmBackground(1)),
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getUniversityConfirmBackground(1)),
 	owner(owner_)
 {
 	OBJECT_CONSTRUCTION;

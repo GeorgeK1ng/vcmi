@@ -89,63 +89,68 @@ std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, i
 	auto image = std::make_shared<CPicture>(imageName, Point(0,0), EImageBlitMode::OPAQUE);
 	PlayerColor playerColor = GAME->interface() ? GAME->interface()->playerID : PlayerColor(1);
 
+	if(windowOptions & PLAYER_COLORED_BORDERED_STATUSBAR)
+	{
+		return createPlayerColoredBorderedStatusbarBg(image, playerColor);
+	}
 	if(windowOptions & PLAYER_COLORED)
 	{
 		image->setPlayerColor(playerColor);
 	}
-	else if(windowOptions & PLAYER_COLORED_STATUSBAR)
-	{
-		auto composited = ENGINE->renderHandler().createImage(image->getSurface()->dimensions(), CanvasScalingPolicy::AUTO);
-		Canvas canvas = composited->getCanvas();
-		canvas.draw(image->getSurface(), Point(0, 0));
-
-		auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
-		if(playerColor.isValidPlayer() && playerColor != PlayerColor(1))
-			dialogBox->playerColored(playerColor);
-
-		const int width = composited->width();
-		const int height = composited->height();
-
-		auto drawHorizontal = [&canvas](const std::shared_ptr<IImage> & source, int y, int xBegin, int xEnd)
-		{
-			for(int x = xBegin; x < xEnd; x += source->width())
-			{
-				int blitWidth = std::min(source->width(), xEnd - x);
-				canvas.draw(source, Point(x, y), Rect(0, 0, blitWidth, source->height()));
-			}
-		};
-		auto drawVertical = [&canvas](const std::shared_ptr<IImage> & source, int x, int yBegin, int yEnd)
-		{
-			for(int y = yBegin; y < yEnd; y += source->height())
-			{
-				int blitHeight = std::min(source->height(), yEnd - y);
-				canvas.draw(source, Point(x, y), Rect(0, 0, source->width(), blitHeight));
-			}
-		};
-
-		auto topLeft = dialogBox->getImage(0, 0);
-		auto topRight = dialogBox->getImage(1, 0);
-		auto leftEdge = dialogBox->getImage(4, 0);
-		auto rightEdge = dialogBox->getImage(5, 0);
-		auto topEdge = dialogBox->getImage(6, 0);
-		auto bottomLeft = dialogBox->getImage(8, 0);
-		auto bottomRight = dialogBox->getImage(9, 0);
-		auto bottomEdge = dialogBox->getImage(10, 0);
-
-		drawHorizontal(topEdge, 0, topLeft->width(), width - topRight->width());
-		drawHorizontal(bottomEdge, height - bottomEdge->height(), bottomLeft->width(), width - bottomRight->width());
-		drawVertical(leftEdge, 0, topLeft->height(), height - bottomLeft->height());
-		drawVertical(rightEdge, width - rightEdge->width(), topRight->height(), height - bottomRight->height());
-
-		canvas.draw(topLeft, Point(0, 0));
-		canvas.draw(topRight, Point(width - topRight->width(), 0));
-		canvas.draw(bottomLeft, Point(0, height - bottomLeft->height()));
-		canvas.draw(bottomRight, Point(width - bottomRight->width(), height - bottomRight->height()));
-
-		return std::make_shared<CPicture>(composited, Point(0,0));
-	}
 
 	return image;
+}
+
+std::shared_ptr<CPicture> CWindowObject::createPlayerColoredBorderedStatusbarBg(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
+{
+	auto composited = ENGINE->renderHandler().createImage(image->getSurface()->dimensions(), CanvasScalingPolicy::AUTO);
+	Canvas canvas = composited->getCanvas();
+	canvas.draw(image->getSurface(), Point(0, 0));
+
+	auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
+	if(playerColor.isValidPlayer() && playerColor != PlayerColor(1))
+		dialogBox->playerColored(playerColor);
+
+	const int width = composited->width();
+	const int height = composited->height();
+
+	auto drawHorizontal = [&canvas](const std::shared_ptr<IImage> & source, int y, int xBegin, int xEnd)
+	{
+		for(int x = xBegin; x < xEnd; x += source->width())
+		{
+			int blitWidth = std::min(source->width(), xEnd - x);
+			canvas.draw(source, Point(x, y), Rect(0, 0, blitWidth, source->height()));
+		}
+	};
+	auto drawVertical = [&canvas](const std::shared_ptr<IImage> & source, int x, int yBegin, int yEnd)
+	{
+		for(int y = yBegin; y < yEnd; y += source->height())
+		{
+			int blitHeight = std::min(source->height(), yEnd - y);
+			canvas.draw(source, Point(x, y), Rect(0, 0, source->width(), blitHeight));
+		}
+	};
+
+	auto topLeft = dialogBox->getImage(0, 0);
+	auto topRight = dialogBox->getImage(1, 0);
+	auto leftEdge = dialogBox->getImage(4, 0);
+	auto rightEdge = dialogBox->getImage(5, 0);
+	auto topEdge = dialogBox->getImage(6, 0);
+	auto bottomLeft = dialogBox->getImage(8, 0);
+	auto bottomRight = dialogBox->getImage(9, 0);
+	auto bottomEdge = dialogBox->getImage(10, 0);
+
+	drawHorizontal(topEdge, 0, topLeft->width(), width - topRight->width());
+	drawHorizontal(bottomEdge, height - bottomEdge->height(), bottomLeft->width(), width - bottomRight->width());
+	drawVertical(leftEdge, 0, topLeft->height(), height - bottomLeft->height());
+	drawVertical(rightEdge, width - rightEdge->width(), topRight->height(), height - bottomRight->height());
+
+	canvas.draw(topLeft, Point(0, 0));
+	canvas.draw(topRight, Point(width - topRight->width(), 0));
+	canvas.draw(bottomLeft, Point(0, height - bottomLeft->height()));
+	canvas.draw(bottomRight, Point(width - bottomRight->width(), height - bottomRight->height()));
+
+	return std::make_shared<CPicture>(composited, Point(0,0));
 }
 
 void CWindowObject::setBackground(const ImagePath & filename)
