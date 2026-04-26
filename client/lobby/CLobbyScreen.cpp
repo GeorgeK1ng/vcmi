@@ -123,6 +123,37 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 			GAME->server().getGlobalLobby().activateInterface();
 	}, EShortcut::GLOBAL_CANCEL);
 
+	if(screenType == ESelectionScreen::newGame)
+	{
+		const Point contentOffset(19, 0);
+		auto moveControl = [&contentOffset](const std::shared_ptr<CIntObject> & control)
+		{
+			if(control)
+				control->moveBy(contentOffset);
+		};
+
+		moveControl(tabSel);
+		moveControl(tabOpt);
+		moveControl(tabTurnOptions);
+		moveControl(tabExtraOptions);
+		moveControl(tabRand);
+		moveControl(tabBattleOnlyMode);
+		moveControl(card);
+
+		moveControl(buttonSelect);
+		moveControl(buttonRMG);
+		moveControl(buttonOptions);
+		moveControl(buttonBattleMode);
+		moveControl(buttonExtraOptions);
+		moveControl(buttonStart);
+		moveControl(buttonBack);
+		moveControl(buttonChat);
+		moveControl(buttonSimturns);
+
+		for(const auto & image : images)
+			moveControl(image);
+	}
+
 	if(hideScreen) // workaround to avoid confusing players by custom campaign list displaying for a few ms -> instead of this draw a black screen while "loading"
 	{
 		blackScreen = std::make_shared<GraphicalPrimitiveCanvas>(Rect(Point(0, 0), pos.dimensions()));

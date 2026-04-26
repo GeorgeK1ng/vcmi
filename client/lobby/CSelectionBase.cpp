@@ -108,8 +108,6 @@ CSelectionBase::CSelectionBase(ESelectionScreen type)
 
 		setBackground(ImagePath::fromJson(*RandomGeneratorUtil::nextItem(*bgNames, CRandomGenerator::getDefault())));
 		pos = background->center();
-		if(screenType == ESelectionScreen::newGame)
-			pos.x += 19;
 
 		for (const JsonNode& node : gameSelectConfig["images"].Vector())
 		{
