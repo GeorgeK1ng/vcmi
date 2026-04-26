@@ -1321,8 +1321,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
 		}
 	}
-	const int statusBarOverlayHeight = 30;
-	canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
@@ -1390,8 +1388,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackgroun
 			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
 		}
 	}
-	const int statusBarOverlayHeight = 30;
-	canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
 	const ColorRGBA borderColor = ColorRGBA(128, 100, 75);
