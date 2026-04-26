@@ -168,7 +168,7 @@ void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileNa
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size]()
+	imageFiles[ImagePath::builtin(fileName)] = [size]()
 	{
 		auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 		Canvas canvas = image->getCanvas();
