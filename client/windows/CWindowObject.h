@@ -40,8 +40,7 @@ public:
 		BORDERED=4, // window will have border if current resolution is bigger than size of window
 		SHADOW_DISABLED=8, //this window won't display any shadow
 		NEEDS_ANIMATED_BACKGROUND=16, //there are videos in the background that have to be played
-		PLAYER_COLORED_BORDERED_STATUSBAR=32, //composite player-colored bordered frame for statusbar dialogs
-		PLAYER_COLORED_STATUSBAR=PLAYER_COLORED_BORDERED_STATUSBAR // backwards-compatible alias
+		PLAYER_COLORED_BORDERED_STATUSBAR=32 //composite player-colored bordered frame for statusbar dialogs
 	};
 
 	/*
