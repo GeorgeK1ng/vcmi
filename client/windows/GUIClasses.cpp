@@ -84,10 +84,6 @@ static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level
 	}
 
 	std::string fileName = cardsCount >= 6 ? "TPRCRT6" : cardsCount == 5 ? "TPRCRT5" : "TPRCRT4";
-
-	if (dwelling->tempOwner.isValidPlayer())
-		fileName += "-" + dwelling->tempOwner.toString();
-
 	return ImagePath::builtin(fileName);
 }
 
@@ -266,7 +262,7 @@ void CRecruitmentWindow::showAll(Canvas & to)
 }
 
 CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, const CArmedInstance * Dst, const std::function<void(CreatureID,int)> & Recruit, const std::function<void()> & onClose, int y_offset):
-	CWindowObject(PLAYER_COLORED, getRecruitmentBackground(Dwelling, Level)),
+	CWindowObject(PLAYER_COLORED_STATUSBAR, getRecruitmentBackground(Dwelling, Level)),
 	onRecruit(Recruit),
 	onClose(onClose),
 	level(Level),

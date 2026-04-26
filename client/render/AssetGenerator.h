@@ -67,7 +67,7 @@ private:
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
 	CanvasPtr createDialogBackgroundWithStatusBar(const Point & size, const PlayerColor & playerColor) const;
-	CanvasPtr createRecruitmentDialogBackground(const Point & size, const PlayerColor & playerColor) const;
+	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;
 	CanvasPtr createUniversityDialogBackground(const Point & size, int skillColumns) const;
 	CanvasPtr createUniversityConfirmDialogBackground(const Point & size, int costElements) const;
 	enum CreateResourceWindowType{ ARTIFACTS_BUYING, ARTIFACTS_SELLING, MARKET_RESOURCES, FREELANCERS_GUILD, TRANSFER_RESOURCES };

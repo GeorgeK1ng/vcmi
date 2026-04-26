@@ -168,22 +168,25 @@ void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileNa
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
 {
-	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
+	imageFiles[ImagePath::builtin(fileName)] = [this, size]()
 	{
-		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
-		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createDialogBackgroundWithStatusBar(size, playerColor);};
-	}
+		auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
+		Canvas canvas = image->getCanvas();
+		auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
+		for(int y = 0; y < size.y; y += background->height())
+		{
+			for(int x = 0; x < size.x; x += background->width())
+			{
+				canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
+			}
+		}
+		return image;
+	};
 }
 
 void AssetGenerator::addRecruitmentBackground(const std::string & fileName, const Point & size)
 {
-	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
-	{
-		const std::string name = fileName + (color == -1 ? "" : "-" + color.toString());
-		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		imageFiles[ImagePath::builtin(name)] = [this, size, playerColor](){ return createRecruitmentDialogBackground(size, playerColor);};
-	}
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createRecruitmentDialogBackground(size);};
 }
 
 void AssetGenerator::addUniversityBackground(const std::string & fileName, const Point & size, int skillColumns)
@@ -1265,10 +1268,19 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size, playerColor);
+	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
+
+	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
+	for(int y = 0; y < size.y; y += background->height())
+	{
+		for(int x = 0; x < size.x; x += background->width())
+		{
+			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
+		}
+	}
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
