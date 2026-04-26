@@ -112,8 +112,6 @@ static int getUniversityItemPosX(size_t itemIndex, size_t skillCount, int window
 	return stripX + (smallBlockWidth / 2) - iconHalfSize;
 }
 
-static constexpr int MAP_TILE_SIZE_PX = 32;
-
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
 	parent(window),
@@ -1092,7 +1090,7 @@ CUniversityWindow::CUniversityWindow(const CGHeroInstance * _hero, BuildingID bu
 	else if(auto uni = dynamic_cast<const CGUniversity *>(_market); uni->appearance)
 	{
 		titlePic = std::make_shared<CAnimImage>(uni->appearance->animationFile, 0, 0, 0, 0, CShowableAnim::MAP_OBJECT_MODE);
-		const int mapObjectWidthPx = static_cast<int>(uni->appearance->getWidth()) * MAP_TILE_SIZE_PX;
+		const int mapObjectWidthPx = static_cast<int>(uni->appearance->getWidth()) * 32; // map object tile width in pixels
 		const int renderedWidthPx = titlePic->getPosition().w;
 		mapObjectTitleOffsetX = std::max(0, (renderedWidthPx - mapObjectWidthPx) / 2);
 		titleStr = uni->getObjectName();
