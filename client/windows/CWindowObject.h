@@ -31,7 +31,7 @@ protected:
 	void updateShadow();
 	void setBackground(const ImagePath & filename);
 	std::shared_ptr<CPicture> createBg(const ImagePath & imageName, int windowOptions);
-	std::shared_ptr<CPicture> createPlayerColoredBorderedStatusbarBg(const std::shared_ptr<CPicture> & image, PlayerColor playerColor);
+	std::shared_ptr<CPicture> createPlayerColoredBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor);
 public:
 	enum EOptions
 	{
