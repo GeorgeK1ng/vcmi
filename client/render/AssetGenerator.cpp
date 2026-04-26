@@ -95,11 +95,7 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
 
-	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
-	{
-		const std::string name = "heroBackpackDialog" + (color == -1 ? "" : "-" + color.toString());
-		addDialogBackgroundWithStatusBar(name, Point(426, 465));
-	}
+	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
