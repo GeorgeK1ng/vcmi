@@ -34,7 +34,7 @@ public:
 
 	void addImageFile(const ImagePath & path, ImageGenerationFunctor & img);
 	void addAnimationFile(const AnimationPath & path, AnimationLayoutMap & anim);
-	void addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size, const PlayerColor & playerColor);
+	void addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size);
 	void addSpellResearchBackground(const std::string & fileName, const Point & size);
 	void addRecruitmentBackground(const std::string & fileName, const Point & size);
 	void addUniversityBackground(const std::string & fileName, const Point & size, int skillColumns);
@@ -66,7 +66,7 @@ private:
 	CanvasPtr createPaletteShiftedImage(const AnimationPath & source, const std::vector<PaletteAnimation> & animation, int frameIndex, int paletteShiftCounter) const;
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
-	CanvasPtr createDialogBackgroundWithStatusBar(const Point & size, const PlayerColor & playerColor) const;
+	CanvasPtr createDialogBackgroundWithStatusBar(const Point & size) const;
 	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;
 	CanvasPtr createUniversityDialogBackground(const Point & size, int skillColumns) const;
 	CanvasPtr createUniversityConfirmDialogBackground(const Point & size, int costElements) const;

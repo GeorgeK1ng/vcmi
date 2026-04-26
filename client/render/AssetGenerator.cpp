@@ -98,8 +98,7 @@ void AssetGenerator::initialize()
 	for(PlayerColor color(-1); color < PlayerColor::PLAYER_LIMIT; ++color)
 	{
 		const std::string name = "heroBackpackDialog" + (color == -1 ? "" : "-" + color.toString());
-		const PlayerColor playerColor = color == -1 ? PlayerColor(1) : std::max(PlayerColor(0), color);
-		addDialogBackgroundWithStatusBar(name, Point(426, 465), playerColor);
+		addDialogBackgroundWithStatusBar(name, Point(426, 465));
 	}
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
@@ -161,14 +160,14 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 	animationFiles[path] = anim;
 }
 
-void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size, const PlayerColor & playerColor)
+void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size, playerColor](){ return createDialogBackgroundWithStatusBar(size, playerColor);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size);};
 }
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size, PlayerColor(1));};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size);};
 }
 
 void AssetGenerator::addRecruitmentBackground(const std::string & fileName, const Point & size)
@@ -1189,7 +1188,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size, const PlayerColor & playerColor) const
+AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size) const
 {
 	// Generic compositing helper:
 	// 1) tile DiBoxBck over full target size
@@ -1198,8 +1197,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 	Canvas canvas = image->getCanvas();
 
 	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	(void)playerColor;
-
 	// Fill whole area with DiBoxBck texture first.
 	for (int y = 0; y < size.y; y += background->height())
 	{
@@ -1218,7 +1215,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 
 AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
+	auto image = createDialogBackgroundWithStatusBar(size);
 	Canvas canvas = image->getCanvas();
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
@@ -1261,7 +1258,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, int skillColumns) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
+	auto image = createDialogBackgroundWithStatusBar(size);
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -1319,7 +1316,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, int costElements) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size, PlayerColor(1));
+	auto image = createDialogBackgroundWithStatusBar(size);
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
