@@ -26,6 +26,7 @@
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
+#include "../gui/WindowHandler.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
@@ -46,10 +47,10 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
-CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature)
+CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
 	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, ImagePath::builtin("stackExperienceDialog"))
 	, sourceStack(stack)
-	, creature(creature)
+	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
 
@@ -65,7 +66,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
 
-	int tier = std::clamp(creature->getLevel(), 1, 7);
+	int tier = std::clamp(this->creature->getLevel(), 1, 7);
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 
 	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS) > 0;
@@ -145,18 +146,16 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
 	tableFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::CYAN);
 
-	for(size_t row = 0; row < rows.size(); ++row)
-	{
-		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::LEFT, Colors::WHITE, rows[row].title));
+		for(size_t row = 0; row < rows.size(); ++row)
+		{
+			const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
+			labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, rows[row].title));
 
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-			CStackInstance preview(gameCallback, creature->getId(), std::max(1, sourceStack->getCount()), true);
-			if(const CArmedInstance * army = sourceStack->getArmy())
-				preview.attachTo(*army);
+			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 			preview.giveTotalStackExperience(averageExp * preview.getCount());
 
 			const int value = rows[row].valueGetter(preview);
@@ -173,14 +172,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const std::string stackDetails = boost::str(boost::format(LIBRARY->generaltexth->translate("vcmi.stackExperience.table.summary"))
 		% sourceStack->getCount()
-		% creature->getNamePluralTranslated()
+		% this->creature->getNamePluralTranslated()
 		% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
 		% sourceStack->getAverageExperience()
 		% expMax);
 	labels.push_back(std::make_shared<CLabel>(pos.w / 2, tableTop + rowHeight * static_cast<int>(rows.size() + 1) + 14, FONT_MEDIUM, ETextAlignment::CENTER, Colors::ORANGE, stackDetails));
 
 	closeButton = std::make_shared<CButton>(Point((pos.w - 80) / 2, pos.h - statusbarHeight - 46), AnimationPath::builtin("settingsWindow/button80"), CButton::tooltip(), [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
-	closeButton->setTextOverlay(LIBRARY->generaltexth->translate("core.genrltxt.44"), Colors::YELLOW);
+	closeButton->setTextOverlay(LIBRARY->generaltexth->translate("core.genrltxt.44"), FONT_SMALL, Colors::YELLOW);
 
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - statusbarHeight, pos.w - 16, 19), 8, pos.h - statusbarHeight));
 }
