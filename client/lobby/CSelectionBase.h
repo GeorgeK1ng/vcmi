@@ -132,7 +132,6 @@ public:
 	void clearSelection();
 	void toggleChat();
 	void setChat(bool activateChat);
-	void moveBackgroundBy(const Point & offset);
 };
 
 class CChatBox : public CIntObject

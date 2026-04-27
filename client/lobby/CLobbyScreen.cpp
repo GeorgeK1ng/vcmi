@@ -24,7 +24,6 @@
 #include "../gui/Shortcut.h"
 #include "../widgets/Buttons.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
-#include "../widgets/Images.h"
 #include "../windows/InfoWindows.h"
 #include "../render/Colors.h"
 #include "../globalLobby/GlobalLobbyClient.h"
@@ -127,35 +126,12 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 	if(screenType == ESelectionScreen::newGame)
 	{
 		const Point contentOffset(19, 0);
-		auto moveControl = [&contentOffset](const std::shared_ptr<CIntObject> & control)
+		for(CIntObject * child : children)
 		{
-			if(control)
-				control->moveBy(contentOffset);
-		};
+			if(!child || child == background.get())
+				continue;
 
-		moveControl(tabSel);
-		moveControl(tabOpt);
-		moveControl(tabTurnOptions);
-		moveControl(tabExtraOptions);
-		moveControl(tabRand);
-		moveControl(tabBattleOnlyMode);
-		moveControl(card);
-		card->moveBackgroundBy(contentOffset);
-
-		moveControl(buttonSelect);
-		moveControl(buttonRMG);
-		moveControl(buttonOptions);
-		moveControl(buttonBattleMode);
-		moveControl(buttonExtraOptions);
-		moveControl(buttonStart);
-		moveControl(buttonBack);
-		moveControl(buttonChat);
-		moveControl(buttonSimturns);
-
-		for(const auto & image : images)
-		{
-			if(image)
-				image->moveBy(contentOffset);
+			child->moveBy(contentOffset);
 		}
 	}
 
