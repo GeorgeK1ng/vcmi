@@ -129,7 +129,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		const Point contentOffset(19, 0);
 		for(CIntObject * child : children)
 		{
-			if(!child || child == background.get())
+			if(!child || child == background.get() || child == buttonBattleMode.get())
 				continue;
 
 			child->moveBy(contentOffset);
