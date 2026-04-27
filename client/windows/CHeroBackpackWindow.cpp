@@ -27,7 +27,7 @@
 #include "../../lib/texts/CGeneralTextHandler.h"
 
 CHeroBackpackWindow::CHeroBackpackWindow(const CGHeroInstance * hero, const std::vector<CArtifactsOfHeroPtr> & artsSets)
-	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, ImagePath::builtin("heroBackpackDialog"))
+	: CWindowObject(PLAYER_COLORED | BORDERED_STATUSBAR, ImagePath::builtin("heroBackpackDialog"))
 	, CWindowWithArtifacts(&artsSets)
 {
 	OBJECT_CONSTRUCTION;

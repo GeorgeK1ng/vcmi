@@ -89,19 +89,18 @@ std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, i
 	auto image = std::make_shared<CPicture>(imageName, Point(0,0), EImageBlitMode::OPAQUE);
 	PlayerColor playerColor = GAME->interface() ? GAME->interface()->playerID : PlayerColor(1);
 
-	if(windowOptions & PLAYER_COLORED_BORDERED_STATUSBAR)
+	if(windowOptions & BORDERED_STATUSBAR)
 	{
-		return createPlayerColoredBorderedStatusbar(image, playerColor);
+		const PlayerColor frameColor = (windowOptions & PLAYER_COLORED) ? playerColor : PlayerColor(1);
+		return createBorderedStatusbar(image, frameColor);
 	}
 	if(windowOptions & PLAYER_COLORED)
-	{
 		image->setPlayerColor(playerColor);
-	}
 
 	return image;
 }
 
-std::shared_ptr<CPicture> CWindowObject::createPlayerColoredBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
+std::shared_ptr<CPicture> CWindowObject::createBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
 {
 	auto composited = ENGINE->renderHandler().createImage(image->getSurface()->dimensions(), CanvasScalingPolicy::AUTO);
 	Canvas canvas = composited->getCanvas();
