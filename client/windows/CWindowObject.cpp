@@ -33,15 +33,13 @@
 
 #include <SDL_surface.h>
 
-std::shared_ptr<CPicture> CWindowObject::createBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
+std::shared_ptr<CPicture> CWindowObject::createBorderedStatusbar(const std::shared_ptr<CPicture> & image)
 {
 	auto composited = ENGINE->renderHandler().createImage(image->getSurface()->dimensions(), CanvasScalingPolicy::AUTO);
 	Canvas canvas = composited->getCanvas();
 	canvas.draw(image->getSurface(), Point(0, 0));
 
 	auto dialogBox = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("DIALGBOX"), EImageBlitMode::COLORKEY);
-	if(playerColor.isValidPlayer() && playerColor != PlayerColor(1))
-		dialogBox->playerColored(playerColor);
 
 	const int width = composited->width();
 	const int height = composited->height();
@@ -141,10 +139,7 @@ std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, b
 	auto image = std::make_shared<CPicture>(imageName, Point(0,0), EImageBlitMode::OPAQUE);
 
 	if(options & BORDERED_STATUSBAR)
-	{
-		const PlayerColor frameColor = (GAME->interface() && playerColored) ? GAME->interface()->playerID : PlayerColor(1);
-		return createBorderedStatusbar(image, frameColor);
-	}
+		image = createBorderedStatusbar(image);
 	if(!GAME->interface())
 		image->setPlayerColor(PlayerColor(1)); // in main menu we use blue
 	else if(playerColored)
