@@ -38,7 +38,8 @@ public:
 		RCLICK_POPUP=2, // window will behave as right-click popup
 		BORDERED=4, // window will have border if current resolution is bigger than size of window
 		SHADOW_DISABLED=8, //this window won't display any shadow
-		NEEDS_ANIMATED_BACKGROUND=16 //there are videos in the background that have to be played
+		NEEDS_ANIMATED_BACKGROUND=16, //there are videos in the background that have to be played
+		BORDERED_STATUSBAR=32 //composite bordered frame for statusbar dialogs (player-colored when combined with PLAYER_COLORED)
 	};
 
 	/*
