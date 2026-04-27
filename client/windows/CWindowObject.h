@@ -30,7 +30,7 @@ protected:
 	//To display border
 	void updateShadow();
 	void setBackground(const ImagePath & filename);
-	std::shared_ptr<CPicture> createBg(const ImagePath & imageName, int windowOptions);
+	std::shared_ptr<CPicture> createBg(const ImagePath & imageName, bool playerColored);
 	std::shared_ptr<CPicture> createBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor);
 public:
 	enum EOptions

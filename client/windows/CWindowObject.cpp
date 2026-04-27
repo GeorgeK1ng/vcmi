@@ -36,7 +36,7 @@
 CWindowObject::CWindowObject(int options_, const ImagePath & imageName, Point centerAt):
 	WindowBase(0, Point()),
 	options(options_),
-	background(createBg(imageName, options_))
+	background(createBg(imageName, options_ & PLAYER_COLORED))
 {
 	if(!(options & NEEDS_ANIMATED_BACKGROUND)) //currently workaround for highscores (currently uses window as normal control, because otherwise videos are not played in background yet)
 		assert(parent == nullptr); //Safe to remove, but windows should not have parent
@@ -56,7 +56,7 @@ CWindowObject::CWindowObject(int options_, const ImagePath & imageName, Point ce
 CWindowObject::CWindowObject(int options_, const ImagePath & imageName):
 	WindowBase(0, Point()),
 	options(options_),
-	background(createBg(imageName, options_))
+	background(createBg(imageName, options_ & PLAYER_COLORED))
 {
 	if(!(options & NEEDS_ANIMATED_BACKGROUND)) //currently workaround for highscores (currently uses window as normal control, because otherwise videos are not played in background yet)
 		assert(parent == nullptr); //Safe to remove, but windows should not have parent
@@ -79,7 +79,7 @@ CWindowObject::~CWindowObject()
 		ENGINE->cursor().show();
 }
 
-std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, int windowOptions)
+std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, bool playerColored)
 {
 	OBJECT_CONSTRUCTION;
 
@@ -89,12 +89,12 @@ std::shared_ptr<CPicture> CWindowObject::createBg(const ImagePath & imageName, i
 	auto image = std::make_shared<CPicture>(imageName, Point(0,0), EImageBlitMode::OPAQUE);
 	PlayerColor playerColor = GAME->interface() ? GAME->interface()->playerID : PlayerColor(1);
 
-	if(windowOptions & BORDERED_STATUSBAR)
+	if(options & BORDERED_STATUSBAR)
 	{
-		const PlayerColor frameColor = (windowOptions & PLAYER_COLORED) ? playerColor : PlayerColor(1);
+		const PlayerColor frameColor = playerColored ? playerColor : PlayerColor(1);
 		return createBorderedStatusbar(image, frameColor);
 	}
-	if(windowOptions & PLAYER_COLORED)
+	if(playerColored)
 		image->setPlayerColor(playerColor);
 
 	return image;
@@ -156,7 +156,7 @@ void CWindowObject::setBackground(const ImagePath & filename)
 {
 	OBJECT_CONSTRUCTION;
 
-	background = createBg(filename, options);
+	background = createBg(filename, options & PLAYER_COLORED);
 
 	if(background)
 		pos = background->center(Point(pos.w/2 + pos.x, pos.h/2 + pos.y));
