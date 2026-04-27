@@ -207,7 +207,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	labels.push_back(std::make_shared<CLabel>(pos.w / 2, tableTop + rowHeight * static_cast<int>(rows.size() + 1) + 14, FONT_MEDIUM, ETextAlignment::CENTER, Colors::ORANGE, stackDetails));
 
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 38), AnimationPath::builtin("IOKAY.DEF"), CButton::tooltip(LIBRARY->generaltexth->zelp[632]), [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 38), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - statusbarHeight, pos.w - 16, 19), 8, pos.h - statusbarHeight));
 }
