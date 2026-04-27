@@ -33,7 +33,7 @@
 
 #include <SDL_surface.h>
 
-static std::shared_ptr<CPicture> createBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
+std::shared_ptr<CPicture> CWindowObject::createBorderedStatusbar(const std::shared_ptr<CPicture> & image, PlayerColor playerColor)
 {
 	auto composited = ENGINE->renderHandler().createImage(image->getSurface()->dimensions(), CanvasScalingPolicy::AUTO);
 	Canvas canvas = composited->getCanvas();
