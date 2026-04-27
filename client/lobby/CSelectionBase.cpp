@@ -555,6 +555,12 @@ void TownSelector::updateListItems()
 	}
 }
 
+void InfoCard::moveBackgroundBy(const Point & offset)
+{
+	if(background)
+		background->moveBy(offset);
+}
+
 void TownSelector::sliderMove(int slidPos)
 {
 	if(!slider)

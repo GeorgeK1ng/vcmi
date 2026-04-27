@@ -140,6 +140,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		moveControl(tabRand);
 		moveControl(tabBattleOnlyMode);
 		moveControl(card);
+		card->moveBackgroundBy(contentOffset);
 
 		moveControl(buttonSelect);
 		moveControl(buttonRMG);
