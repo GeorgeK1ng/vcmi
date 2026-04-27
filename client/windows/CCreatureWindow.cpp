@@ -56,8 +56,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int sideMargin = 12;
 	const int headerTop = 14;
-	const int tableTop = 56;
-	const int tableHeight = 290;
+	const int detailsTop = 42;
+	const int tableTop = 162;
+	const int tableHeight = 240;
 	const int statusbarHeight = 26;
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
@@ -71,6 +72,34 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS) > 0;
 	const int expMax = static_cast<int>(rankThresholds.back());
+	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
+	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
+	const int maxExpPerBattle = maxExpPercent * expMax / 100;
+	const int nextRankExp = currentRank < static_cast<int>(rankThresholds.size()) ? std::max(0, static_cast<int>(rankThresholds[currentRank] - sourceStack->getAverageExperience())) : 0;
+	int expMin = std::max(LIBRARY->creh->expRanks[tier][std::max(currentRank - 1, 0)], static_cast<ui32>(1));
+	const int maxNewRecruits = static_cast<int>(sourceStack->getTotalExperience() / expMin - sourceStack->getCount());
+	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
+	expMin = LIBRARY->creh->expRanks[tier][9];
+	const int expAfterRank10 = static_cast<int>(LIBRARY->creh->expRanks[tier][10] - expMin);
+	const int maxRecruitsAtRank10 = static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin);
+
+	creatureIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("CPRSMALL"), this->creature->getIconIndex(), 0, sideMargin + 10, detailsTop + 4);
+
+	const int detailsTextX = sideMargin + 62;
+	const int detailRowHeight = 16;
+	const std::vector<std::string> detailLines = {
+		boost::str(boost::format("%s: %s") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureType") % this->creature->getNamePluralTranslated()),
+		boost::str(boost::format("%s: %s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank),
+		boost::str(boost::format("%s: %d   |   %s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experiencePoints") % sourceStack->getAverageExperience() % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank") % nextRankExp),
+		boost::str(boost::format("%s: %d%% (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle") % maxExpPercent % maxExpPerBattle),
+		boost::str(boost::format("%s: %d   |   %s: %d%%") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") % maxNewRecruits % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier") % upgradeMultiplier),
+		boost::str(boost::format("%s: %d   |   %s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10") % expAfterRank10 % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") % maxRecruitsAtRank10)
+	};
+
+	for(size_t i = 0; i < detailLines.size(); ++i)
+	{
+		labels.push_back(std::make_shared<CLabel>(detailsTextX, detailsTop + static_cast<int>(i) * detailRowHeight, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, detailLines[i]));
+	}
 
 	std::vector<NumericRow> rows = {
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
@@ -143,13 +172,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
 	tableFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::CYAN);
 
-		for(size_t row = 0; row < rows.size(); ++row)
-		{
-			const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
-			labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, rows[row].title));
+	for(size_t row = 0; row < rows.size(); ++row)
+	{
+		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
+		labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, rows[row].title));
 
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
@@ -179,7 +207,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	labels.push_back(std::make_shared<CLabel>(pos.w / 2, tableTop + rowHeight * static_cast<int>(rows.size() + 1) + 14, FONT_MEDIUM, ETextAlignment::CENTER, Colors::ORANGE, stackDetails));
 
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, 313), AnimationPath::builtin("IOKAY.DEF"), CButton::tooltip(LIBRARY->generaltexth->zelp[632]), [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 38), AnimationPath::builtin("IOKAY.DEF"), CButton::tooltip(LIBRARY->generaltexth->zelp[632]), [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - statusbarHeight, pos.w - 16, 19), 8, pos.h - statusbarHeight));
 }

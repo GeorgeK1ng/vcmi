@@ -173,6 +173,7 @@ class CStackWindow : public CWindowObject
 		const CCreature * creature;
 
 		std::shared_ptr<CLabel> title;
+		std::shared_ptr<CAnimImage> creatureIcon;
 		std::shared_ptr<GraphicalPrimitiveCanvas> tableFrame;
 		std::shared_ptr<CButton> closeButton;
 		std::vector<std::shared_ptr<CLabel>> labels;

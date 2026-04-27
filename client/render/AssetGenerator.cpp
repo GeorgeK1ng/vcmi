@@ -94,7 +94,7 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	addDialogBackgroundWithStatusBar("stackExperienceDialog", Point(760, 420));
+	addDialogBackgroundWithStatusBar("stackExperienceDialog", Point(760, 520));
 
 	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
