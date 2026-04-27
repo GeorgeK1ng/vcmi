@@ -123,7 +123,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 			GAME->server().getGlobalLobby().activateInterface();
 	}, EShortcut::GLOBAL_CANCEL);
 
-	if(screenType == ESelectionScreen::newGame)
+	if(screenType == ESelectionScreen::newGame || screenType == ESelectionScreen::loadGame)
 	{
 		const Point contentOffset(19, 0);
 		for(CIntObject * child : children)
