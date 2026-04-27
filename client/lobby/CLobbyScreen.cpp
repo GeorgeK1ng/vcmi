@@ -151,7 +151,10 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		moveControl(buttonSimturns);
 
 		for(const auto & image : images)
-			moveControl(image);
+		{
+			if(image)
+				image->moveBy(contentOffset);
+		}
 	}
 
 	if(hideScreen) // workaround to avoid confusing players by custom campaign list displaying for a few ms -> instead of this draw a black screen while "loading"
