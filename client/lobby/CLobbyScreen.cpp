@@ -129,7 +129,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		const Point contentOffset(19, 0);
 		for(CIntObject * child : children)
 		{
-			if(!child || child == background.get() || child == buttonBattleMode.get())
+			if(!child || child == background.get())
 				continue;
 
 			child->moveBy(contentOffset);
@@ -286,6 +286,8 @@ void CLobbyScreen::updateAfterStateChange()
 	{
 		tabBattleOnlyMode = std::make_shared<BattleOnlyModeTab>();
 		tabBattleOnlyMode->setEnabled(false);
+		if(screenType == ESelectionScreen::newGame || screenType == ESelectionScreen::loadGame)
+			tabBattleOnlyMode->moveBy(Point(19, 0));
 
 		if(GAME->server().battleMode)
 			toggleTab(tabBattleOnlyMode);
