@@ -146,7 +146,7 @@ class CStackWindow : public CWindowObject
 		std::vector<std::shared_ptr<CLabel>> stats;
 
 		std::shared_ptr<CAnimImage> expRankIcon;
-		std::shared_ptr<LRClickableAreaWText> expArea;
+		std::shared_ptr<CIntObject> expArea;
 		std::shared_ptr<CLabel> expLabel;
 
 		void addStatLabel(EStat index, int64_t value1, int64_t value2);
@@ -158,6 +158,28 @@ class CStackWindow : public CWindowObject
 		std::array<std::string, 8> statFormats;
 	public:
 		MainSection(CStackWindow * owner, int yOffset, bool showExp, bool showArt);
+	};
+
+	class StackExperienceDetailsWindow : public CStatusbarWindow
+	{
+		struct NumericRow
+		{
+			std::string title;
+			std::function<int(const CStackInstance &)> valueGetter;
+			bool percent = false;
+		};
+
+		const CStackInstance * sourceStack;
+		const CCreature * creature;
+
+		std::shared_ptr<CLabel> title;
+		std::shared_ptr<GraphicalPrimitiveCanvas> tableFrame;
+		std::shared_ptr<CButton> closeButton;
+		std::vector<std::shared_ptr<CLabel>> labels;
+
+		static constexpr int MAX_RANKS = 11;
+	public:
+		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature);
 	};
 
 	std::shared_ptr<CFilledTexture> background;
@@ -194,6 +216,7 @@ class CStackWindow : public CWindowObject
 
 	void init();
 	void close() override;
+	void showStackExperienceDetailsWindow();
 
 	std::string generateStackExpDescription();
 	std::string getCommanderSkillDescription(int skillIndex, int skillLevel);

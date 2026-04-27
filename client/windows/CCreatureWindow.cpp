@@ -12,6 +12,7 @@
 
 #include <vcmi/spells/Spell.h>
 #include <vcmi/spells/Service.h>
+#include <boost/algorithm/string/join.hpp>
 
 #include "../CPlayerInterface.h"
 #include "../render/Canvas.h"
@@ -23,6 +24,7 @@
 #include "../widgets/TextControls.h"
 #include "../widgets/ObjectLists.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
+#include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
@@ -43,6 +45,145 @@
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
+
+CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature)
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, ImagePath::builtin("stackExperienceDialog"))
+	, sourceStack(stack)
+	, creature(creature)
+{
+	OBJECT_CONSTRUCTION;
+
+	const int sideMargin = 12;
+	const int headerTop = 14;
+	const int tableTop = 56;
+	const int tableHeight = 290;
+	const int statusbarHeight = 26;
+
+	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
+
+	std::vector<std::string> rankNames;
+	for(int rank = 0; rank < MAX_RANKS; ++rank)
+		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
+
+	int tier = std::clamp(creature->getLevel(), 1, 7);
+	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
+
+	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS) > 0;
+	const int expMax = static_cast<int>(rankThresholds.back());
+
+	std::vector<NumericRow> rows = {
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
+			{
+				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
+				if(rank == 0 || expMax == 0)
+					return 0;
+				return static_cast<int>(100.0 * static_cast<double>(rankThresholds[rank - 1]) / static_cast<double>(expMax));
+			}, true},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPoints"), [&rankThresholds](const CStackInstance & stackInst)
+			{
+				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
+				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK))));
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE))));
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax)));
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMin)));
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACK_HEALTH)));
+			}, true},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACKS_SPEED)));
+			}}
+	};
+
+	if(shooter)
+	{
+		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
+			}});
+	}
+
+	rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.retaliations"), [](const CStackInstance & stackInst)
+		{
+			return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::ADDITIONAL_RETALIATION)));
+		}});
+
+	const int rowNameWidth = 150;
+	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
+	const int rowHeight = tableHeight / static_cast<int>(rows.size() + 1);
+	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
+
+	tableFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
+	tableFrame->addRectangle(Point(0, 0), Point(tableWidth - 1, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
+
+	for(int line = 1; line <= static_cast<int>(rows.size()); ++line)
+		tableFrame->addLine(Point(0, rowHeight * line), Point(tableWidth - 1, rowHeight * line), Colors::METALLIC_GOLD);
+	tableFrame->addLine(Point(rowNameWidth, 0), Point(rowNameWidth, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
+	for(int column = 1; column < MAX_RANKS; ++column)
+		tableFrame->addLine(Point(rowNameWidth + column * colWidth, 0), Point(rowNameWidth + column * colWidth, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
+
+	for(int rank = 0; rank < MAX_RANKS; ++rank)
+	{
+		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
+	}
+
+	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
+	tableFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::CYAN);
+
+	for(size_t row = 0; row < rows.size(); ++row)
+	{
+		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
+		labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::LEFT, Colors::WHITE, rows[row].title));
+
+		for(int rank = 0; rank < MAX_RANKS; ++rank)
+		{
+			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+			CStackInstance preview(gameCallback, creature->getId(), std::max(1, sourceStack->getCount()), true);
+			if(const CArmedInstance * army = sourceStack->getArmy())
+				preview.attachTo(*army);
+			preview.giveTotalStackExperience(averageExp * preview.getCount());
+
+			const int value = rows[row].valueGetter(preview);
+
+			std::string valueText;
+			if(rows[row].percent)
+				valueText = (value > 0 ? "+" : "") + std::to_string(value) + "%";
+			else
+				valueText = (value > 0 ? "+" : "") + std::to_string(value);
+
+			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
+		}
+	}
+
+	const std::string stackDetails = boost::str(boost::format(LIBRARY->generaltexth->translate("vcmi.stackExperience.table.summary"))
+		% sourceStack->getCount()
+		% creature->getNamePluralTranslated()
+		% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
+		% sourceStack->getAverageExperience()
+		% expMax);
+	labels.push_back(std::make_shared<CLabel>(pos.w / 2, tableTop + rowHeight * static_cast<int>(rows.size() + 1) + 14, FONT_MEDIUM, ETextAlignment::CENTER, Colors::ORANGE, stackDetails));
+
+	closeButton = std::make_shared<CButton>(Point((pos.w - 80) / 2, pos.h - statusbarHeight - 46), AnimationPath::builtin("settingsWindow/button80"), CButton::tooltip(), [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton->setTextOverlay(LIBRARY->generaltexth->translate("core.genrltxt.44"), Colors::YELLOW);
+
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - statusbarHeight, pos.w - 16, 19), 8, pos.h - statusbarHeight));
+}
 
 class CCreatureArtifactInstance;
 class CSelectableSkill;
@@ -684,8 +825,15 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 		else
 		{
 			expRankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), stack->getExpRank(), 0, pos.x, pos.y - 2);
-			expArea = std::make_shared<LRClickableAreaWText>(Rect(pos.x, pos.y, 44, 44));
-			expArea->text = parent->generateStackExpDescription();
+			expArea = std::make_shared<LRClickableArea>(Rect(pos.x, pos.y, 44, 44),
+				[this]()
+				{
+					parent->showStackExperienceDetailsWindow();
+				},
+				[this]()
+				{
+					CRClickPopup::createAndPush(parent->generateStackExpDescription());
+				});
 		}
 		expLabel = std::make_shared<CLabel>(
 				pos.x + 21, pos.y + 55, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE,
@@ -1047,38 +1195,45 @@ std::string CStackWindow::generateStackExpDescription()
 	int rank = stack->getExpRank();
 	if (!vstd::iswithin(tier, 1, 7))
 		tier = 0;
-	int number;
-	std::string expText = LIBRARY->generaltexth->translate("vcmi.stackExperience.description");
-	boost::replace_first(expText, "%s", creature->getNamePluralTranslated());
-	boost::replace_first(expText, "%s", LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
-	boost::replace_first(expText, "%i", std::to_string(rank));
-	boost::replace_first(expText, "%i", std::to_string(stack->getAverageExperience()));
-	number = static_cast<int>(LIBRARY->creh->expRanks[tier][rank] - stack->getAverageExperience());
-	boost::replace_first(expText, "%i", std::to_string(number));
+	const int nextRankExp = static_cast<int>(LIBRARY->creh->expRanks[tier][rank] - stack->getAverageExperience());
 
-	number = LIBRARY->creh->maxExpPerBattle[tier]; //percent
-	boost::replace_first(expText, "%i%", std::to_string(number));
-	number *= LIBRARY->creh->expRanks[tier].back() / 100; //actual amount
-	boost::replace_first(expText, "%i", std::to_string(number));
+	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
+	const int maxExpPerBattle = maxExpPercent * static_cast<int>(LIBRARY->creh->expRanks[tier].back()) / 100;
 
-	boost::replace_first(expText, "%i", std::to_string(stack->getCount())); //Number of Creatures in stack
+	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank - 1, 0)], (ui32)1);
+	const int maxNewRecruits = static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount());
 
-	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank-1, 0)], (ui32)1);
-	number = stack->getTotalExperience() / expmin - stack->getCount(); //Maximum New Recruits without losing current Rank
-	boost::replace_first(expText, "%i", std::to_string(number)); //TODO
-
-	boost::replace_first(expText, "%.2f", std::to_string(1)); //TODO Experience Multiplier
-	number = LIBRARY->creh->expAfterUpgrade;
-	boost::replace_first(expText, "%.2f", std::to_string(number) + "%"); //Upgrade Multiplier
-
+	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
 	expmin = LIBRARY->creh->expRanks[tier][9];
-	int expmax = LIBRARY->creh->expRanks[tier][10];
-	number = expmax - expmin;
-	boost::replace_first(expText, "%i", std::to_string(number)); //Experience after Rank 10
-	number = (stack->getCount() * (expmax - expmin)) / expmin;
-	boost::replace_first(expText, "%i", std::to_string(number)); //Maximum New Recruits to remain at Rank 10 if at Maximum Experience
+	const int expmax = LIBRARY->creh->expRanks[tier][10];
+	const int expAfterRank10 = expmax - expmin;
+	const int maxNewRecruitsRank10 = static_cast<int>((stack->getCount() * (expmax - expmin)) / expmin);
 
-	return expText;
+	const std::vector<std::string> lines = {
+		LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"),
+		"",
+		boost::str(boost::format("%s: %s") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureType") % creature->getNamePluralTranslated()),
+		boost::str(boost::format("%s: %s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank) % rank),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experiencePoints") % stack->getAverageExperience()),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank") % nextRankExp),
+		boost::str(boost::format("%s: %d%% (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle") % maxExpPercent % maxExpPerBattle),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureCount") % stack->getCount()),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") % maxNewRecruits),
+		boost::str(boost::format("%s: %.2f") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceMultiplier") % 1.0),
+		boost::str(boost::format("%s: %d%%") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier") % upgradeMultiplier),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10") % expAfterRank10),
+		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") % maxNewRecruitsRank10)
+	};
+
+	return boost::algorithm::join(lines, "\n");
+}
+
+void CStackWindow::showStackExperienceDetailsWindow()
+{
+	if(!info->stackNode || info->commander || !GAME->interface())
+		return;
+
+	ENGINE->windows().pushWindow(std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature));
 }
 
 std::string CStackWindow::getCommanderSkillDescription(int skillIndex, int skillLevel)
