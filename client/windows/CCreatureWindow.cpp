@@ -46,8 +46,17 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
+namespace
+{
+ImagePath getStackExperienceDialogBackground(const CStackInstance * stack)
+{
+	const bool shooter = stack && stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
+	return ImagePath::builtin(shooter ? "stackExperienceDialogShooter" : "stackExperienceDialog");
+}
+}
+
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
-	: CWindowObject(BORDERED | PLAYER_COLORED, ImagePath::builtin("stackExperienceDialog"))
+	: CWindowObject(BORDERED | PLAYER_COLORED, getStackExperienceDialogBackground(stack))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
@@ -58,7 +67,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int detailsTop = 76;
 	const int tableTop = 224;
 	const int tableHeight = 250;
-	const int tableRowCount = 11; // header + up to 10 data rows (matches Creature Window stat coverage)
 	const int statusbarHeight = 26; // kept for bottom button offset
 	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 
@@ -182,7 +190,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	};
 
 	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS);
-	const bool caster = sourceStack->valOfBonuses(BonusType::CASTS);
 	if(shooter)
 	{
 		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
@@ -190,13 +197,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
 			}});
 	}
-	if(caster)
-	{
-		rows.push_back({LIBRARY->generaltexth->allTexts[399], [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
-			}});
-	}
+
+	const int tableRowCount = shooter ? 10 : 9; // header + data rows (with/without shots row)
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;

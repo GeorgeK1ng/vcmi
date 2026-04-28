@@ -94,7 +94,8 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	imageFiles[ImagePath::builtin("stackExperienceDialog")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520));};
+	imageFiles[ImagePath::builtin("stackExperienceDialog")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 9);};
+	imageFiles[ImagePath::builtin("stackExperienceDialogShooter")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 10);};
 
 	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
@@ -1219,7 +1220,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(const Point & size) const
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(const Point & size, int rowCount) const
 {
 	auto image = createDialogBackground(size);
 	Canvas canvas = image->getCanvas();
@@ -1231,7 +1232,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
 	const int rankColumns = 11;
-	const int rowCount = 11; // header + up to 10 data rows (shots + mana)
 	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
