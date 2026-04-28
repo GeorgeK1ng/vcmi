@@ -1289,7 +1289,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
 
 	for(int line = 1; line < rowCount; ++line)
-		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+	{
+		const int xStart = (line == 1) ? sideMargin + rowNameWidth : sideMargin;
+		canvas.drawLine(Point(xStart, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+	}
 
 	// Skip first-column cell in header row - first row starts directly with rank headers.
 	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop + rowHeight), Point(sideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
