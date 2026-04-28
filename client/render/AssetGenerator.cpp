@@ -94,7 +94,7 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	addDialogBackgroundWithStatusBar("stackExperienceDialog", Point(800, 520));
+	addDialogBackground("stackExperienceDialog", Point(800, 520));
 
 	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
@@ -160,6 +160,11 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size)
 {
 	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size);};
+}
+
+void AssetGenerator::addDialogBackground(const std::string & fileName, const Point & size)
+{
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackground(size);};
 }
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
@@ -1185,16 +1190,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size) const
+AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & size) const
 {
-	// Generic compositing helper:
-	// 1) tile DiBoxBck over full target size
-	// 2) add darkened status-bar strip at the bottom
 	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 
 	auto background = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
-	// Fill whole area with DiBoxBck texture first.
 	for (int y = 0; y < size.y; y += background->height())
 	{
 		for (int x = 0; x < size.x; x += background->width())
@@ -1202,6 +1203,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 			canvas.draw(background, Point(x, y), Rect(0, 0, std::min(background->width(), size.x - x), std::min(background->height(), size.y - y)));
 		}
 	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size) const
+{
+	auto image = createDialogBackground(size);
+	Canvas canvas = image->getCanvas();
 
 	// Status bar overlay: darken bottom strip to match original dialog style
 	const int statusBarOverlayHeight = 30;
