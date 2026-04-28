@@ -1247,11 +1247,11 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
-	const int infoColumnGap = 2;
+	const int infoColumnGap = 14;
 	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
 	const int infoValueWidth = 80;
-	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
+	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;

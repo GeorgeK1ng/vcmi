@@ -153,11 +153,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	creatureAnimation->setAmount(sourceStack->getCount());
 
 	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
-	const int infoColumnGap = 2;
+	const int infoColumnGap = 14;
 	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
 	const int infoValueWidth = 80;
-	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
+	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoColumnWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
@@ -170,8 +170,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		const int baseX = column == 0 ? infoLeftX : infoRightX;
 		const int rowY = infoTop + row * infoRowStep;
-		labels.push_back(std::make_shared<CLabel>(baseX + 2, rowY + 1, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, key + ":"));
-		labels.push_back(std::make_shared<CLabel>(baseX + infoLabelWidth + infoSectionGap + 2, rowY + 1, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
+		labels.push_back(std::make_shared<CLabel>(baseX + 2, rowY + infoFieldHeight / 2, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, key + ":"));
+		labels.push_back(std::make_shared<CLabel>(baseX + infoLabelWidth + infoSectionGap + 2, rowY + infoFieldHeight / 2, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, value));
 	};
 
 	addInfo(0, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank"), boost::str(boost::format("%s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank));
@@ -191,8 +191,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			key + ":"));
 		labels.push_back(std::make_shared<CLabel>(
 			baseX + infoLabelWidth + infoSectionGap + 2,
-			rowY + infoFieldHeight / 2 + 1,
-			FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
+			rowY + infoLongFieldHeight / 2,
+			FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE,
 			std::to_string(value)));
 	};
 
