@@ -57,9 +57,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int sideMargin = 10;
 	const int headerTop = 9;
 	const int detailsTop = 76;
-	const int tableTop = 234;
+	const int tableTop = 224;
 	const int tableHeight = 250;
 	const int statusbarHeight = 26; // kept for bottom button offset
+	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
@@ -89,21 +90,24 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 46, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
 
-	creatureAnimation = std::make_shared<CCreaturePic>(sideMargin + 14, detailsTop + 6, this->creature, true, true);
+	const int creatureFrameX = sideMargin + 4;
+	const int creatureFrameY = detailsTop;
+	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 10, creatureFrameY + 6, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
 	const int infoLeftX = sideMargin + 138;
 	const int infoRightX = pos.w / 2 + 20;
-	const int infoRowHeight = 20;
+	const int infoRowHeight = statRowHeight;
 	const int infoTop = detailsTop + 4;
-	const int infoValueWidth = 188;
+	const int infoValueOffset = 188;
+	const int infoColumnWidth = infoRightX - infoLeftX - 16;
 
 	auto addInfo = [&](int row, int column, const std::string & key, const std::string & value)
 	{
 		const int baseX = column == 0 ? infoLeftX : infoRightX;
 		const int rowY = infoTop + row * infoRowHeight;
 		labels.push_back(std::make_shared<CLabel>(baseX, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, key + ":"));
-		labels.push_back(std::make_shared<CLabel>(baseX + infoValueWidth, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
+		labels.push_back(std::make_shared<CLabel>(baseX + infoValueOffset, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
 	};
 
 	addInfo(0, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank"), boost::str(boost::format("%s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank));
@@ -113,11 +117,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addInfo(2, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier"), boost::str(boost::format("%d%%") % upgradeMultiplier));
 	addInfo(2, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10"), std::to_string(expAfterRank10));
 	labels.push_back(std::make_shared<CMultiLineLabel>(
-		Rect(infoLeftX, infoTop + 3 * infoRowHeight, infoValueWidth * 2, infoRowHeight * 2),
+		Rect(infoLeftX, infoTop + 3 * infoRowHeight, infoColumnWidth, infoRowHeight * 2),
 		FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
 		LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") + ": " + std::to_string(maxNewRecruits)));
 	labels.push_back(std::make_shared<CMultiLineLabel>(
-		Rect(infoRightX, infoTop + 3 * infoRowHeight, infoValueWidth * 2, infoRowHeight * 2),
+		Rect(infoRightX, infoTop + 3 * infoRowHeight, infoColumnWidth, infoRowHeight * 2),
 		FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
 		LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") + ": " + std::to_string(maxRecruitsAtRank10)));
 

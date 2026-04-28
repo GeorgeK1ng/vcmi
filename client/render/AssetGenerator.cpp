@@ -1227,11 +1227,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int sideMargin = 10;
 	const int headerTop = 9;
 	const int detailsTop = 76;
-	const int tableTop = 234;
+	const int tableTop = 224;
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
 	const int rankColumns = 11;
 	const int rowCount = 10; // header + 9 data rows
+	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
 	const int tableWidth = rowNameWidth + colWidth * rankColumns;
@@ -1252,9 +1253,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 138;
 	const int infoRightX = size.x / 2 + 20;
-	const int infoRowHeight = 20;
-	const int infoTop = 80;
-	const int infoWidth = 376;
+	const int infoRowHeight = statRowHeight;
+	const int infoTop = detailsTop + 4;
+	const int infoWidth = infoRightX - infoLeftX - 16;
 
 	for(int row = 0; row < 3; ++row)
 	{
