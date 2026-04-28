@@ -98,7 +98,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackExperienceDialogRows10")] = [this](){ return createStackExperienceDialogBackground(Point(800, 545), 10);};
 	imageFiles[ImagePath::builtin("stackExperienceDialogRows11")] = [this](){ return createStackExperienceDialogBackground(Point(800, 570), 11);};
 
-	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
+	addBackpackBackground("heroBackpackDialog", Point(426, 465));
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
@@ -159,14 +159,19 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 	animationFiles[path] = anim;
 }
 
-void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size)
+void AssetGenerator::addBackpackBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackground(size, true);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createBackpackDialogBackground(size);};
 }
 
 void AssetGenerator::addDialogBackground(const std::string & fileName, const Point & size)
 {
 	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackground(size);};
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createBackpackDialogBackground(const Point & size) const
+{
+	return createDialogBackground(size, true);
 }
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
