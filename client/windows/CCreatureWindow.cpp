@@ -92,7 +92,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int creatureFrameX = sideMargin + 4;
 	const int creatureFrameY = detailsTop;
-	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 10, creatureFrameY + 6, this->creature, true, true);
+	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 1, creatureFrameY + 1, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
 	const int infoLeftX = sideMargin + 138;
