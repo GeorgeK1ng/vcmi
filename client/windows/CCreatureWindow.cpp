@@ -142,13 +142,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE))));
 			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax)));
-			}},
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), [](const CStackInstance & stackInst)
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMin)));
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax)));
 			}},
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), [](const CStackInstance & stackInst)
 			{
@@ -163,11 +163,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
 			}}
 	};
-
-	rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.retaliations"), [](const CStackInstance & stackInst)
-		{
-			return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::ADDITIONAL_RETALIATION)));
-		}});
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
