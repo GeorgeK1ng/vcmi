@@ -629,5 +629,16 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Csípje össze két ujjal a térkép nagyításának megváltoztatásához.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Húzás különféle műveletekhez, például lény/hős kezeléshez és város rendeléshez nyit meg egy radiális kereket.",
 	"vcmi.tutorialWindow.decription.RightClick": "Érintse meg és tartsa lenyomva azt az elemet, amelyre jobb gombbal szeretne kattintani. Érintse meg a szabad területet a bezáráshoz.",
-	"vcmi.tutorialWindow.title": "Érintőképernyő bemutató"
+	"vcmi.tutorialWindow.title": "Érintőképernyő bemutató",
+	"vcmi.stackExperience.rank.0": "Alap",
+	"vcmi.stackExperience.rank.1": "Kezdő",
+	"vcmi.stackExperience.rank.10": "Ász",
+	"vcmi.stackExperience.rank.2": "Képzett",
+	"vcmi.stackExperience.rank.3": "Ügyes",
+	"vcmi.stackExperience.rank.4": "Tapasztalt",
+	"vcmi.stackExperience.rank.5": "Veterán",
+	"vcmi.stackExperience.rank.6": "Haladó",
+	"vcmi.stackExperience.rank.7": "Szakértő",
+	"vcmi.stackExperience.rank.8": "Elit",
+	"vcmi.stackExperience.rank.9": "Mester"
 }

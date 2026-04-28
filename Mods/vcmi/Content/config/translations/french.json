@@ -202,5 +202,16 @@
 	"vcmi.systemOptions.townsGroup": "Écran de la Ville",
 	"vcmi.systemOptions.videoGroup": "Paramètres Vidéo",
 	"vcmi.townHall.missingBase": "Le bâtiment de base %s doit être construit avant",
-	"vcmi.townHall.noCreaturesToRecruit": "Il n'y a aucune créature à recruter !"
+	"vcmi.townHall.noCreaturesToRecruit": "Il n'y a aucune créature à recruter !",
+	"vcmi.stackExperience.rank.0": "Basique",
+	"vcmi.stackExperience.rank.1": "Novice",
+	"vcmi.stackExperience.rank.10": "As",
+	"vcmi.stackExperience.rank.2": "Formé",
+	"vcmi.stackExperience.rank.3": "Qualifié",
+	"vcmi.stackExperience.rank.4": "Éprouvé",
+	"vcmi.stackExperience.rank.5": "Vétéran",
+	"vcmi.stackExperience.rank.6": "Adepte",
+	"vcmi.stackExperience.rank.7": "Expert",
+	"vcmi.stackExperience.rank.8": "Élite",
+	"vcmi.stackExperience.rank.9": "Maître"
 }

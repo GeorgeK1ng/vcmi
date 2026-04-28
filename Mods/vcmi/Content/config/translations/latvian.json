@@ -1072,5 +1072,16 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Saspiediet divus pirkstus, lai mainītu kartes tālummaiņu.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Pārvelkot, tiek atvērts radiālais ritenis dažādām darbībām, piemēram, radījumu/varoņu pārvaldībai un pilsētu sakārtošanai.",
 	"vcmi.tutorialWindow.decription.RightClick": "Pieskarieties un turiet elementu, uz kura vēlaties noklikšķināt ar peles labo pogu. Pieskarieties brīvajai zonai, lai aizvērtu.",
-	"vcmi.tutorialWindow.title": "Skārienekrāna ievads"
+	"vcmi.tutorialWindow.title": "Skārienekrāna ievads",
+	"vcmi.stackExperience.rank.0": "Pamata",
+	"vcmi.stackExperience.rank.1": "Iesācējs",
+	"vcmi.stackExperience.rank.10": "Dūzis",
+	"vcmi.stackExperience.rank.2": "Apmācīts",
+	"vcmi.stackExperience.rank.3": "Prasmīgs",
+	"vcmi.stackExperience.rank.4": "Pierādīts",
+	"vcmi.stackExperience.rank.5": "Veterāns",
+	"vcmi.stackExperience.rank.6": "Prasmīgs",
+	"vcmi.stackExperience.rank.7": "Eksperts",
+	"vcmi.stackExperience.rank.8": "Elite",
+	"vcmi.stackExperience.rank.9": "Meistars"
 }

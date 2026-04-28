@@ -1083,5 +1083,16 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Торкніться двома пальцями, щоб змінити масштаб мапи.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Проводячи пальцем, ви відкриваєте радіальне колесо для різних дій, таких як управління істотами/героями та порядком міст/героїв.",
 	"vcmi.tutorialWindow.decription.RightClick": "Торкніться і утримуйте елемент, на якому ви хочете натиснути правою кнопкою миші. Торкніться вільної області, щоб закрити.",
-	"vcmi.tutorialWindow.title": "Використання Сенсорного Екрану"
+	"vcmi.tutorialWindow.title": "Використання Сенсорного Екрану",
+	"vcmi.stackExperience.rank.0": "Базовий",
+	"vcmi.stackExperience.rank.1": "Початківець",
+	"vcmi.stackExperience.rank.10": "Ас",
+	"vcmi.stackExperience.rank.2": "Підготовлений",
+	"vcmi.stackExperience.rank.3": "Кваліфікований",
+	"vcmi.stackExperience.rank.4": "Перевірений",
+	"vcmi.stackExperience.rank.5": "Ветеран",
+	"vcmi.stackExperience.rank.6": "Адепт",
+	"vcmi.stackExperience.rank.7": "Експерт",
+	"vcmi.stackExperience.rank.8": "Еліта",
+	"vcmi.stackExperience.rank.9": "Майстер"
 }

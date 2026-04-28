@@ -1084,5 +1084,16 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Haritanın yakınlaştırma düzeyini değiştirmek için iki parmağınızla sıkıştırın..",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Kaydırma hareketi, yaratık/kahraman yönetimi ve şehir siparişi gibi çeşitli eylemler için radyal tekerleği açar.",
 	"vcmi.tutorialWindow.decription.RightClick": "Sağ tıklamak istediğiniz öğeye dokunun ve basılı tutun. Kapatmak için boş alana dokunun.",
-	"vcmi.tutorialWindow.title": "Dokunmatik Ekran Tanıtımı"
+	"vcmi.tutorialWindow.title": "Dokunmatik Ekran Tanıtımı",
+	"vcmi.stackExperience.rank.0": "Temel",
+	"vcmi.stackExperience.rank.1": "Acemi",
+	"vcmi.stackExperience.rank.10": "As",
+	"vcmi.stackExperience.rank.2": "Eğitimli",
+	"vcmi.stackExperience.rank.3": "Yetenekli",
+	"vcmi.stackExperience.rank.4": "Kanıtlanmış",
+	"vcmi.stackExperience.rank.5": "Deneyimli",
+	"vcmi.stackExperience.rank.6": "Kıdemli",
+	"vcmi.stackExperience.rank.7": "Uzman",
+	"vcmi.stackExperience.rank.8": "Elit",
+	"vcmi.stackExperience.rank.9": "Usta"
 }
