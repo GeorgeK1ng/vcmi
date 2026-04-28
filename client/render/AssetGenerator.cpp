@@ -94,7 +94,7 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	addDialogBackground("stackExperienceDialog", Point(800, 520));
+	imageFiles[ImagePath::builtin("stackExperienceDialog")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520));};
 
 	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
@@ -1215,6 +1215,39 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(co
 	// Status bar overlay: darken bottom strip to match original dialog style
 	const int statusBarOverlayHeight = 30;
 	canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(const Point & size) const
+{
+	auto image = createDialogBackground(size);
+	Canvas canvas = image->getCanvas();
+
+	const int sideMargin = 10;
+	const int tableTop = 204;
+	const int rowNameWidth = 140;
+	const int tableHeight = 250;
+	const int rankColumns = 11;
+	const int rowCount = 11; // header + 10 data rows
+	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
+	const int rowHeight = tableHeight / rowCount;
+	const int tableWidth = rowNameWidth + colWidth * rankColumns;
+	const int tableRenderedHeight = rowHeight * rowCount;
+
+	const ColorRGBA frameColor = Colors::METALLIC_GOLD;
+
+	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
+
+	for(int line = 1; line < rowCount; ++line)
+		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+
+	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	for(int column = 1; column < rankColumns; ++column)
+	{
+		const int x = sideMargin + rowNameWidth + column * colWidth;
+		canvas.drawLine(Point(x, tableTop), Point(x, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	}
 
 	return image;
 }

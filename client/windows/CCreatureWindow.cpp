@@ -70,7 +70,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	int tier = std::clamp(this->creature->getLevel(), 1, 7);
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 
-	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS) > 0;
 	const int expMax = static_cast<int>(rankThresholds.back());
 	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
@@ -160,16 +159,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), [](const CStackInstance & stackInst)
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACKS_SPEED)));
-			}}
-	};
-
-	if(shooter)
-	{
-		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
+			}},
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
-			}});
-	}
+			}}
+	};
 
 	rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.retaliations"), [](const CStackInstance & stackInst)
 		{
@@ -181,21 +176,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int rowHeight = tableHeight / static_cast<int>(rows.size() + 1);
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
 
-	tableFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
-	tableFrame->addRectangle(Point(0, 0), Point(tableWidth - 1, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
-
-	for(int line = 1; line <= static_cast<int>(rows.size()); ++line)
-		tableFrame->addLine(Point(0, rowHeight * line), Point(tableWidth - 1, rowHeight * line), Colors::METALLIC_GOLD);
-	tableFrame->addLine(Point(rowNameWidth, 0), Point(rowNameWidth, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
-	for(int column = 1; column < MAX_RANKS; ++column)
-		tableFrame->addLine(Point(rowNameWidth + column * colWidth, 0), Point(rowNameWidth + column * colWidth, rowHeight * static_cast<int>(rows.size() + 1) - 1), Colors::METALLIC_GOLD);
-
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	tableFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::METALLIC_GOLD);
+	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::METALLIC_GOLD);
 
 	for(size_t row = 0; row < rows.size(); ++row)
 	{

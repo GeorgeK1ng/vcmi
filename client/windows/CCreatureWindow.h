@@ -180,7 +180,7 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<GraphicalPrimitiveCanvas> creatureFrame;
 		std::shared_ptr<GraphicalPrimitiveCanvas> summaryFrame;
 		std::shared_ptr<CButton> closeButton;
-		std::shared_ptr<GraphicalPrimitiveCanvas> tableFrame;
+		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
 		std::vector<std::shared_ptr<CLabel>> labels;
 
 		static constexpr int MAX_RANKS = 11;

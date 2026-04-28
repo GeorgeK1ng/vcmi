@@ -69,6 +69,7 @@ private:
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
 	CanvasPtr createDialogBackground(const Point & size) const;
 	CanvasPtr createDialogBackgroundWithStatusBar(const Point & size) const;
+	CanvasPtr createStackExperienceDialogBackground(const Point & size) const;
 	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;
 	CanvasPtr createUniversityDialogBackground(const Point & size, int skillColumns) const;
 	CanvasPtr createUniversityConfirmDialogBackground(const Point & size, int costElements) const;
