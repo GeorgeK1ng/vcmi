@@ -1252,13 +1252,18 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 138;
-	const int infoRightX = size.x / 2 + 70;
-	const int infoRowHeight = statRowHeight;
+	const int infoColumnGap = 2;
+	const int infoAreaRight = size.x - sideMargin;
+	const int infoWidth = (infoAreaRight - infoLeftX - infoColumnGap) / 2;
+	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
-	const int infoWidth = infoRightX - infoLeftX - 16;
-	const int infoSectionGap = 6;
+	const int infoSectionGap = 18; // 10px visual gap between split blocks (+/-4px frame padding)
 	const int infoValueWidth = 80;
 	const int infoLabelWidth = infoWidth - infoValueWidth - infoSectionGap;
+	const int infoFieldHeight = statRowHeight + 2; // +3 compared to previous generated field height
+	const int infoFieldGap = 2;
+	const int infoRowStep = infoFieldHeight + infoFieldGap;
+	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap;
 
 	auto drawSplitRow = [&](int baseX, int y, int height)
 	{
@@ -1272,14 +1277,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	for(int row = 0; row < 3; ++row)
 	{
-		const int y = infoTop + row * infoRowHeight - 2;
-		drawSplitRow(infoLeftX, y, infoRowHeight - 1);
-		drawSplitRow(infoRightX, y, infoRowHeight - 1);
+		const int y = infoTop + row * infoRowStep;
+		drawSplitRow(infoLeftX, y, infoFieldHeight);
+		drawSplitRow(infoRightX, y, infoFieldHeight);
 	}
 
-	const int longY = infoTop + 3 * infoRowHeight - 2;
-	drawSplitRow(infoLeftX, longY, infoRowHeight * 2 - 1);
-	drawSplitRow(infoRightX, longY, infoRowHeight * 2 - 1);
+	const int longY = infoTop + 3 * infoRowStep;
+	drawSplitRow(infoLeftX, longY, infoLongFieldHeight);
+	drawSplitRow(infoRightX, longY, infoLongFieldHeight);
 
 	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
 
