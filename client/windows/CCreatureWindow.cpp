@@ -59,6 +59,14 @@ struct StackExperienceTableVisibility
 	}
 };
 
+int getStackExperienceTier(int level)
+{
+	const int maxTier = static_cast<int>(LIBRARY->creh->expRanks.size()) - 1;
+	if(maxTier <= 0)
+		return 0;
+	return std::clamp(level, 1, maxTier);
+}
+
 StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
 {
 	StackExperienceTableVisibility visibility;
@@ -70,7 +78,7 @@ StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CSt
 	visibility.showManaRow = stack->valOfBonuses(BonusType::CASTS) > 0;
 
 	// Also show rows if stack experience grants these stats at any rank.
-	int tier = std::clamp(creature->getLevel(), 1, 7);
+	int tier = getStackExperienceTier(creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 
@@ -117,7 +125,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
 
-	int tier = std::clamp(this->creature->getLevel(), 1, 7);
+	int tier = getStackExperienceTier(this->creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 
 	const int expMax = static_cast<int>(rankThresholds.back());
@@ -1296,8 +1304,7 @@ std::string CStackWindow::generateStackExpDescription()
 
 	int tier = stack->getType()->getLevel();
 	int rank = stack->getExpRank();
-	if (!vstd::iswithin(tier, 1, 7))
-		tier = 0;
+	tier = getStackExperienceTier(tier);
 	const int nextRankExp = static_cast<int>(LIBRARY->creh->expRanks[tier][rank] - stack->getAverageExperience());
 
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
