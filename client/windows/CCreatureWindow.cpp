@@ -130,7 +130,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
 	const int maxExpPerBattle = maxExpPercent * expMax / 100;
-	const int nextRankExp = currentRank < static_cast<int>(rankThresholds.size()) ? std::max(0, static_cast<int>(rankThresholds[currentRank] - sourceStack->getAverageExperience())) : 0;
+	const int nextRankExp = (currentRank < MAX_RANKS - 1 && currentRank < static_cast<int>(rankThresholds.size()))
+		? std::max(0, static_cast<int>(rankThresholds[currentRank] - sourceStack->getAverageExperience()))
+		: 0;
 	int expMin = std::max(LIBRARY->creh->expRanks[tier][std::max(currentRank - 1, 0)], static_cast<ui32>(1));
 	const int maxNewRecruits = std::max(0, static_cast<int>(sourceStack->getTotalExperience() / expMin - sourceStack->getCount()));
 	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
@@ -1298,16 +1300,21 @@ void CStackWindow::initSections()
 
 std::string CStackWindow::generateStackExpDescription()
 {
+	constexpr int stackExperienceRanks = 11;
+
 	const CStackInstance * stack = info->stackNode;
 	const CCreature * creature = info->creature;
 
 	int tier = stack->getType()->getLevel();
-	int rank = stack->getExpRank();
+	int rank = std::clamp(stack->getExpRank(), 0, stackExperienceRanks - 1);
 	tier = getStackExperienceTier(tier);
-	const int nextRankExp = static_cast<int>(LIBRARY->creh->expRanks[tier][rank] - stack->getAverageExperience());
+	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
+	const int nextRankExp = (rank < stackExperienceRanks - 1 && rank < static_cast<int>(rankThresholds.size()))
+		? std::max(0, static_cast<int>(rankThresholds[rank] - stack->getAverageExperience()))
+		: 0;
 
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
-	const int maxExpPerBattle = maxExpPercent * static_cast<int>(LIBRARY->creh->expRanks[tier].back()) / 100;
+	const int maxExpPerBattle = maxExpPercent * static_cast<int>(rankThresholds.back()) / 100;
 
 	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank - 1, 0)], (ui32)1);
 	const int maxNewRecruits = std::max(0, static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount()));
