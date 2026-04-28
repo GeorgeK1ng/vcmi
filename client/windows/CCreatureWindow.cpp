@@ -131,15 +131,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
 	const int currentRankReferenceExp = static_cast<int>(rankThresholds[std::min(currentRank, static_cast<int>(rankThresholds.size() - 1))]);
 	const int maxExpPerBattle = maxExpPercent * currentRankReferenceExp / 100;
+	const int experienceBonusPercent = sourceStack->valOfBonuses(BonusType::STACK_EXPERIENCE_GAIN_PERCENT);
+	const double experienceMultiplier = static_cast<double>(100 + experienceBonusPercent) / 100.0;
 	const int nextRankExp = (currentRank < MAX_RANKS - 1 && currentRank < static_cast<int>(rankThresholds.size()))
 		? std::max(0, static_cast<int>(rankThresholds[currentRank] - sourceStack->getAverageExperience()))
 		: 0;
 	int expMin = std::max(LIBRARY->creh->expRanks[tier][std::max(currentRank - 1, 0)], static_cast<ui32>(1));
 	const int maxNewRecruits = std::max(0, static_cast<int>(sourceStack->getTotalExperience() / expMin - sourceStack->getCount()));
 	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
-	expMin = LIBRARY->creh->expRanks[tier][9];
-	const int expAfterRank10 = static_cast<int>(LIBRARY->creh->expRanks[tier][10] - expMin);
-	const int maxRecruitsAtRank10 = std::max(0, static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin));
 
 	const std::string unitHeader = this->creature->getNamePluralTranslated();
 
@@ -176,9 +175,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addInfo(1, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle"), boost::str(boost::format("%d%% (%d)") % maxExpPercent % maxExpPerBattle));
 	addInfo(1, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank"), std::to_string(nextRankExp));
 	addInfo(2, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier"), boost::str(boost::format("%d%%") % upgradeMultiplier));
-	addInfo(2, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10"), std::to_string(expAfterRank10));
+	addInfo(2, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceMultiplier"), boost::str(boost::format("%.2fx") % experienceMultiplier));
 
-	auto addLongInfo = [&](int column, const std::string & key, int value)
+	auto addLongInfo = [&](int column, const std::string & key, const std::string & value)
 	{
 		const int baseX = column == 0 ? infoLeftX : infoRightX;
 		const int rowY = infoTop + 3 * infoRowStep;
@@ -190,11 +189,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			baseX + infoLabelWidth + infoSectionGap + 2,
 			rowY + infoLongFieldHeight / 2,
 			FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE,
-			std::to_string(value)));
+			value));
 	};
 
-	addLongInfo(0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits"), maxNewRecruits);
-	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), maxRecruitsAtRank10);
+	addLongInfo(0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits"), std::to_string(maxNewRecruits));
+	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceBonus"), boost::str(boost::format("%+d%%") % experienceBonusPercent));
 
 	std::vector<NumericRow> rows = {
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
