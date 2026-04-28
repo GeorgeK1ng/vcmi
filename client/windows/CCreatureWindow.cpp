@@ -156,7 +156,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int infoLeftX = sideMargin + 144; // shifted right by 6px
 	const int infoColumnGap = 2;
-	const int infoLabelWidthBase = 222 - 8;
+	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
 	const int infoValueWidth = 80;
 	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
