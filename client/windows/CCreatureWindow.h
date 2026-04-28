@@ -182,7 +182,7 @@ class CStackWindow : public CWindowObject
 
 		static constexpr int MAX_RANKS = 11;
 	public:
-		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature);
+		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
 	};
 
 	std::shared_ptr<CFilledTexture> background;

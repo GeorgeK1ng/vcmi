@@ -48,15 +48,56 @@
 
 namespace
 {
-ImagePath getStackExperienceDialogBackground(const CStackInstance * stack)
+struct StackExperienceTableVisibility
 {
-	const bool shooter = stack && stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
-	return ImagePath::builtin(shooter ? "stackExperienceDialogShooter" : "stackExperienceDialog");
+	bool showShotsRow = false;
+	bool showManaRow = false;
+
+	int getRowCount() const
+	{
+		return 9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow); // header + base data + optional rows
+	}
+};
+
+StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
+{
+	StackExperienceTableVisibility visibility;
+	if(!stack || !creature)
+		return visibility;
+
+	// Match current Creature Window visibility logic first.
+	visibility.showShotsRow = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
+	visibility.showManaRow = stack->valOfBonuses(BonusType::CASTS) > 0;
+
+	// Also show rows if stack experience grants these stats at any rank.
+	int tier = std::clamp(creature->getLevel(), 1, 7);
+	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
+	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+
+	for(int rank = 0; rank < MAX_RANKS; ++rank)
+	{
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
+		preview.giveTotalStackExperience(averageExp * preview.getCount());
+
+		const int shotsBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
+		const int manaBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
+
+		visibility.showShotsRow = visibility.showShotsRow || (shotsBonus > 0);
+		visibility.showManaRow = visibility.showManaRow || (manaBonus > 0);
+	}
+
+	return visibility;
+}
+
+ImagePath getStackExperienceDialogBackground(int rowCount)
+{
+	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
 }
 }
 
-CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
-	: CWindowObject(BORDERED | PLAYER_COLORED, getStackExperienceDialogBackground(stack))
+CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType, bool showShotsRow, bool showManaRow)
+	: CWindowObject(BORDERED | PLAYER_COLORED, getStackExperienceDialogBackground(9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
@@ -189,16 +230,22 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			}}
 	};
 
-	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS);
-	if(shooter)
+	if(showShotsRow)
 	{
 		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
 			}});
 	}
+	if(showManaRow)
+	{
+		rows.push_back({LIBRARY->generaltexth->allTexts[399], [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
+			}});
+	}
 
-	const int tableRowCount = shooter ? 10 : 9; // header + data rows (with/without shots row)
+	const int tableRowCount = 9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow); // header + base data + optional rows
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
@@ -1298,7 +1345,8 @@ void CStackWindow::showStackExperienceDetailsWindow()
 	if(!info->stackNode || info->commander || !GAME->interface())
 		return;
 
-	ENGINE->windows().pushWindow(std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature));
+	const auto visibility = calculateStackExperienceTableVisibility(info->stackNode, info->creature);
+	ENGINE->windows().pushWindow(std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature, visibility.showShotsRow, visibility.showManaRow));
 }
 
 std::string CStackWindow::getCommanderSkillDescription(int skillIndex, int skillLevel)
