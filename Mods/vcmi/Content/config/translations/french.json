@@ -179,7 +179,7 @@
 	"vcmi.settingsMainWindow.battleTab.hover": "Bataille",
 	"vcmi.settingsMainWindow.generalTab.help": "Passe à l'onglet Options générales, qui contient des paramètres liés au comportement général du client de jeu",
 	"vcmi.settingsMainWindow.generalTab.hover": "Général",
-	"vcmi.stackExperience.windowTitle": "D é t a i l s d e P i l e d ' E x p é r i e n c e",
+	"vcmi.stackExperience.windowTitle": "Détails de Pile d'Expérience",
 	"vcmi.stackExperience.popup.creatureType": "Type de créature",
 	"vcmi.stackExperience.popup.rank": "Rang d'expérience",
 	"vcmi.stackExperience.popup.experiencePoints": "Points d'expérience",

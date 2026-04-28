@@ -556,7 +556,7 @@
 	"vcmi.spellResearch.pay": "Szeretné lecserélni {%SPELL1}-et {%SPELL2}-re? Vagy elveti ezt a varázslatot, és folytatja a kutatást?",
 	"vcmi.spellResearch.research": "Ezt a varázslatot kutatja",
 	"vcmi.spellResearch.skip": "Ugorja át ezt a varázslatot",
-	"vcmi.stackExperience.windowTitle": "C s o m a g E l m é l e t i R é s z l e t e i",
+	"vcmi.stackExperience.windowTitle": "Csomag Elméleti Részletei",
 	"vcmi.stackExperience.popup.creatureType": "Lény típusa",
 	"vcmi.stackExperience.popup.rank": "Tapasztalati rang",
 	"vcmi.stackExperience.popup.experiencePoints": "Tapasztalati pontok",

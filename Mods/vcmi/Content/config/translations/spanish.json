@@ -1006,7 +1006,7 @@
 	"vcmi.spellResearch.pay": "¿Le gustaría remplazar {%SPELL1} por {%SPELL2}? O descartar este hechizo y continuar con la investigación del hechizo?",
 	"vcmi.spellResearch.research": "Investigar este Hechizo",
 	"vcmi.spellResearch.skip": "Descartar este Hechizo",
-	"vcmi.stackExperience.windowTitle": "D e t a l l e s d e E x p e r i e n c i a d e l G r u p o",
+	"vcmi.stackExperience.windowTitle": "Detalles de Experiencia del Grupo",
 	"vcmi.stackExperience.popup.creatureType": "Tipo de Criatura",
 	"vcmi.stackExperience.popup.rank": "Rango de Experiencia",
 	"vcmi.stackExperience.popup.experiencePoints": "Puntos de Experiencia (P E )",

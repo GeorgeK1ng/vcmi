@@ -1005,7 +1005,7 @@
 	"vcmi.spellResearch.pay": "Вы бы хотели заменить {%SPELL1} на {%SPELL2}? Или пропустить это заклинание и продолжить изучение заклинаний?",
 	"vcmi.spellResearch.research": "Исследовать это заклинание",
 	"vcmi.spellResearch.skip": "Пропустить это заклинание",
-	"vcmi.stackExperience.windowTitle": "О п ы т с у щ е с т в",
+	"vcmi.stackExperience.windowTitle": "Опыт существ",
 	"vcmi.stackExperience.popup.creatureType": "Тип существа",
 	"vcmi.stackExperience.popup.rank": "Ранг опыта",
 	"vcmi.stackExperience.popup.experiencePoints": "Очки опыта",

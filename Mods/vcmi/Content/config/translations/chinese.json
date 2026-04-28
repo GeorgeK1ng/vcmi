@@ -998,7 +998,7 @@
 	"vcmi.spellResearch.pay": "你想将{%SPELL1}替换为{%SPELL2}吗？或者弃掉此法术，继续法术研究？",
 	"vcmi.spellResearch.research": "研究此法术",
 	"vcmi.spellResearch.skip": "跳过此法术",
-	"vcmi.stackExperience.windowTitle": "经 验 获 得 明 细",
+	"vcmi.stackExperience.windowTitle": "经验获得明细",
 	"vcmi.stackExperience.popup.creatureType": "生物类型",
 	"vcmi.stackExperience.popup.rank": "经验等级",
 	"vcmi.stackExperience.popup.experiencePoints": "经验点数",

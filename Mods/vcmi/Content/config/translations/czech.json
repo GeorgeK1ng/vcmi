@@ -1044,7 +1044,7 @@
 	"vcmi.stackExperience.table.speed": "Rychlost",
 	"vcmi.stackExperience.table.summary": "%d %s | %s | %d/%d",
 	"vcmi.stackExperience.popup.upgradeMultiplier": "Násobič vylepšení",
-	"vcmi.stackExperience.windowTitle": "Zkušenosti oddílu",
+	"vcmi.stackExperience.windowTitle": "Podrobnosti zkušeností oddílu",
 	"vcmi.statisticWindow.icon.defeated": "Porážka",
 	"vcmi.statisticWindow.icon.grailFound": "Nalezen Svatý grál",
 	"vcmi.statisticWindow.icon.strongestHeroDefeated": "Nejsilnější hrdina protivníka poražen",

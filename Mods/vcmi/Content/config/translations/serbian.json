@@ -986,7 +986,7 @@
 	"vcmi.spellResearch.pay": "Да ли желите да замените {%SPELL1} са {%SPELL2}? Или да одбаците ову чаролију и наставите са истраживањем чаролије?",
 	"vcmi.spellResearch.research": "Истражите ову чаролију",
 	"vcmi.spellResearch.skip": "Прескочи ову чаролију",
-	"vcmi.stackExperience.windowTitle": "Детаљи искуства стека",
+	"vcmi.stackExperience.windowTitle": "\" Детаљи искуства стека \"",
 	"vcmi.stackExperience.popup.creatureType": "Тип створења",
 	"vcmi.stackExperience.popup.rank": "Ранг искуства",
 	"vcmi.stackExperience.popup.experiencePoints": "Поени искуства",

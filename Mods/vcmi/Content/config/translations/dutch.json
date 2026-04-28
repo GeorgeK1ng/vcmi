@@ -986,7 +986,7 @@
 	"vcmi.spellResearch.pay": "Wil je {%SPELL1} vervangen door {%SPELL2}? Of deze spreuk negeren en verdergaan met spreukenonderzoek?",
 	"vcmi.spellResearch.research": "Onderzoek deze spreuk.",
 	"vcmi.spellResearch.skip": "Sla deze spreuk over.",
-	"vcmi.stackExperience.windowTitle": "Stapelervaring Details",
+	"vcmi.stackExperience.windowTitle": "\" Stapelervaring Details \"",
 	"vcmi.stackExperience.popup.creatureType": "Wezenstype",
 	"vcmi.stackExperience.popup.rank": "Ervaringsrang",
 	"vcmi.stackExperience.popup.experiencePoints": "Ervaringspunten",

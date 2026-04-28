@@ -986,7 +986,7 @@
 	"vcmi.spellResearch.pay": "Gusto mo bang palitan ang {%SPELL1} ng {%SPELL2}? O kaya'y itapon ang spell na ito at ipagpatuloy ang pananaliksik sa spell?",
 	"vcmi.spellResearch.research": "Saliksikin ang Spell na Ito",
 	"vcmi.spellResearch.skip": "Laktawan ang Spell na ito",
-	"vcmi.stackExperience.windowTitle": "Mga Detalye ng Karanasan",
+	"vcmi.stackExperience.windowTitle": "\" Mga Detalye ng Karanasan \"",
 	"vcmi.stackExperience.popup.creatureType": "Uri ng Nilalang",
 	"vcmi.stackExperience.popup.rank": "Ranggo ng Karanasan",
 	"vcmi.stackExperience.popup.experiencePoints": "Mga Puntos ng Karanasan",

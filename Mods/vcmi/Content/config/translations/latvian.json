@@ -993,7 +993,7 @@
 	"vcmi.spellResearch.pay": "Vai vēlaties aizstāt {%SPELL1} ar {%SPELL2}? Vai arī atmest šo burvestību un turpināt burvestības izpēti?",
 	"vcmi.spellResearch.research": "Izpētiet šo burvestību",
 	"vcmi.spellResearch.skip": "Izlaist šo burvestību",
-	"vcmi.stackExperience.windowTitle": "Kaudzītes pieredzes informācija",
+	"vcmi.stackExperience.windowTitle": "\" Kaudzītes pieredzes informācija \"",
 	"vcmi.stackExperience.popup.creatureType": "Creature Type",
 	"vcmi.stackExperience.popup.rank": "Pieredzes rangs",
 	"vcmi.stackExperience.popup.experiencePoints": "Pieredzes punkti",

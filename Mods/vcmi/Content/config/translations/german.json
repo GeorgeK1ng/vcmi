@@ -1004,7 +1004,7 @@
 	"vcmi.spellResearch.pay": "Möchtet Ihr {%SPELL1} durch {%SPELL2} ersetzen? Oder diesen Zauberspruch verwerfen und die Zauberspruchforschung fortsetzen?",
 	"vcmi.spellResearch.research": "Erforsche diesen Zauberspruch",
 	"vcmi.spellResearch.skip": "Überspringe diesen Zauberspruch",
-	"vcmi.stackExperience.windowTitle": "D e t a i l s z u r S t a p e l e r f a h r u n g",
+	"vcmi.stackExperience.windowTitle": "Details zur Stapelerfahrung",
 	"vcmi.stackExperience.popup.creatureType": "Kreatur-Typ",
 	"vcmi.stackExperience.popup.rank": "Erfahrungsrang",
 	"vcmi.stackExperience.popup.experiencePoints": "Erfahrungspunkte",

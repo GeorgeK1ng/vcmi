@@ -1004,7 +1004,7 @@
 	"vcmi.spellResearch.pay": "Vill ni ersätta {%SPELL1} med {%SPELL2}? Eller ignorera denna trollformel och fortsätta trollformelforskningen?",
 	"vcmi.spellResearch.research": "Forska fram denna trollformel",
 	"vcmi.spellResearch.skip": "Forska vidare",
-	"vcmi.stackExperience.windowTitle": "V a r e l s e f ö r b a n d s d e t a l j e r",
+	"vcmi.stackExperience.windowTitle": "Varelseförbandsdetaljer",
 	"vcmi.stackExperience.popup.creatureType": "Varelsetyp",
 	"vcmi.stackExperience.popup.rank": "Erfarenhetsrang",
 	"vcmi.stackExperience.popup.experiencePoints": "Erfarenhetspoäng",
