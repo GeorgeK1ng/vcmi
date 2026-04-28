@@ -95,7 +95,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	creatureAnimation->setAmount(sourceStack->getCount());
 
 	const int infoLeftX = sideMargin + 138;
-	const int infoRightX = pos.w / 2 + 20;
+	const int infoRightX = pos.w / 2 + 70;
 	const int infoRowHeight = statRowHeight;
 	const int infoTop = detailsTop + 4;
 	const int infoColumnWidth = infoRightX - infoLeftX - 16;

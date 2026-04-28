@@ -1252,7 +1252,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 138;
-	const int infoRightX = size.x / 2 + 20;
+	const int infoRightX = size.x / 2 + 70;
 	const int infoRowHeight = statRowHeight;
 	const int infoTop = detailsTop + 4;
 	const int infoWidth = infoRightX - infoLeftX - 16;
