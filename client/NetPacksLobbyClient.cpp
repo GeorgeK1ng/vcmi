@@ -51,8 +51,6 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
-	result = false;
-
 	// Check if it's LobbyClientConnected for our client
 	if(pack.uuid == handler.logicConnection->uuid)
 	{
@@ -94,22 +92,30 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 	}
 }
 
-void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
+void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected &)
 {
-	if(pack.clientId != handler.logicConnection->connectionID)
-	{
-		result = false;
-		return;
-	}
+}
+
+void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected &)
+{
+	if(lobby)
+		lobby->updateAfterStateChange();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
 {
-	if(auto w = ENGINE->windows().topWindow<CLoadingScreen>())
-		ENGINE->windows().popWindow(w);
-	
-	if(ENGINE->windows().count() > 0)
-		ENGINE->windows().popWindows(1);
+	if(pack.clientId == handler.logicConnection->connectionID)
+	{
+		if(auto w = ENGINE->windows().topWindow<CLoadingScreen>())
+			ENGINE->windows().popWindow(w);
+		
+		if(ENGINE->windows().count() > 0)
+			ENGINE->windows().popWindows(1);
+		return;
+	}
+
+	if(lobby)
+		lobby->updateAfterStateChange();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
