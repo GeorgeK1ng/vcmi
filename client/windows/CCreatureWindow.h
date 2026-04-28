@@ -186,10 +186,11 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
 		std::vector<std::shared_ptr<CIntObject>> labels;
 
+		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
 		static constexpr int MAX_RANKS = 11;
 
 	public:
-		static int getStackExperienceTier(int level);
+		static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
 		static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
 		static ImagePath getDialogBackground(int rowCount);
 		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);

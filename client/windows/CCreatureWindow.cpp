@@ -46,7 +46,7 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
-int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTier(int level)
+int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(int creatureLevel)
 {
 	const int maxTier = static_cast<int>(LIBRARY->creh->expRanks.size()) - 1;
 	if(maxTier <= 0)
@@ -60,12 +60,14 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTier(int level
 			return 0;
 	}
 
-	// Keep tier mapping consistent with CStackInstance::getExpRank():
+	// Creature level/tier selects which exp-rank threshold table is used.
+	// Stack experience rank itself is separate (0..10 columns in the dialog).
+	// Keep mapping consistent with CStackInstance::getExpRank():
 	// creature levels outside 1..7 use fallback tier 0.
-	if(!vstd::iswithin(level, 1, 7))
+	if(!vstd::iswithin(creatureLevel, 1, 7))
 		return 0;
 
-	return std::clamp(level, 1, std::min(7, maxTier));
+	return std::clamp(creatureLevel, 1, std::min(7, maxTier));
 }
 
 CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackExperienceDetailsWindow::calculateTableVisibility(const CStackInstance * stack, const CCreature * creature)
@@ -81,7 +83,7 @@ CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackE
 	visibility.showManaRow = stack->valOfBonuses(BonusType::CASTS) > 0;
 
 	// Also show rows if stack experience grants these stats at any rank.
-	int tier = StackExperienceDetailsWindow::getStackExperienceTier(creature->getLevel());
+	int tier = StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 
@@ -126,7 +128,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
 
-	int tier = getStackExperienceTier(this->creature->getLevel());
+	int tier = getStackExperienceTierFromCreatureLevel(this->creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 
 	const int expMax = static_cast<int>(rankThresholds.back());
