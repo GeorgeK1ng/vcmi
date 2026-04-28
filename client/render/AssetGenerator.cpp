@@ -1225,7 +1225,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
-	const int tableTop = 204;
+	const int tableTop = 234;
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
 	const int rankColumns = 11;
@@ -1235,7 +1235,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int tableWidth = rowNameWidth + colWidth * rankColumns;
 	const int tableRenderedHeight = rowHeight * rowCount;
 
-	const ColorRGBA frameColor = Colors::METALLIC_GOLD;
+	const ColorRGBA frameColor = ColorRGBA(128, 100, 75);
 
 	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
 
