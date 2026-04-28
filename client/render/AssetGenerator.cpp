@@ -1245,9 +1245,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	canvas.drawBorder(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), frameColor);
 
 
-	// Creature portrait frame (matching stackWindow/info-panel-0 style)
+	// Creature portrait frame (matching stackWindow/info-panel-0 style border)
 	const Rect creatureFrame(sideMargin + 4, detailsTop, 102, 132);
-	canvas.drawColor(creatureFrame, Colors::BLACK);
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
