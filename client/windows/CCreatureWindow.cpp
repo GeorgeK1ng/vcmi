@@ -114,7 +114,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int headerTop = 9;
 	const int detailsTop = 76;
 	const int tableTop = 218;
-	const int tableBaseRowHeight = 250 / 9;
+	constexpr int tableBaseRowHeight = 25;
 	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
