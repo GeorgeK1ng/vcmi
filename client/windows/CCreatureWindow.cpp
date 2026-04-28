@@ -156,7 +156,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int infoLeftX = sideMargin + 144; // shifted right by 6px
 	const int infoColumnGap = 2;
-	const int infoLabelWidth = 222; // reduced from previous wider label section
+	const int infoLabelWidthBase = 222 - 8;
+	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
 	const int infoValueWidth = 80;
 	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
 	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
@@ -172,7 +173,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const int baseX = column == 0 ? infoLeftX : infoRightX;
 		const int rowY = infoTop + row * infoRowStep;
 		labels.push_back(std::make_shared<CLabel>(baseX + 2, rowY + 1, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, key + ":"));
-		labels.push_back(std::make_shared<CLabel>(baseX + infoLabelWidth + infoSectionGap + infoValueWidth - 4, rowY + 1, FONT_SMALL, ETextAlignment::TOPRIGHT, Colors::WHITE, value));
+		labels.push_back(std::make_shared<CLabel>(baseX + infoLabelWidth + infoSectionGap + 2, rowY + 1, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
 	};
 
 	addInfo(0, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank"), boost::str(boost::format("%s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank));
@@ -191,9 +192,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
 			key + ":"));
 		labels.push_back(std::make_shared<CLabel>(
-			baseX + infoLabelWidth + infoSectionGap + infoValueWidth - 4,
+			baseX + infoLabelWidth + infoSectionGap + 2,
 			rowY + infoFieldHeight / 2 + 1,
-			FONT_SMALL, ETextAlignment::TOPRIGHT, Colors::WHITE,
+			FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
 			std::to_string(value)));
 	};
 
