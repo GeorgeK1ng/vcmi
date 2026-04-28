@@ -114,7 +114,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int headerTop = 9;
 	const int detailsTop = 76;
 	const int tableTop = 218;
-	const int tableHeight = 250;
+	const int tableBaseRowHeight = 250 / 9;
 	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
@@ -140,10 +140,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int expAfterRank10 = static_cast<int>(LIBRARY->creh->expRanks[tier][10] - expMin);
 	const int maxRecruitsAtRank10 = std::max(0, static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin));
 
-	const std::string unitHeader = boost::str(boost::format("%s - %s (%d)")
-		% this->creature->getNamePluralTranslated()
-		% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
-		% currentRank);
+	const std::string unitHeader = this->creature->getNamePluralTranslated();
 
 	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 46, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
 
@@ -154,8 +151,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 14;
-	const int infoLabelWidthBase = 214;
-	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
+	const int infoLabelWidth = 221;
 	const int infoValueWidth = 86;
 	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
@@ -257,7 +253,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
-	const int rowHeight = tableHeight / tableRowCount;
+	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
@@ -267,6 +263,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowCount));
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowCount - 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowCount - 4), Colors::METALLIC_GOLD);
 
 	for(size_t row = 0; row < rows.size(); ++row)
 	{

@@ -94,9 +94,10 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows9")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 9);};
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows10")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 10);};
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows11")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 11);};
+	const int stackExpBaseRowHeight = 250 / 9;
+	imageFiles[ImagePath::builtin("stackExperienceDialogRows9")] = [this, stackExpBaseRowHeight](){ return createStackExperienceDialogBackground(Point(800, 520 + 0 * stackExpBaseRowHeight), 9);};
+	imageFiles[ImagePath::builtin("stackExperienceDialogRows10")] = [this, stackExpBaseRowHeight](){ return createStackExperienceDialogBackground(Point(800, 520 + 1 * stackExpBaseRowHeight), 10);};
+	imageFiles[ImagePath::builtin("stackExperienceDialogRows11")] = [this, stackExpBaseRowHeight](){ return createStackExperienceDialogBackground(Point(800, 520 + 2 * stackExpBaseRowHeight), 11);};
 
 	addDialogBackgroundWithStatusBar("heroBackpackDialog", Point(426, 465));
 
@@ -1226,7 +1227,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int detailsTop = 76;
 	const int tableTop = 218;
 	const int rowNameWidth = 140;
-	const int tableHeight = 250;
+	const int tableHeight = (250 / 9) * rowCount;
 	const int rankColumns = 11;
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
@@ -1248,8 +1249,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 14;
-	const int infoLabelWidthBase = 214;
-	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
+	const int infoLabelWidth = 221;
 	const int infoValueWidth = 86;
 	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
