@@ -116,10 +116,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int sideMargin = 10;
 	const int headerTop = 9;
 	const int detailsTop = 76;
-	const int tableTop = 224;
+	const int tableTop = 218;
 	const int tableHeight = 250;
 	const int statusbarHeight = 26; // kept for bottom button offset
-	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
@@ -149,12 +148,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 46, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
 
-	const int creatureFrameX = sideMargin + 4;
+	const int creatureFrameX = sideMargin;
 	const int creatureFrameY = detailsTop;
 	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 1, creatureFrameY + 1, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
-	const int infoLeftX = sideMargin + 144; // shifted right by 6px
+	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 2;
 	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
@@ -163,7 +162,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoColumnWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
-	const int infoFieldHeight = statRowHeight + 2; // +3 compared to previous generated field height
+	const int infoFieldHeight = 22;
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;
 	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap;

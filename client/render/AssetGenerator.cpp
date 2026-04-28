@@ -1224,11 +1224,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int sideMargin = 10;
 	const int headerTop = 9;
 	const int detailsTop = 76;
-	const int tableTop = 224;
+	const int tableTop = 218;
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
 	const int rankColumns = 11;
-	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
 	const int tableWidth = rowNameWidth + colWidth * rankColumns;
@@ -1243,11 +1242,11 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 
 	// Creature portrait frame (matching stackWindow/info-panel-0 style border)
-	const Rect creatureFrame(sideMargin + 4, detailsTop, 102, 132);
+	const Rect creatureFrame(sideMargin, detailsTop, 102, 132);
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
-	const int infoLeftX = sideMargin + 144; // shifted right by 6px
+	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 2;
 	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
@@ -1256,7 +1255,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
-	const int infoFieldHeight = statRowHeight + 2; // +3 compared to previous generated field height
+	const int infoFieldHeight = 22;
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;
 	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap;
