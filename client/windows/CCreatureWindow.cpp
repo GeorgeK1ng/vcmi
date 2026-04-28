@@ -57,9 +57,15 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTier(int level
 			logGlobal->warn("StackExperienceDetailsWindow: no valid stack experience tiers loaded, defaulting to tier 0");
 			warningPrinted = true;
 		}
-		return 0;
+			return 0;
 	}
-	return std::clamp(level, 1, maxTier);
+
+	// Keep tier mapping consistent with CStackInstance::getExpRank():
+	// creature levels outside 1..7 use fallback tier 0.
+	if(!vstd::iswithin(level, 1, 7))
+		return 0;
+
+	return std::clamp(level, 1, std::min(7, maxTier));
 }
 
 CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackExperienceDetailsWindow::calculateTableVisibility(const CStackInstance * stack, const CCreature * creature)
