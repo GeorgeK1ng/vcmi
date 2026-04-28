@@ -69,6 +69,8 @@ int getStackExperienceTier(int level)
 
 StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
 {
+	constexpr int stackExperienceRanks = 11;
+
 	StackExperienceTableVisibility visibility;
 	if(!stack || !creature)
 		return visibility;
@@ -82,7 +84,7 @@ StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CSt
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 
-	for(int rank = 0; rank < MAX_RANKS; ++rank)
+	for(int rank = 0; rank < stackExperienceRanks; ++rank)
 	{
 		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
