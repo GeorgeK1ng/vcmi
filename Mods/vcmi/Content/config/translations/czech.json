@@ -1011,10 +1011,7 @@
 	"vcmi.spellResearch.skip": "Přeskočit toto kouzlo",
 	"vcmi.spellResearch.title": "Výzkum kouzel",
 
-	"vcmi.stackExperience.popup.creatureCount": "Jednotek v oddílu",
-	"vcmi.stackExperience.popup.creatureType": "Druh jednotky",
 	"vcmi.stackExperience.popup.experienceAfterRank10": "Zkušenosti po 10. hodnosti",
-	"vcmi.stackExperience.popup.experienceMultiplier": "Násobič zkušeností",
 	"vcmi.stackExperience.popup.experiencePoints": "Body zkušeností",
 	"vcmi.stackExperience.popup.maxPerBattle": "Maximum zkušeností na bitvu",
 	"vcmi.stackExperience.popup.maxRecruits": "Maximum nových rekrutů bez ztráty aktuální hodnosti",

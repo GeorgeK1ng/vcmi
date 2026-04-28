@@ -221,7 +221,6 @@ class CStackWindow : public CWindowObject
 	void close() override;
 	void showStackExperienceDetailsWindow();
 
-	std::string generateStackExpDescription();
 	std::string getCommanderSkillDescription(int skillIndex, int skillLevel);
 
 public:

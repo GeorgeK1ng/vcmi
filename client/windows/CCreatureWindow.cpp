@@ -941,7 +941,7 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 				},
 				[this]()
 				{
-					CRClickPopup::createAndPush(parent->generateStackExpDescription());
+					parent->showStackExperienceDetailsWindow();
 				});
 		}
 		expLabel = std::make_shared<CLabel>(
@@ -1293,62 +1293,6 @@ void CStackWindow::initSections()
 	}
 	updateShadow();
 	pos = center(pos);
-}
-
-std::string CStackWindow::generateStackExpDescription()
-{
-	constexpr int stackExperienceRanks = 11;
-
-	const CStackInstance * stack = info->stackNode;
-	const CCreature * creature = info->creature;
-
-	int tier = stack->getType()->getLevel();
-	int rank = std::clamp(stack->getExpRank(), 0, stackExperienceRanks - 1);
-	tier = getStackExperienceTier(tier);
-	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
-	const int nextRankExp = (rank < stackExperienceRanks - 1 && rank < static_cast<int>(rankThresholds.size()))
-		? std::max(0, static_cast<int>(rankThresholds[rank] - stack->getAverageExperience()))
-		: 0;
-
-	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
-	const int maxExpPerBattle = maxExpPercent * static_cast<int>(rankThresholds.back()) / 100;
-	const int experienceBonusPercent = stack->valOfBonuses(BonusType::STACK_EXPERIENCE_GAIN_PERCENT);
-	const double experienceMultiplier = static_cast<double>(100 + experienceBonusPercent) / 100.0;
-
-	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank - 1, 0)], (ui32)1);
-	const int maxNewRecruits = std::max(0, static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount()));
-
-	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
-	expmin = LIBRARY->creh->expRanks[tier][9];
-	const int expmax = LIBRARY->creh->expRanks[tier][10];
-	const int expAfterRank10 = expmax - expmin;
-	const int maxNewRecruitsRank10 = std::max(0, static_cast<int>((stack->getCount() * (expmax - expmin)) / expmin));
-
-	const std::vector<std::string> lines = {
-		LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"),
-		"",
-		boost::str(boost::format("%s: %s") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureType") % creature->getNamePluralTranslated()),
-		boost::str(boost::format("%s: %s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank) % rank),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experiencePoints") % stack->getAverageExperience()),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank") % nextRankExp),
-		boost::str(boost::format("%s: %d%% (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle") % maxExpPercent % maxExpPerBattle),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureCount") % stack->getCount()),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") % maxNewRecruits),
-		boost::str(boost::format("%s: %.2f") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceMultiplier") % experienceMultiplier),
-		boost::str(boost::format("%s: %d%%") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier") % upgradeMultiplier),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10") % expAfterRank10),
-		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") % maxNewRecruitsRank10)
-	};
-
-	std::string result;
-	for(size_t i = 0; i < lines.size(); ++i)
-	{
-		if(i > 0)
-			result += "\n";
-		result += lines[i];
-	}
-
-	return result;
 }
 
 void CStackWindow::showStackExperienceDetailsWindow()
