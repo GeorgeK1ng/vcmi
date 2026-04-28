@@ -1226,6 +1226,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	const int sideMargin = 10;
 	const int headerTop = 9;
+	const int detailsTop = 76;
 	const int tableTop = 234;
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
@@ -1242,6 +1243,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	// Header frame for "<unit> - <rank>" label
 	canvas.drawColorBlended(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), fillColor);
 	canvas.drawBorder(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), frameColor);
+
+
+	// Creature portrait frame (matching stackWindow/info-panel-0 style)
+	const Rect creatureFrame(sideMargin + 4, detailsTop, 102, 132);
+	canvas.drawColor(creatureFrame, Colors::BLACK);
+	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
 	const int infoLeftX = sideMargin + 138;
