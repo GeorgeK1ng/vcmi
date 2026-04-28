@@ -156,7 +156,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int infoColumnGap = 14;
 	const int infoLabelWidthBase = 214;
 	const int infoLabelWidth = (infoLabelWidthBase % 2 == 0) ? infoLabelWidthBase : (infoLabelWidthBase - 1);
-	const int infoValueWidth = 76;
+	const int infoValueWidth = 86;
 	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoColumnWidth + infoColumnGap;
