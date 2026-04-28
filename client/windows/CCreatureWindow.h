@@ -28,6 +28,7 @@ class CTabbedInt;
 class CButton;
 class CMultiLineLabel;
 class CListBox;
+class CCreaturePic;
 class CArtPlace;
 class CCommanderArtPlace;
 class LRClickableArea;
@@ -160,7 +161,7 @@ class CStackWindow : public CWindowObject
 		MainSection(CStackWindow * owner, int yOffset, bool showExp, bool showArt);
 	};
 
-	class StackExperienceDetailsWindow : public CStatusbarWindow
+	class StackExperienceDetailsWindow : public CWindowObject
 	{
 		struct NumericRow
 		{
@@ -173,9 +174,11 @@ class CStackWindow : public CWindowObject
 		const CCreature * creature;
 
 		std::shared_ptr<CLabel> title;
+		std::shared_ptr<CLabel> stackSummary;
+		std::shared_ptr<CCreaturePic> creatureAnimation;
 		std::shared_ptr<CAnimImage> creatureIcon;
-		std::shared_ptr<GraphicalPrimitiveCanvas> tableFrame;
 		std::shared_ptr<CButton> closeButton;
+		std::shared_ptr<GraphicalPrimitiveCanvas> tableFrame;
 		std::vector<std::shared_ptr<CLabel>> labels;
 
 		static constexpr int MAX_RANKS = 11;

@@ -48,18 +48,18 @@
 #include "../../lib/texts/Languages.h"
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
-	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, ImagePath::builtin("stackExperienceDialog"))
+	: CWindowObject(BORDERED | PLAYER_COLORED, ImagePath::builtin("stackExperienceDialog"))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
 
-	const int sideMargin = 12;
+	const int sideMargin = 10;
 	const int headerTop = 14;
-	const int detailsTop = 42;
-	const int tableTop = 162;
-	const int tableHeight = 240;
-	const int statusbarHeight = 26;
+	const int detailsTop = 46;
+	const int tableTop = 204;
+	const int tableHeight = 250;
+	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
@@ -83,23 +83,42 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int expAfterRank10 = static_cast<int>(LIBRARY->creh->expRanks[tier][10] - expMin);
 	const int maxRecruitsAtRank10 = static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin);
 
-	creatureIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("CPRSMALL"), this->creature->getIconIndex(), 0, sideMargin + 10, detailsTop + 4);
+	stackSummary = std::make_shared<CLabel>(
+		pos.w / 2,
+		headerTop + 26,
+		FONT_MEDIUM,
+		ETextAlignment::TOPCENTER,
+		Colors::WHITE,
+		boost::str(boost::format("%s | %d/%d")
+			% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
+			% sourceStack->getAverageExperience()
+			% expMax));
 
-	const int detailsTextX = sideMargin + 62;
-	const int detailRowHeight = 16;
-	const std::vector<std::string> detailLines = {
-		boost::str(boost::format("%s: %s") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.creatureType") % this->creature->getNamePluralTranslated()),
-		boost::str(boost::format("%s: %s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank),
-		boost::str(boost::format("%s: %d   |   %s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experiencePoints") % sourceStack->getAverageExperience() % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank") % nextRankExp),
-		boost::str(boost::format("%s: %d%% (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle") % maxExpPercent % maxExpPerBattle),
-		boost::str(boost::format("%s: %d   |   %s: %d%%") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") % maxNewRecruits % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier") % upgradeMultiplier),
-		boost::str(boost::format("%s: %d   |   %s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10") % expAfterRank10 % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") % maxRecruitsAtRank10)
+	creatureAnimation = std::make_shared<CCreaturePic>(sideMargin + 14, detailsTop, this->creature, true, true);
+	creatureAnimation->setAmount(sourceStack->getCount());
+	creatureIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("CPRSMALL"), this->creature->getIconIndex(), 0, sideMargin + 18, detailsTop + 14);
+
+	const int infoLeftX = sideMargin + 138;
+	const int infoRightX = pos.w / 2 + 20;
+	const int infoRowHeight = 18;
+	const int infoTop = detailsTop + 4;
+
+	auto addInfo = [&](int row, int column, const std::string & key, const std::string & value)
+	{
+		const int baseX = column == 0 ? infoLeftX : infoRightX;
+		const int rowY = infoTop + row * infoRowHeight;
+		labels.push_back(std::make_shared<CLabel>(baseX, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, key + ":"));
+		labels.push_back(std::make_shared<CLabel>(baseX + 188, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
 	};
 
-	for(size_t i = 0; i < detailLines.size(); ++i)
-	{
-		labels.push_back(std::make_shared<CLabel>(detailsTextX, detailsTop + static_cast<int>(i) * detailRowHeight, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, detailLines[i]));
-	}
+	addInfo(0, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank"), boost::str(boost::format("%s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank));
+	addInfo(0, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experiencePoints"), std::to_string(sourceStack->getAverageExperience()));
+	addInfo(1, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.nextRank"), std::to_string(nextRankExp));
+	addInfo(1, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle"), boost::str(boost::format("%d%% (%d)") % maxExpPercent % maxExpPerBattle));
+	addInfo(2, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits"), std::to_string(maxNewRecruits));
+	addInfo(2, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier"), boost::str(boost::format("%d%%") % upgradeMultiplier));
+	addInfo(3, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10"), std::to_string(expAfterRank10));
+	addInfo(3, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), std::to_string(maxRecruitsAtRank10));
 
 	std::vector<NumericRow> rows = {
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
@@ -153,7 +172,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::ADDITIONAL_RETALIATION)));
 		}});
 
-	const int rowNameWidth = 150;
+	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
 	const int rowHeight = tableHeight / static_cast<int>(rows.size() + 1);
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
@@ -177,7 +196,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(size_t row = 0; row < rows.size(); ++row)
 	{
 		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 4, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, rows[row].title));
+		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, rows[row].title));
 
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
@@ -198,18 +217,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	const std::string stackDetails = boost::str(boost::format(LIBRARY->generaltexth->translate("vcmi.stackExperience.table.summary"))
-		% sourceStack->getCount()
-		% this->creature->getNamePluralTranslated()
-		% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
-		% sourceStack->getAverageExperience()
-		% expMax);
-	labels.push_back(std::make_shared<CLabel>(pos.w / 2, tableTop + rowHeight * static_cast<int>(rows.size() + 1) + 14, FONT_MEDIUM, ETextAlignment::CENTER, Colors::ORANGE, stackDetails));
-
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 38), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
-
-	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - statusbarHeight, pos.w - 16, 19), 8, pos.h - statusbarHeight));
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 20), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 }
 
 class CCreatureArtifactInstance;
