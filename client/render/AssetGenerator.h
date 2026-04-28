@@ -67,8 +67,7 @@ private:
 	CanvasPtr createPaletteShiftedImage(const AnimationPath & source, const std::vector<PaletteAnimation> & animation, int frameIndex, int paletteShiftCounter) const;
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
-	CanvasPtr createDialogBackground(const Point & size) const;
-	CanvasPtr createDialogBackgroundWithStatusBar(const Point & size) const;
+	CanvasPtr createDialogBackground(const Point & size, bool withStatusBar = false) const;
 	CanvasPtr createStackExperienceDialogBackground(const Point & size, int rowCount) const;
 	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;
 	CanvasPtr createUniversityDialogBackground(const Point & size, int skillColumns) const;

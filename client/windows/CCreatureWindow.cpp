@@ -144,15 +144,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 1, creatureFrameY + 1, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
-	const int infoLeftX = sideMargin + 138;
+	const int infoLeftX = sideMargin + 144; // shifted right by 6px
 	const int infoColumnGap = 2;
-	const int infoAreaRight = pos.w - sideMargin;
-	const int infoColumnWidth = (infoAreaRight - infoLeftX - infoColumnGap) / 2;
+	const int infoLabelWidth = 222; // reduced from previous wider label section
+	const int infoValueWidth = 80;
+	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
+	const int infoColumnWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoColumnWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
-	const int infoSectionGap = 18; // 10px visual gap between split blocks (+/-4px frame padding)
-	const int infoValueWidth = 80;
-	const int infoLabelWidth = infoColumnWidth - infoValueWidth - infoSectionGap;
 	const int infoFieldHeight = statRowHeight + 2; // +3 compared to previous generated field height
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;

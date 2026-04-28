@@ -161,7 +161,7 @@ void AssetGenerator::addAnimationFile(const AnimationPath & path, AnimationLayou
 
 void AssetGenerator::addDialogBackgroundWithStatusBar(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackground(size, true);};
 }
 
 void AssetGenerator::addDialogBackground(const std::string & fileName, const Point & size)
@@ -171,7 +171,7 @@ void AssetGenerator::addDialogBackground(const std::string & fileName, const Poi
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)
 {
-	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackgroundWithStatusBar(size);};
+	imageFiles[ImagePath::builtin(fileName)] = [this, size](){ return createDialogBackground(size, true);};
 }
 
 void AssetGenerator::addRecruitmentBackground(const std::string & fileName, const Point & size)
@@ -1192,7 +1192,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & size) const
+AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & size, bool withStatusBar) const
 {
 	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
@@ -1206,17 +1206,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & s
 		}
 	}
 
-	return image;
-}
-
-AssetGenerator::CanvasPtr AssetGenerator::createDialogBackgroundWithStatusBar(const Point & size) const
-{
-	auto image = createDialogBackground(size);
-	Canvas canvas = image->getCanvas();
-
-	// Status bar overlay: darken bottom strip to match original dialog style
-	const int statusBarOverlayHeight = 30;
-	canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
+	if(withStatusBar)
+	{
+		// Status bar overlay: darken bottom strip to match original dialog style
+		const int statusBarOverlayHeight = 30;
+		canvas.drawColorBlended(Rect(0, size.y - statusBarOverlayHeight, size.x, statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
+	}
 
 	return image;
 }
@@ -1252,15 +1247,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
-	const int infoLeftX = sideMargin + 138;
+	const int infoLeftX = sideMargin + 144; // shifted right by 6px
 	const int infoColumnGap = 2;
-	const int infoAreaRight = size.x - sideMargin;
-	const int infoWidth = (infoAreaRight - infoLeftX - infoColumnGap) / 2;
+	const int infoLabelWidth = 222; // reduced from previous wider label section
+	const int infoValueWidth = 80;
+	const int infoSectionGap = 14; // 6px visual gap between split blocks (+/-4px frame padding)
+	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
 	const int infoTop = detailsTop + 4;
-	const int infoSectionGap = 18; // 10px visual gap between split blocks (+/-4px frame padding)
-	const int infoValueWidth = 80;
-	const int infoLabelWidth = infoWidth - infoValueWidth - infoSectionGap;
 	const int infoFieldHeight = statRowHeight + 2; // +3 compared to previous generated field height
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;
@@ -1304,7 +1298,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(const Point & size) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size);
+	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
 	// Additional overlays used by original TPRCRT (semi-transparent plates and central black input area).
@@ -1347,7 +1341,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const Point & size, int skillColumns) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size);
+	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -1405,7 +1399,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createUniversityDialogBackground(const
 
 AssetGenerator::CanvasPtr AssetGenerator::createUniversityConfirmDialogBackground(const Point & size, int costElements) const
 {
-	auto image = createDialogBackgroundWithStatusBar(size);
+	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
 	const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
