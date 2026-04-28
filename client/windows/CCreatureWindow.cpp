@@ -191,12 +191,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	}
 
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth - 1, rowHeight * static_cast<int>(rows.size() + 1) - 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * static_cast<int>(rows.size() + 1) - 2), Colors::METALLIC_GOLD);
 
 	for(size_t row = 0; row < rows.size(); ++row)
 	{
 		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, rows[row].title));
+		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[row].title));
 
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
@@ -219,6 +219,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	const int centerX = pos.w / 2;
 	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton->setBorderColor(Colors::METALLIC_GOLD);
 }
 
 class CCreatureArtifactInstance;
