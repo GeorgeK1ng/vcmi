@@ -58,6 +58,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int detailsTop = 76;
 	const int tableTop = 224;
 	const int tableHeight = 250;
+	const int tableRowCount = 11; // header + up to 10 data rows (matches Creature Window stat coverage)
 	const int statusbarHeight = 26; // kept for bottom button offset
 	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 
@@ -180,9 +181,26 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			}}
 	};
 
+	const bool shooter = sourceStack->hasBonusOfType(BonusType::SHOOTER) && sourceStack->valOfBonuses(BonusType::SHOTS);
+	const bool caster = sourceStack->valOfBonuses(BonusType::CASTS);
+	if(shooter)
+	{
+		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
+			}});
+	}
+	if(caster)
+	{
+		rows.push_back({LIBRARY->generaltexth->allTexts[399], [](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
+			}});
+	}
+
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
-	const int rowHeight = tableHeight / static_cast<int>(rows.size() + 1);
+	const int rowHeight = tableHeight / tableRowCount;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
@@ -190,8 +208,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * static_cast<int>(rows.size() + 1) - 2), Colors::METALLIC_GOLD);
+	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowCount));
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowCount - 2), Colors::METALLIC_GOLD);
 
 	for(size_t row = 0; row < rows.size(); ++row)
 	{

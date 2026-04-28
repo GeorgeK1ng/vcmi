@@ -1231,7 +1231,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
 	const int rankColumns = 11;
-	const int rowCount = 9; // header + 8 data rows
+	const int rowCount = 11; // header + up to 10 data rows (shots + mana)
 	const int statRowHeight = 19; // reuse Creature Window single-line stat row height
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
