@@ -183,7 +183,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const int rowY = infoTop + 3 * infoRowStep;
 		labels.push_back(std::make_shared<CMultiLineLabel>(
 			Rect(baseX + 2, rowY + 1, infoLabelWidth - 2, infoLongFieldHeight - 2),
-			FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
+			FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE,
 			key + ":"));
 		labels.push_back(std::make_shared<CLabel>(
 			baseX + infoLabelWidth + infoSectionGap + 2,
