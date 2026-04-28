@@ -1295,6 +1295,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	for(int line = 1; line < rowCount; ++line)
 		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
+	// Header for first rank column ("basic") still needs its left border in header row.
+	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
 	// Skip first-column cell in header row - first row starts directly with rank headers.
 	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop + rowHeight), Point(sideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	for(int column = 1; column < rankColumns; ++column)
