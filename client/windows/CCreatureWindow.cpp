@@ -46,8 +46,6 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
-namespace
-{
 struct StackExperienceTableVisibility
 {
 	bool showShotsRow = false;
@@ -59,7 +57,7 @@ struct StackExperienceTableVisibility
 	}
 };
 
-int getStackExperienceTier(int level)
+static int getStackExperienceTier(int level)
 {
 	const int maxTier = static_cast<int>(LIBRARY->creh->expRanks.size()) - 1;
 	if(maxTier <= 0)
@@ -67,7 +65,7 @@ int getStackExperienceTier(int level)
 	return std::clamp(level, 1, maxTier);
 }
 
-StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
+static StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
 {
 	constexpr int stackExperienceRanks = 11;
 
@@ -100,10 +98,9 @@ StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CSt
 	return visibility;
 }
 
-ImagePath getStackExperienceDialogBackground(int rowCount)
+static ImagePath getStackExperienceDialogBackground(int rowCount)
 {
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
-}
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType, bool showShotsRow, bool showManaRow)
