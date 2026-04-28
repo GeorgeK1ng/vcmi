@@ -219,15 +219,6 @@ void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 	CSelectionBase::toggleTab(tab);
 }
 
-void CLobbyScreen::tick(uint32_t msPassed)
-{
-	CSelectionBase::tick(msPassed);
-
-	updateHostLobbyChatState();
-	if(curTab != tabBattleOnlyMode)
-		updateStartButtonState();
-}
-
 void CLobbyScreen::start(bool campaign)
 {
 	if(curTab == tabBattleOnlyMode)
