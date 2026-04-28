@@ -46,30 +46,27 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
-struct StackExperienceTableVisibility
-{
-	bool showShotsRow = false;
-	bool showManaRow = false;
-
-	int getRowCount() const
-	{
-		return 9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow); // header + base data + optional rows
-	}
-};
-
-static int getStackExperienceTier(int level)
+int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTier(int level)
 {
 	const int maxTier = static_cast<int>(LIBRARY->creh->expRanks.size()) - 1;
 	if(maxTier <= 0)
+	{
+		static bool warningPrinted = false;
+		if(!warningPrinted)
+		{
+			logGlobal->warn("StackExperienceDetailsWindow: no valid stack experience tiers loaded, defaulting to tier 0");
+			warningPrinted = true;
+		}
 		return 0;
+	}
 	return std::clamp(level, 1, maxTier);
 }
 
-static StackExperienceTableVisibility calculateStackExperienceTableVisibility(const CStackInstance * stack, const CCreature * creature)
+CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackExperienceDetailsWindow::calculateTableVisibility(const CStackInstance * stack, const CCreature * creature)
 {
 	constexpr int stackExperienceRanks = 11;
 
-	StackExperienceTableVisibility visibility;
+	TableVisibility visibility;
 	if(!stack || !creature)
 		return visibility;
 
@@ -78,7 +75,7 @@ static StackExperienceTableVisibility calculateStackExperienceTableVisibility(co
 	visibility.showManaRow = stack->valOfBonuses(BonusType::CASTS) > 0;
 
 	// Also show rows if stack experience grants these stats at any rank.
-	int tier = getStackExperienceTier(creature->getLevel());
+	int tier = StackExperienceDetailsWindow::getStackExperienceTier(creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 
@@ -98,13 +95,13 @@ static StackExperienceTableVisibility calculateStackExperienceTableVisibility(co
 	return visibility;
 }
 
-static ImagePath getStackExperienceDialogBackground(int rowCount)
+ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType, bool showShotsRow, bool showManaRow)
-	: CWindowObject(BORDERED | PLAYER_COLORED, getStackExperienceDialogBackground(9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow)))
+	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
@@ -1300,7 +1297,7 @@ void CStackWindow::showStackExperienceDetailsWindow()
 	if(!info->stackNode || info->commander || !GAME->interface())
 		return;
 
-	const auto visibility = calculateStackExperienceTableVisibility(info->stackNode, info->creature);
+	const auto visibility = StackExperienceDetailsWindow::calculateTableVisibility(info->stackNode, info->creature);
 	ENGINE->windows().pushWindow(std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature, visibility.showShotsRow, visibility.showManaRow));
 }
 
