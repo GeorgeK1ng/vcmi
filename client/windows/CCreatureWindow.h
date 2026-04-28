@@ -176,10 +176,9 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<CLabel> title;
 		std::shared_ptr<CLabel> stackSummary;
 		std::shared_ptr<CCreaturePic> creatureAnimation;
-		std::shared_ptr<GraphicalPrimitiveCanvas> summaryFrame;
 		std::shared_ptr<CButton> closeButton;
 		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
-		std::vector<std::shared_ptr<CLabel>> labels;
+		std::vector<std::shared_ptr<CIntObject>> labels;
 
 		static constexpr int MAX_RANKS = 11;
 	public:

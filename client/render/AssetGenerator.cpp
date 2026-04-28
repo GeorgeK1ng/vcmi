@@ -1225,6 +1225,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
+	const int headerTop = 9;
 	const int tableTop = 234;
 	const int rowNameWidth = 140;
 	const int tableHeight = 250;
@@ -1236,6 +1237,33 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int tableRenderedHeight = rowHeight * rowCount;
 
 	const ColorRGBA frameColor = ColorRGBA(128, 100, 75);
+	const ColorRGBA fillColor = ColorRGBA(0, 0, 0, 70);
+
+	// Header frame for "<unit> - <rank>" label
+	canvas.drawColorBlended(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), fillColor);
+	canvas.drawBorder(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), frameColor);
+
+	// Top info slots (short fields + multiline long fields)
+	const int infoLeftX = sideMargin + 138;
+	const int infoRightX = size.x / 2 + 20;
+	const int infoRowHeight = 20;
+	const int infoTop = 80;
+	const int infoWidth = 376;
+
+	for(int row = 0; row < 3; ++row)
+	{
+		const int y = infoTop + row * infoRowHeight - 2;
+		canvas.drawColorBlended(Rect(infoLeftX - 4, y, infoWidth + 8, infoRowHeight - 1), fillColor);
+		canvas.drawBorder(Rect(infoLeftX - 4, y, infoWidth + 8, infoRowHeight - 1), frameColor);
+		canvas.drawColorBlended(Rect(infoRightX - 4, y, infoWidth + 8, infoRowHeight - 1), fillColor);
+		canvas.drawBorder(Rect(infoRightX - 4, y, infoWidth + 8, infoRowHeight - 1), frameColor);
+	}
+
+	const int longY = infoTop + 3 * infoRowHeight - 2;
+	canvas.drawColorBlended(Rect(infoLeftX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), fillColor);
+	canvas.drawBorder(Rect(infoLeftX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), frameColor);
+	canvas.drawColorBlended(Rect(infoRightX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), fillColor);
+	canvas.drawBorder(Rect(infoRightX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), frameColor);
 
 	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
 

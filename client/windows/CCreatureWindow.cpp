@@ -87,10 +87,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		% LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank)
 		% currentRank);
 
-	summaryFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(pos.w / 2 - 190, headerTop + 24, 380, 24));
-	summaryFrame->addBox(Point(0, 0), Point(380, 24), ColorRGBA(0, 0, 0, 80));
-	summaryFrame->addRectangle(Point(0, 0), Point(379, 23), Colors::METALLIC_GOLD);
-	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 36, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
+	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 46, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
 
 	creatureAnimation = std::make_shared<CCreaturePic>(sideMargin + 14, detailsTop + 6, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
@@ -99,13 +96,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int infoRightX = pos.w / 2 + 20;
 	const int infoRowHeight = 20;
 	const int infoTop = detailsTop + 4;
+	const int infoValueWidth = 188;
 
 	auto addInfo = [&](int row, int column, const std::string & key, const std::string & value)
 	{
 		const int baseX = column == 0 ? infoLeftX : infoRightX;
 		const int rowY = infoTop + row * infoRowHeight;
 		labels.push_back(std::make_shared<CLabel>(baseX, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, key + ":"));
-		labels.push_back(std::make_shared<CLabel>(baseX + 188, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
+		labels.push_back(std::make_shared<CLabel>(baseX + infoValueWidth, rowY, FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE, value));
 	};
 
 	addInfo(0, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.rank"), boost::str(boost::format("%s (%d)") % LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", currentRank) % currentRank));
@@ -114,10 +112,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addInfo(1, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxPerBattle"), boost::str(boost::format("%d%% (%d)") % maxExpPercent % maxExpPerBattle));
 	addInfo(2, 0, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.upgradeMultiplier"), boost::str(boost::format("%d%%") % upgradeMultiplier));
 	addInfo(2, 1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.experienceAfterRank10"), std::to_string(expAfterRank10));
-	labels.push_back(std::make_shared<CLabel>(infoLeftX, infoTop + 4 * infoRowHeight, FONT_TINY, ETextAlignment::TOPLEFT, Colors::WHITE, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") + ":"));
-	labels.push_back(std::make_shared<CLabel>(infoLeftX + 370, infoTop + 4 * infoRowHeight, FONT_TINY, ETextAlignment::TOPLEFT, Colors::WHITE, std::to_string(maxNewRecruits)));
-	labels.push_back(std::make_shared<CLabel>(infoLeftX, infoTop + 5 * infoRowHeight, FONT_TINY, ETextAlignment::TOPLEFT, Colors::WHITE, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") + ":"));
-	labels.push_back(std::make_shared<CLabel>(infoLeftX + 370, infoTop + 5 * infoRowHeight, FONT_TINY, ETextAlignment::TOPLEFT, Colors::WHITE, std::to_string(maxRecruitsAtRank10)));
+	labels.push_back(std::make_shared<CMultiLineLabel>(
+		Rect(infoLeftX, infoTop + 3 * infoRowHeight, infoValueWidth * 2, infoRowHeight * 2),
+		FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
+		LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruits") + ": " + std::to_string(maxNewRecruits)));
+	labels.push_back(std::make_shared<CMultiLineLabel>(
+		Rect(infoRightX, infoTop + 3 * infoRowHeight, infoValueWidth * 2, infoRowHeight * 2),
+		FONT_SMALL, ETextAlignment::TOPLEFT, Colors::WHITE,
+		LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") + ": " + std::to_string(maxRecruitsAtRank10)));
 
 	std::vector<NumericRow> rows = {
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
@@ -178,7 +180,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	}
 
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * static_cast<int>(rows.size() + 1)));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * static_cast<int>(rows.size() + 1) - 3), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth - 1, rowHeight * static_cast<int>(rows.size() + 1) - 2), Colors::METALLIC_GOLD);
 
 	for(size_t row = 0; row < rows.size(); ++row)
 	{
@@ -205,7 +207,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	}
 
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 20), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 }
 
 class CCreatureArtifactInstance;
