@@ -12,7 +12,6 @@
 
 #include <vcmi/spells/Spell.h>
 #include <vcmi/spells/Service.h>
-#include <boost/algorithm/string/join.hpp>
 
 #include "../CPlayerInterface.h"
 #include "../render/Canvas.h"
@@ -1262,7 +1261,15 @@ std::string CStackWindow::generateStackExpDescription()
 		boost::str(boost::format("%s: %d") % LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10") % maxNewRecruitsRank10)
 	};
 
-	return boost::algorithm::join(lines, "\n");
+	std::string result;
+	for(size_t i = 0; i < lines.size(); ++i)
+	{
+		if(i > 0)
+			result += "\n";
+		result += lines[i];
+	}
+
+	return result;
 }
 
 void CStackWindow::showStackExperienceDetailsWindow()
