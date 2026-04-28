@@ -1256,21 +1256,30 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int infoRowHeight = statRowHeight;
 	const int infoTop = detailsTop + 4;
 	const int infoWidth = infoRightX - infoLeftX - 16;
+	const int infoSectionGap = 6;
+	const int infoValueWidth = 80;
+	const int infoLabelWidth = infoWidth - infoValueWidth - infoSectionGap;
+
+	auto drawSplitRow = [&](int baseX, int y, int height)
+	{
+		const Rect labelRect(baseX - 4, y, infoLabelWidth + 8, height);
+		const Rect valueRect(baseX + infoLabelWidth + infoSectionGap - 4, y, infoValueWidth + 8, height);
+		canvas.drawColorBlended(labelRect, fillColor);
+		canvas.drawBorder(labelRect, frameColor);
+		canvas.drawColorBlended(valueRect, fillColor);
+		canvas.drawBorder(valueRect, frameColor);
+	};
 
 	for(int row = 0; row < 3; ++row)
 	{
 		const int y = infoTop + row * infoRowHeight - 2;
-		canvas.drawColorBlended(Rect(infoLeftX - 4, y, infoWidth + 8, infoRowHeight - 1), fillColor);
-		canvas.drawBorder(Rect(infoLeftX - 4, y, infoWidth + 8, infoRowHeight - 1), frameColor);
-		canvas.drawColorBlended(Rect(infoRightX - 4, y, infoWidth + 8, infoRowHeight - 1), fillColor);
-		canvas.drawBorder(Rect(infoRightX - 4, y, infoWidth + 8, infoRowHeight - 1), frameColor);
+		drawSplitRow(infoLeftX, y, infoRowHeight - 1);
+		drawSplitRow(infoRightX, y, infoRowHeight - 1);
 	}
 
 	const int longY = infoTop + 3 * infoRowHeight - 2;
-	canvas.drawColorBlended(Rect(infoLeftX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), fillColor);
-	canvas.drawBorder(Rect(infoLeftX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), frameColor);
-	canvas.drawColorBlended(Rect(infoRightX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), fillColor);
-	canvas.drawBorder(Rect(infoRightX - 4, longY, infoWidth + 8, infoRowHeight * 2 - 1), frameColor);
+	drawSplitRow(infoLeftX, longY, infoRowHeight * 2 - 1);
+	drawSplitRow(infoRightX, longY, infoRowHeight * 2 - 1);
 
 	canvas.drawBorder(Rect(sideMargin, tableTop, tableWidth, tableRenderedHeight), frameColor);
 
