@@ -132,11 +132,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int maxExpPerBattle = maxExpPercent * expMax / 100;
 	const int nextRankExp = currentRank < static_cast<int>(rankThresholds.size()) ? std::max(0, static_cast<int>(rankThresholds[currentRank] - sourceStack->getAverageExperience())) : 0;
 	int expMin = std::max(LIBRARY->creh->expRanks[tier][std::max(currentRank - 1, 0)], static_cast<ui32>(1));
-	const int maxNewRecruits = static_cast<int>(sourceStack->getTotalExperience() / expMin - sourceStack->getCount());
+	const int maxNewRecruits = std::max(0, static_cast<int>(sourceStack->getTotalExperience() / expMin - sourceStack->getCount()));
 	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
 	expMin = LIBRARY->creh->expRanks[tier][9];
 	const int expAfterRank10 = static_cast<int>(LIBRARY->creh->expRanks[tier][10] - expMin);
-	const int maxRecruitsAtRank10 = static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin);
+	const int maxRecruitsAtRank10 = std::max(0, static_cast<int>((sourceStack->getCount() * expAfterRank10) / expMin));
 
 	const std::string unitHeader = boost::str(boost::format("%s - %s (%d)")
 		% this->creature->getNamePluralTranslated()
@@ -1310,13 +1310,13 @@ std::string CStackWindow::generateStackExpDescription()
 	const int maxExpPerBattle = maxExpPercent * static_cast<int>(LIBRARY->creh->expRanks[tier].back()) / 100;
 
 	int expmin = std::max(LIBRARY->creh->expRanks[tier][std::max(rank - 1, 0)], (ui32)1);
-	const int maxNewRecruits = static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount());
+	const int maxNewRecruits = std::max(0, static_cast<int>(stack->getTotalExperience() / expmin - stack->getCount()));
 
 	const int upgradeMultiplier = static_cast<int>(LIBRARY->creh->expAfterUpgrade);
 	expmin = LIBRARY->creh->expRanks[tier][9];
 	const int expmax = LIBRARY->creh->expRanks[tier][10];
 	const int expAfterRank10 = expmax - expmin;
-	const int maxNewRecruitsRank10 = static_cast<int>((stack->getCount() * (expmax - expmin)) / expmin);
+	const int maxNewRecruitsRank10 = std::max(0, static_cast<int>((stack->getCount() * (expmax - expmin)) / expmin));
 
 	const std::vector<std::string> lines = {
 		LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"),
