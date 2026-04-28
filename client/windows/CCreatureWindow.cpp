@@ -131,6 +131,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int maxExpPercent = static_cast<int>(LIBRARY->creh->maxExpPerBattle[tier]);
 	const int currentRankReferenceExp = static_cast<int>(rankThresholds[std::min(currentRank, static_cast<int>(rankThresholds.size() - 1))]);
 	const int maxExpPerBattle = maxExpPercent * currentRankReferenceExp / 100;
+	// Includes all active stack modifiers (artifacts, spells, bonuses) that affect stack experience gain.
 	const int experienceBonusPercent = sourceStack->valOfBonuses(BonusType::STACK_EXPERIENCE_GAIN_PERCENT);
 	const double experienceMultiplier = static_cast<double>(100 + experienceBonusPercent) / 100.0;
 	const int nextRankExp = (currentRank < MAX_RANKS - 1 && currentRank < static_cast<int>(rankThresholds.size()))

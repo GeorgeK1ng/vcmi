@@ -1011,8 +1011,8 @@
 	"vcmi.spellResearch.skip": "Skip this Spell",
 	"vcmi.spellResearch.title": "Spell research",
 
-	"vcmi.stackExperience.popup.experienceBonus": "Experience Gain Bonus",
-	"vcmi.stackExperience.popup.experienceMultiplier": "Experience Gain Multiplier",
+	"vcmi.stackExperience.popup.experienceBonus": "Experience Gain Bonus (Artifacts/Effects)",
+	"vcmi.stackExperience.popup.experienceMultiplier": "Experience Gain Multiplier (Final)",
 	"vcmi.stackExperience.popup.experiencePoints": "Experience Points",
 	"vcmi.stackExperience.popup.maxPerBattle": "Maximum Experience per Battle",
 	"vcmi.stackExperience.popup.maxRecruits": "Maximum New Recruits without losing Current Rank",

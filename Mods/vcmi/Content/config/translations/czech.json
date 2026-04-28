@@ -1011,8 +1011,8 @@
 	"vcmi.spellResearch.skip": "Přeskočit toto kouzlo",
 	"vcmi.spellResearch.title": "Výzkum kouzel",
 
-	"vcmi.stackExperience.popup.experienceBonus": "Bonus ke zkušenostem",
-	"vcmi.stackExperience.popup.experienceMultiplier": "Násobitel získaných zkušeností",
+	"vcmi.stackExperience.popup.experienceBonus": "Bonus ke zkušenostem (artefakty/efekty)",
+	"vcmi.stackExperience.popup.experienceMultiplier": "Konečný násobitel získaných zkušeností",
 	"vcmi.stackExperience.popup.experiencePoints": "Body zkušeností",
 	"vcmi.stackExperience.popup.maxPerBattle": "Maximum zkušeností za bitvu",
 	"vcmi.stackExperience.popup.maxRecruits": "Maximum nových rekrutů bez ztráty aktuální hodnosti",
