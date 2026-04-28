@@ -1227,8 +1227,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
-	const int headerTop = 5;
-	const int detailsTop = 72;
+	const int headerTop = 1;
+	const int detailsTop = 68;
 	const int tableTop = 218;
 	const int rowNameWidth = 140;
 	constexpr int stackExpBaseRowHeight = 25;
@@ -1263,7 +1263,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int infoFieldHeight = 22;
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;
-	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap + 4;
+	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap + 8;
 
 	auto drawSplitRow = [&](int baseX, int y, int height)
 	{

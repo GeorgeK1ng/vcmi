@@ -116,8 +116,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	OBJECT_CONSTRUCTION;
 
 	const int sideMargin = 10;
-	const int headerTop = 5;
-	const int detailsTop = 72;
+	const int headerTop = 1;
+	const int detailsTop = 68;
 	const int tableTop = 218;
 	constexpr int tableBaseRowHeight = 25;
 	const int statusbarHeight = 26; // kept for bottom button offset
@@ -164,7 +164,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int infoFieldHeight = 22;
 	const int infoFieldGap = 2;
 	const int infoRowStep = infoFieldHeight + infoFieldGap;
-	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap + 4;
+	const int infoLongFieldHeight = infoFieldHeight * 2 + infoFieldGap + 8;
 
 	auto addInfo = [&](int row, int column, const std::string & key, const std::string & value)
 	{
