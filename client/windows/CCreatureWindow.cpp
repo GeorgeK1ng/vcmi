@@ -172,10 +172,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), [](const CStackInstance & stackInst)
 			{
 				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACKS_SPEED)));
-			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
 			}}
 	};
 
