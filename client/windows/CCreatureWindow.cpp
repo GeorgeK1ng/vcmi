@@ -1301,7 +1301,8 @@ void CStackWindow::initSections()
 
 void CStackWindow::showStackExperienceDetailsWindow()
 {
-	if(!info->stackNode || info->commander || !GAME->interface())
+	// Requires a real stack and an active interface/callback for preview calculations.
+	if(!info->stackNode || !GAME->interface())
 		return;
 
 	const auto visibility = StackExperienceDetailsWindow::calculateTableVisibility(info->stackNode, info->creature);
