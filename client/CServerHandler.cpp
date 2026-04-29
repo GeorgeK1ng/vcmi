@@ -344,12 +344,9 @@ bool CServerHandler::isGuest() const
 
 bool CServerHandler::hasRemoteClientInLobby() const
 {
-	if(!logicConnection)
-		return false;
-
 	for(const auto & playerEntry : playerNames)
 	{
-		if(playerEntry.second.connection != logicConnection->connectionID)
+		if(playerEntry.second.connection != hostClientId)
 			return true;
 	}
 
