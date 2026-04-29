@@ -103,17 +103,55 @@ CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackE
 	return visibility;
 }
 
+int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature)
+{
+	if(!stack || !creature || !GAME->interface())
+		return 9;
+
+	struct BonusKey
+	{
+		BonusType type;
+		int subtype;
+		bool operator<(const BonusKey & other) const
+		{
+			return std::tie(type, subtype) < std::tie(other.type, other.subtype);
+		}
+	};
+
+	int tier = StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(creature->getLevel());
+	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
+	auto gameCallback = GAME->interface()->cb.get();
+
+	std::set<BonusKey> uniqueBonuses;
+	for(int rank = 0; rank < MAX_RANKS; ++rank)
+	{
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
+		preview.giveTotalStackExperience(averageExp * preview.getCount());
+
+		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
+		for(const auto & bonus : *bonuses)
+			uniqueBonuses.insert({bonus->type, bonus->subtype.getNum()});
+	}
+
+	const int dataRows = std::clamp(2 + static_cast<int>(uniqueBonuses.size()), 8, 19); // 2 fixed rows + dynamic bonuses
+	return dataRows + 1; // header + data
+}
+
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
+	rowCount = std::clamp(rowCount, 9, 20);
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType, bool showShotsRow, bool showManaRow)
-	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow)))
+	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
+	(void)showShotsRow;
+	(void)showManaRow;
 
 	const int sideMargin = 10;
 	const int headerTop = 1;
@@ -200,11 +238,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), std::to_string(maxRecruitsAtRank10));
 
 	std::vector<NumericRow> rows = {
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
-			{
-				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
-				if(rank == 0 || expMax == 0)
-					return 0;
+			{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
+				{
+					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
+					if(rank == 0 || expMax == 0)
+						return 0;
 				return static_cast<int>(100.0 * static_cast<double>(rankThresholds[rank - 1]) / static_cast<double>(expMax));
 			}, true},
 		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPoints"), [&rankThresholds](const CStackInstance & stackInst)
@@ -212,48 +250,108 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK))));
-			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE))));
-			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMin)));
-			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax)));
-			}},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACK_HEALTH)));
-			}, true},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::STACKS_SPEED)));
-			}}
 	};
 
-	if(showShotsRow)
+	struct BonusKey
 	{
-		rows.push_back({LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
-			}});
-	}
-	if(showManaRow)
+		BonusType type;
+		int subtype;
+
+		bool operator<(const BonusKey & other) const
+		{
+			return std::tie(type, subtype) < std::tie(other.type, other.subtype);
+		}
+	};
+
+	auto getBonusKey = [](const std::shared_ptr<const Bonus> & bonus)
 	{
-		rows.push_back({LIBRARY->generaltexth->allTexts[399], [](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
-			}});
+		return BonusKey{bonus->type, bonus->subtype.getNum()};
+	};
+
+	auto makeStackExpSelector = [](const BonusKey & key)
+	{
+		auto selector = Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type));
+		if(key.subtype != BonusSubtypeID().getNum())
+			selector = selector.And(Selector::subtype()(BonusSubtypeID(key.subtype)));
+		return selector;
+	};
+
+	auto createPreviewStack = [this, creature, &rankThresholds](int rank)
+	{
+		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+		CStackInstance preview(gameCallback, creature->getId(), std::max(1, sourceStack->getCount()), true);
+		preview.giveTotalStackExperience(averageExp * preview.getCount());
+		return preview;
+	};
+
+	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
+	for(int rank = 0; rank < MAX_RANKS; ++rank)
+	{
+		CStackInstance preview = createPreviewStack(rank);
+		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
+		for(const auto & bonus : *bonuses)
+		{
+			const auto key = getBonusKey(bonus);
+			dynamicBonuses.emplace(key, bonus);
+		}
 	}
 
-	const int tableRowCount = 9 + static_cast<int>(showShotsRow) + static_cast<int>(showManaRow); // header + base data + optional rows
+	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false)
+	{
+		const auto selector = makeStackExpSelector(key);
+		rows.push_back({label, [selector](const CStackInstance & stackInst)
+			{
+				return stackInst.valOfBonuses(selector);
+			}, percent});
+		dynamicBonuses.erase(key);
+	};
+
+	const auto keyAttack = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK).getNum()};
+	if(dynamicBonuses.count(keyAttack))
+		addBonusRow(keyAttack, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+
+	const auto keyDefense = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE).getNum()};
+	if(dynamicBonuses.count(keyDefense))
+		addBonusRow(keyDefense, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+
+	const auto keyMinDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMin};
+	if(dynamicBonuses.count(keyMinDamage))
+		addBonusRow(keyMinDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
+
+	const auto keyMaxDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax};
+	if(dynamicBonuses.count(keyMaxDamage))
+		addBonusRow(keyMaxDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
+
+	const auto keyHealth = BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID().getNum()};
+	if(dynamicBonuses.count(keyHealth))
+		addBonusRow(keyHealth, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), true);
+
+	const auto keySpeed = BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID().getNum()};
+	if(dynamicBonuses.count(keySpeed))
+		addBonusRow(keySpeed, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
+
+	const auto keyShots = BonusKey{BonusType::SHOTS, BonusSubtypeID().getNum()};
+	if(dynamicBonuses.count(keyShots))
+		addBonusRow(keyShots, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
+
+	const auto keyMana = BonusKey{BonusType::CASTS, BonusSubtypeID().getNum()};
+	if(dynamicBonuses.count(keyMana))
+		addBonusRow(keyMana, LIBRARY->generaltexth->allTexts[399]);
+
+	for(const auto & [key, bonus] : dynamicBonuses)
+	{
+		std::string rowLabel = "Bonus";
+		if(const auto bonusText = LIBRARY->bth->bonusToString(std::const_pointer_cast<Bonus>(bonus), 0); !bonusText.empty())
+			rowLabel = bonusText.substr(0, bonusText.find('\n'));
+
+		addBonusRow(key, rowLabel);
+	}
+
+	const int maxDataRows = 19; // 20 total with header
+	if(static_cast<int>(rows.size()) > maxDataRows)
+		rows.resize(maxDataRows);
+	const int tableRowCount = static_cast<int>(rows.size()) + 1; // header + data rows
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;

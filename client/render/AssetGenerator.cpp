@@ -94,9 +94,14 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows9")] = [this](){ return createStackExperienceDialogBackground(Point(800, 495), 9);};
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows10")] = [this](){ return createStackExperienceDialogBackground(Point(800, 520), 10);};
-	imageFiles[ImagePath::builtin("stackExperienceDialogRows11")] = [this](){ return createStackExperienceDialogBackground(Point(800, 545), 11);};
+	for(int rowCount = 9; rowCount <= 20; ++rowCount)
+	{
+		const int dialogHeight = 495 + (rowCount - 9) * 25;
+		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
+		{
+			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
+		};
+	}
 
 	addBackpackBackground("heroBackpackDialog", Point(426, 465));
 

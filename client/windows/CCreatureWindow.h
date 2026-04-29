@@ -189,12 +189,13 @@ class CStackWindow : public CWindowObject
 		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
 		static constexpr int MAX_RANKS = 11;
 
-	public:
-		static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-		static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
-		static ImagePath getDialogBackground(int rowCount);
-		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
-	};
+		public:
+			static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
+			static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
+			static int calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature);
+			static ImagePath getDialogBackground(int rowCount);
+			StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
+		};
 
 	std::shared_ptr<CFilledTexture> background;
 
