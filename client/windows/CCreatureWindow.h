@@ -183,6 +183,7 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<CLabel> stackSummary;
 		std::shared_ptr<CCreaturePic> creatureAnimation;
 		std::shared_ptr<CButton> closeButton;
+		std::shared_ptr<CSlider> bonusRowsSlider;
 		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
 		std::vector<std::shared_ptr<CIntObject>> labels;
 

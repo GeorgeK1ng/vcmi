@@ -22,6 +22,7 @@
 #include "../widgets/Images.h"
 #include "../widgets/TextControls.h"
 #include "../widgets/ObjectLists.h"
+#include "../widgets/Slider.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
@@ -351,7 +352,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int maxDataRows = 19; // 20 total with header
 	if(static_cast<int>(rows.size()) > maxDataRows)
 		rows.resize(maxDataRows);
-	const int tableRowCount = static_cast<int>(rows.size()) + 1; // header + data rows
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
@@ -363,32 +363,57 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowCount));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowCount - 2), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowCount - 4), Colors::METALLIC_GOLD);
+	constexpr int maxVisibleBonusRows = 12;
+	const int totalBonusRows = static_cast<int>(rows.size());
+	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
+	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
+	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 4), Colors::METALLIC_GOLD);
 
-	for(size_t row = 0; row < rows.size(); ++row)
+	std::vector<std::shared_ptr<CIntObject>> tableValueLabels;
+	auto rebuildTableRows = [&, this](int rowOffset)
 	{
-		const int rowY = tableTop + static_cast<int>(row + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[row].title));
+		for(const auto & obj : tableValueLabels)
+			removeChild(obj.get());
+		tableValueLabels.clear();
 
-		for(int rank = 0; rank < MAX_RANKS; ++rank)
+		for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 		{
-			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-			preview.giveTotalStackExperience(averageExp * preview.getCount());
+			const int rowIndex = rowOffset + localRow;
+			const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
+			auto rowName = std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[rowIndex].title);
+			tableValueLabels.push_back(rowName);
+			addChild(rowName.get(), false);
 
-			const int value = rows[row].valueGetter(preview);
+			for(int rank = 0; rank < MAX_RANKS; ++rank)
+			{
+				const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+				preview.giveTotalStackExperience(averageExp * preview.getCount());
 
-			std::string valueText;
-			if(rows[row].percent)
-				valueText = (value > 0 ? "+" : "") + std::to_string(value) + "%";
-			else
-				valueText = (value > 0 ? "+" : "") + std::to_string(value);
-
-			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
+				const int value = rows[rowIndex].valueGetter(preview);
+				std::string valueText = (value > 0 ? "+" : "") + std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
+				auto valueLabel = std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText);
+				tableValueLabels.push_back(valueLabel);
+				addChild(valueLabel.get(), false);
+			}
 		}
+		redraw();
+	};
+
+	rebuildTableRows(0);
+
+	if(totalBonusRows > maxVisibleBonusRows)
+	{
+		const int sliderX = sideMargin + tableWidth + 4;
+		const int sliderY = tableTop + rowHeight;
+		const int sliderLength = rowHeight * visibleBonusRows;
+		bonusRowsSlider = std::make_shared<CSlider>(Point(sliderX, sliderY), sliderLength, [rebuildTableRows](int value)
+		{
+			rebuildTableRows(value);
+		}, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 	}
 
 	const int centerX = pos.w / 2;
