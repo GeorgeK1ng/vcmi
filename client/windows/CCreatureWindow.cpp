@@ -240,14 +240,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), std::to_string(maxRecruitsAtRank10));
 
 	std::vector<NumericRow> rows = {
-			{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPercent"), [expMax, &rankThresholds](const CStackInstance & stackInst)
-				{
-					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
-					if(rank == 0 || expMax == 0)
-						return 0;
-				return static_cast<int>(100.0 * static_cast<double>(rankThresholds[rank - 1]) / static_cast<double>(expMax));
-			}, true},
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.expPoints"), [&rankThresholds](const CStackInstance & stackInst)
+		{"Experience", [&rankThresholds](const CStackInstance & stackInst)
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
@@ -257,22 +250,22 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	struct BonusKey
 	{
 		BonusType type;
-		int subtype;
+		BonusSubtypeID subtype;
 
 		bool operator<(const BonusKey & other) const
 		{
-			return std::tie(type, subtype) < std::tie(other.type, other.subtype);
+			return std::tie(type, subtype.getNum()) < std::tie(other.type, other.subtype.getNum());
 		}
 	};
 
 	auto getBonusKey = [](const std::shared_ptr<const Bonus> & bonus)
 	{
-		return BonusKey{bonus->type, bonus->subtype.getNum()};
+		return BonusKey{bonus->type, bonus->subtype};
 	};
 
 	auto makeStackExpSelector = [](const BonusKey & key)
 	{
-		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type));
+		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(key.type, key.subtype));
 	};
 
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
@@ -301,35 +294,35 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		dynamicBonuses.erase(key);
 	};
 
-	const auto keyAttack = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK).getNum()};
+	const auto keyAttack = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK)};
 	if(dynamicBonuses.count(keyAttack))
 		addBonusRow(keyAttack, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
 
-	const auto keyDefense = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE).getNum()};
+	const auto keyDefense = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)};
 	if(dynamicBonuses.count(keyDefense))
 		addBonusRow(keyDefense, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
 
-	const auto keyMinDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMin};
+	const auto keyMinDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)};
 	if(dynamicBonuses.count(keyMinDamage))
 		addBonusRow(keyMinDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
 
-	const auto keyMaxDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusCustomSubtype::creatureDamageMax};
+	const auto keyMaxDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)};
 	if(dynamicBonuses.count(keyMaxDamage))
 		addBonusRow(keyMaxDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
 
-	const auto keyHealth = BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID().getNum()};
+	const auto keyHealth = BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID()};
 	if(dynamicBonuses.count(keyHealth))
 		addBonusRow(keyHealth, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), true);
 
-	const auto keySpeed = BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID().getNum()};
+	const auto keySpeed = BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID()};
 	if(dynamicBonuses.count(keySpeed))
 		addBonusRow(keySpeed, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
 
-	const auto keyShots = BonusKey{BonusType::SHOTS, BonusSubtypeID().getNum()};
+	const auto keyShots = BonusKey{BonusType::SHOTS, BonusSubtypeID()};
 	if(dynamicBonuses.count(keyShots))
 		addBonusRow(keyShots, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
 
-	const auto keyMana = BonusKey{BonusType::CASTS, BonusSubtypeID().getNum()};
+	const auto keyMana = BonusKey{BonusType::CASTS, BonusSubtypeID()};
 	if(dynamicBonuses.count(keyMana))
 		addBonusRow(keyMana, LIBRARY->generaltexth->allTexts[399]);
 
@@ -339,7 +332,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		if(const auto bonusText = LIBRARY->getBth()->bonusToString(std::const_pointer_cast<Bonus>(bonus), sourceStack); !bonusText.empty())
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
-		addBonusRow(key, rowLabel);
+		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
+		addBonusRow(key, rowLabel, percentValue);
 	}
 
 	const int maxDataRows = 19; // 20 total with header
@@ -379,7 +373,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			preview.giveTotalStackExperience(totalExperience);
 
 			const int value = rows[rowIndex].valueGetter(preview);
-			std::string valueText = (value > 0 ? "+" : "") + std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
+			std::string valueText = std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
 			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
 		}
 	}
