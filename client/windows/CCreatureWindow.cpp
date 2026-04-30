@@ -336,13 +336,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		const bool binaryValue =
-			key.type == BonusType::FLYING ||
-			key.type == BonusType::SPELL_IMMUNITY ||
-			key.type == BonusType::FEARFUL ||
-			key.type == BonusType::RECEPTIVE ||
-			key.type == BonusType::MIND_IMMUNITY ||
-			key.type == BonusType::NEGATIVE_EFFECTS_IMMUNITY;
+		// Dynamic boolean detection: bonuses defined from bool progression in JSON do not define explicit val
+		// and typically have val==0, while numeric +1 progressions use non-zero val.
+		const bool binaryValue = !percentValue && bonus->val == 0;
 		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
 
@@ -365,6 +361,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.showSign = row.showSign;
 
 		bool anyNonZero = false;
+		bool onlyBinary = true;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
@@ -376,11 +373,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			const int value = row.valueGetter(preview);
 			prepared.values[rank] = value;
 			anyNonZero = anyNonZero || value != 0;
+			onlyBinary = onlyBinary && (value == 0 || value == 1);
 		}
 
 		if(anyNonZero)
 		{
-			prepared.binary = row.binary;
+			prepared.binary = row.binary && onlyBinary;
 			preparedRows.push_back(std::move(prepared));
 		}
 	}
