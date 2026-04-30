@@ -17,6 +17,7 @@
 #include "../lib/gameState/GameStatistics.h"
 #include "../lib/networkPacks/PacksForServer.h"
 #include "../lib/serializer/GameConnectionID.h"
+#include "../lib/serializer/PlayerConnectionID.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
