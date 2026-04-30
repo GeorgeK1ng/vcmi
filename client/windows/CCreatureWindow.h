@@ -175,6 +175,7 @@ class CStackWindow : public CWindowObject
 				std::function<int(const CStackInstance &)> valueGetter;
 				bool percent = false;
 				bool binary = false;
+				bool showSign = true;
 			};
 
 		const CStackInstance * sourceStack;

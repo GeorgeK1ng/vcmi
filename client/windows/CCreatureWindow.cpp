@@ -244,7 +244,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}},
+			}, false, false, false},
 	};
 
 	struct BonusKey
@@ -286,13 +286,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false)
+	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
 		rows.push_back({label, [selector](const CStackInstance & stackInst)
 				{
 					return stackInst.valOfBonuses(selector);
-				}, percent, binary});
+				}, percent, binary, showSign});
 		dynamicBonuses.erase(key);
 	};
 
@@ -348,6 +348,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		std::string title;
 		bool percent = false;
 		bool binary = false;
+		bool showSign = true;
 		std::array<int, MAX_RANKS> values{};
 	};
 
@@ -358,6 +359,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		PreparedRow prepared;
 		prepared.title = row.title;
 		prepared.percent = row.percent;
+		prepared.showSign = row.showSign;
 
 		bool anyNonZero = false;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
@@ -417,7 +419,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 						? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes")
 						: LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
 				else
-					valueText = std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
+				{
+					const bool showSign = preparedRows[rowIndex].showSign && value > 0;
+					valueText = (showSign ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
+				}
 			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
 		}
 	}
