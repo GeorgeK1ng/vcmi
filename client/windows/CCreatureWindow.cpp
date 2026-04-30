@@ -22,7 +22,6 @@
 #include "../widgets/Images.h"
 #include "../widgets/TextControls.h"
 #include "../widgets/ObjectLists.h"
-#include "../widgets/Slider.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
@@ -400,17 +399,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	rebuildTableRows(0);
 
-	if(totalBonusRows > maxVisibleBonusRows)
-	{
-		const int sliderX = sideMargin + tableWidth + 4;
-		const int sliderY = tableTop + rowHeight;
-		const int sliderLength = rowHeight * visibleBonusRows;
-		auto bonusRowsSlider = std::make_shared<CSlider>(Point(sliderX, sliderY), sliderLength, [rebuildTableRows](int value)
-		{
-			rebuildTableRows(value);
-		}, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
-		labels.push_back(bonusRowsSlider);
-	}
+	// NOTE: Slider callback needs persistent row model state owned by the window object.
+	// Current implementation keeps rows as constructor-local data, so attaching a callback
+	// here would capture dangling references after constructor exit and can crash at runtime.
+	// Keep view capped to visible rows until state is moved to members.
 
 	const int centerX = pos.w / 2;
 	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
