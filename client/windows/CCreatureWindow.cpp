@@ -364,45 +364,25 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 4), Colors::METALLIC_GOLD);
 
-	std::vector<std::shared_ptr<CIntObject>> tableValueLabels;
-	auto rebuildTableRows = [&, this](int rowOffset)
+	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 	{
-		for(const auto & obj : tableValueLabels)
-			removeChild(obj.get());
-		tableValueLabels.clear();
+		const int rowIndex = localRow;
+		const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
+		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[rowIndex].title));
 
-		for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
+		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
-			const int rowIndex = rowOffset + localRow;
-			const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
-			auto rowName = std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[rowIndex].title);
-			tableValueLabels.push_back(rowName);
-			addChild(rowName.get(), false);
+			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+			preview.giveTotalStackExperience(totalExperience);
 
-			for(int rank = 0; rank < MAX_RANKS; ++rank)
-			{
-				const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-				const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-				preview.giveTotalStackExperience(totalExperience);
-
-				const int value = rows[rowIndex].valueGetter(preview);
-				std::string valueText = (value > 0 ? "+" : "") + std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
-				auto valueLabel = std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText);
-				tableValueLabels.push_back(valueLabel);
-				addChild(valueLabel.get(), false);
-			}
+			const int value = rows[rowIndex].valueGetter(preview);
+			std::string valueText = (value > 0 ? "+" : "") + std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
+			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
 		}
-		redraw();
-	};
-
-	rebuildTableRows(0);
-
-	// NOTE: Slider callback needs persistent row model state owned by the window object.
-	// Current implementation keeps rows as constructor-local data, so attaching a callback
-	// here would capture dangling references after constructor exit and can crash at runtime.
-	// Keep view capped to visible rows until state is moved to members.
+	}
 
 	const int centerX = pos.w / 2;
 	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
