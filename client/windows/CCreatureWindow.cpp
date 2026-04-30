@@ -336,9 +336,48 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		addBonusRow(key, rowLabel, percentValue);
 	}
 
+	struct PreparedRow
+	{
+		std::string title;
+		bool percent = false;
+		bool binary = false;
+		std::array<int, MAX_RANKS> values{};
+	};
+
+	std::vector<PreparedRow> preparedRows;
+	preparedRows.reserve(rows.size());
+	for(const auto & row : rows)
+	{
+		PreparedRow prepared;
+		prepared.title = row.title;
+		prepared.percent = row.percent;
+
+		bool anyNonZero = false;
+		bool onlyBinary = true;
+		for(int rank = 0; rank < MAX_RANKS; ++rank)
+		{
+			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+			preview.giveTotalStackExperience(totalExperience);
+
+			const int value = row.valueGetter(preview);
+			prepared.values[rank] = value;
+			anyNonZero = anyNonZero || value != 0;
+			onlyBinary = onlyBinary && (value == 0 || value == 1);
+		}
+
+		if(anyNonZero)
+		{
+			prepared.binary = onlyBinary && !prepared.percent;
+			preparedRows.push_back(std::move(prepared));
+		}
+	}
+
 	const int maxDataRows = 19; // 20 total with header
-	if(static_cast<int>(rows.size()) > maxDataRows)
-		rows.resize(maxDataRows);
+	if(static_cast<int>(preparedRows.size()) > maxDataRows)
+		preparedRows.resize(maxDataRows);
 
 	const int rowNameWidth = 140;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
@@ -351,7 +390,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	}
 
 	constexpr int maxVisibleBonusRows = 12;
-	const int totalBonusRows = static_cast<int>(rows.size());
+	const int totalBonusRows = static_cast<int>(preparedRows.size());
 	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
@@ -362,18 +401,16 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		const int rowIndex = localRow;
 		const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, rows[rowIndex].title));
+		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title));
 
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
-			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-			preview.giveTotalStackExperience(totalExperience);
-
-			const int value = rows[rowIndex].valueGetter(preview);
-			std::string valueText = std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
+			const int value = preparedRows[rowIndex].values[rank];
+			std::string valueText;
+			if(preparedRows[rowIndex].binary)
+				valueText = value != 0 ? "Yes" : "No";
+			else
+				valueText = std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
 			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
 		}
 	}
