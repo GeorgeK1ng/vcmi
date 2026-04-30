@@ -284,13 +284,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false)
+	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false)
 	{
 		const auto selector = makeStackExpSelector(key);
 		rows.push_back({label, [selector](const CStackInstance & stackInst)
-			{
-				return stackInst.valOfBonuses(selector);
-			}, percent});
+				{
+					return stackInst.valOfBonuses(selector);
+				}, percent, binary});
 		dynamicBonuses.erase(key);
 	};
 
@@ -333,7 +333,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		addBonusRow(key, rowLabel, percentValue);
+		const bool binaryValue =
+			key.type == BonusType::FLYING ||
+			key.type == BonusType::SPELL_IMMUNITY ||
+			key.type == BonusType::FEARFUL ||
+			key.type == BonusType::RECEPTIVE;
+		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
 
 	struct PreparedRow
@@ -353,7 +358,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.percent = row.percent;
 
 		bool anyNonZero = false;
-		bool onlyBinary = true;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
@@ -365,12 +369,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			const int value = row.valueGetter(preview);
 			prepared.values[rank] = value;
 			anyNonZero = anyNonZero || value != 0;
-			onlyBinary = onlyBinary && (value == 0 || value == 1);
 		}
 
 		if(anyNonZero)
 		{
-			prepared.binary = onlyBinary && !prepared.percent;
+			prepared.binary = row.binary;
 			preparedRows.push_back(std::move(prepared));
 		}
 	}

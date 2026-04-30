@@ -169,12 +169,13 @@ class CStackWindow : public CWindowObject
 			bool showManaRow = false;
 		};
 
-		struct NumericRow
-		{
-			std::string title;
-			std::function<int(const CStackInstance &)> valueGetter;
-			bool percent = false;
-		};
+			struct NumericRow
+			{
+				std::string title;
+				std::function<int(const CStackInstance &)> valueGetter;
+				bool percent = false;
+				bool binary = false;
+			};
 
 		const CStackInstance * sourceStack;
 		const CCreature * creature;
