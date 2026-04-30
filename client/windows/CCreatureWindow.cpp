@@ -273,26 +273,17 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	auto makeStackExpSelector = [](const BonusKey & key)
 	{
-		auto selector = Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type));
-		if(key.subtype != BonusSubtypeID().getNum())
-			selector = selector.And(Selector::subtype()(BonusSubtypeID(key.subtype)));
-		return selector;
-	};
-
-	auto createPreviewStack = [this, creature, &rankThresholds](int rank)
-	{
-		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-		CStackInstance preview(gameCallback, creature->getId(), std::max(1, sourceStack->getCount()), true);
-		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-		preview.giveTotalStackExperience(totalExperience);
-		return preview;
+		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type));
 	};
 
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		CStackInstance preview = createPreviewStack(rank);
+		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+		CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+		preview.giveTotalStackExperience(totalExperience);
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
 		{
@@ -346,7 +337,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		std::string rowLabel = "Bonus";
-		if(const auto bonusText = LIBRARY->bth->bonusToString(std::const_pointer_cast<Bonus>(bonus), 0); !bonusText.empty())
+		if(const auto bonusText = LIBRARY->getBth()->bonusToString(std::const_pointer_cast<Bonus>(bonus)); !bonusText.empty())
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
 		addBonusRow(key, rowLabel);
@@ -414,10 +405,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const int sliderX = sideMargin + tableWidth + 4;
 		const int sliderY = tableTop + rowHeight;
 		const int sliderLength = rowHeight * visibleBonusRows;
-		bonusRowsSlider = std::make_shared<CSlider>(Point(sliderX, sliderY), sliderLength, [rebuildTableRows](int value)
+		auto bonusRowsSlider = std::make_shared<CSlider>(Point(sliderX, sliderY), sliderLength, [rebuildTableRows](int value)
 		{
 			rebuildTableRows(value);
 		}, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		labels.push_back(bonusRowsSlider);
 	}
 
 	const int centerX = pos.w / 2;
@@ -1433,7 +1425,8 @@ void CStackWindow::showStackExperienceDetailsWindow()
 		return;
 
 	const auto visibility = StackExperienceDetailsWindow::calculateTableVisibility(info->stackNode, info->creature);
-	ENGINE->windows().pushWindow(std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature, visibility.showShotsRow, visibility.showManaRow));
+	auto detailsWindow = std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature, visibility.showShotsRow, visibility.showManaRow);
+	ENGINE->windows().pushWindow(std::static_pointer_cast<IShowActivatable>(detailsWindow));
 }
 
 std::string CStackWindow::getCommanderSkillDescription(int skillIndex, int skillLevel)
