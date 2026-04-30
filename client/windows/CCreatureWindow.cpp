@@ -337,7 +337,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		std::string rowLabel = "Bonus";
-		if(const auto bonusText = LIBRARY->getBth()->bonusToString(std::const_pointer_cast<Bonus>(bonus), nullptr); !bonusText.empty())
+		if(const auto bonusText = LIBRARY->getBth()->bonusToString(std::const_pointer_cast<Bonus>(bonus), sourceStack); !bonusText.empty())
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
 		addBonusRow(key, rowLabel);
