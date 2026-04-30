@@ -350,7 +350,12 @@ bool CServerHandler::hasRemoteClientInLobby() const
 			return true;
 	}
 
-	return false;
+	return remoteClientLobbyHint;
+}
+
+void CServerHandler::setRemoteClientLobbyHint(bool hasRemoteClient)
+{
+	remoteClientLobbyHint = hasRemoteClient;
 }
 
 const std::string & CServerHandler::getLocalHostname() const

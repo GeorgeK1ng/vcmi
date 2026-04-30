@@ -93,6 +93,10 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 		}
 		handler.setState(EClientState::LOBBY);
 	}
+	else
+	{
+		handler.setRemoteClientLobbyHint(true);
+	}
 }
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected &)
@@ -118,6 +122,8 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 			ENGINE->windows().popWindows(1);
 		return;
 	}
+
+	handler.setRemoteClientLobbyHint(false);
 
 	if(lobby)
 		lobby->onRemoteClientConnectionChanged();
@@ -209,6 +215,7 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState &
 {
 	pack.hostChanged = pack.state.hostClientId != handler.hostClientId;
 	static_cast<LobbyState &>(handler) = pack.state;
+	handler.setRemoteClientLobbyHint(false);
 	if(handler.mapToStart && handler.mi)
 	{
 		handler.startMapAfterConnection(nullptr);
