@@ -51,8 +51,11 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
+	const bool isLocalClient = pack.uuid == handler.logicConnection->uuid;
+	result = !isLocalClient;
+
 	// Check if it's LobbyClientConnected for our client
-	if(pack.uuid == handler.logicConnection->uuid)
+	if(isLocalClient)
 	{
 		handler.logicConnection->setSerializationVersion(pack.version);
 		handler.logicConnection->connectionID = pack.clientId;
@@ -96,10 +99,12 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClient
 {
 }
 
-void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected &)
+void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
-	if(lobby)
-		lobby->updateAfterStateChange();
+	if(!lobby || pack.clientId == handler.logicConnection->connectionID)
+		return;
+
+	lobby->updateAfterStateChange();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
