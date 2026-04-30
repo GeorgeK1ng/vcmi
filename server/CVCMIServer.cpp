@@ -550,7 +550,7 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 
 	if(gh && getState() == EServerState::GAMEPLAY)
 	{
-		gh->handleClientDisconnection(connection->connectionID);
+		gh->handleClientDisconnection(connection->connectionID, disconnectedPlayerIds);
 	}
 
 	for(const auto & playerId : disconnectedPlayerIds)
