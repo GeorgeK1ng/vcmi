@@ -254,7 +254,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 		bool operator<(const BonusKey & other) const
 		{
-			return std::tie(type, subtype.getNum()) < std::tie(other.type, other.subtype.getNum());
+			if(type != other.type)
+				return type < other.type;
+			return subtype.getNum() < other.subtype.getNum();
 		}
 	};
 
