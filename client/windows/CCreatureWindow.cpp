@@ -240,7 +240,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), std::to_string(maxRecruitsAtRank10));
 
 	std::vector<NumericRow> rows = {
-		{"Experience", [&rankThresholds](const CStackInstance & stackInst)
+		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), [&rankThresholds](const CStackInstance & stackInst)
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
