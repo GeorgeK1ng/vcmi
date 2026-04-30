@@ -331,9 +331,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		std::string rowLabel = "Bonus";
-		const auto callback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-		if(const auto bonusText = bonus->Description(callback); !bonusText.empty())
-			rowLabel = bonusText.substr(0, bonusText.find('\n'));
+		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+			rowLabel = bonusTypeHandler->bonusToString(key.type);
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
 		// Dynamic boolean detection: bonuses defined from bool progression in JSON do not define explicit val
