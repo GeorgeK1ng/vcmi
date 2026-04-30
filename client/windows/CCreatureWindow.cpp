@@ -331,7 +331,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		std::string rowLabel = "Bonus";
-		if(const auto bonusText = LIBRARY->getBth()->bonusToString(std::const_pointer_cast<Bonus>(bonus), sourceStack); !bonusText.empty())
+		const auto callback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+		if(const auto bonusText = bonus->Description(callback); !bonusText.empty())
 			rowLabel = bonusText.substr(0, bonusText.find('\n'));
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
@@ -339,7 +340,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			key.type == BonusType::FLYING ||
 			key.type == BonusType::SPELL_IMMUNITY ||
 			key.type == BonusType::FEARFUL ||
-			key.type == BonusType::RECEPTIVE;
+			key.type == BonusType::RECEPTIVE ||
+			key.type == BonusType::MIND_IMMUNITY ||
+			key.type == BonusType::NEGATIVE_EFFECTS_IMMUNITY;
 		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
 
