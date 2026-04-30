@@ -411,11 +411,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int value = preparedRows[rowIndex].values[rank];
-			std::string valueText;
-			if(preparedRows[rowIndex].binary)
-				valueText = value != 0 ? "Yes" : "No";
-			else
-				valueText = std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
+				std::string valueText;
+				if(preparedRows[rowIndex].binary)
+					valueText = value != 0
+						? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes")
+						: LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
+				else
+					valueText = std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
 			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
 		}
 	}
