@@ -92,7 +92,8 @@ CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackE
 	{
 		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
-		preview.giveTotalStackExperience(averageExp * preview.getCount());
+		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+		preview.giveTotalStackExperience(totalExperience);
 
 		const int shotsBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
 		const int manaBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
@@ -128,7 +129,8 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	{
 		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
-		preview.giveTotalStackExperience(averageExp * preview.getCount());
+		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+		preview.giveTotalStackExperience(totalExperience);
 
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
@@ -282,7 +284,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, sourceStack->getCount()), true);
-		preview.giveTotalStackExperience(averageExp * preview.getCount());
+		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+		preview.giveTotalStackExperience(totalExperience);
 		return preview;
 	};
 
@@ -391,7 +394,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
 				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-				preview.giveTotalStackExperience(averageExp * preview.getCount());
+				const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+				preview.giveTotalStackExperience(totalExperience);
 
 				const int value = rows[rowIndex].valueGetter(preview);
 				std::string valueText = (value > 0 ? "+" : "") + std::to_string(value) + (rows[rowIndex].percent ? "%" : "");
