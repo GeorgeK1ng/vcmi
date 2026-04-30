@@ -104,7 +104,7 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConn
 	if(!lobby || pack.clientId == handler.logicConnection->connectionID)
 		return;
 
-	lobby->updateAfterStateChange();
+	lobby->onRemoteClientConnectionChanged();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
@@ -120,7 +120,7 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 	}
 
 	if(lobby)
-		lobby->updateAfterStateChange();
+		lobby->onRemoteClientConnectionChanged();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
