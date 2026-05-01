@@ -5,8 +5,11 @@
 #include <functional>
 #include <vector>
 
+VCMI_LIB_NAMESPACE_BEGIN
 class CStackInstance;
 class CCreature;
+VCMI_LIB_NAMESPACE_END
+
 class CCreaturePic;
 class CLabel;
 class CButton;
@@ -17,14 +20,14 @@ class CStackExperienceDetailsWindow : public CWindowObject
 	struct NumericRow
 	{
 		std::string title;
-		std::function<int(const CStackInstance &)> valueGetter;
+		std::function<int(const VCMI::CStackInstance &)> valueGetter;
 		bool percent = false;
 		bool binary = false;
 		bool showSign = true;
 	};
 
-	const CStackInstance * sourceStack;
-	const CCreature * creature;
+	const VCMI::CStackInstance * sourceStack;
+	const VCMI::CCreature * creature;
 
 	std::shared_ptr<CLabel> title;
 	std::shared_ptr<CLabel> stackSummary;
@@ -37,7 +40,7 @@ class CStackExperienceDetailsWindow : public CWindowObject
 
 public:
 	static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-	static int calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature);
+	static int calculateDynamicTableRowCount(const VCMI::CStackInstance * stack, const VCMI::CCreature * creature);
 	static ImagePath getDialogBackground(int rowCount);
-	CStackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature);
+	CStackExperienceDetailsWindow(const VCMI::CStackInstance * stack, const VCMI::CCreature * creature);
 };
