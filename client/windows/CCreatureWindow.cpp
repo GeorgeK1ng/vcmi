@@ -278,7 +278,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			rowLabel = rowLabel.substr(0, lineBreak);
 
 		if(rowLabel.empty())
-			rowLabel = LIBRARY->getBth()->bonusToString(bonus->type);
+		{
+			if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+				rowLabel = bonusTypeHandler->bonusToString(bonus->type);
+			else
+				rowLabel = "Bonus";
+		}
 
 		return rowLabel;
 	};
