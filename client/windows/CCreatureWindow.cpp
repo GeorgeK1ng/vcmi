@@ -413,8 +413,8 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 0), Point(colWidth + 1, rowHeight * tableRowsVisible + 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 1, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
 
 	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 	{
