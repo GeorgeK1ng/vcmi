@@ -9,6 +9,7 @@
  */
 #include "StdInc.h"
 #include "CCreatureWindow.h"
+#include "CStackExperienceDetailsWindow.h"
 
 #include <vcmi/spells/Spell.h>
 #include <vcmi/spells/Service.h>

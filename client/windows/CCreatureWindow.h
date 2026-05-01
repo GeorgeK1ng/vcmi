@@ -13,7 +13,6 @@
 #include "../../lib/filesystem/ResourcePath.h"
 #include "../widgets/MiscWidgets.h"
 #include "CWindowObject.h"
-#include "CStackExperienceDetailsWindow.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -29,6 +28,7 @@ class CTabbedInt;
 class CButton;
 class CMultiLineLabel;
 class CListBox;
+class CStackExperienceDetailsWindow;
 class CCreaturePic;
 class CArtPlace;
 class CCommanderArtPlace;
