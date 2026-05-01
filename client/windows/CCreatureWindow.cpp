@@ -251,23 +251,29 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		BonusType type;
 		BonusSubtypeID subtype;
+		BonusValueType valType;
+		bool hidden;
 
 		bool operator<(const BonusKey & other) const
 		{
 			if(type != other.type)
 				return type < other.type;
-			return subtype.getNum() < other.subtype.getNum();
+			if(subtype.getNum() != other.subtype.getNum())
+				return subtype.getNum() < other.subtype.getNum();
+			if(valType != other.valType)
+				return valType < other.valType;
+			return hidden < other.hidden;
 		}
 	};
 
 	auto getBonusKey = [](const std::shared_ptr<const Bonus> & bonus)
 	{
-		return BonusKey{bonus->type, bonus->subtype};
+		return BonusKey{bonus->type, bonus->subtype, bonus->valType, bonus->hidden};
 	};
 
 	auto makeStackExpSelector = [](const BonusKey & key)
 	{
-		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(key.type, key.subtype));
+		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtypeValueType(key.type, key.subtype, key.valType));
 	};
 
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
@@ -332,12 +338,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		std::string rowLabel = "Bonus";
 		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
-			rowLabel = bonusTypeHandler->bonusToString(key.type);
+			rowLabel = bonusTypeHandler->bonusToString(bonus);
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		// Dynamic boolean detection: bonuses defined from bool progression in JSON do not define explicit val
-		// and typically have val==0, while numeric +1 progressions use non-zero val.
-		const bool binaryValue = !percentValue && bonus->val == 0;
+		const bool binaryValue = false; // inferred from actual rank values below
 		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
 
