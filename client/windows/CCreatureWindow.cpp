@@ -295,6 +295,15 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				rowLabel = boost::str(boost::format(pattern) % spellName);
 			}
 		}
+		else if(bonus->type == BonusType::SPELL_AFTER_ATTACK)
+		{
+			const auto spell = SpellID(bonus->subtype.getNum());
+			if(spell != SpellID::NONE)
+			{
+				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
+				rowLabel += ": " + spellName;
+			}
+		}
 
 		return rowLabel;
 	};
