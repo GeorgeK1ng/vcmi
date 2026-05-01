@@ -1119,5 +1119,6 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Přibližte dva prsty k sobě pro přiblížení mapy.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Přejetí otevře kruhovou nabídku pro různé akce, třeba správa hrdiny/jednotek a příkazy měst.",
 	"vcmi.tutorialWindow.decription.RightClick": "Klepněte a držte prvek, na který byste chtěli použít pravé tlačítko myši. Klepněte na volnou oblast pro zavření.",
-	"vcmi.tutorialWindow.title": "Úvod ovládání dotykem"
+	"vcmi.tutorialWindow.title": "Úvod ovládání dotykem",
+	"vcmi.stackExperience.table.spellImmunityShort": "IK: %s"
 }

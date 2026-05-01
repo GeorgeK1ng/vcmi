@@ -289,7 +289,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		{
 			const auto spell = SpellID(bonus->subtype.getNum());
 			if(spell != SpellID::NONE)
-				rowLabel += " (" + spell.toEntity(LIBRARY)->getNameTranslated() + ")";
+			{
+				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
+				const auto pattern = LIBRARY->generaltexth->translate("vcmi.stackExperience.table.spellImmunityShort");
+				rowLabel = boost::str(boost::format(pattern) % spellName);
+			}
 		}
 
 		return rowLabel;
