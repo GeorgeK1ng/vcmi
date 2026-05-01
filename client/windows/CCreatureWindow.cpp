@@ -289,44 +289,32 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
-		rows.push_back({label, [selector](const CStackInstance & stackInst)
+		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
 				{
+					if(binary)
+						return stackInst.hasBonus(selector) ? 1 : 0;
+
 					return stackInst.valOfBonuses(selector);
 				}, percent, binary, showSign});
-		dynamicBonuses.erase(key);
 	};
 
-	const auto keyAttack = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK)};
-	if(dynamicBonuses.count(keyAttack))
-		addBonusRow(keyAttack, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+	auto addPreferredRow = [&](const BonusKey & key, const std::string & label)
+	{
+		auto it = dynamicBonuses.find(key);
+		if(it == dynamicBonuses.end())
+			return;
 
-	const auto keyDefense = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)};
-	if(dynamicBonuses.count(keyDefense))
-		addBonusRow(keyDefense, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+		const auto & bonus = it->second;
+		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
+		const bool binaryValue = !percentValue && bonus->val == 0;
+		addBonusRow(key, label, percentValue, binaryValue);
+		dynamicBonuses.erase(it);
+	};
 
-	const auto keyMinDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)};
-	if(dynamicBonuses.count(keyMinDamage))
-		addBonusRow(keyMinDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
-
-	const auto keyMaxDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)};
-	if(dynamicBonuses.count(keyMaxDamage))
-		addBonusRow(keyMaxDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
-
-	const auto keyHealth = BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyHealth))
-		addBonusRow(keyHealth, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), true);
-
-	const auto keySpeed = BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID()};
-	if(dynamicBonuses.count(keySpeed))
-		addBonusRow(keySpeed, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
-
-	const auto keyShots = BonusKey{BonusType::SHOTS, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyShots))
-		addBonusRow(keyShots, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
-
-	const auto keyMana = BonusKey{BonusType::CASTS, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyMana))
-		addBonusRow(keyMana, LIBRARY->generaltexth->allTexts[399]);
+	addPreferredRow(BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+	addPreferredRow(BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
+	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
@@ -335,8 +323,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			rowLabel = bonusTypeHandler->bonusToString(key.type);
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		// Dynamic boolean detection: bonuses defined from bool progression in JSON do not define explicit val
-		// and typically have val==0, while numeric +1 progressions use non-zero val.
 		const bool binaryValue = !percentValue && bonus->val == 0;
 		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
