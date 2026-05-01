@@ -278,36 +278,52 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			rowLabel = rowLabel.substr(0, lineBreak);
 
 		if(rowLabel.empty())
-			rowLabel = "Bonus";
+			rowLabel = LIBRARY->getBth()->bonusToString(bonus->type);
 
 		return rowLabel;
 	};
 
-	auto addPreferredRow = [&](const BonusKey & key, const std::string & label)
+	
+	auto isPercentBonus = [](const std::shared_ptr<const Bonus> & bonus)
 	{
-		auto it = dynamicBonuses.find(key);
+		return bonus->valType == BonusValueType::PERCENT_TO_BASE
+			|| bonus->valType == BonusValueType::PERCENT_TO_ALL
+			|| bonus->type == BonusType::MAGIC_RESISTANCE;
+	};
+
+auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label)
+	{
+		auto it = std::find_if(dynamicBonuses.begin(), dynamicBonuses.end(), [&](const auto & entry)
+		{
+			if(entry.first.type != type)
+				return false;
+			return !subtype.has_value() || entry.first.subtype == *subtype;
+		});
 		if(it == dynamicBonuses.end())
 			return;
 
 		const auto & bonus = it->second;
-		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
+		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, label, percentValue, binaryValue);
+		addBonusRow(it->first, label, percentValue, binaryValue);
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
-	addPreferredRow(BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
-	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
-	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
-	addPreferredRow(BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
-	addPreferredRow(BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
-	addPreferredRow(BonusKey{BonusType::SHOTS, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
-	addPreferredRow(BonusKey{BonusType::CASTS, BonusSubtypeID()}, LIBRARY->generaltexth->allTexts[399]);
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
+	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
+	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
+	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
+	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399]);
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
-		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
+		if(!LIBRARY->bth->shouldPropagateDescription(bonus->type))
+			continue;
+
+		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
 		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
 	}
