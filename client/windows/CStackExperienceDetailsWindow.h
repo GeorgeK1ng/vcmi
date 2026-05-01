@@ -17,17 +17,20 @@ class GraphicalPrimitiveCanvas;
 
 class CStackExperienceDetailsWindow : public CWindowObject
 {
+	using StackInstance = VCMI_LIB_NAMESPACE::CStackInstance;
+	using Creature = VCMI_LIB_NAMESPACE::CCreature;
+
 	struct NumericRow
 	{
 		std::string title;
-		std::function<int(const VCMI_LIB_NAMESPACE::CStackInstance &)> valueGetter;
+		std::function<int(const StackInstance &)> valueGetter;
 		bool percent = false;
 		bool binary = false;
 		bool showSign = true;
 	};
 
-	const VCMI_LIB_NAMESPACE::CStackInstance * sourceStack;
-	const VCMI_LIB_NAMESPACE::CCreature * creature;
+	const StackInstance * sourceStack;
+	const Creature * creature;
 
 	std::shared_ptr<CLabel> title;
 	std::shared_ptr<CLabel> stackSummary;
@@ -40,7 +43,7 @@ class CStackExperienceDetailsWindow : public CWindowObject
 
 public:
 	static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-	static int calculateDynamicTableRowCount(const VCMI_LIB_NAMESPACE::CStackInstance * stack, const VCMI_LIB_NAMESPACE::CCreature * creature);
+	static int calculateDynamicTableRowCount(const StackInstance * stack, const Creature * creature);
 	static ImagePath getDialogBackground(int rowCount);
-	CStackExperienceDetailsWindow(const VCMI_LIB_NAMESPACE::CStackInstance * stack, const VCMI_LIB_NAMESPACE::CCreature * creature);
+	CStackExperienceDetailsWindow(const StackInstance * stack, const Creature * creature);
 };
