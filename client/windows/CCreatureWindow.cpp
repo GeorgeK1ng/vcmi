@@ -264,19 +264,21 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
 	{
-		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-		std::string rowLabel = bonus->Description(gameCallback);
+		std::string rowLabel;
+		if(!bonus->description.empty())
+			rowLabel = bonus->description.toString();
+		else
+		{
+			auto mutableBonus = std::const_pointer_cast<Bonus>(bonus);
+			rowLabel = LIBRARY->getBth()->bonusToString(mutableBonus, sourceStack);
+		}
+
 		const auto lineBreak = rowLabel.find('\n');
 		if(lineBreak != std::string::npos)
 			rowLabel = rowLabel.substr(0, lineBreak);
 
 		if(rowLabel.empty())
-		{
-			if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
-				rowLabel = bonusTypeHandler->bonusToString(bonus->type);
-			else
-				rowLabel = "Bonus";
-		}
+			rowLabel = "Bonus";
 
 		return rowLabel;
 	};
