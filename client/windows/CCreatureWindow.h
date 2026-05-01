@@ -169,12 +169,14 @@ class CStackWindow : public CWindowObject
 			bool showManaRow = false;
 		};
 
-		struct NumericRow
-		{
-			std::string title;
-			std::function<int(const CStackInstance &)> valueGetter;
-			bool percent = false;
-		};
+			struct NumericRow
+			{
+				std::string title;
+				std::function<int(const CStackInstance &)> valueGetter;
+				bool percent = false;
+				bool binary = false;
+				bool showSign = true;
+			};
 
 		const CStackInstance * sourceStack;
 		const CCreature * creature;
@@ -182,19 +184,20 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<CLabel> title;
 		std::shared_ptr<CLabel> stackSummary;
 		std::shared_ptr<CCreaturePic> creatureAnimation;
-		std::shared_ptr<CButton> closeButton;
+			std::shared_ptr<CButton> closeButton;
 		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
 		std::vector<std::shared_ptr<CIntObject>> labels;
 
 		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
 		static constexpr int MAX_RANKS = 11;
 
-	public:
-		static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-		static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
-		static ImagePath getDialogBackground(int rowCount);
-		StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
-	};
+		public:
+			static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
+			static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
+			static int calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature);
+			static ImagePath getDialogBackground(int rowCount);
+			StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
+		};
 
 	std::shared_ptr<CFilledTexture> background;
 
