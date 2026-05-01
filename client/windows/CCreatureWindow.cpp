@@ -270,7 +270,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		else
 		{
 			auto mutableBonus = std::const_pointer_cast<Bonus>(bonus);
-			rowLabel = LIBRARY->getBth()->bonusToString(mutableBonus, sourceStack);
+			rowLabel = sourceStack->bonusToString(mutableBonus);
 		}
 
 		const auto lineBreak = rowLabel.find('\n');
@@ -325,9 +325,6 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
-		if(!LIBRARY->bth->shouldPropagateDescription(bonus->type))
-			continue;
-
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
 		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
