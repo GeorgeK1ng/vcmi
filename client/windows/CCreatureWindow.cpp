@@ -73,7 +73,7 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatu
 int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature)
 {
 	if(!stack || !creature || !GAME->interface())
-		return 9;
+		return 8;
 
 	struct BonusKey
 	{
@@ -102,13 +102,15 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 			uniqueBonuses.insert({bonus->type, bonus->subtype.getNum()});
 	}
 
-	const int dataRows = std::clamp(2 + static_cast<int>(uniqueBonuses.size()), 8, 19); // 2 fixed rows + dynamic bonuses
+	const int minBonusRows = 6;
+	const int maxDataRows = 12; // keep dialog within 800x600
+	const int dataRows = std::clamp(1 + std::max(minBonusRows, static_cast<int>(uniqueBonuses.size())), minBonusRows + 1, maxDataRows); // Experience + bonus rows
 	return dataRows + 1; // header + data
 }
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	rowCount = std::clamp(rowCount, 9, 20);
+	rowCount = std::clamp(rowCount, 8, 13);
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
 }
 
@@ -391,7 +393,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		}
 	}
 
-	const int maxDataRows = 19; // 20 total with header
+	const int maxDataRows = 12; // 13 total with header, keep dialog <= 800x600
 	if(static_cast<int>(preparedRows.size()) > maxDataRows)
 		preparedRows.resize(maxDataRows);
 
