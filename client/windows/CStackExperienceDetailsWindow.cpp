@@ -210,7 +210,9 @@ CStackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance
 
 	auto makeStackExpSelector = [](const BonusKey & key)
 	{
-		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtypeValueType(key.type, key.subtype, key.valType));
+		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE)
+			.And(Selector::typeSubtypeValueType(key.type, key.subtype, key.valType))
+			.And([hidden = key.hidden](const Bonus * bonus) { return bonus->hidden == hidden; });
 	};
 
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
@@ -278,7 +280,7 @@ CStackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance
 			rowLabel = bonusTypeHandler->bonusToString(bonus);
 
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		const bool binaryValue = false; // inferred from actual rank values below
+		const bool binaryValue = true; // confirmed below by checking per-rank values are strictly 0/1
 		addBonusRow(key, rowLabel, percentValue, binaryValue);
 	}
 
