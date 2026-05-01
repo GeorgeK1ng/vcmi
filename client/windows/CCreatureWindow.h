@@ -13,6 +13,7 @@
 #include "../../lib/filesystem/ResourcePath.h"
 #include "../widgets/MiscWidgets.h"
 #include "CWindowObject.h"
+#include "CStackExperienceDetailsWindow.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -160,37 +161,6 @@ class CStackWindow : public CWindowObject
 	public:
 		MainSection(CStackWindow * owner, int yOffset, bool showExp, bool showArt);
 	};
-
-	class StackExperienceDetailsWindow : public CWindowObject
-	{
-			struct NumericRow
-			{
-				std::string title;
-				std::function<int(const CStackInstance &)> valueGetter;
-				bool percent = false;
-				bool binary = false;
-				bool showSign = true;
-			};
-
-		const CStackInstance * sourceStack;
-		const CCreature * creature;
-
-		std::shared_ptr<CLabel> title;
-		std::shared_ptr<CLabel> stackSummary;
-		std::shared_ptr<CCreaturePic> creatureAnimation;
-			std::shared_ptr<CButton> closeButton;
-		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
-		std::vector<std::shared_ptr<CIntObject>> labels;
-
-		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
-		static constexpr int MAX_RANKS = 11;
-
-		public:
-			static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-			static int calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature);
-			static ImagePath getDialogBackground(int rowCount);
-			StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature);
-		};
 
 	std::shared_ptr<CFilledTexture> background;
 
