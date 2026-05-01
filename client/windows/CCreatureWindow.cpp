@@ -301,7 +301,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			if(spell != SpellID::NONE)
 			{
 				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
-				rowLabel += ": " + spellName;
+				rowLabel = "CAA: " + spellName;
 			}
 		}
 
