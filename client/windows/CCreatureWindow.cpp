@@ -105,7 +105,7 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	const int minBonusRows = 6;
 	const int maxDataRows = 12; // keep dialog within 800x600
 	const int dataRows = std::clamp(1 + std::max(minBonusRows, static_cast<int>(uniqueBonuses.size())), minBonusRows + 1, maxDataRows); // Experience + bonus rows
-	return dataRows + 1; // header + data
+	return dataRows; // table data rows (header handled by background template)
 }
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
@@ -303,7 +303,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			if(spell != SpellID::NONE)
 			{
 				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
-				rowLabel = "CAA: " + spellName;
+				const auto pattern = LIBRARY->generaltexth->translate("vcmi.stackExperience.table.spellAfterAttackShort");
+				rowLabel = boost::str(boost::format(pattern) % spellName);
 			}
 		}
 
@@ -412,8 +413,8 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 4), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 
 	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 	{
