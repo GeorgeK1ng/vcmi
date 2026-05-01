@@ -285,6 +285,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				rowLabel = "Bonus";
 		}
 
+		if(bonus->type == BonusType::SPELL_IMMUNITY)
+		{
+			const auto spell = SpellID(bonus->subtype.getNum());
+			if(spell != SpellID::NONE)
+				rowLabel += " (" + spell.toEntity(LIBRARY)->getNameTranslated() + ")";
+		}
+
 		return rowLabel;
 	};
 
