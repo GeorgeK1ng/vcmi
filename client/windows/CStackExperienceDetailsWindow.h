@@ -20,14 +20,14 @@ class CStackExperienceDetailsWindow : public CWindowObject
 	struct NumericRow
 	{
 		std::string title;
-		std::function<int(const VCMI::CStackInstance &)> valueGetter;
+		std::function<int(const VCMI_LIB_NAMESPACE::CStackInstance &)> valueGetter;
 		bool percent = false;
 		bool binary = false;
 		bool showSign = true;
 	};
 
-	const VCMI::CStackInstance * sourceStack;
-	const VCMI::CCreature * creature;
+	const VCMI_LIB_NAMESPACE::CStackInstance * sourceStack;
+	const VCMI_LIB_NAMESPACE::CCreature * creature;
 
 	std::shared_ptr<CLabel> title;
 	std::shared_ptr<CLabel> stackSummary;
@@ -40,7 +40,7 @@ class CStackExperienceDetailsWindow : public CWindowObject
 
 public:
 	static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-	static int calculateDynamicTableRowCount(const VCMI::CStackInstance * stack, const VCMI::CCreature * creature);
+	static int calculateDynamicTableRowCount(const VCMI_LIB_NAMESPACE::CStackInstance * stack, const VCMI_LIB_NAMESPACE::CCreature * creature);
 	static ImagePath getDialogBackground(int rowCount);
-	CStackExperienceDetailsWindow(const VCMI::CStackInstance * stack, const VCMI::CCreature * creature);
+	CStackExperienceDetailsWindow(const VCMI_LIB_NAMESPACE::CStackInstance * stack, const VCMI_LIB_NAMESPACE::CCreature * creature);
 };
