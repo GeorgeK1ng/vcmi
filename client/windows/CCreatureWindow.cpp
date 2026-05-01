@@ -262,6 +262,25 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				}, percent, binary, showSign});
 	};
 
+	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
+	{
+		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+		std::string rowLabel = bonus->Description(gameCallback);
+		const auto lineBreak = rowLabel.find('\n');
+		if(lineBreak != std::string::npos)
+			rowLabel = rowLabel.substr(0, lineBreak);
+
+		if(rowLabel.empty())
+		{
+			if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+				rowLabel = bonusTypeHandler->bonusToString(bonus->type);
+			else
+				rowLabel = "Bonus";
+		}
+
+		return rowLabel;
+	};
+
 	auto addPreferredRow = [&](const BonusKey & key, const std::string & label)
 	{
 		auto it = dynamicBonuses.find(key);
@@ -279,16 +298,16 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addPreferredRow(BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
 	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
 	addPreferredRow(BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
+	addPreferredRow(BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
+	addPreferredRow(BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
+	addPreferredRow(BonusKey{BonusType::SHOTS, BonusSubtypeID()}, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
+	addPreferredRow(BonusKey{BonusType::CASTS, BonusSubtypeID()}, LIBRARY->generaltexth->allTexts[399]);
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
-		std::string rowLabel = "Bonus";
-		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
-			rowLabel = bonusTypeHandler->bonusToString(key.type);
-
 		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, rowLabel, percentValue, binaryValue);
+		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
 	}
 
 	struct PreparedRow
