@@ -94,13 +94,12 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	for(int rowCount = 8; rowCount <= 13; ++rowCount)
+	for(int rowCount = 5; rowCount <= 8; ++rowCount)
 	{
-		const int dialogHeight = rowCount == 8 ? 600 : std::min(600, 600 + (rowCount - 8) * 10);
+		const int dialogHeight = 600 - (8 - rowCount) * 36;
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
 		{
-			const int effectiveRows = rowCount == 13 ? 14 : (rowCount == 8 ? 9 : std::max(1, rowCount - 1));
-			return createStackExperienceDialogBackground(Point(800, dialogHeight), effectiveRows);
+			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
 		};
 	}
 

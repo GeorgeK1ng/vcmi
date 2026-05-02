@@ -399,7 +399,9 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	{
 		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
 		const int iconY = tableTop + (rowHeight - 32) / 2;
-		labels.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY));
+		auto rankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY);
+		rankIcon->setScale(Point(32, 32));
+		labels.push_back(rankIcon);
 	}
 
 	constexpr int maxVisibleBonusRows = 8;
@@ -410,9 +412,16 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 
-	tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
-	tableSlider->setPanningStep(rowHeight);
-	tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
+	if(totalBonusRows > maxVisibleBonusRows)
+	{
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider->setPanningStep(rowHeight);
+		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
+	}
+	else
+	{
+		tableSlider.reset();
+	}
 	rebuildTableRows();
 
 	const int centerX = pos.w / 2;
