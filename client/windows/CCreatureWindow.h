@@ -184,6 +184,9 @@ class CStackWindow : public CWindowObject
 		std::vector<std::shared_ptr<CIntObject>> labels;
 		std::shared_ptr<CSlider> tableSlider;
 
+		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
+		static constexpr int MAX_RANKS = 11;
+
 		struct PreparedRow
 		{
 			std::string title;
@@ -204,9 +207,6 @@ class CStackWindow : public CWindowObject
 		int visibleBonusRows = 0;
 
 		void rebuildTableRows();
-
-		// Stack experience has 11 rank columns (0..10), independent from creature level/tier.
-		static constexpr int MAX_RANKS = 11;
 
 		public:
 			static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
