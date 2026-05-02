@@ -81,6 +81,30 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon.png")] = [this]()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto artifact = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("artifact"), EImageBlitMode::COLORKEY)->getImage(98);
+		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		artifact->scaleTo(Point(20, 20), EScalingAlgorithm::BILINEAR);
+		Canvas canvas = image->getCanvas();
+		canvas.draw(secSkill, Point(0, 0));
+		canvas.draw(artifact, Point(6, 6));
+		return image;
+	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon.png")] = [this]()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto artifact = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("artifact"), EImageBlitMode::COLORKEY)->getImage(91);
+		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		artifact->scaleTo(Point(20, 20), EScalingAlgorithm::BILINEAR);
+		Canvas canvas = image->getCanvas();
+		canvas.draw(secSkill, Point(0, 0));
+		canvas.draw(artifact, Point(6, 6));
+		return image;
+	};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
