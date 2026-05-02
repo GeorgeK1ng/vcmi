@@ -127,7 +127,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int headerTop = 1;
 	const int detailsTop = 68;
 	const int tableTop = 218;
-	constexpr int tableBaseRowHeight = 55;
+	constexpr int tableBaseRowHeight = 36;
 	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
@@ -397,8 +397,8 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 44) / 2;
-		const int iconY = tableTop + (rowHeight - 44) / 2;
+		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
+		const int iconY = tableTop + (rowHeight - 32) / 2;
 		labels.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY));
 	}
 
@@ -439,7 +439,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 
 		if(preparedRows[rowIndex].hasIcon)
 		{
-				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 51) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 51) / 2);
+				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2);
+				rowIcon->scaleTo(Point(32, 32));
 			tableRowWidgets.push_back(rowIcon);
 			addChild(rowIcon.get(), true);
 		}
