@@ -408,7 +408,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
 
-	tableSlider = std::make_shared<CSlider>(Point(sideMargin + tableWidth, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BLUE);
+	tableSlider = std::make_shared<CSlider>(Point(sideMargin + tableWidth, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 	tableSlider->setPanningStep(rowHeight);
 	tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	rebuildTableRows();
@@ -420,6 +420,9 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 
 void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 {
+	for(const auto & widget : tableRowWidgets)
+		removeChild(widget.get());
+
 	tableRowWidgets.clear();
 	const int firstRow = tableSlider ? tableSlider->getValue() : 0;
 	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
@@ -428,7 +431,9 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		if(rowIndex >= static_cast<int>(preparedRows.size()))
 			break;
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
-		tableRowWidgets.push_back(std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title));
+		auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
+		tableRowWidgets.push_back(rowTitle);
+		addChild(rowTitle.get());
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int value = preparedRows[rowIndex].values[rank];
@@ -437,7 +442,9 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				valueText = value != 0 ? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes") : LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
 			else
 				valueText = (preparedRows[rowIndex].showSign && value > 0 ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
-			tableRowWidgets.push_back(std::make_shared<CLabel>(tableSideMargin + tableRowNameWidth + rank * tableColWidth + tableColWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
+			auto valueLabel = std::make_shared<CLabel>(tableSideMargin + tableRowNameWidth + rank * tableColWidth + tableColWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText);
+			tableRowWidgets.push_back(valueLabel);
+			addChild(valueLabel.get());
 		}
 	}
 }
