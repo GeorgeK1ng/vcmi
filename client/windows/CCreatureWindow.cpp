@@ -212,7 +212,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, false, false, false},
+			}, ImagePath(), false, "", false, false, false},
 	};
 
 	struct BonusKey
@@ -441,8 +441,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 
 		if(preparedRows[rowIndex].hasIcon)
 		{
-			auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 51) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 51) / 2);
-			rowIcon->hoverText = preparedRows[rowIndex].tooltipText;
+				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 51) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 51) / 2);
 			tableRowWidgets.push_back(rowIcon);
 			addChild(rowIcon.get(), true);
 		}
