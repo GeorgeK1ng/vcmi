@@ -111,8 +111,9 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	rowCount = std::clamp(rowCount, 8, 13);
-	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
+	(void)rowCount;
+	// Use base template only - lower table body is now rendered dynamically in scroll area.
+	return ImagePath::builtin("stackExperienceDialogRows8");
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
@@ -438,7 +439,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		auto rowBackground = std::make_shared<GraphicalPrimitiveCanvas>(Rect(tableSideMargin, tableTop + (localRow + 1) * tableRowHeight, tableRowNameWidth + tableColWidth * MAX_RANKS, tableRowHeight));
 		if(localRow % 2 == 0)
 			rowBackground->addRectangle(Point(0, 0), Point(rowBackground->pos.w, rowBackground->pos.h), ColorRGBA(0, 0, 0, 40));
-		rowBackground->addLine(Point(0, 0), Point(rowBackground->pos.w, 0), Colors::METALLIC_GOLD);
+		rowBackground->addLine(Point(0, 0), Point(rowBackground->pos.w, 0), ColorRGBA(130, 130, 130, ColorRGBA::ALPHA_OPAQUE));
 		tableBackgroundWidgets.push_back(rowBackground);
 		addChild(rowBackground.get(), true);
 
