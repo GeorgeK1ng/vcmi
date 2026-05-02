@@ -99,7 +99,8 @@ void AssetGenerator::initialize()
 		const int dialogHeight = rowCount == 8 ? 600 : std::min(600, 600 + (rowCount - 8) * 10);
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
 		{
-			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
+			const int effectiveRows = rowCount == 13 ? 14 : std::max(1, rowCount - 1);
+			return createStackExperienceDialogBackground(Point(800, dialogHeight), effectiveRows);
 		};
 	}
 
