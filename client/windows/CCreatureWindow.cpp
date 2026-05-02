@@ -433,7 +433,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
 		auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
 		tableRowWidgets.push_back(rowTitle);
-		addChild(rowTitle.get());
+		addChild(rowTitle.get(), true);
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int value = preparedRows[rowIndex].values[rank];
@@ -444,7 +444,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				valueText = (preparedRows[rowIndex].showSign && value > 0 ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
 			auto valueLabel = std::make_shared<CLabel>(tableSideMargin + tableRowNameWidth + rank * tableColWidth + tableColWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText);
 			tableRowWidgets.push_back(valueLabel);
-			addChild(valueLabel.get());
+			addChild(valueLabel.get(), true);
 		}
 	}
 }
