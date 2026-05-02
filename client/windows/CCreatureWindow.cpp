@@ -461,24 +461,33 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				}
 				else if(preparedRows[rowIndex].iconFrame <= -100)
 				{
-					int overlayFrame = 0;
-					switch(preparedRows[rowIndex].iconFrame)
+					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
 					{
-						case -100: overlayFrame = 98; break;
-						case -101: overlayFrame = 91; break;
-						case -102: overlayFrame = 69; break;
-						case -103: overlayFrame = 71; break;
-						case -104: overlayFrame = 84; break;
-						default: overlayFrame = 0; break;
+						const int frame = preparedRows[rowIndex].iconFrame == -102 ? 69 : 71;
+						auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), frame, 0, x, y);
+						rowIcon->setScale(Point(32, 32));
+						tableRowWidgets.push_back(rowIcon);
+						addChild(rowIcon.get(), true);
 					}
-					auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
-					baseIcon->setScale(Point(32, 32));
-					tableRowWidgets.push_back(baseIcon);
-					addChild(baseIcon.get(), true);
-					auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
-					overlayIcon->setScale(Point(32, 32));
-					tableRowWidgets.push_back(overlayIcon);
-					addChild(overlayIcon.get(), true);
+					else
+					{
+						int overlayFrame = 0;
+						switch(preparedRows[rowIndex].iconFrame)
+						{
+							case -100: overlayFrame = 98; break;
+							case -101: overlayFrame = 91; break;
+							case -104: overlayFrame = 84; break;
+							default: overlayFrame = 0; break;
+						}
+						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
+						baseIcon->setScale(Point(32, 32));
+						tableRowWidgets.push_back(baseIcon);
+						addChild(baseIcon.get(), true);
+						auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
+						overlayIcon->setScale(Point(32, 32));
+						tableRowWidgets.push_back(overlayIcon);
+						addChild(overlayIcon.get(), true);
+					}
 				}
 				else
 				{
@@ -487,6 +496,17 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
 				}
+			}
+			if(preparedRows[rowIndex].hasIcon && !preparedRows[rowIndex].tooltipText.empty())
+			{
+				auto iconRClick = std::make_shared<LRClickableArea>(Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
+					[text = preparedRows[rowIndex].tooltipText]()
+					{
+						if(!text.empty())
+							GAME->interface()->showInfoDialog(text);
+					});
+				tableRowWidgets.push_back(iconRClick);
+				addChild(iconRClick.get(), true);
 			}
 		else
 		{
