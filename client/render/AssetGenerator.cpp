@@ -105,6 +105,30 @@ void AssetGenerator::initialize()
 		canvas.draw(artifact, Point(0, 0));
 		return image;
 	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png")] = [this]()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(69);
+		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		Canvas canvas = image->getCanvas();
+		canvas.draw(base, Point(0, 0));
+		canvas.draw(overlay, Point(0, 0));
+		return image;
+	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png")] = [this]()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(71);
+		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		Canvas canvas = image->getCanvas();
+		canvas.draw(base, Point(0, 0));
+		canvas.draw(overlay, Point(0, 0));
+		return image;
+	};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
