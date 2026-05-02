@@ -48,7 +48,7 @@
 	"core.bonus.LIFE_DRAIN.description": "{Life Drain}\nRestores health equal to ${val}% of damage dealt.",
 	"core.bonus.LIMITED_SHOOTING_RANGE.description": "{Limited Shooting Range}\nCannot shoot targets farther than ${val} hexes away.",
 	"core.bonus.MAGIC_MIRROR.description": "{Magic Mirror}\nHas a ${val}% chance to redirect an offensive spell to an enemy unit.",
-	"core.bonus.MAGIC_RESISTANCE.description": "{Magic Resistance (${val}%) }\nHas a ${val}% chance to resist a hostile spell.",
+	"core.bonus.MAGIC_RESISTANCE.description": "{Magic Resistance}\nHas a ${val}% chance to resist a hostile spell.",
 	"core.bonus.MANA_CHANNELING.description": "{Mana Channeling}\nYour hero restores ${val}% of mana spent by the enemy hero.",
 	"core.bonus.MANA_DRAIN.description": "{Mana Drain}\nDrains ${val} mana from the enemy hero each round.",
 	"core.bonus.MECHANICAL.description": "{Mechanical}\nThis unit is immune to effects that only affect living and can be repaired.",
@@ -1119,5 +1119,7 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Pinch with two fingers to change the map zoom.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Swiping opens radial wheel for various actions, such as creature/hero management and town ordering.",
 	"vcmi.tutorialWindow.decription.RightClick": "Touch and hold the element on which you want to right-click. Touch the free area to close.",
-	"vcmi.tutorialWindow.title": "Touchscreen Introduction"
+	"vcmi.tutorialWindow.title": "Touchscreen Introduction",
+	"vcmi.stackExperience.table.spellImmunityShort": "SI: %s",
+	"vcmi.stackExperience.table.spellAfterAttackShort": "CAA: %s"
 }

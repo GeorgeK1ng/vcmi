@@ -94,7 +94,7 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	for(int rowCount = 9; rowCount <= 20; ++rowCount)
+	for(int rowCount = 8; rowCount <= 13; ++rowCount)
 	{
 		const int dialogHeight = 495 + (rowCount - 9) * 25;
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()

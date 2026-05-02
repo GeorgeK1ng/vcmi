@@ -163,12 +163,6 @@ class CStackWindow : public CWindowObject
 
 	class StackExperienceDetailsWindow : public CWindowObject
 	{
-		struct TableVisibility
-		{
-			bool showShotsRow = false;
-			bool showManaRow = false;
-		};
-
 			struct NumericRow
 			{
 				std::string title;
@@ -193,10 +187,9 @@ class CStackWindow : public CWindowObject
 
 		public:
 			static int getStackExperienceTierFromCreatureLevel(int creatureLevel);
-			static TableVisibility calculateTableVisibility(const CStackInstance * stack, const CCreature * creature);
 			static int calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature);
 			static ImagePath getDialogBackground(int rowCount);
-			StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature, bool showShotsRow, bool showManaRow);
+			StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creature);
 		};
 
 	std::shared_ptr<CFilledTexture> background;

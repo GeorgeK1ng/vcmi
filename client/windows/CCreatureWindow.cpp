@@ -70,44 +70,10 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatu
 	return std::clamp(creatureLevel, 1, std::min(7, maxTier));
 }
 
-CStackWindow::StackExperienceDetailsWindow::TableVisibility CStackWindow::StackExperienceDetailsWindow::calculateTableVisibility(const CStackInstance * stack, const CCreature * creature)
-{
-	constexpr int stackExperienceRanks = 11;
-
-	TableVisibility visibility;
-	if(!stack || !creature)
-		return visibility;
-
-	// Match current Creature Window visibility logic first.
-	visibility.showShotsRow = stack->hasBonusOfType(BonusType::SHOOTER) && stack->valOfBonuses(BonusType::SHOTS);
-	visibility.showManaRow = stack->valOfBonuses(BonusType::CASTS) > 0;
-
-	// Also show rows if stack experience grants these stats at any rank.
-	int tier = StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(creature->getLevel());
-	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
-	auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-
-	for(int rank = 0; rank < stackExperienceRanks; ++rank)
-	{
-		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
-		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-		preview.giveTotalStackExperience(totalExperience);
-
-		const int shotsBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::SHOTS)));
-		const int manaBonus = preview.valOfBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(BonusType::CASTS)));
-
-		visibility.showShotsRow = visibility.showShotsRow || (shotsBonus > 0);
-		visibility.showManaRow = visibility.showManaRow || (manaBonus > 0);
-	}
-
-	return visibility;
-}
-
 int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature)
 {
 	if(!stack || !creature || !GAME->interface())
-		return 9;
+		return 8;
 
 	struct BonusKey
 	{
@@ -136,24 +102,24 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 			uniqueBonuses.insert({bonus->type, bonus->subtype.getNum()});
 	}
 
-	const int dataRows = std::clamp(2 + static_cast<int>(uniqueBonuses.size()), 8, 19); // 2 fixed rows + dynamic bonuses
-	return dataRows + 1; // header + data
+	const int minBonusRows = 6;
+	const int maxDataRows = 12; // keep dialog within 800x600
+	const int dataRows = std::clamp(1 + std::max(minBonusRows, static_cast<int>(uniqueBonuses.size())), minBonusRows + 1, maxDataRows); // Experience + bonus rows
+	return dataRows; // table data rows (header handled by background template)
 }
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	rowCount = std::clamp(rowCount, 9, 20);
+	rowCount = std::clamp(rowCount, 8, 13);
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
 }
 
-CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType, bool showShotsRow, bool showManaRow)
+CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
 	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
-	(void)showShotsRow;
-	(void)showManaRow;
 
 	const int sideMargin = 10;
 	const int headerTop = 1;
@@ -289,56 +255,102 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
-		rows.push_back({label, [selector](const CStackInstance & stackInst)
+		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
 				{
+					if(binary)
+						return stackInst.hasBonus(selector) ? 1 : 0;
+
 					return stackInst.valOfBonuses(selector);
 				}, percent, binary, showSign});
-		dynamicBonuses.erase(key);
 	};
 
-	const auto keyAttack = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK)};
-	if(dynamicBonuses.count(keyAttack))
-		addBonusRow(keyAttack, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
+	{
+		std::string rowLabel;
+		if(!bonus->description.empty())
+			rowLabel = bonus->description.toString();
+		else
+		{
+			auto mutableBonus = std::const_pointer_cast<Bonus>(bonus);
+			rowLabel = sourceStack->bonusToString(mutableBonus);
+		}
 
-	const auto keyDefense = BonusKey{BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE)};
-	if(dynamicBonuses.count(keyDefense))
-		addBonusRow(keyDefense, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+		const auto lineBreak = rowLabel.find('\n');
+		if(lineBreak != std::string::npos)
+			rowLabel = rowLabel.substr(0, lineBreak);
 
-	const auto keyMinDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin)};
-	if(dynamicBonuses.count(keyMinDamage))
-		addBonusRow(keyMinDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
+		if(rowLabel.empty())
+		{
+			if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+				rowLabel = bonusTypeHandler->bonusToString(bonus->type);
+			else
+				rowLabel = "Bonus";
+		}
 
-	const auto keyMaxDamage = BonusKey{BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax)};
-	if(dynamicBonuses.count(keyMaxDamage))
-		addBonusRow(keyMaxDamage, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
+		if(bonus->type == BonusType::SPELL_IMMUNITY)
+		{
+			const auto spell = SpellID(bonus->subtype.getNum());
+			if(spell != SpellID::NONE)
+			{
+				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
+				const auto pattern = LIBRARY->generaltexth->translate("vcmi.stackExperience.table.spellImmunityShort");
+				rowLabel = boost::str(boost::format(pattern) % spellName);
+			}
+		}
+		else if(bonus->type == BonusType::SPELL_AFTER_ATTACK)
+		{
+			const auto spell = SpellID(bonus->subtype.getNum());
+			if(spell != SpellID::NONE)
+			{
+				const auto spellName = spell.toEntity(LIBRARY)->getNameTranslated();
+				const auto pattern = LIBRARY->generaltexth->translate("vcmi.stackExperience.table.spellAfterAttackShort");
+				rowLabel = boost::str(boost::format(pattern) % spellName);
+			}
+		}
 
-	const auto keyHealth = BonusKey{BonusType::STACK_HEALTH, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyHealth))
-		addBonusRow(keyHealth, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), true);
+		return rowLabel;
+	};
 
-	const auto keySpeed = BonusKey{BonusType::STACKS_SPEED, BonusSubtypeID()};
-	if(dynamicBonuses.count(keySpeed))
-		addBonusRow(keySpeed, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
+	
+	auto isPercentBonus = [](const std::shared_ptr<const Bonus> & bonus)
+	{
+		return bonus->valType == BonusValueType::PERCENT_TO_BASE
+			|| bonus->valType == BonusValueType::PERCENT_TO_ALL
+			|| bonus->type == BonusType::MAGIC_RESISTANCE;
+	};
 
-	const auto keyShots = BonusKey{BonusType::SHOTS, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyShots))
-		addBonusRow(keyShots, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
+auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label)
+	{
+		auto it = std::find_if(dynamicBonuses.begin(), dynamicBonuses.end(), [&](const auto & entry)
+		{
+			if(entry.first.type != type)
+				return false;
+			return !subtype.has_value() || entry.first.subtype == *subtype;
+		});
+		if(it == dynamicBonuses.end())
+			return;
 
-	const auto keyMana = BonusKey{BonusType::CASTS, BonusSubtypeID()};
-	if(dynamicBonuses.count(keyMana))
-		addBonusRow(keyMana, LIBRARY->generaltexth->allTexts[399]);
+		const auto & bonus = it->second;
+		const bool percentValue = isPercentBonus(bonus);
+		const bool binaryValue = !percentValue && bonus->val == 0;
+		addBonusRow(it->first, label, percentValue, binaryValue);
+		dynamicBonuses.erase(it);
+	};
+
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
+	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
+	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
+	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
+	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399]);
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
-		std::string rowLabel = "Bonus";
-		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
-			rowLabel = bonusTypeHandler->bonusToString(key.type);
-
-		const bool percentValue = bonus->valType == BonusValueType::PERCENT_TO_BASE || bonus->valType == BonusValueType::PERCENT_TO_ALL;
-		// Dynamic boolean detection: bonuses defined from bool progression in JSON do not define explicit val
-		// and typically have val==0, while numeric +1 progressions use non-zero val.
+		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, rowLabel, percentValue, binaryValue);
+		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
 	}
 
 	struct PreparedRow
@@ -382,7 +394,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	const int maxDataRows = 19; // 20 total with header
+	const int maxDataRows = 12; // 13 total with header, keep dialog <= 800x600
 	if(static_cast<int>(preparedRows.size()) > maxDataRows)
 		preparedRows.resize(maxDataRows);
 
@@ -401,8 +413,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 1), Point(colWidth + 1, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 2), Point(colWidth - 1, rowHeight * tableRowsVisible - 4), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
 
 	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 	{
@@ -1439,8 +1451,7 @@ void CStackWindow::showStackExperienceDetailsWindow()
 	if(!info->stackNode || !GAME->interface())
 		return;
 
-	const auto visibility = StackExperienceDetailsWindow::calculateTableVisibility(info->stackNode, info->creature);
-	auto detailsWindow = std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature, visibility.showShotsRow, visibility.showManaRow);
+	auto detailsWindow = std::make_shared<StackExperienceDetailsWindow>(info->stackNode, info->creature);
 	ENGINE->windows().pushWindow(std::static_pointer_cast<IShowActivatable>(detailsWindow));
 }
 
