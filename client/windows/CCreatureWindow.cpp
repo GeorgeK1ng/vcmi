@@ -404,7 +404,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	constexpr int maxVisibleBonusRows = 7;
+	constexpr int maxVisibleBonusRows = 5;
 	const int totalBonusRows = static_cast<int>(preparedRows.size());
 	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows

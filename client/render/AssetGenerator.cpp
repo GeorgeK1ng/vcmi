@@ -96,7 +96,7 @@ void AssetGenerator::initialize()
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
 	for(int rowCount = 8; rowCount <= 13; ++rowCount)
 	{
-		const int dialogHeight = 495 + (rowCount - 9) * 25;
+		const int dialogHeight = rowCount == 8 ? 600 : std::min(600, 600 + (rowCount - 8) * 10);
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
 		{
 			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
@@ -1235,8 +1235,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int headerTop = 1;
 	const int detailsTop = 68;
 	const int tableTop = 218;
-	const int rowNameWidth = 140;
-	constexpr int stackExpBaseRowHeight = 25;
+	const int rowNameWidth = 60;
+	constexpr int stackExpBaseRowHeight = 55;
 	const int tableHeight = stackExpBaseRowHeight * rowCount;
 	const int rankColumns = 11;
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
@@ -1299,6 +1299,15 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	for(int line = 1; line < rowCount; ++line)
 		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+
+	// Icon slots (53x53) for bonus rows in first column
+	for(int row = 1; row < rowCount; ++row)
+	{
+		const int cellTop = tableTop + row * rowHeight;
+		const Rect iconRect(sideMargin + (rowNameWidth - 53) / 2, cellTop + (rowHeight - 53) / 2, 53, 53);
+		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
+		canvas.drawBorder(iconRect, frameColor);
+	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
 	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
