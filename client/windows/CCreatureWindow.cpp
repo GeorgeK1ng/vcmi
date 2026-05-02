@@ -127,7 +127,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int headerTop = 1;
 	const int detailsTop = 68;
 	const int tableTop = 218;
-	constexpr int tableBaseRowHeight = 25;
+	constexpr int tableBaseRowHeight = 55;
 	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
@@ -254,7 +254,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
 		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
@@ -263,7 +263,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, percent, binary, showSign});
+				}, sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)), true, label, percent, binary, showSign});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -335,7 +335,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(it->first, label, percentValue, binaryValue);
+		addBonusRow(it->first, bonus, label, percentValue, binaryValue);
 		dynamicBonuses.erase(it);
 	};
 
@@ -352,7 +352,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	{
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
+		addBonusRow(key, bonus, getBonusDisplayName(bonus), percentValue, binaryValue);
 	}
 
 	preparedRows.reserve(rows.size());
@@ -360,6 +360,9 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	{
 		PreparedRow prepared;
 		prepared.title = row.title;
+		prepared.icon = row.icon;
+		prepared.hasIcon = row.hasIcon;
+		prepared.tooltipText = row.tooltipText;
 		prepared.percent = row.percent;
 		prepared.showSign = row.showSign;
 
@@ -386,7 +389,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		}
 	}
 
-	const int rowNameWidth = 140;
+	const int rowNameWidth = 60;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
 	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
@@ -436,9 +439,19 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			break;
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
 
-		auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
-		tableRowWidgets.push_back(rowTitle);
-		addChild(rowTitle.get(), true);
+		if(preparedRows[rowIndex].hasIcon)
+		{
+			auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 51) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 51) / 2);
+			rowIcon->hoverText = preparedRows[rowIndex].tooltipText;
+			tableRowWidgets.push_back(rowIcon);
+			addChild(rowIcon.get(), true);
+		}
+		else
+		{
+			auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
+			tableRowWidgets.push_back(rowTitle);
+			addChild(rowTitle.get(), true);
+		}
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int value = preparedRows[rowIndex].values[rank];

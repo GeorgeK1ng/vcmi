@@ -168,6 +168,9 @@ class CStackWindow : public CWindowObject
 			{
 				std::string title;
 				std::function<int(const CStackInstance &)> valueGetter;
+				ImagePath icon;
+				bool hasIcon = false;
+				std::string tooltipText;
 				bool percent = false;
 				bool binary = false;
 				bool showSign = true;
@@ -188,11 +191,12 @@ class CStackWindow : public CWindowObject
 		static constexpr int MAX_RANKS = 11;
 
 		struct PreparedRow
-		{
-			std::string title;
-			ImagePath icon;
-			bool hasIcon = false;
-			bool percent = false;
+			{
+				std::string title;
+				ImagePath icon;
+				bool hasIcon = false;
+				std::string tooltipText;
+				bool percent = false;
 			bool binary = false;
 			bool showSign = true;
 			std::array<int, MAX_RANKS> values{};
