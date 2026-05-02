@@ -81,7 +81,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon.png")] = [this]()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
@@ -93,7 +93,7 @@ void AssetGenerator::initialize()
 		canvas.draw(artifact, Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon.png")] = [this]()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
@@ -105,7 +105,7 @@ void AssetGenerator::initialize()
 		canvas.draw(artifact, Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png")] = [this]()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
@@ -117,7 +117,7 @@ void AssetGenerator::initialize()
 		canvas.draw(overlay, Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png")] = [this]()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
@@ -129,7 +129,7 @@ void AssetGenerator::initialize()
 		canvas.draw(overlay, Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpHealthIcon.png")] = [this]()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpHealthIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
