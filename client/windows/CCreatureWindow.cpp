@@ -132,10 +132,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
-	std::vector<std::string> rankNames;
-	for(int rank = 0; rank < MAX_RANKS; ++rank)
-		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
-
 	int tier = getStackExperienceTierFromCreatureLevel(this->creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
 
@@ -401,7 +397,9 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
+		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 44) / 2;
+		const int iconY = tableTop + (rowHeight - 44) / 2;
+		labels.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY));
 	}
 
 	constexpr int maxVisibleBonusRows = 5;
