@@ -338,11 +338,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), 0);
 	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1);
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -1, ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -1, ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png"));
-	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -1, ImagePath::builtin("stackWindow/stackExpHealthIcon.png"));
-	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -1, ImagePath::builtin("stackWindow/stackExpSpeedIcon.png"));
-	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), -1, ImagePath::builtin("stackWindow/stackExpShotsIcon.png"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102);
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103);
+	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104);
+	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -100);
+	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), -101);
 	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], 2);
 
 	for(const auto & [key, bonus] : dynamicBonuses)
@@ -448,23 +448,46 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			break;
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
 
-		if(preparedRows[rowIndex].hasIcon)
-		{
-			if(preparedRows[rowIndex].iconFrame >= 0)
+			if(preparedRows[rowIndex].hasIcon)
 			{
-				auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("PSKIL42"), preparedRows[rowIndex].iconFrame, 0, tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2);
-				rowIcon->setScale(Point(32, 32));
-				tableRowWidgets.push_back(rowIcon);
-				addChild(rowIcon.get(), true);
+				const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
+				const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
+				if(preparedRows[rowIndex].iconFrame >= 0)
+				{
+					auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("PSKIL42"), preparedRows[rowIndex].iconFrame, 0, x, y);
+					rowIcon->setScale(Point(32, 32));
+					tableRowWidgets.push_back(rowIcon);
+					addChild(rowIcon.get(), true);
+				}
+				else if(preparedRows[rowIndex].iconFrame <= -100)
+				{
+					int overlayFrame = 0;
+					switch(preparedRows[rowIndex].iconFrame)
+					{
+						case -100: overlayFrame = 98; break;
+						case -101: overlayFrame = 91; break;
+						case -102: overlayFrame = 69; break;
+						case -103: overlayFrame = 71; break;
+						case -104: overlayFrame = 84; break;
+						default: overlayFrame = 0; break;
+					}
+					auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
+					baseIcon->setScale(Point(32, 32));
+					tableRowWidgets.push_back(baseIcon);
+					addChild(baseIcon.get(), true);
+					auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
+					overlayIcon->setScale(Point(32, 32));
+					tableRowWidgets.push_back(overlayIcon);
+					addChild(overlayIcon.get(), true);
+				}
+				else
+				{
+					auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, x, y);
+					rowIcon->scaleTo(Point(32, 32));
+					tableRowWidgets.push_back(rowIcon);
+					addChild(rowIcon.get(), true);
+				}
 			}
-			else
-			{
-				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2);
-				rowIcon->scaleTo(Point(32, 32));
-				tableRowWidgets.push_back(rowIcon);
-				addChild(rowIcon.get(), true);
-			}
-		}
 		else
 		{
 			auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
@@ -838,6 +861,29 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 				if(GAME->interface()->cb->getResourceAmount().canAfford(totalCost))
 				{
 					GAME->interface()->showYesNoDialog(LIBRARY->generaltexth->allTexts[207], onUpgrade, nullptr, resComps);
+				}
+				else if(preparedRows[rowIndex].iconFrame <= -100)
+				{
+					const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
+					const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
+					int overlayFrame = 0;
+					switch(preparedRows[rowIndex].iconFrame)
+					{
+						case -100: overlayFrame = 98; break; // speed
+						case -101: overlayFrame = 91; break; // shots
+						case -102: overlayFrame = 69; break; // min dmg
+						case -103: overlayFrame = 71; break; // max dmg
+						case -104: overlayFrame = 84; break; // health
+						default: overlayFrame = 0; break;
+					}
+					auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
+					baseIcon->setScale(Point(32, 32));
+					tableRowWidgets.push_back(baseIcon);
+					addChild(baseIcon.get(), true);
+					auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
+					overlayIcon->setScale(Point(32, 32));
+					tableRowWidgets.push_back(overlayIcon);
+					addChild(overlayIcon.get(), true);
 				}
 				else
 				{
