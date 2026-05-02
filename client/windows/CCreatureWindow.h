@@ -198,6 +198,7 @@ class CStackWindow : public CWindowObject
 			std::array<int, MAX_RANKS> values{};
 		};
 		std::vector<PreparedRow> preparedRows;
+		std::vector<std::shared_ptr<CIntObject>> tableBackgroundWidgets;
 		std::vector<std::shared_ptr<CIntObject>> tableRowWidgets;
 		int tableTop = 0;
 		int tableRowHeight = 0;
