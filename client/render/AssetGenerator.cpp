@@ -84,7 +84,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto artifact = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("artifact"), EImageBlitMode::COLORKEY)->getImage(98);
 		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		artifact->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
@@ -96,7 +96,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto artifact = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("artifact"), EImageBlitMode::COLORKEY)->getImage(91);
 		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		artifact->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
@@ -108,8 +108,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
-		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(69);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(69);
 		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
@@ -120,8 +120,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
-		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(71);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(71);
 		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
@@ -132,8 +132,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/stackExpHealthIcon.png")] = []()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(0);
-		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSKILL82"), EImageBlitMode::COLORKEY)->getImage(84);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(84);
 		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();

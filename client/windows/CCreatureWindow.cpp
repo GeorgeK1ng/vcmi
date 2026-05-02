@@ -464,7 +464,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
 					{
 						const int frame = preparedRows[rowIndex].iconFrame == -102 ? 69 : 71;
-						auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), frame, 0, x, y);
+						auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), frame, 0, x, y);
 						rowIcon->setScale(Point(32, 32));
 						tableRowWidgets.push_back(rowIcon);
 						addChild(rowIcon.get(), true);
@@ -479,7 +479,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 							case -104: overlayFrame = 84; break;
 							default: overlayFrame = 0; break;
 						}
-						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
+						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
 						baseIcon->setScale(Point(32, 32));
 						tableRowWidgets.push_back(baseIcon);
 						addChild(baseIcon.get(), true);
