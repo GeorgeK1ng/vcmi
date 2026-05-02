@@ -387,7 +387,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	}
 
 	const int rowNameWidth = 140;
-	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth - 16) / MAX_RANKS;
+	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
 	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
 	this->tableTop = tableTop;
@@ -409,7 +409,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
 
-	tableSlider = std::make_shared<CSlider>(Point(sideMargin + tableWidth, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+	tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 	tableSlider->setPanningStep(rowHeight);
 	tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	rebuildTableRows();
@@ -435,13 +435,6 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		if(rowIndex >= static_cast<int>(preparedRows.size()))
 			break;
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
-
-		auto rowBackground = std::make_shared<GraphicalPrimitiveCanvas>(Rect(tableSideMargin, tableTop + (localRow + 1) * tableRowHeight, tableRowNameWidth + tableColWidth * MAX_RANKS, tableRowHeight));
-		if(localRow % 2 == 0)
-			rowBackground->addRectangle(Point(0, 0), Point(rowBackground->pos.w, rowBackground->pos.h), ColorRGBA(0, 0, 0, 40));
-		rowBackground->addLine(Point(0, 0), Point(rowBackground->pos.w, 0), ColorRGBA(130, 130, 130, ColorRGBA::ALPHA_OPAQUE));
-		tableBackgroundWidgets.push_back(rowBackground);
-		addChild(rowBackground.get(), true);
 
 		auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
 		tableRowWidgets.push_back(rowTitle);
