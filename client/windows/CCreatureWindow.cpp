@@ -401,13 +401,13 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	constexpr int maxVisibleBonusRows = 6;
+	constexpr int maxVisibleBonusRows = 7;
 	const int totalBonusRows = static_cast<int>(preparedRows.size());
 	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 
 	tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 	tableSlider->setPanningStep(rowHeight);
