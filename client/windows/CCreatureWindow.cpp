@@ -862,33 +862,10 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 				{
 					GAME->interface()->showYesNoDialog(LIBRARY->generaltexth->allTexts[207], onUpgrade, nullptr, resComps);
 				}
-				else if(preparedRows[rowIndex].iconFrame <= -100)
-				{
-					const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
-					const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
-					int overlayFrame = 0;
-					switch(preparedRows[rowIndex].iconFrame)
+					else
 					{
-						case -100: overlayFrame = 98; break; // speed
-						case -101: overlayFrame = 91; break; // shots
-						case -102: overlayFrame = 69; break; // min dmg
-						case -103: overlayFrame = 71; break; // max dmg
-						case -104: overlayFrame = 84; break; // health
-						default: overlayFrame = 0; break;
+						GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[314], resComps);
 					}
-					auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSKILL82"), 0, 0, x, y);
-					baseIcon->setScale(Point(32, 32));
-					tableRowWidgets.push_back(baseIcon);
-					addChild(baseIcon.get(), true);
-					auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
-					overlayIcon->setScale(Point(32, 32));
-					tableRowWidgets.push_back(overlayIcon);
-					addChild(overlayIcon.get(), true);
-				}
-				else
-				{
-					GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[314], resComps);
-				}
 			};
 			auto upgradeBtn = std::make_shared<CButton>(Point(221 + (int)buttonIndex * 40, 5), AnimationPath::builtin("stackWindow/upgradeButton"), LIBRARY->generaltexth->zelp[446], onClick);
 
