@@ -208,7 +208,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath(), false, "", false, false, false},
+			}, ImagePath(), true, 4, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -250,7 +250,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, int iconFrame = -1, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
 		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
@@ -259,7 +259,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)), true, label, percent, binary, showSign});
+				}, sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)), true, iconFrame, label, percent, binary, showSign});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -317,7 +317,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			|| bonus->type == BonusType::MAGIC_RESISTANCE;
 	};
 
-auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label)
+	auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label, int iconFrame = -1)
 	{
 		auto it = std::find_if(dynamicBonuses.begin(), dynamicBonuses.end(), [&](const auto & entry)
 		{
@@ -331,24 +331,24 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(it->first, bonus, label, percentValue, binaryValue);
+		addBonusRow(it->first, bonus, label, iconFrame, percentValue, binaryValue);
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), 0);
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1);
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
 	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
 	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
 	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
-	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399]);
+	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], 2);
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, bonus, getBonusDisplayName(bonus), percentValue, binaryValue);
+		addBonusRow(key, bonus, getBonusDisplayName(bonus), -1, percentValue, binaryValue);
 	}
 
 	preparedRows.reserve(rows.size());
@@ -358,6 +358,7 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		prepared.title = row.title;
 		prepared.icon = row.icon;
 		prepared.hasIcon = row.hasIcon;
+		prepared.iconFrame = row.iconFrame;
 		prepared.tooltipText = row.tooltipText;
 		prepared.percent = row.percent;
 		prepared.showSign = row.showSign;
@@ -448,10 +449,20 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 
 		if(preparedRows[rowIndex].hasIcon)
 		{
+			if(preparedRows[rowIndex].iconFrame >= 0)
+			{
+				auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("PSKIL42"), preparedRows[rowIndex].iconFrame, 0, tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2);
+				rowIcon->setScale(Point(32, 32));
+				tableRowWidgets.push_back(rowIcon);
+				addChild(rowIcon.get(), true);
+			}
+			else
+			{
 				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2);
 				rowIcon->scaleTo(Point(32, 32));
-			tableRowWidgets.push_back(rowIcon);
-			addChild(rowIcon.get(), true);
+				tableRowWidgets.push_back(rowIcon);
+				addChild(rowIcon.get(), true);
+			}
 		}
 		else
 		{

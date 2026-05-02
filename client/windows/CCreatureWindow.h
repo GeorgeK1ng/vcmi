@@ -170,6 +170,7 @@ class CStackWindow : public CWindowObject
 				std::function<int(const CStackInstance &)> valueGetter;
 				ImagePath icon;
 				bool hasIcon = false;
+				int iconFrame = -1;
 				std::string tooltipText;
 				bool percent = false;
 				bool binary = false;
@@ -195,6 +196,7 @@ class CStackWindow : public CWindowObject
 				std::string title;
 				ImagePath icon;
 				bool hasIcon = false;
+				int iconFrame = -1;
 				std::string tooltipText;
 				bool percent = false;
 			bool binary = false;
