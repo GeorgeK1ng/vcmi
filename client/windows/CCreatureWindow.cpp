@@ -22,6 +22,7 @@
 #include "../widgets/Images.h"
 #include "../widgets/TextControls.h"
 #include "../widgets/ObjectLists.h"
+#include "../widgets/Slider.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
@@ -353,16 +354,6 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
 	}
 
-	struct PreparedRow
-	{
-		std::string title;
-		bool percent = false;
-		bool binary = false;
-		bool showSign = true;
-		std::array<int, MAX_RANKS> values{};
-	};
-
-	std::vector<PreparedRow> preparedRows;
 	preparedRows.reserve(rows.size());
 	for(const auto & row : rows)
 	{
@@ -394,54 +385,61 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		}
 	}
 
-	const int maxDataRows = 12; // 13 total with header, keep dialog <= 800x600
-	if(static_cast<int>(preparedRows.size()) > maxDataRows)
-		preparedRows.resize(maxDataRows);
-
 	const int rowNameWidth = 140;
-	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
+	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth - 16) / MAX_RANKS;
 	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
+	this->tableTop = tableTop;
+	this->tableRowHeight = rowHeight;
+	this->tableSideMargin = sideMargin;
+	this->tableRowNameWidth = rowNameWidth;
+	this->tableColWidth = colWidth;
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
 		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
 	}
 
-	constexpr int maxVisibleBonusRows = 12;
+	constexpr int maxVisibleBonusRows = 6;
 	const int totalBonusRows = static_cast<int>(preparedRows.size());
-	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
+	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
 
-	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
-	{
-		const int rowIndex = localRow;
-		const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title));
-
-		for(int rank = 0; rank < MAX_RANKS; ++rank)
-		{
-			const int value = preparedRows[rowIndex].values[rank];
-				std::string valueText;
-				if(preparedRows[rowIndex].binary)
-					valueText = value != 0
-						? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes")
-						: LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
-				else
-				{
-					const bool showSign = preparedRows[rowIndex].showSign && value > 0;
-					valueText = (showSign ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
-				}
-			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
-		}
-	}
+	tableSlider = std::make_shared<CSlider>(Point(sideMargin + tableWidth, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BLUE);
+	tableSlider->setPanningStep(rowHeight);
+	tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
+	rebuildTableRows();
 
 	const int centerX = pos.w / 2;
 	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 	closeButton->setBorderColor(Colors::METALLIC_GOLD);
+}
+
+void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
+{
+	tableRowWidgets.clear();
+	const int firstRow = tableSlider ? tableSlider->getValue() : 0;
+	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
+	{
+		const int rowIndex = firstRow + localRow;
+		if(rowIndex >= static_cast<int>(preparedRows.size()))
+			break;
+		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
+		tableRowWidgets.push_back(std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title));
+		for(int rank = 0; rank < MAX_RANKS; ++rank)
+		{
+			const int value = preparedRows[rowIndex].values[rank];
+			std::string valueText;
+			if(preparedRows[rowIndex].binary)
+				valueText = value != 0 ? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes") : LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
+			else
+				valueText = (preparedRows[rowIndex].showSign && value > 0 ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
+			tableRowWidgets.push_back(std::make_shared<CLabel>(tableSideMargin + tableRowNameWidth + rank * tableColWidth + tableColWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
+		}
+	}
 }
 
 class CCreatureArtifactInstance;
