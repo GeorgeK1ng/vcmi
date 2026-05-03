@@ -194,7 +194,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				{
 					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 					return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath::builtin("stackExperienceIconExperience"), true, -200, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
+			}, ImagePath::builtin("stackExperienceIconExperience"), true, -200, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, true},
 	};
 
 	struct BonusKey
@@ -236,7 +236,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false)
 	{
 		const auto selector = makeStackExpSelector(key);
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
@@ -251,7 +251,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign});
+				}, iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign, alwaysVisible});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -337,7 +337,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue);
+		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue, true, true);
 		dynamicBonuses.erase(it);
 	};
 
@@ -369,6 +369,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.popupText = row.popupText;
 		prepared.percent = row.percent;
 		prepared.showSign = row.showSign;
+		prepared.alwaysVisible = row.alwaysVisible;
 
 		bool anyNonZero = false;
 		bool onlyBinary = true;
@@ -386,7 +387,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			onlyBinary = onlyBinary && (value == 0 || value == 1);
 		}
 
-		if(anyNonZero)
+		if(anyNonZero || row.alwaysVisible)
 		{
 			prepared.binary = row.binary && onlyBinary;
 			preparedRows.push_back(std::move(prepared));

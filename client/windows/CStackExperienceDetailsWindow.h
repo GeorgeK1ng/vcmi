@@ -16,6 +16,7 @@ class CStackWindow::StackExperienceDetailsWindow : public CWindowObject
 		bool percent = false;
 		bool binary = false;
 		bool showSign = true;
+		bool alwaysVisible = false;
 	};
 
 	const CStackInstance * sourceStack;
@@ -43,6 +44,7 @@ class CStackWindow::StackExperienceDetailsWindow : public CWindowObject
 		bool percent = false;
 		bool binary = false;
 		bool showSign = true;
+		bool alwaysVisible = false;
 		std::array<int, MAX_RANKS> values{};
 	};
 	std::vector<PreparedRow> preparedRows;
