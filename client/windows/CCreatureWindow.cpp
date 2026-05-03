@@ -323,7 +323,15 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		if(!bonus->description.empty())
 			return bonus->description.toString();
-		return sourceStack->bonusToString(std::const_pointer_cast<Bonus>(bonus));
+
+		auto tooltip = sourceStack->bonusToString(std::const_pointer_cast<Bonus>(bonus));
+		if(!tooltip.empty())
+			return tooltip;
+
+		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+			return bonusTypeHandler->bonusToString(bonus->type);
+
+		return std::string("Bonus");
 	};
 
 	
