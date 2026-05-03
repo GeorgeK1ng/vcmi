@@ -1045,6 +1045,8 @@
 		"vcmi.stackExperience.desc.speed": "Speed bonus granted by stack experience rank.",
 		"vcmi.stackExperience.desc.attack": "Attack bonus granted by stack experience rank.",
 		"vcmi.stackExperience.desc.defense": "Defense bonus granted by stack experience rank.",
+		"vcmi.stackExperience.desc.shots": "Shots bonus granted by stack experience rank.",
+		"vcmi.stackExperience.desc.casts": "Casts bonus granted by stack experience rank.",
 		"vcmi.stackExperience.table.yes": "Yes",
 	"vcmi.stackExperience.popup.upgradeMultiplier": "Experience kept after Upgrade",
 	"vcmi.stackExperience.windowTitle": "Stack Experience Details",
