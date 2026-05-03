@@ -256,6 +256,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
 		std::string tooltip = descriptionText;
 		std::string popup = descriptionText;
+		boost::replace_all(tooltip, "\n\n", ": ");
 		boost::replace_all(tooltip, "\n", ": ");
 		boost::replace_all(popup, "\n", "\n\n");
 		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
