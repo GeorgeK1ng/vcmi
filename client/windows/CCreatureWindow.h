@@ -172,6 +172,7 @@ class CStackWindow : public CWindowObject
 				bool hasIcon = false;
 				int iconFrame = -1;
 				std::string tooltipText;
+				std::string popupText;
 				bool percent = false;
 				bool binary = false;
 				bool showSign = true;
@@ -198,6 +199,7 @@ class CStackWindow : public CWindowObject
 				bool hasIcon = false;
 				int iconFrame = -1;
 				std::string tooltipText;
+				std::string popupText;
 				bool percent = false;
 			bool binary = false;
 			bool showSign = true;

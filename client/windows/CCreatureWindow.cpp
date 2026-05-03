@@ -117,7 +117,7 @@ ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int ro
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
-	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
@@ -208,7 +208,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath(), true, 4, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), false, false, false},
+			}, ImagePath(), true, 4, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -250,19 +250,21 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & tooltipText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
-		std::string tooltip = tooltipText;
-		boost::replace_all(tooltip, "\n", " ");
+		std::string tooltip = descriptionText;
+		std::string popup = descriptionText;
+		boost::replace_all(tooltip, "\n", ": ");
+		boost::replace_all(popup, "\n", "\n\n");
 		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
 				{
 					if(binary)
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, iconPath, true, iconFrame, tooltip, percent, binary, showSign});
+				}, iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -369,6 +371,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.hasIcon = row.hasIcon;
 		prepared.iconFrame = row.iconFrame;
 		prepared.tooltipText = row.tooltipText;
+		prepared.popupText = row.popupText;
 		prepared.percent = row.percent;
 		prepared.showSign = row.showSign;
 
@@ -516,10 +519,10 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					addChild(rowIcon.get(), true);
 				}
 			}
-			if(preparedRows[rowIndex].hasIcon && !preparedRows[rowIndex].tooltipText.empty())
+			if(preparedRows[rowIndex].hasIcon && !preparedRows[rowIndex].popupText.empty())
 			{
 				auto iconRClick = std::make_shared<LRClickableArea>(Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
-					[text = preparedRows[rowIndex].tooltipText]()
+					[text = preparedRows[rowIndex].popupText]()
 					{
 						if(!text.empty())
 							GAME->interface()->showInfoDialog(text);
