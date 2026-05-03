@@ -86,7 +86,7 @@ void AssetGenerator::initialize()
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto artifactLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
-		artifactLocator.horizontalFlip = true;
+		artifactLocator.verticalFlip = true;
 		auto artifact = ENGINE->renderHandler().loadImage(artifactLocator);
 		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		artifact->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);

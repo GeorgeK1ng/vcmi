@@ -208,7 +208,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath::builtin("stackWindow/stackExpExperienceIcon"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
+			}, ImagePath::builtin("stackWindow/stackExpExperienceIcon"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -439,7 +439,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	rebuildTableRows();
 
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - 35), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	constexpr int closeButtonBottomMargin = 35;
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - 65), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton->moveTo(Point(centerX - closeButton->pos.w / 2, pos.h - closeButton->pos.h - closeButtonBottomMargin));
 	closeButton->setBorderColor(Colors::METALLIC_GOLD);
 }
 
