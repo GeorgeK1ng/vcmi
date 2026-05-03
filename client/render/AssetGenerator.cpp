@@ -1288,7 +1288,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & s
 
 AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(const Point & size, int rowCount) const
 {
-	auto image = createDialogBackground(size);
+	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
