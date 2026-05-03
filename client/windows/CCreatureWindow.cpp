@@ -528,12 +528,15 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			}
 			if(preparedRows[rowIndex].hasIcon && !preparedRows[rowIndex].popupText.empty())
 			{
-				auto iconRClick = std::make_shared<LRClickableArea>(Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
-					[text = preparedRows[rowIndex].popupText]()
-					{
-						if(!text.empty())
-							GAME->interface()->showInfoDialog(text);
-					});
+				auto showDescription = [text = preparedRows[rowIndex].popupText]()
+				{
+					if(!text.empty())
+						GAME->interface()->showInfoDialog(text);
+				};
+				auto iconRClick = std::make_shared<LRClickableArea>(
+					Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
+					showDescription,
+					showDescription);
 				tableRowWidgets.push_back(iconRClick);
 				addChild(iconRClick.get(), true);
 			}
