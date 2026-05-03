@@ -12,6 +12,7 @@
 #include "../gui/Shortcut.h"
 #include "../gui/WindowHandler.h"
 #include "../render/CAnimation.h"
+#include "../render/CanvasImage.h"
 #include "../render/IImage.h"
 #include "../render/IRenderHandler.h"
 #include "../render/ImageLocator.h"

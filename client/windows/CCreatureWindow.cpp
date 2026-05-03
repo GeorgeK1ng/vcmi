@@ -53,6 +53,68 @@
 #include "../../lib/texts/TextOperations.h"
 #include "../../lib/texts/Languages.h"
 
+
+class UnitView
+{
+public:
+	// helper structs
+	struct CommanderLevelInfo
+	{
+		std::vector<ui32> skills;
+		std::function<void(ui32)> callback;
+	};
+	struct StackDismissInfo
+	{
+		std::function<void()> callback;
+	};
+	struct StackUpgradeInfo
+	{
+		StackUpgradeInfo() = delete;
+		StackUpgradeInfo(const UpgradeInfo & upgradeInfo)
+			: info(upgradeInfo)
+		{ }
+		UpgradeInfo info;
+		std::function<void(CreatureID)> callback;
+	};
+
+	// pointers to permanent objects in game state
+	const CCreature * creature;
+	const CCommanderInstance * commander;
+	const CStackInstance * stackNode;
+	const CStack * stack;
+	const CGHeroInstance * owner;
+
+	// temporary objects which should be kept as copy if needed
+	std::optional<CommanderLevelInfo> levelupInfo;
+	std::optional<StackDismissInfo> dismissInfo;
+	std::optional<StackUpgradeInfo> upgradeInfo;
+
+	// misc fields
+	unsigned int creatureCount;
+	bool popupWindow;
+
+	UnitView()
+		: creature(nullptr),
+		commander(nullptr),
+		stackNode(nullptr),
+		stack(nullptr),
+		owner(nullptr),
+		creatureCount(0),
+		popupWindow(false)
+	{
+	}
+
+	std::string getName() const
+	{
+		if(commander)
+			return commander->getType()->getNameSingularTranslated();
+		else
+			return creature->getNamePluralTranslated();
+	}
+private:
+
+};
+
 CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool showExp, bool showArt)
 	: CWindowSection(owner, getBackgroundName(showExp, showArt), yOffset)
 {
@@ -251,66 +313,6 @@ void CStackWindow::MainSection::addStatLabel(EStat index, int64_t value)
 	addStatLabel(index, value, value);
 }
 
-class UnitView
-{
-public:
-	// helper structs
-	struct CommanderLevelInfo
-	{
-		std::vector<ui32> skills;
-		std::function<void(ui32)> callback;
-	};
-	struct StackDismissInfo
-	{
-		std::function<void()> callback;
-	};
-	struct StackUpgradeInfo
-	{
-		StackUpgradeInfo() = delete;
-		StackUpgradeInfo(const UpgradeInfo & upgradeInfo)
-			: info(upgradeInfo)
-		{ }
-		UpgradeInfo info;
-		std::function<void(CreatureID)> callback;
-	};
-
-	// pointers to permanent objects in game state
-	const CCreature * creature;
-	const CCommanderInstance * commander;
-	const CStackInstance * stackNode;
-	const CStack * stack;
-	const CGHeroInstance * owner;
-
-	// temporary objects which should be kept as copy if needed
-	std::optional<CommanderLevelInfo> levelupInfo;
-	std::optional<StackDismissInfo> dismissInfo;
-	std::optional<StackUpgradeInfo> upgradeInfo;
-
-	// misc fields
-	unsigned int creatureCount;
-	bool popupWindow;
-
-	UnitView()
-		: creature(nullptr),
-		commander(nullptr),
-		stackNode(nullptr),
-		stack(nullptr),
-		owner(nullptr),
-		creatureCount(0),
-		popupWindow(false)
-	{
-	}
-
-	std::string getName() const
-	{
-		if(commander)
-			return commander->getType()->getNameSingularTranslated();
-		else
-			return creature->getNamePluralTranslated();
-	}
-private:
-
-};
 
 CCommanderSkillIcon::CCommanderSkillIcon(std::shared_ptr<CIntObject> object_, bool isMasterAbility_, std::function<void()> callback)
 	: object(),
