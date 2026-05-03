@@ -15,6 +15,9 @@
 
 #include "../CPlayerInterface.h"
 #include "../render/Canvas.h"
+#include "../render/IImage.h"
+#include "../render/IRenderHandler.h"
+#include "../render/ImageLocator.h"
 #include "../widgets/Buttons.h"
 #include "../widgets/CComponent.h"
 #include "../widgets/CComponentHolder.h"
