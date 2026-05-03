@@ -511,12 +511,19 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					addChild(rowIcon.get(), true);
 				}
 			}
-			if(preparedRows[rowIndex].hasIcon && (!preparedRows[rowIndex].popupText.empty() || !preparedRows[rowIndex].tooltipText.empty()))
+			if(preparedRows[rowIndex].hasIcon)
 			{
+				std::string hoverText = preparedRows[rowIndex].tooltipText;
+				std::string popupText = preparedRows[rowIndex].popupText;
+				if(hoverText.empty())
+					hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
+				if(popupText.empty())
+					popupText = hoverText;
+
 				auto iconRClick = std::make_shared<LRClickableAreaWText>(
 					Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
-					preparedRows[rowIndex].tooltipText,
-					preparedRows[rowIndex].popupText);
+					hoverText,
+					popupText);
 				tableRowWidgets.push_back(iconRClick);
 				addChild(iconRClick.get(), true);
 			}
