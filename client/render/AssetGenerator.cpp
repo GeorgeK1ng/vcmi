@@ -141,6 +141,28 @@ void AssetGenerator::initialize()
 		canvas.draw(overlay, Point(0, 0));
 		return image;
 	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpExperienceIcon.png")] = []()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto bg = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
+		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+		cropped->getCanvas().draw(bg, Point(0, 0), Rect(51, 56, 82, 82));
+		cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		image->getCanvas().draw(cropped, Point(0, 0));
+		return image;
+	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpAttackIcon.png")] = []()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
+		overlay->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
+		auto canvas = image->getCanvas();
+		canvas.draw(base, Point(0, 0));
+		canvas.draw(overlay, Point(2, 2));
+		return image;
+	};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));

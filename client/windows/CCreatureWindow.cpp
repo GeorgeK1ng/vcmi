@@ -208,7 +208,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath(), true, -106, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
+			}, ImagePath::builtin("stackWindow/stackExpExperienceIcon.png"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -346,8 +346,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -105, std::nullopt, std::string{});
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1, std::nullopt, std::string{});
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -1, ImagePath::builtin("stackWindow/stackExpAttackIcon.png"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1);
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
 	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
@@ -470,13 +470,6 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
 				}
-				else if(preparedRows[rowIndex].iconFrame == -106)
-				{
-					auto rowIcon = std::make_shared<CPicture>(ImagePath::builtin("LVLUPBKG.bmp"), Rect(51, 56, 82, 82), x, y);
-					rowIcon->scaleTo(Point(32, 32));
-					tableRowWidgets.push_back(rowIcon);
-					addChild(rowIcon.get(), true);
-				}
 				else if(preparedRows[rowIndex].iconFrame <= -100)
 				{
 					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
@@ -486,17 +479,6 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 						rowIcon->setScale(Point(32, 32));
 						tableRowWidgets.push_back(rowIcon);
 						addChild(rowIcon.get(), true);
-					}
-					else if(preparedRows[rowIndex].iconFrame == -105)
-					{
-						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
-						baseIcon->setScale(Point(32, 32));
-						tableRowWidgets.push_back(baseIcon);
-						addChild(baseIcon.get(), true);
-						auto overlayIcon = std::make_shared<CPicture>(ImagePath::builtin("CampSwrd"), x + 2, y + 2);
-						overlayIcon->scaleTo(Point(28, 27));
-						tableRowWidgets.push_back(overlayIcon);
-						addChild(overlayIcon.get(), true);
 					}
 					else
 					{
