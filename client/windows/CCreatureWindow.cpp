@@ -209,7 +209,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				{
 					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 					return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath(), false, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
+			}, ImagePath(), true, -105, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -493,6 +493,17 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 							case -100: overlayFrame = 98; break;
 							case -101: overlayFrame = 91; break;
 							case -104: overlayFrame = 84; break;
+							case -105:
+							{
+								auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
+								auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+								cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
+								cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto rowIcon = std::make_shared<CPicture>(cropped, Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								continue;
+							}
 							default: overlayFrame = 0; break;
 						}
 						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
