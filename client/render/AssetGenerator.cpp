@@ -1256,7 +1256,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	else if(iconId == "health")
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 84);
 	else if(iconId == "shots")
-		drawScaledFrame(AnimationPath::builtin("SECSK82"), 91);
+		drawScaledFrame(AnimationPath::builtin("ARTIFACT"), 91);
 	else if(iconId == "casts")
 		drawScaledFrame(AnimationPath::builtin("PSKIL42"), 2);
 
