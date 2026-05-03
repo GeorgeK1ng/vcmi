@@ -208,7 +208,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, ImagePath(), true, 4, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
+			}, ImagePath(), true, -106, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -470,6 +470,13 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
 				}
+				else if(preparedRows[rowIndex].iconFrame == -106)
+				{
+					auto rowIcon = std::make_shared<CPicture>(ImagePath::builtin("LVLUPBKG"), Rect(51, 56, 82, 82), x, y);
+					rowIcon->scaleTo(Point(32, 32));
+					tableRowWidgets.push_back(rowIcon);
+					addChild(rowIcon.get(), true);
+				}
 				else if(preparedRows[rowIndex].iconFrame <= -100)
 				{
 					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
@@ -486,8 +493,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 						baseIcon->setScale(Point(32, 32));
 						tableRowWidgets.push_back(baseIcon);
 						addChild(baseIcon.get(), true);
-						auto overlayIcon = std::make_shared<CPicture>(ImagePath::builtin("CampSwrd"), x, y);
-						overlayIcon->scaleTo(Point(32, 32));
+						auto overlayIcon = std::make_shared<CPicture>(ImagePath::builtin("CampSwrd"), x + 2, y + 2);
+						overlayIcon->scaleTo(Point(28, 27));
 						tableRowWidgets.push_back(overlayIcon);
 						addChild(overlayIcon.get(), true);
 					}
