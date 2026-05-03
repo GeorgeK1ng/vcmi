@@ -501,6 +501,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					else
 					{
 						int overlayFrame = 0;
+						bool customComposedIcon = false;
 						switch(preparedRows[rowIndex].iconFrame)
 						{
 							case -100:
@@ -518,6 +519,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
 								tableRowWidgets.push_back(rowIcon);
 								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
 								break;
 							}
 							case -101: overlayFrame = 91; break;
@@ -531,6 +533,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(cropped), Point(x, y));
 								tableRowWidgets.push_back(rowIcon);
 								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
 								break;
 							}
 							case -106:
@@ -546,18 +549,22 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
 								tableRowWidgets.push_back(rowIcon);
 								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
 								break;
 							}
 							default: overlayFrame = 0; break;
 						}
-						auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
-						baseIcon->setScale(Point(32, 32));
-						tableRowWidgets.push_back(baseIcon);
-						addChild(baseIcon.get(), true);
-						auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
-						overlayIcon->setScale(Point(32, 32));
-						tableRowWidgets.push_back(overlayIcon);
-						addChild(overlayIcon.get(), true);
+						if(!customComposedIcon)
+						{
+							auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
+							baseIcon->setScale(Point(32, 32));
+							tableRowWidgets.push_back(baseIcon);
+							addChild(baseIcon.get(), true);
+							auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
+							overlayIcon->setScale(Point(32, 32));
+							tableRowWidgets.push_back(overlayIcon);
+							addChild(overlayIcon.get(), true);
+						}
 					}
 				}
 				else
