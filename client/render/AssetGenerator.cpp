@@ -1214,7 +1214,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::string & iconId) const
 {
 	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-	auto & canvas = image->getCanvas();
+	auto canvas = image->getCanvas();
 
 	auto drawScaledFrame = [&](const AnimationPath & anim, size_t frame)
 	{
