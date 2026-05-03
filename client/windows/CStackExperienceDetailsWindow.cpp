@@ -236,7 +236,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false, std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride = std::nullopt)
 	{
 		const auto selector = makeStackExpSelector(key);
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
@@ -245,8 +245,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		boost::replace_all(tooltip, "\n\n", ": ");
 		boost::replace_all(tooltip, "\n", ": ");
 		boost::replace_all(popup, "\n", "\n\n");
-		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
+		rows.push_back({label, [selector, binary, valueGetterOverride](const CStackInstance & stackInst)
 				{
+					if(valueGetterOverride.has_value())
+						return (*valueGetterOverride)(stackInst);
+
 					if(binary)
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
@@ -337,7 +340,19 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue, true, true);
+		std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride;
+		if(type == BonusType::STACK_HEALTH)
+		{
+			valueGetterOverride = [selector = makeStackExpSelector(it->first)](const CStackInstance & stackInst)
+			{
+				int result = 0;
+				auto bonuses = stackInst.getBonuses(selector);
+				for(const auto & b : *bonuses)
+					result += b->val;
+				return result;
+			};
+		}
+		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue, true, true, valueGetterOverride);
 		dynamicBonuses.erase(it);
 	};
 
