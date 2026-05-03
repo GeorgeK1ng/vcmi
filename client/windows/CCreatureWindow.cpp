@@ -122,6 +122,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
 	const int sideMargin = 10;
 	const int yOffset = 16;
@@ -439,7 +440,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	rebuildTableRows();
 
 	const int centerX = pos.w / 2;
-	constexpr int closeButtonBottomMargin = 35;
+	constexpr int closeButtonBottomMargin = 40;
 	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - 65), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 	closeButton->moveTo(Point(centerX - closeButton->pos.w / 2, pos.h - closeButton->pos.h - closeButtonBottomMargin));
 	closeButton->setBorderColor(Colors::METALLIC_GOLD);
@@ -506,7 +507,6 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				else
 				{
 					auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, x, y);
-					rowIcon->scaleTo(Point(32, 32));
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
 				}
