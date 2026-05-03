@@ -494,7 +494,23 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 						int overlayFrame = 0;
 						switch(preparedRows[rowIndex].iconFrame)
 						{
-							case -100: overlayFrame = 98; break;
+							case -100:
+							{
+								auto composed = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+								auto baseIcon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+								baseIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
+								overlayLocator.verticalFlip = true;
+								auto overlayIcon = ENGINE->renderHandler().loadImage(overlayLocator);
+								overlayIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto iconCanvas = composed->getCanvas();
+								iconCanvas.draw(baseIcon, Point(0, 0));
+								iconCanvas.draw(overlayIcon, Point(0, 0));
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								break;
+							}
 							case -101: overlayFrame = 91; break;
 							case -104: overlayFrame = 84; break;
 							case -105:
