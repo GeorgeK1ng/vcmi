@@ -346,8 +346,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -1, ImagePath::builtin("stackWindow/stackExpAttackIcon.png"));
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), -1, ImagePath::builtin("stackWindow/stackExpDefenseIcon.png"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -1, ImagePath::builtin("stackWindow/stackExpAttackIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), -1, ImagePath::builtin("stackWindow/stackExpDefenseIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.defense"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -1, ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -1, ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
 	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
@@ -508,17 +508,12 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					addChild(rowIcon.get(), true);
 				}
 			}
-			if(preparedRows[rowIndex].hasIcon && !preparedRows[rowIndex].popupText.empty())
+			if(preparedRows[rowIndex].hasIcon && (!preparedRows[rowIndex].popupText.empty() || !preparedRows[rowIndex].tooltipText.empty()))
 			{
-				auto showDescription = [text = preparedRows[rowIndex].popupText]()
-				{
-					if(!text.empty())
-						GAME->interface()->showInfoDialog(text);
-				};
-				auto iconRClick = std::make_shared<LRClickableArea>(
+				auto iconRClick = std::make_shared<LRClickableAreaWText>(
 					Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
-					showDescription,
-					showDescription);
+					preparedRows[rowIndex].tooltipText,
+					preparedRows[rowIndex].popupText);
 				tableRowWidgets.push_back(iconRClick);
 				addChild(iconRClick.get(), true);
 			}

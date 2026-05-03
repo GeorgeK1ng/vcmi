@@ -1043,6 +1043,8 @@
 		"vcmi.stackExperience.desc.maxDamage": "Maximum damage bonus granted by stack experience rank.",
 		"vcmi.stackExperience.desc.health": "Health bonus granted by stack experience rank.",
 		"vcmi.stackExperience.desc.speed": "Speed bonus granted by stack experience rank.",
+		"vcmi.stackExperience.desc.attack": "Attack bonus granted by stack experience rank.",
+		"vcmi.stackExperience.desc.defense": "Defense bonus granted by stack experience rank.",
 		"vcmi.stackExperience.table.yes": "Yes",
 	"vcmi.stackExperience.popup.upgradeMultiplier": "Experience kept after Upgrade",
 	"vcmi.stackExperience.windowTitle": "Stack Experience Details",
