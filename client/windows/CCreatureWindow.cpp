@@ -483,8 +483,9 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
 				if(preparedRows[rowIndex].iconFrame >= 0)
 				{
-					auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("PSKIL42"), preparedRows[rowIndex].iconFrame, 0, x, y);
-					rowIcon->setScale(Point(32, 32));
+					auto iconImage = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(preparedRows[rowIndex].iconFrame);
+					iconImage->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+					auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
 				}
@@ -493,8 +494,9 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
 					{
 						const int frame = preparedRows[rowIndex].iconFrame == -102 ? 69 : 71;
-						auto rowIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), frame, 0, x, y);
-						rowIcon->setScale(Point(32, 32));
+						auto iconImage = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(frame);
+						iconImage->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+						auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
 						tableRowWidgets.push_back(rowIcon);
 						addChild(rowIcon.get(), true);
 					}
