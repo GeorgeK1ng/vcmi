@@ -124,11 +124,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	OBJECT_CONSTRUCTION;
 
 	const int sideMargin = 10;
-	const int headerTop = 1;
-	const int detailsTop = 68;
-	const int tableTop = 218;
+	const int yOffset = 16;
+	const int headerTop = 1 + yOffset;
+	const int detailsTop = 68 + yOffset;
+	const int tableTop = 218 + yOffset;
 	constexpr int tableBaseRowHeight = 36;
-	const int statusbarHeight = 26; // kept for bottom button offset
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
@@ -438,7 +438,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	rebuildTableRows();
 
 	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - 35), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
 	closeButton->setBorderColor(Colors::METALLIC_GOLD);
 }
 

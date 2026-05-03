@@ -194,7 +194,7 @@ void AssetGenerator::initialize()
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
 	for(int rowCount = 5; rowCount <= 8; ++rowCount)
 	{
-		const int dialogHeight = 600 - (8 - rowCount) * 36;
+		const int dialogHeight = 620 - (8 - rowCount) * 36;
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
 		{
 			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
@@ -1330,9 +1330,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
-	const int headerTop = 1;
-	const int detailsTop = 68;
-	const int tableTop = 218;
+	const int yOffset = 16;
+	const int headerTop = 1 + yOffset;
+	const int detailsTop = 68 + yOffset;
+	const int tableTop = 218 + yOffset;
 	const int rowNameWidth = 60;
 	constexpr int stackExpBaseRowHeight = 36;
 	const int tableHeight = stackExpBaseRowHeight * rowCount;
