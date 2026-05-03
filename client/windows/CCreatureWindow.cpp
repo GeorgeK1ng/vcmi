@@ -352,7 +352,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), 0, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -106, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));
 	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.defense"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
@@ -506,7 +506,22 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(cropped), Point(x, y));
 								tableRowWidgets.push_back(rowIcon);
 								addChild(rowIcon.get(), true);
-								continue;
+								break;
+							}
+							case -106:
+							{
+								auto composed = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+								auto baseIcon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+								baseIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto overlayIcon = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
+								overlayIcon->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
+								auto iconCanvas = composed->getCanvas();
+								iconCanvas.draw(baseIcon, Point(0, 0));
+								iconCanvas.draw(overlayIcon, Point(2, 2));
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								break;
 							}
 							default: overlayFrame = 0; break;
 						}
