@@ -35,6 +35,7 @@ class LRClickableArea;
 class GraphicalPrimitiveCanvas;
 class CFilledTexture;
 class CSlider;
+class CGStatusBar;
 
 class CCommanderSkillIcon : public LRClickableAreaWText //TODO: maybe bring commander skill button initialization logic inside?
 {
@@ -185,6 +186,7 @@ class CStackWindow : public CWindowObject
 		std::shared_ptr<CLabel> stackSummary;
 		std::shared_ptr<CCreaturePic> creatureAnimation;
 		std::shared_ptr<CButton> closeButton;
+		std::shared_ptr<CGStatusBar> statusbar;
 		std::shared_ptr<GraphicalPrimitiveCanvas> currentRankFrame;
 		std::vector<std::shared_ptr<CIntObject>> labels;
 		std::shared_ptr<CSlider> tableSlider;
