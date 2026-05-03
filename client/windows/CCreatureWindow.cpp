@@ -346,8 +346,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -105);
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1);
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -105, std::nullopt, std::string{});
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1, std::nullopt, std::string{});
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
 	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
 	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
@@ -472,7 +472,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 				}
 				else if(preparedRows[rowIndex].iconFrame == -106)
 				{
-					auto rowIcon = std::make_shared<CPicture>(ImagePath::builtin("LVLUPBKG"), Rect(51, 56, 82, 82), x, y);
+					auto rowIcon = std::make_shared<CPicture>(ImagePath::builtin("LVLUPBKG.bmp"), Rect(51, 56, 82, 82), x, y);
 					rowIcon->scaleTo(Point(32, 32));
 					tableRowWidgets.push_back(rowIcon);
 					addChild(rowIcon.get(), true);
