@@ -81,104 +81,94 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon")] = []()
+	const auto scaleTo32 = [](const std::shared_ptr<IImage> & source)
+	{
+		return source->scaleTo(Point(32, 32), nullptr);
+	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpSpeedIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto artifactLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
 		artifactLocator.verticalFlip = true;
 		auto artifact = ENGINE->renderHandler().loadImage(artifactLocator);
-		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		artifact->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
-		canvas.draw(secSkill, Point(0, 0));
-		canvas.draw(artifact, Point(0, 0));
+		canvas.draw(scaleTo32(secSkill), Point(0, 0));
+		canvas.draw(scaleTo32(artifact), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpShotsIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto secSkill = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto artifact = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("artifact"), EImageBlitMode::COLORKEY)->getImage(91);
-		secSkill->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		artifact->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
-		canvas.draw(secSkill, Point(0, 0));
-		canvas.draw(artifact, Point(0, 0));
+		canvas.draw(scaleTo32(secSkill), Point(0, 0));
+		canvas.draw(scaleTo32(artifact), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMinDamageIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(69);
-		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
-		canvas.draw(base, Point(0, 0));
-		canvas.draw(overlay, Point(0, 0));
+		canvas.draw(scaleTo32(base), Point(0, 0));
+		canvas.draw(scaleTo32(overlay), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpMaxDamageIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(71);
-		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
-		canvas.draw(base, Point(0, 0));
-		canvas.draw(overlay, Point(0, 0));
+		canvas.draw(scaleTo32(base), Point(0, 0));
+		canvas.draw(scaleTo32(overlay), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpHealthIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpHealthIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
 		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(84);
-		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		Canvas canvas = image->getCanvas();
-		canvas.draw(base, Point(0, 0));
-		canvas.draw(overlay, Point(0, 0));
+		canvas.draw(scaleTo32(base), Point(0, 0));
+		canvas.draw(scaleTo32(overlay), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpExperienceIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpExperienceIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto bg = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(bg, Point(0, 0), Rect(51, 56, 82, 82));
-		cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		image->getCanvas().draw(cropped, Point(0, 0));
+		image->getCanvas().draw(scaleTo32(cropped), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpAttackIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpAttackIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto base = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
-		base->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
 		overlay->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
 		auto canvas = image->getCanvas();
-		canvas.draw(base, Point(0, 0));
+		canvas.draw(scaleTo32(base), Point(0, 0));
 		canvas.draw(overlay, Point(2, 2));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpDefenseIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpDefenseIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto icon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(1);
-		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		image->getCanvas().draw(icon, Point(0, 0));
+		image->getCanvas().draw(scaleTo32(icon), Point(0, 0));
 		return image;
 	};
-	imageFiles[ImagePath::builtin("stackWindow/stackExpCastsIcon")] = []()
+	imageFiles[ImagePath::builtin("stackWindow/stackExpCastsIcon")] = [scaleTo32]()
 	{
 		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 		auto icon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(2);
-		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		image->getCanvas().draw(icon, Point(0, 0));
+		image->getCanvas().draw(scaleTo32(icon), Point(0, 0));
 		return image;
 	};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
