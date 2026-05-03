@@ -502,7 +502,7 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 								auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 								cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
 								cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-								auto rowIcon = std::make_shared<CPicture>(cropped, Point(x, y));
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(cropped), Point(x, y));
 								tableRowWidgets.push_back(rowIcon);
 								addChild(rowIcon.get(), true);
 								continue;
