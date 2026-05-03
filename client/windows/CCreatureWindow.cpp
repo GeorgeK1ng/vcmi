@@ -347,13 +347,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	};
 
 	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -1, ImagePath::builtin("stackWindow/stackExpAttackIcon.png"));
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1);
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), -1, ImagePath::builtin("stackWindow/stackExpDefenseIcon.png"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -1, ImagePath::builtin("stackWindow/stackExpMinDamageIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -1, ImagePath::builtin("stackWindow/stackExpMaxDamageIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
 	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
-	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -100, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.speed"));
+	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -1, ImagePath::builtin("stackWindow/stackExpSpeedIcon.png"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.speed"));
 	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), -101);
-	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], 2);
+	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], -1, ImagePath::builtin("stackWindow/stackExpCastsIcon.png"));
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{

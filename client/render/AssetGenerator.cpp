@@ -163,6 +163,22 @@ void AssetGenerator::initialize()
 		canvas.draw(overlay, Point(2, 2));
 		return image;
 	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpDefenseIcon.png")] = []()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto icon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(1);
+		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		image->getCanvas().draw(icon, Point(0, 0));
+		return image;
+	};
+	imageFiles[ImagePath::builtin("stackWindow/stackExpCastsIcon.png")] = []()
+	{
+		auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+		auto icon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(2);
+		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		image->getCanvas().draw(icon, Point(0, 0));
+		return image;
+	};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
