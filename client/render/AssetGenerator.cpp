@@ -108,6 +108,15 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorLarge.png")] = [this](){ return createStackArtifactIndicator(Point(22, 22));};
+	imageFiles[ImagePath::builtin("stackExperienceIconExperience.png")] = [this](){ return createStackExperienceIcon("experience"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconSpeed.png")] = [this](){ return createStackExperienceIcon("speed"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconAttack.png")] = [this](){ return createStackExperienceIcon("attack"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconDefense.png")] = [this](){ return createStackExperienceIcon("defense"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconMinDamage.png")] = [this](){ return createStackExperienceIcon("minDamage"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconMaxDamage.png")] = [this](){ return createStackExperienceIcon("maxDamage"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconHealth.png")] = [this](){ return createStackExperienceIcon("health"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconShots.png")] = [this](){ return createStackExperienceIcon("shots"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconCasts.png")] = [this](){ return createStackExperienceIcon("casts"); };
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
 		imageFiles[ImagePath::builtin("DialogBoxBackground_" + color.toString())] = [this, color](){ return createPlayerColoredBackground(color);};
@@ -1198,6 +1207,58 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 			canvas.drawPoint(Point(x, y), ColorRGBA(0, 0, 0, alpha));
 		}
 	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::string & iconId) const
+{
+	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+	auto & canvas = image->getCanvas();
+
+	auto drawScaledFrame = [&](const AnimationPath & anim, size_t frame)
+	{
+		auto icon = ENGINE->renderHandler().loadAnimation(anim, EImageBlitMode::COLORKEY)->getImage(frame);
+		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		canvas.draw(icon, Point(0, 0));
+	};
+
+	if(iconId == "experience")
+	{
+		auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
+		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+		cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
+		cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		canvas.draw(cropped, Point(0, 0));
+	}
+	else if(iconId == "speed")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
+		overlayLocator.verticalFlip = true;
+		auto overlay = ENGINE->renderHandler().loadImage(overlayLocator);
+		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		canvas.draw(overlay, Point(0, 0));
+	}
+	else if(iconId == "attack")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
+		overlay->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
+		canvas.draw(overlay, Point(2, 2));
+	}
+	else if(iconId == "defense")
+		drawScaledFrame(AnimationPath::builtin("PSKIL42"), 1);
+	else if(iconId == "minDamage")
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 69);
+	else if(iconId == "maxDamage")
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 71);
+	else if(iconId == "health")
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 84);
+	else if(iconId == "shots")
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 91);
+	else if(iconId == "casts")
+		drawScaledFrame(AnimationPath::builtin("PSKIL42"), 2);
 
 	return image;
 }
