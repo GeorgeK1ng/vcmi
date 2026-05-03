@@ -165,6 +165,7 @@ set(vcmiclientcommon_SRCS
 
 	windows/CCastleInterface.cpp
 	windows/CCreatureWindow.cpp
+	windows/CStackExperienceDetailsWindow.h
 	windows/CStackExperienceDetailsWindow.cpp
 	windows/CExchangeWindow.cpp
 	windows/CHeroOverview.cpp
