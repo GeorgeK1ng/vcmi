@@ -81,7 +81,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
-	const auto scaleTo32 = [](const std::shared_ptr<IImage> & source)
+	const auto scaleTo32 = [](const std::shared_ptr<const IImage> & source)
 	{
 		return source->scaleTo(Point(32, 32), nullptr);
 	};
