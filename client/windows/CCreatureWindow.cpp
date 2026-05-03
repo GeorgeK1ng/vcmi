@@ -331,7 +331,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
 			return bonusTypeHandler->bonusToString(bonus->type);
 
-		return std::string("Bonus");
+		return tooltip;
 	};
 
 	
