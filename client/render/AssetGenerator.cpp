@@ -94,9 +94,9 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	for(int rowCount = 8; rowCount <= 13; ++rowCount)
+	for(int rowCount = 5; rowCount <= 8; ++rowCount)
 	{
-		const int dialogHeight = 495 + (rowCount - 9) * 25;
+		const int dialogHeight = 600 - (8 - rowCount) * 36;
 		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
 		{
 			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
@@ -1228,15 +1228,16 @@ AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & s
 
 AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(const Point & size, int rowCount) const
 {
-	auto image = createDialogBackground(size);
+	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
 	const int sideMargin = 10;
-	const int headerTop = 1;
-	const int detailsTop = 68;
-	const int tableTop = 218;
-	const int rowNameWidth = 140;
-	constexpr int stackExpBaseRowHeight = 25;
+	const int yOffset = 16;
+	const int headerTop = 1 + yOffset;
+	const int detailsTop = 68 + yOffset;
+	const int tableTop = 218 + yOffset;
+	const int rowNameWidth = 60;
+	constexpr int stackExpBaseRowHeight = 36;
 	const int tableHeight = stackExpBaseRowHeight * rowCount;
 	const int rankColumns = 11;
 	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
@@ -1299,6 +1300,15 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	for(int line = 1; line < rowCount; ++line)
 		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+
+	// Icon slots (34x34) for bonus rows in first column
+	for(int row = 1; row < rowCount; ++row)
+	{
+		const int cellTop = tableTop + row * rowHeight;
+		const Rect iconRect(sideMargin + (rowNameWidth - 34) / 2, cellTop + (rowHeight - 34) / 2, 34, 34);
+		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
+		canvas.drawBorder(iconRect, frameColor);
+	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
 	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);

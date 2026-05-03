@@ -15,6 +15,11 @@
 
 #include "../CPlayerInterface.h"
 #include "../render/Canvas.h"
+#include "../render/CanvasImage.h"
+#include "../render/CAnimation.h"
+#include "../render/IImage.h"
+#include "../render/IRenderHandler.h"
+#include "../render/ImageLocator.h"
 #include "../widgets/Buttons.h"
 #include "../widgets/CComponent.h"
 #include "../widgets/CComponentHolder.h"
@@ -22,6 +27,7 @@
 #include "../widgets/Images.h"
 #include "../widgets/TextControls.h"
 #include "../widgets/ObjectLists.h"
+#include "../widgets/Slider.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../windows/GUIClasses.h"
 #include "../windows/InfoWindows.h"
@@ -110,29 +116,27 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	rowCount = std::clamp(rowCount, 8, 13);
-	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount));
+	(void)rowCount;
+	// Use base template only - lower table body is now rendered dynamically in scroll area.
+	return ImagePath::builtin("stackExperienceDialogRows8");
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
-	: CWindowObject(BORDERED | PLAYER_COLORED, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, getDialogBackground(calculateDynamicTableRowCount(stack, creatureType)))
 	, sourceStack(stack)
 	, creature(creatureType)
 {
 	OBJECT_CONSTRUCTION;
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
 	const int sideMargin = 10;
-	const int headerTop = 1;
-	const int detailsTop = 68;
-	const int tableTop = 218;
-	constexpr int tableBaseRowHeight = 25;
-	const int statusbarHeight = 26; // kept for bottom button offset
+	const int yOffset = 16;
+	const int headerTop = 1 + yOffset;
+	const int detailsTop = 68 + yOffset;
+	const int tableTop = 218 + yOffset;
+	constexpr int tableBaseRowHeight = 36;
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
-
-	std::vector<std::string> rankNames;
-	for(int rank = 0; rank < MAX_RANKS; ++rank)
-		rankNames.push_back(LIBRARY->generaltexth->translate("vcmi.stackExperience.rank", rank));
 
 	int tier = getStackExperienceTierFromCreatureLevel(this->creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
@@ -206,11 +210,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	addLongInfo(1, LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.maxRecruitsRank10"), std::to_string(maxRecruitsAtRank10));
 
 	std::vector<NumericRow> rows = {
-		{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), [&rankThresholds](const CStackInstance & stackInst)
-			{
-				const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
-				return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
-			}, false, false, false},
+			{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), [&rankThresholds](const CStackInstance & stackInst)
+				{
+					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
+					return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+			}, ImagePath(), true, -105, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false},
 	};
 
 	struct BonusKey
@@ -252,16 +256,22 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::string & label, bool percent = false, bool binary = false, bool showSign = true)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true)
 	{
 		const auto selector = makeStackExpSelector(key);
+		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
+		std::string tooltip = descriptionText;
+		std::string popup = descriptionText;
+		boost::replace_all(tooltip, "\n\n", ": ");
+		boost::replace_all(tooltip, "\n", ": ");
+		boost::replace_all(popup, "\n", "\n\n");
 		rows.push_back({label, [selector, binary](const CStackInstance & stackInst)
 				{
 					if(binary)
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, percent, binary, showSign});
+				}, iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -310,6 +320,20 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 		return rowLabel;
 	};
+	auto getBonusTooltipText = [&](const std::shared_ptr<const Bonus> & bonus)
+	{
+		if(!bonus->description.empty())
+			return bonus->description.toString();
+
+		auto tooltip = sourceStack->bonusToString(std::const_pointer_cast<Bonus>(bonus));
+		if(!tooltip.empty())
+			return tooltip;
+
+		if(const auto * bonusTypeHandler = dynamic_cast<const CBonusTypeHandler *>(LIBRARY->getBth()))
+			return bonusTypeHandler->bonusToString(bonus->type);
+
+		return tooltip;
+	};
 
 	
 	auto isPercentBonus = [](const std::shared_ptr<const Bonus> & bonus)
@@ -319,7 +343,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			|| bonus->type == BonusType::MAGIC_RESISTANCE;
 	};
 
-auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label)
+	auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, std::optional<std::string> tooltipOverride = std::nullopt)
 	{
 		auto it = std::find_if(dynamicBonuses.begin(), dynamicBonuses.end(), [&](const auto & entry)
 		{
@@ -333,41 +357,36 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(it->first, label, percentValue, binaryValue);
+		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue);
 		dynamicBonuses.erase(it);
 	};
 
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"));
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"));
-	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"));
-	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"));
-	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"));
-	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399]);
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -106, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));
+	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), 1, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.defense"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -102, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
+	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -103, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
+	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -104, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
+	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -100, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.speed"));
+	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), -101, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.shots"));
+	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], 2, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.casts"));
 
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = !percentValue && bonus->val == 0;
-		addBonusRow(key, getBonusDisplayName(bonus), percentValue, binaryValue);
+		addBonusRow(key, bonus, getBonusDisplayName(bonus), getBonusTooltipText(bonus), -1, std::nullopt, percentValue, binaryValue);
 	}
 
-	struct PreparedRow
-	{
-		std::string title;
-		bool percent = false;
-		bool binary = false;
-		bool showSign = true;
-		std::array<int, MAX_RANKS> values{};
-	};
-
-	std::vector<PreparedRow> preparedRows;
 	preparedRows.reserve(rows.size());
 	for(const auto & row : rows)
 	{
 		PreparedRow prepared;
 		prepared.title = row.title;
+		prepared.icon = row.icon;
+		prepared.hasIcon = row.hasIcon;
+		prepared.iconFrame = row.iconFrame;
+		prepared.tooltipText = row.tooltipText;
+		prepared.popupText = row.popupText;
 		prepared.percent = row.percent;
 		prepared.showSign = row.showSign;
 
@@ -394,54 +413,205 @@ auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype
 		}
 	}
 
-	const int maxDataRows = 12; // 13 total with header, keep dialog <= 800x600
-	if(static_cast<int>(preparedRows.size()) > maxDataRows)
-		preparedRows.resize(maxDataRows);
-
-	const int rowNameWidth = 140;
+	const int rowNameWidth = 60;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
 	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
+	this->tableTop = tableTop;
+	this->tableRowHeight = rowHeight;
+	this->tableSideMargin = sideMargin;
+	this->tableRowNameWidth = rowNameWidth;
+	this->tableColWidth = colWidth;
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, tableTop + rowHeight / 2, FONT_TINY, ETextAlignment::CENTER, Colors::YELLOW, rankNames[rank]));
+		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
+		const int iconY = tableTop + (rowHeight - 32) / 2;
+		auto rankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY);
+		rankIcon->setScale(Point(32, 32));
+		labels.push_back(rankIcon);
 	}
 
-	constexpr int maxVisibleBonusRows = 12;
+	constexpr int maxVisibleBonusRows = 7;
 	const int totalBonusRows = static_cast<int>(preparedRows.size());
-	const int visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
+	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, -1), Point(colWidth + 1, rowHeight * tableRowsVisible + 3), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth - 1, rowHeight * tableRowsVisible + 1), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 
+	if(totalBonusRows > maxVisibleBonusRows)
+	{
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider->setPanningStep(rowHeight);
+		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
+	}
+	else
+	{
+		tableSlider.reset();
+	}
+	rebuildTableRows();
+
+	const int centerX = pos.w / 2;
+	constexpr int closeButtonBottomMargin = 40;
+	constexpr int closeButtonWidth = 64;
+	constexpr int closeButtonHeight = 32;
+	closeButton = std::make_shared<CButton>(Point(centerX - closeButtonWidth / 2, pos.h - closeButtonBottomMargin - closeButtonHeight), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
+	closeButton->setBorderColor(Colors::METALLIC_GOLD);
+}
+
+void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
+{
+	for(const auto & widget : tableBackgroundWidgets)
+		removeChild(widget.get());
+	for(const auto & widget : tableRowWidgets)
+		removeChild(widget.get());
+
+	tableBackgroundWidgets.clear();
+	tableRowWidgets.clear();
+	const int firstRow = tableSlider ? tableSlider->getValue() : 0;
 	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
 	{
-		const int rowIndex = localRow;
-		const int rowY = tableTop + (localRow + 1) * rowHeight + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(sideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title));
+		const int rowIndex = firstRow + localRow;
+		if(rowIndex >= static_cast<int>(preparedRows.size()))
+			break;
+		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
 
+			if(preparedRows[rowIndex].hasIcon)
+			{
+				const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
+				const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
+				if(preparedRows[rowIndex].iconFrame >= 0)
+				{
+					auto iconImage = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(preparedRows[rowIndex].iconFrame);
+					iconImage->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+					auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
+					tableRowWidgets.push_back(rowIcon);
+					addChild(rowIcon.get(), true);
+				}
+				else if(preparedRows[rowIndex].iconFrame <= -100)
+				{
+					if(preparedRows[rowIndex].iconFrame == -102 || preparedRows[rowIndex].iconFrame == -103)
+					{
+						const int frame = preparedRows[rowIndex].iconFrame == -102 ? 69 : 71;
+						auto iconImage = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(frame);
+						iconImage->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+						auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
+						tableRowWidgets.push_back(rowIcon);
+						addChild(rowIcon.get(), true);
+					}
+					else
+					{
+						int overlayFrame = 0;
+						bool customComposedIcon = false;
+						switch(preparedRows[rowIndex].iconFrame)
+						{
+							case -100:
+							{
+								auto composed = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+								auto baseIcon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+								baseIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
+								overlayLocator.verticalFlip = true;
+								auto overlayIcon = ENGINE->renderHandler().loadImage(overlayLocator);
+								overlayIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto iconCanvas = composed->getCanvas();
+								iconCanvas.draw(baseIcon, Point(0, 0));
+								iconCanvas.draw(overlayIcon, Point(0, 0));
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
+								break;
+							}
+							case -101: overlayFrame = 91; break;
+							case -104: overlayFrame = 84; break;
+							case -105:
+							{
+								auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
+								auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+								cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
+								cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(cropped), Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
+								break;
+							}
+							case -106:
+							{
+								auto composed = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+								auto baseIcon = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(0);
+								baseIcon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+								auto overlayIcon = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
+								overlayIcon->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
+								auto iconCanvas = composed->getCanvas();
+								iconCanvas.draw(baseIcon, Point(0, 0));
+								iconCanvas.draw(overlayIcon, Point(2, 2));
+								auto rowIcon = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(composed), Point(x, y));
+								tableRowWidgets.push_back(rowIcon);
+								addChild(rowIcon.get(), true);
+								customComposedIcon = true;
+								break;
+							}
+							default: overlayFrame = 0; break;
+						}
+						if(!customComposedIcon)
+						{
+							auto baseIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0, 0, x, y);
+							baseIcon->setScale(Point(32, 32));
+							tableRowWidgets.push_back(baseIcon);
+							addChild(baseIcon.get(), true);
+							auto overlayIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("artifact"), overlayFrame, 0, x, y);
+							overlayIcon->setScale(Point(32, 32));
+							tableRowWidgets.push_back(overlayIcon);
+							addChild(overlayIcon.get(), true);
+						}
+					}
+				}
+				else
+				{
+					auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, x, y);
+					rowIcon->scaleTo(Point(32, 32));
+					tableRowWidgets.push_back(rowIcon);
+					addChild(rowIcon.get(), true);
+				}
+			}
+			if(preparedRows[rowIndex].hasIcon)
+			{
+				std::string hoverText = preparedRows[rowIndex].tooltipText;
+				std::string popupText = preparedRows[rowIndex].popupText;
+				if(hoverText.empty())
+					hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
+				if(popupText.empty())
+					popupText = hoverText;
+
+				auto iconRClick = std::make_shared<LRClickableAreaWText>(
+					Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
+					hoverText,
+					popupText);
+				tableRowWidgets.push_back(iconRClick);
+				addChild(iconRClick.get(), true);
+			}
+		else
+		{
+			auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
+			tableRowWidgets.push_back(rowTitle);
+			addChild(rowTitle.get(), true);
+		}
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
 			const int value = preparedRows[rowIndex].values[rank];
-				std::string valueText;
-				if(preparedRows[rowIndex].binary)
-					valueText = value != 0
-						? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes")
-						: LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
-				else
-				{
-					const bool showSign = preparedRows[rowIndex].showSign && value > 0;
-					valueText = (showSign ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
-				}
-			labels.push_back(std::make_shared<CLabel>(sideMargin + rowNameWidth + rank * colWidth + colWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText));
+			std::string valueText;
+			if(preparedRows[rowIndex].binary)
+				valueText = value != 0 ? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes") : LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no");
+			else
+				valueText = (preparedRows[rowIndex].showSign && value > 0 ? "+" : "") + std::to_string(value) + (preparedRows[rowIndex].percent ? "%" : "");
+			auto valueLabel = std::make_shared<CLabel>(tableSideMargin + tableRowNameWidth + rank * tableColWidth + tableColWidth / 2, rowY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, valueText);
+			tableRowWidgets.push_back(valueLabel);
+			addChild(valueLabel.get(), true);
 		}
 	}
-
-	const int centerX = pos.w / 2;
-	closeButton = std::make_shared<CButton>(Point(centerX - 32, pos.h - statusbarHeight - 12), AnimationPath::builtin("IOKAY.DEF"), LIBRARY->generaltexth->zelp[632], [this](){ close(); }, EShortcut::GLOBAL_ACCEPT);
-	closeButton->setBorderColor(Colors::METALLIC_GOLD);
 }
 
 class CCreatureArtifactInstance;
@@ -797,10 +967,10 @@ CStackWindow::ButtonsSection::ButtonsSection(CStackWindow * owner, int yOffset)
 				{
 					GAME->interface()->showYesNoDialog(LIBRARY->generaltexth->allTexts[207], onUpgrade, nullptr, resComps);
 				}
-				else
-				{
-					GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[314], resComps);
-				}
+					else
+					{
+						GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[314], resComps);
+					}
 			};
 			auto upgradeBtn = std::make_shared<CButton>(Point(221 + (int)buttonIndex * 40, 5), AnimationPath::builtin("stackWindow/upgradeButton"), LIBRARY->generaltexth->zelp[446], onClick);
 
