@@ -471,10 +471,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createSpellTabNone() const
 AssetGenerator::CanvasPtr AssetGenerator::createChroniclesCampaignImages(int chronicle) const
 {
 	auto imgPathBg = ImagePath::builtin("chronicles_" + std::to_string(chronicle) + "/GamSelBk");
+	auto image = ENGINE->renderHandler().createImage(Point(200, 116), CanvasScalingPolicy::IGNORE);
+	if(!CResourceHandler::get()->existsResource(imgPathBg))
+		return image;
+
 	auto locator = ImageLocator(imgPathBg, EImageBlitMode::OPAQUE);
 
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
-	auto image = ENGINE->renderHandler().createImage(Point(200, 116), CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 
 	std::array sourceRect = {
