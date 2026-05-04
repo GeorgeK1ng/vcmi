@@ -518,7 +518,13 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		if(rowIndex >= static_cast<int>(preparedRows.size()))
 			break;
 		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
-		const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
+	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
+	auto withStackExperiencePlaceholders = [currentRank](std::string text, int value)
+	{
+		boost::replace_all(text, "${level}", std::to_string(currentRank));
+		boost::replace_all(text, "${val}", std::to_string(value));
+		return text;
+	};
 
 			if(preparedRows[rowIndex].hasIcon)
 			{
@@ -639,8 +645,9 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			}
 			if(preparedRows[rowIndex].hasIcon)
 			{
-				std::string hoverText = preparedRows[rowIndex].tooltipText;
-				std::string popupText = preparedRows[rowIndex].popupText;
+				const int currentValue = preparedRows[rowIndex].values[currentRank];
+				std::string hoverText = withStackExperiencePlaceholders(preparedRows[rowIndex].tooltipText, currentValue);
+				std::string popupText = withStackExperiencePlaceholders(preparedRows[rowIndex].popupText, currentValue);
 				if(hoverText.empty())
 					hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
 				if(popupText.empty())
