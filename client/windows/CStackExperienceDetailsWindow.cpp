@@ -108,9 +108,8 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	(void)rowCount;
-	// Use base template only - lower table body is now rendered dynamically in scroll area.
-	return ImagePath::builtin("stackExperienceDialogRows8");
+	const int clampedRowCount = std::clamp(rowCount, 1, 7);
+	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(clampedRowCount));
 }
 
 CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const CStackInstance * stack, const CCreature * creatureType)
