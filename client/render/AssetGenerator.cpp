@@ -1247,7 +1247,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
 		overlayLocator.verticalFlip = true;
 		auto overlay = ENGINE->renderHandler().loadImage(overlayLocator);
-		drawCenteredOverlay(overlay, 28);
+		auto overlayCropped = ENGINE->renderHandler().createImage(Point(28, 28), CanvasScalingPolicy::IGNORE);
+		overlayCropped->getCanvas().draw(overlay, Point(0, 0), Rect(2, 2, 28, 28));
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(overlayCropped), 28);
 	}
 	else if(iconId == "attack")
 	{
