@@ -110,7 +110,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
 	const int creatureSideMargin = 25;
-	const int tableSideMargin = 31;
+	const int tableSideMargin = 35;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
@@ -460,7 +460,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	if(totalBonusRows > maxVisibleBonusRows)
 	{
-		tableSlider = std::make_shared<CSlider>(Point(pos.w - 30 - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - 25 - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 		tableSlider->setPanningStep(rowHeight);
 		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	}

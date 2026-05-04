@@ -1329,7 +1329,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int creatureSideMargin = 25;
-	const int tableSideMargin = 31;
+	const int tableSideMargin = 35;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
