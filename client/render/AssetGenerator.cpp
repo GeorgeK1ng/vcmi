@@ -1345,6 +1345,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 	const ColorRGBA frameColor = ColorRGBA(128, 100, 75);
 	const ColorRGBA fillColor = ColorRGBA(0, 0, 0, 70);
+	const ColorRGBA tableContentFill = ColorRGBA(0, 0, 0, 35); // ~50% of top panel fill
 
 	// Header frame for "<unit> - <rank>" label
 	canvas.drawColorBlended(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), fillColor);
@@ -1389,6 +1390,18 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int longY = infoTop + 3 * infoRowStep;
 	drawSplitRow(infoLeftX, longY, infoLongFieldHeight);
 	drawSplitRow(infoRightX, longY, infoLongFieldHeight);
+
+	// Bottom table background styling:
+	// - header row + first column use the same fill style as top table panels
+	// - content cells use lighter overlay (~50% intensity) for readability
+	const Rect tableRect(tableSideMargin, tableTop, tableWidth, tableRenderedHeight);
+	canvas.drawColorBlended(tableRect, tableContentFill);
+
+	const Rect tableHeaderRect(tableSideMargin, tableTop, tableWidth, rowHeight);
+	canvas.drawColorBlended(tableHeaderRect, fillColor);
+
+	const Rect tableFirstColumnRect(tableSideMargin, tableTop + rowHeight, rowNameWidth, tableRenderedHeight - rowHeight);
+	canvas.drawColorBlended(tableFirstColumnRect, fillColor);
 
 	// Table border with missing top-left header cell (first column in header is intentionally empty).
 	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + tableWidth - 1, tableTop), frameColor, frameColor);
