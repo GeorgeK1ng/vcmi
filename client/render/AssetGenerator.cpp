@@ -1219,8 +1219,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	auto drawScaledFrame = [&](const AnimationPath & anim, size_t frame)
 	{
 		auto icon = ENGINE->renderHandler().loadAnimation(anim, EImageBlitMode::COLORKEY)->getImage(frame);
-		icon->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		canvas.draw(icon, Point(0, 0));
+		Canvas iconCanvas(Point(icon->width(), icon->height()), CanvasScalingPolicy::IGNORE);
+		iconCanvas.draw(icon, Point(0, 0), Rect(0, 0, icon->width(), icon->height()));
+		canvas.drawScaled(iconCanvas, Point(0, 0), Point(32, 32));
 	};
 
 	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
@@ -1236,8 +1237,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
-		cropped->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		canvas.draw(cropped, Point(0, 0));
+		Canvas croppedCanvas(Point(cropped->width(), cropped->height()), CanvasScalingPolicy::IGNORE);
+		croppedCanvas.draw(std::static_pointer_cast<IImage>(cropped), Point(0, 0), Rect(0, 0, cropped->width(), cropped->height()));
+		canvas.drawScaled(croppedCanvas, Point(0, 0), Point(32, 32));
 	}
 	else if(iconId == "speed")
 	{
