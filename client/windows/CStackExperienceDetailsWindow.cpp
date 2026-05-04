@@ -142,6 +142,14 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	int tier = getStackExperienceTierFromCreatureLevel(this->creature->getLevel());
 	const auto & rankThresholds = LIBRARY->creh->expRanks[tier];
+	const auto createPreviewStack = [this, stack](int previewExperience)
+	{
+		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+		CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, stack->getCount()), true);
+		const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
+		preview.giveTotalStackExperience(totalExperience);
+		return preview;
+	};
 
 	const int expMax = static_cast<int>(rankThresholds.back());
 	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
@@ -245,11 +253,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
 	for(int column = 0; column < MAX_RANKS; ++column)
 	{
-		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 		const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
-		CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-		const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
-		preview.giveTotalStackExperience(totalExperience);
+		auto preview = createPreviewStack(previewExperience);
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
 		{
@@ -439,10 +444,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			else
 			{
 				const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
-				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
-				preview.giveTotalStackExperience(totalExperience);
+				auto preview = createPreviewStack(previewExperience);
 				value = row.valueGetter(preview);
 			}
 			prepared.values[column] = value;
@@ -557,21 +559,21 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			else
 			{
 				auto rowIcon = std::make_shared<CPicture>(preparedRows[rowIndex].icon, x, y);
-					rowIcon->scaleTo(Point(32, 32));
-					tableRowWidgets.push_back(rowIcon);
-					addChild(rowIcon.get(), true);
-				}
+				rowIcon->scaleTo(Point(32, 32));
+				tableRowWidgets.push_back(rowIcon);
+				addChild(rowIcon.get(), true);
+			}
 
-				const bool inactiveAtCurrentRank = preparedRows[rowIndex].values[currentRank] == 0
-					&& std::any_of(preparedRows[rowIndex].values.begin() + currentRank + 1, preparedRows[rowIndex].values.end(), [](int value){ return value != 0; });
-				const bool isExperienceRow = (rowIndex == 0);
-				if(inactiveAtCurrentRank && !isExperienceRow)
-				{
-					auto overlayImage = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("stackExperienceIconInactiveOverlay"), EImageBlitMode::COLORKEY));
-					auto inactiveOverlay = std::make_shared<CPicture>(overlayImage, Point(x, y));
-					tableRowWidgets.push_back(inactiveOverlay);
-					addChild(inactiveOverlay.get(), true);
-				}
+			const bool inactiveAtCurrentRank = preparedRows[rowIndex].values[currentRank] == 0
+				&& std::any_of(preparedRows[rowIndex].values.begin() + currentRank + 1, preparedRows[rowIndex].values.end(), [](int value){ return value != 0; });
+			const bool isExperienceRow = (rowIndex == 0);
+			if(inactiveAtCurrentRank && !isExperienceRow)
+			{
+				auto overlayImage = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("stackExperienceIconInactiveOverlay"), EImageBlitMode::COLORKEY));
+				auto inactiveOverlay = std::make_shared<CPicture>(overlayImage, Point(x, y));
+				tableRowWidgets.push_back(inactiveOverlay);
+				addChild(inactiveOverlay.get(), true);
+			}
 		}
 		if(preparedRows[rowIndex].hasIcon)
 		{
