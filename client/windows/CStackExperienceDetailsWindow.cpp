@@ -108,7 +108,7 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	const int clampedRowCount = std::clamp(rowCount, 1, 7);
+	const int clampedRowCount = std::clamp(rowCount + 1, 1, 7);
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(clampedRowCount));
 }
 
