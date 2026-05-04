@@ -43,6 +43,15 @@ int getAverageExperienceForRank(const std::vector<ui32> & rankThresholds, int ra
 	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
 }
 
+int getAverageExperienceForBonusColumn(const std::vector<ui32> & rankThresholds, int column)
+{
+	// Table columns are 0..10. Bonus values are defined for ranks 1..10.
+	// Column 0 is baseline; columns 1..10 map to bonus ranks 1..10.
+	const int maxBonusRank = std::max(0, std::min(10, static_cast<int>(rankThresholds.size()) - 1));
+	const int bonusRank = std::clamp(column + 1, 0, maxBonusRank);
+	return getAverageExperienceForRank(rankThresholds, bonusRank);
+}
+
 }
 
 int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(int creatureLevel)
@@ -91,7 +100,7 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	std::set<BonusKey> uniqueBonuses;
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
+		const int averageExp = getAverageExperienceForBonusColumn(rankThresholds, rank);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
@@ -237,7 +246,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
 		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-			const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
+			const int averageExp = getAverageExperienceForBonusColumn(rankThresholds, rank);
 			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 			preview.giveTotalStackExperience(totalExperience);
@@ -429,7 +438,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			}
 			else
 			{
-					const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
+					const int averageExp = getAverageExperienceForBonusColumn(rankThresholds, rank);
 					auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 					CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 					const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
