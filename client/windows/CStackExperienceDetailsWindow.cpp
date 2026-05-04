@@ -54,6 +54,18 @@ int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds,
 	return static_cast<int>(rankThresholds[thresholdIndex]);
 }
 
+int getPreviewExperienceForBonusEffectsColumn(const std::vector<ui32> & rankThresholds, int column)
+{
+	// Stack experience bonuses use strict RankRangeLimiter checks (rank > minRank).
+	// To display values expected "at rank N" in columns 1..10, preview must be evaluated
+	// at the next threshold (column 1 -> threshold[1], ..., column 10 -> threshold[10]).
+	if(column <= 0 || rankThresholds.empty())
+		return 0;
+
+	const int thresholdIndex = std::min(column, static_cast<int>(rankThresholds.size()) - 1);
+	return static_cast<int>(rankThresholds[thresholdIndex]);
+}
+
 }
 
 int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(int creatureLevel)
@@ -438,10 +450,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{
 				value = getPreviewExperienceForBonusColumn(rankThresholds, column);
 			}
-			else
-			{
-				const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
-				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+				else
+				{
+					const int previewExperience = getPreviewExperienceForBonusEffectsColumn(rankThresholds, column);
+					auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
 				preview.giveTotalStackExperience(totalExperience);
