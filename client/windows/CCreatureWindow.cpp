@@ -237,8 +237,8 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 		}
 		else
 		{
-			expRankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), stack->getExpRank(), 0, pos.x, pos.y - 2);
-			expArea = std::make_shared<LRClickableArea>(Rect(pos.x, pos.y, 44, 44),
+			expRankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), stack->getExpRank(), 0, pos.x - 1, pos.y - 2);
+			expArea = std::make_shared<LRClickableArea>(Rect(pos.x - 1, pos.y, 44, 44),
 				[this]()
 				{
 					parent->showStackExperienceDetailsWindow();
@@ -249,7 +249,7 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 				});
 		}
 		expLabel = std::make_shared<CLabel>(
-				pos.x + 21, pos.y + 55, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE,
+				pos.x + 20, pos.y + 55, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE,
 				TextOperations::formatMetric(stack->getAverageExperience(), 6));
 	}
 
