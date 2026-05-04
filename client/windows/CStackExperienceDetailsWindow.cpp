@@ -519,10 +519,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 	tableBackgroundWidgets.clear();
 	tableRowWidgets.clear();
 	const int firstRow = tableSlider ? tableSlider->getValue() : 0;
-	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
-	auto withStackExperiencePlaceholders = [currentRank](std::string text, int value)
+	auto withStackExperiencePlaceholders = [](std::string text, int value)
 	{
-		boost::replace_all(text, "${level}", std::to_string(currentRank));
 		boost::replace_all(text, "${val}", std::to_string(value));
 		return text;
 	};
