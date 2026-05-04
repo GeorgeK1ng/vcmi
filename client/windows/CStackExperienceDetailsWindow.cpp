@@ -460,7 +460,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	if(totalBonusRows > maxVisibleBonusRows)
 	{
-		tableSlider = std::make_shared<CSlider>(Point(pos.w - 25 - 20, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - 25 - 2, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 		tableSlider->setPanningStep(rowHeight);
 		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	}
