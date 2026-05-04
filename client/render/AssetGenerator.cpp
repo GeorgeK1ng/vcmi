@@ -1433,6 +1433,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
 		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
 		canvas.drawBorder(iconRect, frameColor);
+		canvas.drawBorder(Rect(iconRect.x + 1, iconRect.y + 1, 34, 34), frameColor);
 	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
