@@ -1408,8 +1408,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	// Bottom table background styling:
 	// - header row + first column use the same fill style as top table panels
 	// - content cells use lighter overlay (~50% intensity) for readability
-	const Rect tableRect(tableSideMargin, tableTop, tableWidth, tableRenderedHeight);
-	canvas.drawColorBlended(tableRect, tableContentFill);
+	// Keep top-left header cell empty (no blended overlay).
+	const Rect tableContentRect(tableSideMargin + rowNameWidth, tableTop + rowHeight, tableWidth - rowNameWidth, tableRenderedHeight - rowHeight);
+	canvas.drawColorBlended(tableContentRect, tableContentFill);
 
 	const Rect tableHeaderRect(tableSideMargin + rowNameWidth, tableTop, tableWidth - rowNameWidth, rowHeight);
 	canvas.drawColorBlended(tableHeaderRect, fillColor);
@@ -1433,7 +1434,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
 		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
 		canvas.drawBorder(iconRect, frameColor);
-		canvas.drawBorder(Rect(iconRect.x + 1, iconRect.y + 1, 34, 34), frameColor);
 	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
