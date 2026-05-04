@@ -1329,7 +1329,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int creatureSideMargin = 25;
-	const int tableSideMargin = 31;
+	const int tableSideMargin = 21;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
@@ -1360,7 +1360,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const int infoLeftX = creatureSideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
-	const int infoValueWidth = 86;
+	const int infoValueWidth = 76;
 	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
@@ -1412,8 +1412,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	for(int line = 1; line < rowCount; ++line)
 		canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight * line), Point(tableSideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
-	// Icon slots (36x36) for bonus rows in first column
-	for(int row = 1; row < rowCount; ++row)
+	// Icon slots (36x36) for bonus rows in first column.
+	// Skip the first data cell in first column (no fill/border).
+	for(int row = 2; row < rowCount; ++row)
 	{
 		const int cellTop = tableTop + row * rowHeight;
 		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
