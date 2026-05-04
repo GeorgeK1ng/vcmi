@@ -109,12 +109,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	OBJECT_CONSTRUCTION;
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
-	const int sideMargin = 10;
+	const int creatureSideMargin = 25;
+	const int tableSideMargin = 31;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
 	const int tableTop = 218 + yOffset;
-	constexpr int tableBaseRowHeight = 36;
+	constexpr int tableBaseRowHeight = 35;
 
 	title = std::make_shared<CLabel>(pos.w / 2, headerTop, FONT_BIG, ETextAlignment::TOPCENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.stackExperience.windowTitle"));
 
@@ -138,12 +139,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	stackSummary = std::make_shared<CLabel>(pos.w / 2, headerTop + 46, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, unitHeader);
 
-	const int creatureFrameX = sideMargin;
+	const int creatureFrameX = creatureSideMargin;
 	const int creatureFrameY = detailsTop;
 	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 1, creatureFrameY + 1, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
-	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
+	const int infoLeftX = creatureSideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
 	const int infoValueWidth = 86;
@@ -430,19 +431,19 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		return false;
 	}), preparedRows.end());
 
-	const int rowNameWidth = 60;
-	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
+	const int rowNameWidth = 36;
+	const int colWidth = (pos.w - 2 * tableSideMargin - rowNameWidth) / MAX_RANKS;
 	const int rowHeight = tableBaseRowHeight;
 	const int tableWidth = rowNameWidth + colWidth * MAX_RANKS;
 	this->tableTop = tableTop;
 	this->tableRowHeight = rowHeight;
-	this->tableSideMargin = sideMargin;
+	this->tableSideMargin = tableSideMargin;
 	this->tableRowNameWidth = rowNameWidth;
 	this->tableColWidth = colWidth;
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int iconX = sideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
+		const int iconX = tableSideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
 		const int iconY = tableTop + (rowHeight - 32) / 2;
 		auto rankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY);
 		rankIcon->setScale(Point(32, 32));
@@ -453,13 +454,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	const int totalBonusRows = static_cast<int>(preparedRows.size());
 	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
-	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(sideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
+	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(tableSideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
 	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
 
 	if(totalBonusRows > maxVisibleBonusRows)
 	{
-		tableSlider = std::make_shared<CSlider>(Point(pos.w - sideMargin - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - 30 - 16, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 		tableSlider->setPanningStep(rowHeight);
 		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	}

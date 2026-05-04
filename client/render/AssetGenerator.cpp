@@ -1328,16 +1328,17 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
-	const int sideMargin = 10;
+	const int creatureSideMargin = 25;
+	const int tableSideMargin = 31;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
 	const int tableTop = 218 + yOffset;
-	const int rowNameWidth = 60;
-	constexpr int stackExpBaseRowHeight = 36;
+	const int rowNameWidth = 36;
+	constexpr int stackExpBaseRowHeight = 35;
 	const int tableHeight = stackExpBaseRowHeight * rowCount;
 	const int rankColumns = 11;
-	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
+	const int colWidth = (size.x - 2 * tableSideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
 	const int tableWidth = rowNameWidth + colWidth * rankColumns;
 	const int tableRenderedHeight = rowHeight * rowCount;
@@ -1351,11 +1352,11 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 
 	// Creature portrait frame
-	const Rect creatureFrame(sideMargin, detailsTop, 102, 132);
+	const Rect creatureFrame(creatureSideMargin, detailsTop, 102, 132);
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
-	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
+	const int infoLeftX = creatureSideMargin + 126; // shifted 18px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
 	const int infoValueWidth = 86;
@@ -1390,30 +1391,30 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	drawSplitRow(infoRightX, longY, infoLongFieldHeight);
 
 	// Table border with missing top-left header cell (first column in header is intentionally empty).
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + tableWidth - 1, tableTop), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin, tableTop + rowHeight), Point(sideMargin, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin + tableWidth - 1, tableTop), Point(sideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin, tableTop + tableRenderedHeight - 1), Point(sideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + tableWidth - 1, tableTop), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight), Point(tableSideMargin, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + tableWidth - 1, tableTop), Point(tableSideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin, tableTop + tableRenderedHeight - 1), Point(tableSideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 
 	for(int line = 1; line < rowCount; ++line)
-		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+		canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight * line), Point(tableSideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
-	// Icon slots (34x34) for bonus rows in first column
+	// Icon slots (36x36) for bonus rows in first column
 	for(int row = 1; row < rowCount; ++row)
 	{
 		const int cellTop = tableTop + row * rowHeight;
-		const Rect iconRect(sideMargin + (rowNameWidth - 34) / 2, cellTop + (rowHeight - 34) / 2, 34, 34);
+		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
 		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
 		canvas.drawBorder(iconRect, frameColor);
 	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
 	// Skip first-column cell in header row - first row starts directly with rank headers.
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop + rowHeight), Point(sideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	for(int column = 1; column < rankColumns; ++column)
 	{
-		const int x = sideMargin + rowNameWidth + column * colWidth;
+		const int x = tableSideMargin + rowNameWidth + column * colWidth;
 		canvas.drawLine(Point(x, tableTop), Point(x, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	}
 
