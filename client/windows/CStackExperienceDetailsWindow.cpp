@@ -354,6 +354,13 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue, true, true, valueGetterOverride);
 		dynamicBonuses.erase(it);
+		for(auto jt = dynamicBonuses.begin(); jt != dynamicBonuses.end(); )
+		{
+			if(jt->first.type == type && (!subtype.has_value() || jt->first.subtype == *subtype))
+				jt = dynamicBonuses.erase(jt);
+			else
+				++jt;
+		}
 	};
 
 	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -200, ImagePath::builtin("stackExperienceIconAttack"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));

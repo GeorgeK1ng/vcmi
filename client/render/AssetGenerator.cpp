@@ -1256,7 +1256,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	else if(iconId == "health")
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 84);
 	else if(iconId == "shots")
-		drawScaledFrame(AnimationPath::builtin("ARTIFACT"), 91);
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("ARTIFACT"), EImageBlitMode::COLORKEY)->getImage(91);
+		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
+		canvas.draw(overlay, Point(0, 0));
+	}
 	else if(iconId == "casts")
 		drawScaledFrame(AnimationPath::builtin("PSKIL42"), 2);
 
