@@ -360,52 +360,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	};
 
-	auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, std::optional<std::string> tooltipOverride = std::nullopt)
-	{
-		auto it = std::find_if(dynamicBonuses.begin(), dynamicBonuses.end(), [&](const auto & entry)
-		{
-			if(entry.first.type != type)
-				return false;
-			return !subtype.has_value() || entry.first.subtype == *subtype;
-		});
-		if(it == dynamicBonuses.end())
-			return;
-
-		const auto & bonus = it->second;
-		const bool percentValue = isPercentBonus(bonus);
-		const bool binaryValue = isBooleanBonusType(type);
-		std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride;
-		if(type == BonusType::STACK_HEALTH)
-		{
-			valueGetterOverride = [selector = makeStackExpSelector(it->first)](const CStackInstance & stackInst)
-			{
-				int result = 0;
-				auto bonuses = stackInst.getBonuses(selector);
-				for(const auto & b : *bonuses)
-					result += b->val;
-				return result;
-			};
-		}
-		addBonusRow(it->first, bonus, label, tooltipOverride.value_or(getBonusTooltipText(bonus)), iconFrame, iconOverride, percentValue, binaryValue, true, true, valueGetterOverride);
-		dynamicBonuses.erase(it);
-		for(auto jt = dynamicBonuses.begin(); jt != dynamicBonuses.end(); )
-		{
-			if(jt->first.type == type && (!subtype.has_value() || jt->first.subtype == *subtype))
-				jt = dynamicBonuses.erase(jt);
-			else
-				++jt;
-		}
-	};
-
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::ATTACK), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), -1, ImagePath::builtin("stackExperienceIconAttack"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"));
-	addPreferredRow(BonusType::PRIMARY_SKILL, BonusSubtypeID(PrimarySkill::DEFENSE), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), -1, ImagePath::builtin("stackExperienceIconDefense"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.defense"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMin), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), -1, ImagePath::builtin("stackExperienceIconMinDamage"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"));
-	addPreferredRow(BonusType::CREATURE_DAMAGE, BonusSubtypeID(BonusCustomSubtype::creatureDamageMax), LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), -1, ImagePath::builtin("stackExperienceIconMaxDamage"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"));
-	addPreferredRow(BonusType::STACK_HEALTH, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), -1, ImagePath::builtin("stackExperienceIconHealth"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"));
-	addPreferredRow(BonusType::STACKS_SPEED, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), -1, ImagePath::builtin("stackExperienceIconSpeed"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.speed"));
-	addPreferredRow(BonusType::SHOTS, std::nullopt, LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), -1, ImagePath::builtin("stackExperienceIconShots"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.shots"));
-	addPreferredRow(BonusType::CASTS, std::nullopt, LIBRARY->generaltexth->allTexts[399], -1, ImagePath::builtin("stackExperienceIconCasts"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.casts"));
-
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
@@ -470,6 +424,30 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		uniqueRowSignatures.insert(signature);
 		return false;
 	}), preparedRows.end());
+
+	auto getFirstVisibleColumn = [](const PreparedRow & row)
+	{
+		for(int column = 0; column < MAX_RANKS; ++column)
+			if(row.values[column] != 0)
+				return column;
+		return MAX_RANKS;
+	};
+
+	const auto experienceIcon = ImagePath::builtin("stackExperienceIconExperience");
+	std::stable_sort(preparedRows.begin(), preparedRows.end(), [&](const PreparedRow & lhs, const PreparedRow & rhs)
+	{
+		const bool lhsIsExperience = lhs.icon == experienceIcon;
+		const bool rhsIsExperience = rhs.icon == experienceIcon;
+		if(lhsIsExperience != rhsIsExperience)
+			return lhsIsExperience;
+
+		const int lhsActivationColumn = getFirstVisibleColumn(lhs);
+		const int rhsActivationColumn = getFirstVisibleColumn(rhs);
+		if(lhsActivationColumn != rhsActivationColumn)
+			return lhsActivationColumn < rhsActivationColumn;
+
+		return lhs.title < rhs.title;
+	});
 
 	const int rowNameWidth = 36;
 	const int colWidth = (pos.w - 2 * tableSideMargin - rowNameWidth) / MAX_RANKS;
