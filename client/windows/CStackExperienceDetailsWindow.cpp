@@ -57,15 +57,15 @@ int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds,
 int getPreviewExperienceForBonusEffectsColumn(const std::vector<ui32> & rankThresholds, int column)
 {
 	// Stack experience bonuses use strict RankRangeLimiter checks (rank > minRank).
-	// To display values expected "at rank N" in columns 1..10, preview should be sampled
-	// slightly above rank-N threshold (column 1 -> threshold[0] + 1, ..., column 10 -> threshold[9] + 1).
+	// To display values from stackExperience "values" arrays (10 entries) in columns 1..10,
+	// sample just above the next threshold:
+	// column 1 -> threshold[1] + 1, ..., column 10 -> threshold[10] + 1.
+	// This matches how RankRangeLimiter builds cumulative bonuses from value deltas.
 	if(column <= 0 || rankThresholds.empty())
 		return 0;
 
-	const int availableRankThresholds = std::min(10, static_cast<int>(rankThresholds.size()));
-	const int maxDisplayedRank = std::max(1, availableRankThresholds);
-	const int rank = std::clamp(column, 1, maxDisplayedRank);
-	const int thresholdIndex = rank - 1;
+	const int maxThresholdIndex = static_cast<int>(rankThresholds.size()) - 1;
+	const int thresholdIndex = std::clamp(column, 1, maxThresholdIndex);
 	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
 }
 
