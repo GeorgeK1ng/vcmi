@@ -422,13 +422,20 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		bool onlyBinary = true;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
-			const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
-			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-			preview.giveTotalStackExperience(totalExperience);
-
-			const int value = row.valueGetter(preview);
+			int value = 0;
+			if(row.icon == ImagePath::builtin("stackExperienceIconExperience"))
+			{
+				value = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1)]);
+			}
+			else
+			{
+				const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
+				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+				const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
+				preview.giveTotalStackExperience(totalExperience);
+				value = row.valueGetter(preview);
+			}
 			prepared.values[rank] = value;
 			anyNonZero = anyNonZero || value != 0;
 			onlyBinary = onlyBinary && (value == 0 || value == 1);
