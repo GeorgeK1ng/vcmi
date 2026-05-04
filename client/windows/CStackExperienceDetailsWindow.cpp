@@ -34,15 +34,6 @@
 
 namespace
 {
-int getPreviewExperienceForRank(const std::vector<ui32> & rankThresholds, int rank)
-{
-	if(rank <= 0 || rankThresholds.empty())
-		return 0;
-
-	const int thresholdIndex = std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1);
-	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
-}
-
 int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds, int column)
 {
 	// Table columns are 0..10.
@@ -54,8 +45,9 @@ int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds,
 	// expRanks contain 11 entries:
 	//  - indexes 0..9 are thresholds for ranks 1..10,
 	//  - index 10 is maximum experience cap.
-	// We therefore clamp against 10 rank columns and map rank N -> threshold[N - 1].
-	const int maxDisplayedRank = std::max(1, std::min(10, static_cast<int>(rankThresholds.size()) - 1));
+	// Use at most 10 threshold entries for the 10 rank columns.
+	const int availableRankThresholds = std::min(10, static_cast<int>(rankThresholds.size()));
+	const int maxDisplayedRank = std::max(1, availableRankThresholds);
 	const int rank = std::clamp(column, 1, maxDisplayedRank);
 	const int thresholdIndex = rank - 1;
 	return static_cast<int>(rankThresholds[thresholdIndex]);
