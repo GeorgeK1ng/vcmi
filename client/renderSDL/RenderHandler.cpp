@@ -271,12 +271,7 @@ std::shared_ptr<ISharedImage> RenderHandler::loadImageFromFileUncached(const Ima
 			return generated;
 		}
 
-		logGlobal->error("Failed to load image '%s' (tried: '%s', '%s', '%s', generated asset '%s')",
-			locator.image->getOriginalName().c_str(),
-			imagePathSprites.getOriginalName().c_str(),
-			imagePathData.getOriginalName().c_str(),
-			imagePath.getOriginalName().c_str(),
-			imagePath.getOriginalName().c_str());
+		logGlobal->error("Failed to load image '%s'", locator.image->getOriginalName().c_str());
 		return std::make_shared<SDLImageShared>(ImagePath::builtin("DEFAULT"));
 	}
 
