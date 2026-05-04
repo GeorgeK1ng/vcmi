@@ -628,7 +628,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 
 				const bool inactiveAtCurrentRank = preparedRows[rowIndex].values[currentRank] == 0
 					&& std::any_of(preparedRows[rowIndex].values.begin() + currentRank + 1, preparedRows[rowIndex].values.end(), [](int value){ return value != 0; });
-				if(inactiveAtCurrentRank)
+				const bool isExperienceRow = (rowIndex == 0);
+				if(inactiveAtCurrentRank && !isExperienceRow)
 				{
 					auto overlayImage = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("stackExperienceIconInactiveOverlay"), EImageBlitMode::COLORKEY));
 					auto inactiveOverlay = std::make_shared<CPicture>(overlayImage, Point(x, y));
