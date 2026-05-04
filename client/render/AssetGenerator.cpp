@@ -1255,7 +1255,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
 		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
-		drawCenteredOverlay(overlay, 28);
+		auto overlayCropped = ENGINE->renderHandler().createImage(Point(28, 28), CanvasScalingPolicy::IGNORE);
+		overlayCropped->getCanvas().draw(overlay, Point(0, 0), Rect(2, 2, 28, 28));
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(overlayCropped), 28);
 	}
 	else if(iconId == "defense")
 	{
@@ -1287,7 +1289,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
 		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("ARTIFACT"), EImageBlitMode::COLORKEY)->getImage(91);
-		drawCenteredOverlay(overlay, 28);
+		auto overlayCropped = ENGINE->renderHandler().createImage(Point(28, 28), CanvasScalingPolicy::IGNORE);
+		overlayCropped->getCanvas().draw(overlay, Point(0, 0), Rect(2, 2, 28, 28));
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(overlayCropped), 28);
 	}
 	else if(iconId == "casts")
 	{
