@@ -467,11 +467,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int iconX = tableSideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
-		const int iconY = tableTop + (rowHeight - 32) / 2;
-		auto rankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY);
-		rankIcon->setScale(Point(32, 32));
-		labels.push_back(rankIcon);
+		const int labelX = tableSideMargin + rowNameWidth + rank * colWidth + colWidth / 2;
+		const int labelY = tableTop + rowHeight / 2;
+		labels.push_back(std::make_shared<CLabel>(labelX, labelY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(rank)));
 	}
 
 	constexpr int maxVisibleBonusRows = 7;
