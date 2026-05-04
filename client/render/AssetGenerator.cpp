@@ -1215,11 +1215,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 {
 	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
 	auto canvas = image->getCanvas();
+	canvas.drawColor(Rect(0, 0, 32, 32), Colors::TRANSPARENCY);
 
 	auto drawScaledFrame = [&](const AnimationPath & anim, size_t frame)
 	{
 		auto icon = ENGINE->renderHandler().loadAnimation(anim, EImageBlitMode::COLORKEY)->getImage(frame);
 		Canvas iconCanvas(Point(icon->width(), icon->height()), CanvasScalingPolicy::IGNORE);
+		iconCanvas.drawColor(Rect(0, 0, icon->width(), icon->height()), Colors::TRANSPARENCY);
 		iconCanvas.draw(icon, Point(0, 0), Rect(0, 0, icon->width(), icon->height()));
 		canvas.drawScaled(iconCanvas, Point(0, 0), Point(32, 32));
 	};
@@ -1227,6 +1229,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
 	{
 		Canvas overlayCanvas(Point(overlay->width(), overlay->height()), CanvasScalingPolicy::IGNORE);
+		overlayCanvas.drawColor(Rect(0, 0, overlay->width(), overlay->height()), Colors::TRANSPARENCY);
 		overlayCanvas.draw(overlay, Point(0, 0), Rect(0, 0, overlay->width(), overlay->height()));
 		const int offset = (32 - size) / 2;
 		canvas.drawScaled(overlayCanvas, Point(offset, offset), Point(size, size));
