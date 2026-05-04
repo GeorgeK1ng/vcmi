@@ -1225,10 +1225,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 
 	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
 	{
-		auto overlayCopy = overlay;
-		overlayCopy->scaleTo(Point(size, size), EScalingAlgorithm::BILINEAR);
+		Canvas overlayCanvas(Point(overlay->width(), overlay->height()), CanvasScalingPolicy::IGNORE);
+		overlayCanvas.draw(overlay, Point(0, 0), Rect(0, 0, overlay->width(), overlay->height()));
 		const int offset = (32 - size) / 2;
-		canvas.draw(overlayCopy, Point(offset, offset));
+		canvas.drawScaled(overlayCanvas, Point(offset, offset), Point(size, size));
 	};
 
 	if(iconId == "experience")
@@ -1259,7 +1259,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(1);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
-		drawCenteredOverlay(cropped);
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(cropped));
 	}
 	else if(iconId == "minDamage")
 	{
@@ -1291,7 +1291,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(2);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
-		drawCenteredOverlay(cropped);
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(cropped));
 	}
 
 	return image;
