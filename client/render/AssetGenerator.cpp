@@ -1397,7 +1397,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	const Rect tableRect(tableSideMargin, tableTop, tableWidth, tableRenderedHeight);
 	canvas.drawColorBlended(tableRect, tableContentFill);
 
-	const Rect tableHeaderRect(tableSideMargin, tableTop, tableWidth, rowHeight);
+	const Rect tableHeaderRect(tableSideMargin + rowNameWidth, tableTop, tableWidth - rowNameWidth, rowHeight);
 	canvas.drawColorBlended(tableHeaderRect, fillColor);
 
 	const Rect tableFirstColumnRect(tableSideMargin, tableTop + rowHeight, rowNameWidth, tableRenderedHeight - rowHeight);
@@ -1413,8 +1413,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 		canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight * line), Point(tableSideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
 	// Icon slots (36x36) for bonus rows in first column.
-	// Skip the first data cell in first column (no fill/border).
-	for(int row = 2; row < rowCount; ++row)
+	for(int row = 1; row < rowCount; ++row)
 	{
 		const int cellTop = tableTop + row * rowHeight;
 		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
