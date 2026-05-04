@@ -326,6 +326,18 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			|| bonus->valType == BonusValueType::PERCENT_TO_ALL
 			|| bonus->type == BonusType::MAGIC_RESISTANCE;
 	};
+	auto isBooleanBonusType = [](BonusType type)
+	{
+		switch(type)
+		{
+			case BonusType::NO_DISTANCE_PENALTY:
+			case BonusType::NO_WALL_PENALTY:
+			case BonusType::FREE_SHOOTING:
+				return true;
+			default:
+				return false;
+		}
+	};
 
 	auto addPreferredRow = [&](BonusType type, std::optional<BonusSubtypeID> subtype, const std::string & label, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, std::optional<std::string> tooltipOverride = std::nullopt)
 	{
@@ -340,7 +352,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 		const auto & bonus = it->second;
 		const bool percentValue = isPercentBonus(bonus);
-		const bool binaryValue = !percentValue && bonus->val == 0;
+		const bool binaryValue = isBooleanBonusType(type);
 		std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride;
 		if(type == BonusType::STACK_HEALTH)
 		{
@@ -376,7 +388,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
-		const bool binaryValue = !percentValue && bonus->val == 0;
+		const bool binaryValue = isBooleanBonusType(key.type);
 		addBonusRow(key, bonus, getBonusDisplayName(bonus), getBonusTooltipText(bonus), -1, std::nullopt, percentValue, binaryValue);
 	}
 
