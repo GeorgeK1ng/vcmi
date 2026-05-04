@@ -43,20 +43,6 @@ int getAverageExperienceForRank(const std::vector<ui32> & rankThresholds, int ra
 	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
 }
 
-void ensurePreviewRank(const std::vector<ui32> & rankThresholds, CStackInstance & preview, int desiredRank)
-{
-	if(desiredRank <= 0)
-		return;
-
-	int averageExp = getAverageExperienceForRank(rankThresholds, desiredRank);
-	const int maxAverageExp = static_cast<int>(rankThresholds.back());
-	while(preview.getExpRank() < desiredRank && averageExp < maxAverageExp)
-	{
-		++averageExp;
-		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
-		preview.giveTotalStackExperience(totalExperience);
-	}
-}
 }
 
 int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatureLevel(int creatureLevel)
@@ -109,7 +95,6 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
-		ensurePreviewRank(rankThresholds, preview, rank);
 
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
@@ -256,7 +241,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 			preview.giveTotalStackExperience(totalExperience);
-			ensurePreviewRank(rankThresholds, preview, rank);
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
 		{
@@ -450,7 +434,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 					CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 					const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 					preview.giveTotalStackExperience(totalExperience);
-					ensurePreviewRank(rankThresholds, preview, rank);
 					value = row.valueGetter(preview);
 			}
 			prepared.values[rank] = value;
