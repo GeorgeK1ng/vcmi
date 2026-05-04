@@ -50,7 +50,10 @@ int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds,
 	const int maxDisplayedRank = std::max(1, availableRankThresholds);
 	const int rank = std::clamp(column, 1, maxDisplayedRank);
 	const int thresholdIndex = rank - 1;
-	return static_cast<int>(rankThresholds[thresholdIndex]);
+
+	// Use value just above threshold so preview reliably resolves to requested rank
+	// (column 1 -> rank 1, ..., column 10 -> rank 10) across all rank checks.
+	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
 }
 
 }
