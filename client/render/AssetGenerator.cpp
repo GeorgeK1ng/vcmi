@@ -1223,6 +1223,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		canvas.draw(icon, Point(0, 0));
 	};
 
+	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
+	{
+		auto overlayCopy = overlay;
+		overlayCopy->scaleTo(Point(size, size), EScalingAlgorithm::BILINEAR);
+		const int offset = (32 - size) / 2;
+		canvas.draw(overlayCopy, Point(offset, offset));
+	};
+
 	if(iconId == "experience")
 	{
 		auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
@@ -1237,15 +1245,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
 		overlayLocator.verticalFlip = true;
 		auto overlay = ENGINE->renderHandler().loadImage(overlayLocator);
-		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		canvas.draw(overlay, Point(0, 0));
+		drawCenteredOverlay(overlay);
 	}
 	else if(iconId == "attack")
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
 		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
-		overlay->scaleTo(Point(28, 27), EScalingAlgorithm::BILINEAR);
-		canvas.draw(overlay, Point(2, 2));
+		drawCenteredOverlay(overlay);
 	}
 	else if(iconId == "defense")
 	{
@@ -1253,21 +1259,31 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(1);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
-		cropped->scaleTo(Point(28, 28), EScalingAlgorithm::BILINEAR);
-		canvas.draw(cropped, Point(2, 2));
+		drawCenteredOverlay(cropped);
 	}
 	else if(iconId == "minDamage")
-		drawScaledFrame(AnimationPath::builtin("SECSK82"), 69);
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(69);
+		drawCenteredOverlay(overlay);
+	}
 	else if(iconId == "maxDamage")
-		drawScaledFrame(AnimationPath::builtin("SECSK82"), 71);
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(71);
+		drawCenteredOverlay(overlay);
+	}
 	else if(iconId == "health")
-		drawScaledFrame(AnimationPath::builtin("SECSK82"), 84);
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(84);
+		drawCenteredOverlay(overlay);
+	}
 	else if(iconId == "shots")
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
 		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("ARTIFACT"), EImageBlitMode::COLORKEY)->getImage(91);
-		overlay->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
-		canvas.draw(overlay, Point(0, 0));
+		drawCenteredOverlay(overlay);
 	}
 	else if(iconId == "casts")
 	{
@@ -1275,8 +1291,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(2);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
-		cropped->scaleTo(Point(28, 28), EScalingAlgorithm::BILINEAR);
-		canvas.draw(cropped, Point(2, 2));
+		drawCenteredOverlay(cropped);
 	}
 
 	return image;
