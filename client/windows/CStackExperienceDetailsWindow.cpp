@@ -45,15 +45,13 @@ int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds,
 	// expRanks contain 11 entries:
 	//  - indexes 0..9 are thresholds for ranks 1..10,
 	//  - index 10 is maximum experience cap.
-	// Use at most 10 threshold entries for the 10 rank columns.
+	// Bonus table should use the exact same per-column experience values as Experience row:
+	// column 1 => rankThresholds[0], ..., column 10 => rankThresholds[9].
 	const int availableRankThresholds = std::min(10, static_cast<int>(rankThresholds.size()));
 	const int maxDisplayedRank = std::max(1, availableRankThresholds);
 	const int rank = std::clamp(column, 1, maxDisplayedRank);
 	const int thresholdIndex = rank - 1;
-
-	// Use value just above threshold so preview reliably resolves to requested rank
-	// (column 1 -> rank 1, ..., column 10 -> rank 10) across all rank checks.
-	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
+	return static_cast<int>(rankThresholds[thresholdIndex]);
 }
 
 }
@@ -438,7 +436,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			int value = 0;
 			if(row.icon == ImagePath::builtin("stackExperienceIconExperience"))
 			{
-				value = column == 0 ? 0 : static_cast<int>(rankThresholds[std::min(column - 1, static_cast<int>(rankThresholds.size()) - 1)]);
+				value = getPreviewExperienceForBonusColumn(rankThresholds, column);
 			}
 			else
 			{
