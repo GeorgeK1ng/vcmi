@@ -1250,7 +1250,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	else if(iconId == "defense")
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
-		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(1);
+		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(1);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
 		cropped->scaleTo(Point(28, 28), EScalingAlgorithm::BILINEAR);
@@ -1272,7 +1272,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	else if(iconId == "casts")
 	{
 		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
-		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(2);
+		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(2);
 		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
 		cropped->scaleTo(Point(28, 28), EScalingAlgorithm::BILINEAR);
