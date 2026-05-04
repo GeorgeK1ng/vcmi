@@ -84,6 +84,7 @@ private:
 	CanvasPtr createHeroSlotsColored(PlayerColor backColor) const;
 	CanvasPtr createStackArtifactIndicator(const Point & size) const;
 	CanvasPtr createStackExperienceIcon(const std::string & iconId) const;
+	CanvasPtr createStackExperienceInactiveOverlay() const;
 
 	void createPaletteShiftedSprites();
 	void generatePaletteShiftedAnimation(const AnimationPath & source, const std::vector<PaletteAnimation> & animation);

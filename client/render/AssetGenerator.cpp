@@ -117,6 +117,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackExperienceIconHealth.png")] = [this](){ return createStackExperienceIcon("health"); };
 	imageFiles[ImagePath::builtin("stackExperienceIconShots.png")] = [this](){ return createStackExperienceIcon("shots"); };
 	imageFiles[ImagePath::builtin("stackExperienceIconCasts.png")] = [this](){ return createStackExperienceIcon("casts"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconInactiveOverlay.png")] = [this](){ return createStackExperienceInactiveOverlay(); };
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
 		imageFiles[ImagePath::builtin("DialogBoxBackground_" + color.toString())] = [this, color](){ return createPlayerColoredBackground(color);};
@@ -1298,6 +1299,16 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
 		drawCenteredOverlay(std::static_pointer_cast<IImage>(cropped));
 	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceInactiveOverlay() const
+{
+	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.drawColor(Rect(0, 0, 32, 32), Colors::TRANSPARENCY);
+	canvas.drawColorBlended(Rect(0, 0, 32, 32), ColorRGBA(0, 0, 0, 110));
 
 	return image;
 }

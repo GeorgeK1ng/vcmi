@@ -472,7 +472,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	if(totalBonusRows > maxVisibleBonusRows)
 	{
-		tableSlider = std::make_shared<CSlider>(Point(pos.w - 25 - 2, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
+		tableSlider = std::make_shared<CSlider>(Point(pos.w - 25 - 6, tableTop + rowHeight), rowHeight * visibleBonusRows, [this](int){ rebuildTableRows(); setRedrawParent(true); redraw(); }, visibleBonusRows, totalBonusRows, 0, Orientation::VERTICAL, CSlider::BROWN);
 		tableSlider->setPanningStep(rowHeight);
 		tableSlider->setScrollBounds(Rect(-pos.w + tableSlider->pos.w, 0, pos.w, pos.h));
 	}
@@ -618,9 +618,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					&& std::any_of(preparedRows[rowIndex].values.begin() + currentRank + 1, preparedRows[rowIndex].values.end(), [](int value){ return value != 0; });
 				if(inactiveAtCurrentRank)
 				{
-					auto overlayImage = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
-					overlayImage->getCanvas().drawColorBlended(Rect(0, 0, 32, 32), ColorRGBA(0, 0, 0, 110));
-					auto inactiveOverlay = std::make_shared<CPicture>(std::static_pointer_cast<IImage>(overlayImage), Point(x, y));
+					auto overlayImage = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("stackExperienceIconInactiveOverlay"), EImageBlitMode::COLORKEY));
+					auto inactiveOverlay = std::make_shared<CPicture>(overlayImage, Point(x, y));
 					tableRowWidgets.push_back(inactiveOverlay);
 					addChild(inactiveOverlay.get(), true);
 				}
