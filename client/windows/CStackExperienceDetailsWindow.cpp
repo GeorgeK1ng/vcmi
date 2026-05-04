@@ -90,7 +90,7 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	std::set<BonusKey> uniqueBonuses;
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int averageExp = getAverageExperienceForRank(rankThresholds, rank);
+		const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
@@ -206,7 +206,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.Experience"), [&rankThresholds](const CStackInstance & stackInst)
 				{
 					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
-					return rank == 0 ? 0 : static_cast<int>(rankThresholds[rank - 1]);
+					return static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
 			}, ImagePath::builtin("stackExperienceIconExperience"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, true},
 	};
 
@@ -237,7 +237,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
 		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-		const int averageExp = getAverageExperienceForRank(rankThresholds, rank);
+		const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
 		CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
@@ -422,7 +422,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		bool onlyBinary = true;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
-			const int averageExp = getAverageExperienceForRank(rankThresholds, rank);
+			const int averageExp = getAverageExperienceForRank(rankThresholds, rank + 1);
 			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
@@ -467,9 +467,11 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int labelX = tableSideMargin + rowNameWidth + rank * colWidth + colWidth / 2;
-		const int labelY = tableTop + rowHeight / 2;
-		labels.push_back(std::make_shared<CLabel>(labelX, labelY, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(rank)));
+		const int iconX = tableSideMargin + rowNameWidth + rank * colWidth + (colWidth - 32) / 2;
+		const int iconY = tableTop + (rowHeight - 32) / 2;
+		auto rankIcon = std::make_shared<CAnimImage>(AnimationPath::builtin("stackWindow/levels"), rank, 0, iconX, iconY);
+		rankIcon->setScale(Point(32, 32));
+		labels.push_back(rankIcon);
 	}
 
 	constexpr int maxVisibleBonusRows = 7;
