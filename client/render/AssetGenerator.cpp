@@ -94,12 +94,13 @@ void AssetGenerator::initialize()
 	addUniversityConfirmBackground("UNIVRSC1", Point(466, 388), 1);
 	addUniversityConfirmBackground("UNIVRSC2", Point(466, 388), 2);
 	addSpellResearchBackground("spellResearchDialog", Point(328, 474));
-	for(int rowCount = 5; rowCount <= 8; ++rowCount)
+	for(int rowCount = 1; rowCount <= 7; ++rowCount)
 	{
-		const int dialogHeight = 600 - (8 - rowCount) * 36;
-		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, rowCount, dialogHeight]()
+		const int tableRowsWithHeader = rowCount + 1;
+		const int dialogHeight = 600 - (8 - tableRowsWithHeader) * 36;
+		imageFiles[ImagePath::builtin("stackExperienceDialogRows" + std::to_string(rowCount))] = [this, tableRowsWithHeader, dialogHeight]()
 		{
-			return createStackExperienceDialogBackground(Point(800, dialogHeight), rowCount);
+			return createStackExperienceDialogBackground(Point(800, dialogHeight), tableRowsWithHeader);
 		};
 	}
 
@@ -108,6 +109,16 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorLarge.png")] = [this](){ return createStackArtifactIndicator(Point(22, 22));};
+	imageFiles[ImagePath::builtin("stackExperienceIconExperience.png")] = [this](){ return createStackExperienceIcon("experience"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconSpeed.png")] = [this](){ return createStackExperienceIcon("speed"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconAttack.png")] = [this](){ return createStackExperienceIcon("attack"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconDefense.png")] = [this](){ return createStackExperienceIcon("defense"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconMinDamage.png")] = [this](){ return createStackExperienceIcon("minDamage"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconMaxDamage.png")] = [this](){ return createStackExperienceIcon("maxDamage"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconHealth.png")] = [this](){ return createStackExperienceIcon("health"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconShots.png")] = [this](){ return createStackExperienceIcon("shots"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconCasts.png")] = [this](){ return createStackExperienceIcon("casts"); };
+	imageFiles[ImagePath::builtin("stackExperienceIconInactiveOverlay.png")] = [this](){ return createStackExperienceInactiveOverlay(); };
 
 	for (PlayerColor color(0); color < PlayerColor::PLAYER_LIMIT; ++color)
 		imageFiles[ImagePath::builtin("DialogBoxBackground_" + color.toString())] = [this, color](){ return createPlayerColoredBackground(color);};
@@ -461,10 +472,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createSpellTabNone() const
 AssetGenerator::CanvasPtr AssetGenerator::createChroniclesCampaignImages(int chronicle) const
 {
 	auto imgPathBg = ImagePath::builtin("chronicles_" + std::to_string(chronicle) + "/GamSelBk");
+	auto image = ENGINE->renderHandler().createImage(Point(200, 116), CanvasScalingPolicy::IGNORE);
+	if(!CResourceHandler::get()->existsResource(imgPathBg))
+		return image;
+
 	auto locator = ImageLocator(imgPathBg, EImageBlitMode::OPAQUE);
 
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
-	auto image = ENGINE->renderHandler().createImage(Point(200, 116), CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 
 	std::array sourceRect = {
@@ -1202,6 +1216,107 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackArtifactIndicator(const Poi
 	return image;
 }
 
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::string & iconId) const
+{
+	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.drawColor(Rect(0, 0, 32, 32), Colors::TRANSPARENCY);
+
+	auto drawScaledFrame = [&](const AnimationPath & anim, size_t frame)
+	{
+		auto icon = ENGINE->renderHandler().loadAnimation(anim, EImageBlitMode::COLORKEY)->getImage(frame);
+		Canvas iconCanvas(Point(icon->width(), icon->height()), CanvasScalingPolicy::IGNORE);
+		iconCanvas.drawColor(Rect(0, 0, icon->width(), icon->height()), Colors::TRANSPARENCY);
+		iconCanvas.draw(icon, Point(0, 0), Rect(0, 0, icon->width(), icon->height()));
+		canvas.drawScaled(iconCanvas, Point(0, 0), Point(32, 32));
+	};
+
+	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
+	{
+		Canvas overlayCanvas(Point(overlay->width(), overlay->height()), CanvasScalingPolicy::IGNORE);
+		overlayCanvas.drawColor(Rect(0, 0, overlay->width(), overlay->height()), Colors::TRANSPARENCY);
+		overlayCanvas.draw(overlay, Point(0, 0), Rect(0, 0, overlay->width(), overlay->height()));
+		const int offset = (32 - size) / 2;
+		canvas.drawScaled(overlayCanvas, Point(offset, offset), Point(size, size));
+	};
+
+	if(iconId == "experience")
+	{
+		auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("LVLUPBKG.bmp"), EImageBlitMode::COLORKEY));
+		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+		cropped->getCanvas().draw(base, Point(0, 0), Rect(51, 56, 82, 82));
+		Canvas croppedCanvas(Point(cropped->width(), cropped->height()), CanvasScalingPolicy::IGNORE);
+		croppedCanvas.draw(std::static_pointer_cast<IImage>(cropped), Point(0, 0), Rect(0, 0, cropped->width(), cropped->height()));
+		canvas.drawScaled(croppedCanvas, Point(0, 0), Point(32, 32));
+	}
+	else if(iconId == "speed")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlayLocator = ImageLocator(AnimationPath::builtin("artifact"), 98, 0, EImageBlitMode::COLORKEY);
+		overlayLocator.verticalFlip = true;
+		auto overlay = ENGINE->renderHandler().loadImage(overlayLocator);
+		drawCenteredOverlay(overlay, 28);
+	}
+	else if(iconId == "attack")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CampSwrd"), EImageBlitMode::COLORKEY));
+		drawCenteredOverlay(overlay, 28);
+	}
+	else if(iconId == "defense")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(1);
+		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(cropped));
+	}
+	else if(iconId == "minDamage")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(69);
+		drawCenteredOverlay(overlay);
+	}
+	else if(iconId == "maxDamage")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(71);
+		drawCenteredOverlay(overlay);
+	}
+	else if(iconId == "health")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("SECSK82"), EImageBlitMode::COLORKEY)->getImage(84);
+		drawCenteredOverlay(overlay);
+	}
+	else if(iconId == "shots")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto overlay = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("ARTIFACT"), EImageBlitMode::COLORKEY)->getImage(91);
+		drawCenteredOverlay(overlay, 28);
+	}
+	else if(iconId == "casts")
+	{
+		drawScaledFrame(AnimationPath::builtin("SECSK82"), 0);
+		auto source = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKILL"), EImageBlitMode::COLORKEY)->getImage(2);
+		auto cropped = ENGINE->renderHandler().createImage(Point(82, 82), CanvasScalingPolicy::IGNORE);
+		cropped->getCanvas().draw(source, Point(0, 0), Rect(0, 4, 82, 82));
+		drawCenteredOverlay(std::static_pointer_cast<IImage>(cropped));
+	}
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceInactiveOverlay() const
+{
+	auto image = ENGINE->renderHandler().createImage(Point(32, 32), CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.drawColor(Rect(0, 0, 32, 32), Colors::TRANSPARENCY);
+	canvas.drawColorBlended(Rect(0, 0, 32, 32), ColorRGBA(0, 0, 0, 110));
+
+	return image;
+}
+
 AssetGenerator::CanvasPtr AssetGenerator::createDialogBackground(const Point & size, bool withStatusBar) const
 {
 	auto image = ENGINE->renderHandler().createImage(size, CanvasScalingPolicy::IGNORE);
@@ -1231,22 +1346,24 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	auto image = createDialogBackground(size, true);
 	Canvas canvas = image->getCanvas();
 
-	const int sideMargin = 10;
+	const int creatureSideMargin = 25;
+	const int tableSideMargin = 35;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
 	const int tableTop = 218 + yOffset;
-	const int rowNameWidth = 60;
-	constexpr int stackExpBaseRowHeight = 36;
+	const int rowNameWidth = 36;
+	constexpr int stackExpBaseRowHeight = 35;
 	const int tableHeight = stackExpBaseRowHeight * rowCount;
 	const int rankColumns = 11;
-	const int colWidth = (size.x - 2 * sideMargin - rowNameWidth) / rankColumns;
+	const int colWidth = (size.x - 2 * tableSideMargin - rowNameWidth) / rankColumns;
 	const int rowHeight = tableHeight / rowCount;
 	const int tableWidth = rowNameWidth + colWidth * rankColumns;
 	const int tableRenderedHeight = rowHeight * rowCount;
 
 	const ColorRGBA frameColor = ColorRGBA(128, 100, 75);
 	const ColorRGBA fillColor = ColorRGBA(0, 0, 0, 70);
+	const ColorRGBA tableContentFill = ColorRGBA(0, 0, 0, 35); // ~50% of top panel fill
 
 	// Header frame for "<unit> - <rank>" label
 	canvas.drawColorBlended(Rect(size.x / 2 - 190, headerTop + 34, 380, 24), fillColor);
@@ -1254,14 +1371,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 
 
 	// Creature portrait frame
-	const Rect creatureFrame(sideMargin, detailsTop, 102, 132);
+	const Rect creatureFrame(creatureSideMargin, detailsTop, 102, 132);
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
-	const int infoLeftX = sideMargin + 126; // shifted 18px left relative to previous layout
+	const int infoLeftX = creatureSideMargin + 116; // shifted 28px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
-	const int infoValueWidth = 86;
+	const int infoValueWidth = 76;
 	const int infoSectionGap = 10; // 2px visual gap between split blocks (+/-4px frame padding)
 	const int infoWidth = infoLabelWidth + infoSectionGap + infoValueWidth;
 	const int infoRightX = infoLeftX + infoWidth + infoColumnGap;
@@ -1292,31 +1409,44 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	drawSplitRow(infoLeftX, longY, infoLongFieldHeight);
 	drawSplitRow(infoRightX, longY, infoLongFieldHeight);
 
+	// Bottom table background styling:
+	// - header row + first column use the same fill style as top table panels
+	// - content cells use lighter overlay (~50% intensity) for readability
+	// Keep top-left header cell empty (no blended overlay).
+	const Rect tableContentRect(tableSideMargin + rowNameWidth, tableTop + rowHeight, tableWidth - rowNameWidth, tableRenderedHeight - rowHeight);
+	canvas.drawColorBlended(tableContentRect, tableContentFill);
+
+	const Rect tableHeaderRect(tableSideMargin + rowNameWidth, tableTop, tableWidth - rowNameWidth, rowHeight);
+	canvas.drawColorBlended(tableHeaderRect, fillColor);
+
+	const Rect tableFirstColumnRect(tableSideMargin, tableTop + rowHeight, rowNameWidth, tableRenderedHeight - rowHeight);
+	canvas.drawColorBlended(tableFirstColumnRect, fillColor);
+
 	// Table border with missing top-left header cell (first column in header is intentionally empty).
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + tableWidth - 1, tableTop), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin, tableTop + rowHeight), Point(sideMargin, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin + tableWidth - 1, tableTop), Point(sideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
-	canvas.drawLine(Point(sideMargin, tableTop + tableRenderedHeight - 1), Point(sideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + tableWidth - 1, tableTop), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight), Point(tableSideMargin, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + tableWidth - 1, tableTop), Point(tableSideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin, tableTop + tableRenderedHeight - 1), Point(tableSideMargin + tableWidth - 1, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 
 	for(int line = 1; line < rowCount; ++line)
-		canvas.drawLine(Point(sideMargin, tableTop + rowHeight * line), Point(sideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
+		canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight * line), Point(tableSideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
-	// Icon slots (34x34) for bonus rows in first column
+	// Icon slots (36x36) for bonus rows in first column.
 	for(int row = 1; row < rowCount; ++row)
 	{
 		const int cellTop = tableTop + row * rowHeight;
-		const Rect iconRect(sideMargin + (rowNameWidth - 34) / 2, cellTop + (rowHeight - 34) / 2, 34, 34);
+		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
 		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
 		canvas.drawBorder(iconRect, frameColor);
 	}
 
 	// Header for first rank column ("basic") still needs its left border in header row.
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop), Point(sideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
 	// Skip first-column cell in header row - first row starts directly with rank headers.
-	canvas.drawLine(Point(sideMargin + rowNameWidth, tableTop + rowHeight), Point(sideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	for(int column = 1; column < rankColumns; ++column)
 	{
-		const int x = sideMargin + rowNameWidth + column * colWidth;
+		const int x = tableSideMargin + rowNameWidth + column * colWidth;
 		canvas.drawLine(Point(x, tableTop), Point(x, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	}
 
