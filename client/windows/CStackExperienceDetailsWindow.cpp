@@ -467,8 +467,8 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	visibleBonusRows = std::min(maxVisibleBonusRows, totalBonusRows);
 	const int tableRowsVisible = visibleBonusRows + 1; // header + visible bonus rows
 	currentRankFrame = std::make_shared<GraphicalPrimitiveCanvas>(Rect(tableSideMargin, tableTop, tableWidth, rowHeight * tableRowsVisible));
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::METALLIC_GOLD);
-	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 2, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::METALLIC_GOLD);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 1, 0), Point(colWidth, rowHeight * tableRowsVisible), Colors::BRIGHT_YELLOW);
+	currentRankFrame->addRectangle(Point(rowNameWidth + currentRank * colWidth + 2, 1), Point(colWidth - 2, rowHeight * tableRowsVisible - 2), Colors::BRIGHT_YELLOW);
 
 	if(totalBonusRows > maxVisibleBonusRows)
 	{
