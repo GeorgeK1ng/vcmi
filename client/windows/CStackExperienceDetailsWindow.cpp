@@ -78,7 +78,7 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	std::set<BonusKey> uniqueBonuses;
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
-		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1)]);
 		CStackInstance preview(gameCallback, creature->getId(), std::max(1, stack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
@@ -224,7 +224,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(int rank = 0; rank < MAX_RANKS; ++rank)
 	{
 		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
+		const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1)]);
 		CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 		const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
 		preview.giveTotalStackExperience(totalExperience);
@@ -397,7 +397,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		bool onlyBinary = true;
 		for(int rank = 0; rank < MAX_RANKS; ++rank)
 		{
-			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
+			const int averageExp = rank == 0 ? 0 : static_cast<int>(rankThresholds[std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1)]);
 			auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 			CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 			const TExpType totalExperience = static_cast<TExpType>(averageExp) * static_cast<TExpType>(preview.getCount());
@@ -415,6 +415,20 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			preparedRows.push_back(std::move(prepared));
 		}
 	}
+
+	std::set<std::string> uniqueRowSignatures;
+	preparedRows.erase(std::remove_if(preparedRows.begin(), preparedRows.end(), [&](const PreparedRow & row)
+	{
+		std::string signature = row.title + "|" + row.icon.getOriginalName() + "|" + (row.binary ? "1" : "0");
+		for(int value : row.values)
+			signature += "|" + std::to_string(value);
+
+		if(uniqueRowSignatures.count(signature))
+			return true;
+
+		uniqueRowSignatures.insert(signature);
+		return false;
+	}), preparedRows.end());
 
 	const int rowNameWidth = 60;
 	const int colWidth = (pos.w - 2 * sideMargin - rowNameWidth) / MAX_RANKS;
