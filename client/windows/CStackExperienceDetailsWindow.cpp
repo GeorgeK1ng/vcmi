@@ -110,7 +110,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 
 	const int creatureSideMargin = 25;
-	const int tableSideMargin = 21;
+	const int tableSideMargin = 31;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
@@ -144,7 +144,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	creatureAnimation = std::make_shared<CCreaturePic>(creatureFrameX + 1, creatureFrameY + 1, this->creature, true, true);
 	creatureAnimation->setAmount(sourceStack->getCount());
 
-	const int infoLeftX = creatureSideMargin + 126; // shifted 18px left relative to previous layout
+	const int infoLeftX = creatureSideMargin + 116; // shifted 28px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
 	const int infoValueWidth = 76;

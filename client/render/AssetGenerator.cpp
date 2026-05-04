@@ -1329,7 +1329,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	Canvas canvas = image->getCanvas();
 
 	const int creatureSideMargin = 25;
-	const int tableSideMargin = 21;
+	const int tableSideMargin = 31;
 	const int yOffset = 16;
 	const int headerTop = 1 + yOffset;
 	const int detailsTop = 68 + yOffset;
@@ -1357,7 +1357,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	canvas.drawBorder(creatureFrame, Colors::YELLOW);
 
 	// Top info slots (short fields + multiline long fields)
-	const int infoLeftX = creatureSideMargin + 126; // shifted 18px left relative to previous layout
+	const int infoLeftX = creatureSideMargin + 116; // shifted 28px left relative to previous layout
 	const int infoColumnGap = 14;
 	const int infoLabelWidth = 221;
 	const int infoValueWidth = 76;
