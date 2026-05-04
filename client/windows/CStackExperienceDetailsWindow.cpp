@@ -55,7 +55,7 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatu
 			logGlobal->warn("StackExperienceDetailsWindow: no valid stack experience tiers loaded, defaulting to tier 0");
 			warningPrinted = true;
 		}
-			return 0;
+		return 0;
 	}
 
 	// Creature level/tier selects which exp-rank threshold table is used.
@@ -534,10 +534,10 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 
 		if(preparedRows[rowIndex].hasIcon)
 		{
-				const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
-				const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
-				if(preparedRows[rowIndex].iconFrame >= 0)
-				{
+			const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
+			const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
+			if(preparedRows[rowIndex].iconFrame >= 0)
+			{
 					auto iconImage = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("PSKIL42"), EImageBlitMode::COLORKEY)->getImage(preparedRows[rowIndex].iconFrame);
 					iconImage->scaleTo(Point(32, 32), EScalingAlgorithm::BILINEAR);
 					auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
@@ -554,8 +554,8 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 						auto rowIcon = std::make_shared<CPicture>(iconImage, Point(x, y));
 						tableRowWidgets.push_back(rowIcon);
 						addChild(rowIcon.get(), true);
-					}
-					else
+				}
+		else
 					{
 						int overlayFrame = 0;
 						bool customComposedIcon = false;
@@ -648,24 +648,24 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 					tableRowWidgets.push_back(inactiveOverlay);
 					addChild(inactiveOverlay.get(), true);
 				}
-			}
-			if(preparedRows[rowIndex].hasIcon)
-			{
-				const int currentValue = preparedRows[rowIndex].values[currentRank];
-				std::string hoverText = withStackExperiencePlaceholders(preparedRows[rowIndex].tooltipText, currentValue);
-				std::string popupText = withStackExperiencePlaceholders(preparedRows[rowIndex].popupText, currentValue);
-				if(hoverText.empty())
-					hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
-				if(popupText.empty())
-					popupText = hoverText;
+		}
+		if(preparedRows[rowIndex].hasIcon)
+		{
+			const int currentValue = preparedRows[rowIndex].values[currentRank];
+			std::string hoverText = withStackExperiencePlaceholders(preparedRows[rowIndex].tooltipText, currentValue);
+			std::string popupText = withStackExperiencePlaceholders(preparedRows[rowIndex].popupText, currentValue);
+			if(hoverText.empty())
+				hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
+			if(popupText.empty())
+				popupText = hoverText;
 
-				auto iconRClick = std::make_shared<LRClickableAreaWText>(
-					Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
-					hoverText,
-					popupText);
-				tableRowWidgets.push_back(iconRClick);
-				addChild(iconRClick.get(), true);
-			}
+			auto iconRClick = std::make_shared<LRClickableAreaWText>(
+				Rect(tableSideMargin + (tableRowNameWidth - 32) / 2, tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2, 32, 32),
+				hoverText,
+				popupText);
+			tableRowWidgets.push_back(iconRClick);
+			addChild(iconRClick.get(), true);
+		}
 		else
 		{
 			auto rowTitle = std::make_shared<CLabel>(tableSideMargin + 6, rowY, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, preparedRows[rowIndex].title);
@@ -686,6 +686,3 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		}
 	}
 }
-
-class CCreatureArtifactInstance;
-class CSelectableSkill;
