@@ -519,12 +519,6 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 	tableBackgroundWidgets.clear();
 	tableRowWidgets.clear();
 	const int firstRow = tableSlider ? tableSlider->getValue() : 0;
-	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
-	{
-		const int rowIndex = firstRow + localRow;
-		if(rowIndex >= static_cast<int>(preparedRows.size()))
-			break;
-		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
 	const int currentRank = std::clamp(sourceStack->getExpRank(), 0, MAX_RANKS - 1);
 	auto withStackExperiencePlaceholders = [currentRank](std::string text, int value)
 	{
@@ -533,8 +527,15 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 		return text;
 	};
 
-			if(preparedRows[rowIndex].hasIcon)
-			{
+	for(int localRow = 0; localRow < visibleBonusRows; ++localRow)
+	{
+		const int rowIndex = firstRow + localRow;
+		if(rowIndex >= static_cast<int>(preparedRows.size()))
+			break;
+		const int rowY = tableTop + (localRow + 1) * tableRowHeight + tableRowHeight / 2;
+
+		if(preparedRows[rowIndex].hasIcon)
+		{
 				const int x = tableSideMargin + (tableRowNameWidth - 32) / 2;
 				const int y = tableTop + (localRow + 1) * tableRowHeight + (tableRowHeight - 32) / 2;
 				if(preparedRows[rowIndex].iconFrame >= 0)
