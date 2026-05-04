@@ -1038,7 +1038,7 @@
 	"vcmi.stackExperience.table.no": "No",
 	"vcmi.stackExperience.table.shots": "Shots",
 		"vcmi.stackExperience.table.speed": "Speed",
-		"vcmi.stackExperience.desc.experience": "{Experience}\nCurrent stack experience value is ${val}.",
+		"vcmi.stackExperience.desc.experience": "{Experience}\nExperience threshold for this rank is ${val}.",
 		"vcmi.stackExperience.desc.minDamage": "{Min Damage}\nIncreases minimum damage by ${val}.",
 		"vcmi.stackExperience.desc.maxDamage": "{Max Damage}\nIncreases maximum damage by ${val}.",
 		"vcmi.stackExperience.desc.health": "{Health}\nIncreases stack health by ${val}.",

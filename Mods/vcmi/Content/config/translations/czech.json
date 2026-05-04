@@ -1038,7 +1038,7 @@
 	"vcmi.stackExperience.table.no": "Ne",
 	"vcmi.stackExperience.table.shots": "Střely",
 		"vcmi.stackExperience.table.speed": "Rychlost",
-		"vcmi.stackExperience.desc.experience": "{Zkušenosti}\nAktuální hodnota zkušeností oddílu je ${val}.",
+		"vcmi.stackExperience.desc.experience": "{Zkušenosti}\nPrahová hodnota zkušeností pro tuto hodnost je ${val}.",
 		"vcmi.stackExperience.desc.minDamage": "{Min. poškození}\nZvyšuje minimální poškození o ${val}.",
 		"vcmi.stackExperience.desc.maxDamage": "{Max. poškození}\nZvyšuje maximální poškození o ${val}.",
 		"vcmi.stackExperience.desc.health": "{Zdraví}\nZvyšuje zdraví oddílu o ${val}.",
