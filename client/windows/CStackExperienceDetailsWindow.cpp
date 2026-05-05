@@ -428,13 +428,15 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.showSign = row.showSign;
 		prepared.alwaysVisible = row.alwaysVisible;
 
-		bool anyNonZero = false;
-		bool anyPresent = false;
+		bool hasNumericValue = false;
+		bool hasActiveBonus = false;
 		bool onlyBinary = true;
+		std::array<int, MAX_RANKS> numericValues{};
+		std::array<int, MAX_RANKS> presenceValues{};
 		for(int column = 0; column < MAX_RANKS; ++column)
 		{
 			int value = 0;
-			bool present = false;
+			bool isActive = false;
 			if(row.icon == ImagePath::builtin("stackExperienceIconExperience"))
 			{
 				value = column == 0 ? 0 : static_cast<int>(rankThresholds[std::min(column - 1, static_cast<int>(rankThresholds.size()) - 1)]);
@@ -447,34 +449,27 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
 				preview.giveTotalStackExperience(totalExperience);
 				value = row.valueGetter(preview);
-				present = row.presenceGetter(preview);
+				isActive = row.presenceGetter(preview);
 			}
-			prepared.values[column] = value;
-			anyNonZero = anyNonZero || value != 0;
-			anyPresent = anyPresent || present;
+			numericValues[column] = value;
+			presenceValues[column] = isActive ? 1 : 0;
+			hasNumericValue = hasNumericValue || value != 0;
+			hasActiveBonus = hasActiveBonus || isActive;
 			onlyBinary = onlyBinary && (value == 0 || value == 1);
 		}
 
-		if(anyNonZero || row.alwaysVisible)
+		if(hasNumericValue || row.alwaysVisible)
 		{
+			prepared.values = numericValues;
 			prepared.binary = row.binary && onlyBinary;
 			preparedRows.push_back(std::move(prepared));
 		}
-		else if(anyPresent)
+		else if(hasActiveBonus)
 		{
-			// Boolean stack-experience entries are stored as presence-only bonuses
-			// (see CCreatureHandler::loadStackExperience: bool "values" generate a single
-			// bonus with RankRangeLimiter and no numeric progression). Render them as 0/1.
+			// Boolean stack-experience entries are loaded as presence-only bonuses
+			// (CCreatureHandler::loadStackExperience bool branch). Show activation by rank.
+			prepared.values = presenceValues;
 			prepared.binary = true;
-			for(int column = 0; column < MAX_RANKS; ++column)
-			{
-				const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
-				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
-				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
-				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
-				preview.giveTotalStackExperience(totalExperience);
-				prepared.values[column] = row.presenceGetter(preview) ? 1 : 0;
-			}
 			preparedRows.push_back(std::move(prepared));
 		}
 	}
