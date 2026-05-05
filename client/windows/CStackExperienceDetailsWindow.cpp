@@ -258,9 +258,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false, std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride = std::nullopt)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false, std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride = std::nullopt, std::optional<Selector> selectorOverride = std::nullopt)
 	{
-		const auto selector = makeStackExpSelector(key);
+		const auto selector = selectorOverride.value_or(makeStackExpSelector(key));
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
 		std::string tooltip = descriptionText;
 		std::string popup = descriptionText;
@@ -354,6 +354,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			case BonusType::NO_DISTANCE_PENALTY:
 			case BonusType::NO_WALL_PENALTY:
 			case BonusType::FREE_SHOOTING:
+			case BonusType::FEARFUL:
+			case BonusType::MIND_IMMUNITY:
+			case BonusType::SPELL_IMMUNITY:
+			case BonusType::NEGATIVE_EFFECTS_IMMUNITY:
 				return true;
 			default:
 				return false;
@@ -400,16 +404,25 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		return std::nullopt;
 	};
 
+	std::set<BonusType> handledSubtypeAgnosticTypes;
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
-		const bool binaryValue = isBooleanBonusType(key.type);
+		const bool binaryValue = isBooleanBonusType(key.type) || (bonus->val == 0 && bonus->valType == BonusValueType::INDEPENDENT_MIN);
+		const bool subtypeAgnosticPreferred = key.type == BonusType::CASTS || key.type == BonusType::MAGIC_RESISTANCE || key.type == BonusType::STACKS_SPEED || key.type == BonusType::SHOTS || key.type == BonusType::STACK_HEALTH;
+		if(subtypeAgnosticPreferred && handledSubtypeAgnosticTypes.count(key.type))
+			continue;
+		if(subtypeAgnosticPreferred)
+			handledSubtypeAgnosticTypes.insert(key.type);
+		const auto selectorOverride = subtypeAgnosticPreferred
+			? std::optional<Selector>(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type)))
+			: std::nullopt;
 		if(const auto preferredPresentation = getPreferredPresentation(key))
 		{
-			addBonusRow(key, bonus, preferredPresentation->label, preferredPresentation->tooltip, -1, preferredPresentation->icon, percentValue, binaryValue, true, false, preferredPresentation->valueGetterOverride);
+			addBonusRow(key, bonus, preferredPresentation->label, preferredPresentation->tooltip, -1, preferredPresentation->icon, percentValue, binaryValue, true, false, preferredPresentation->valueGetterOverride, selectorOverride);
 			continue;
 		}
-		addBonusRow(key, bonus, getBonusDisplayName(bonus), getBonusTooltipText(bonus), -1, std::nullopt, percentValue, binaryValue);
+		addBonusRow(key, bonus, getBonusDisplayName(bonus), getBonusTooltipText(bonus), -1, std::nullopt, percentValue, binaryValue, true, false, std::nullopt, selectorOverride);
 	}
 
 	preparedRows.reserve(rows.size());
