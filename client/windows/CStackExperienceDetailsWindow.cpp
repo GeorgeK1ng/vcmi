@@ -239,6 +239,30 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		return BonusKey{bonus->type, bonus->subtype};
 	};
 
+	auto isSubtypeAgnosticType = [](BonusType type)
+	{
+		switch(type)
+		{
+			case BonusType::CASTS:
+			case BonusType::MAGIC_RESISTANCE:
+			case BonusType::STACKS_SPEED:
+			case BonusType::SHOTS:
+			case BonusType::STACK_HEALTH:
+			case BonusType::FEARFUL:
+			case BonusType::MIND_IMMUNITY:
+				return true;
+			default:
+				return false;
+		}
+	};
+
+	auto normalizeBonusKey = [&](BonusKey key)
+	{
+		if(isSubtypeAgnosticType(key.type))
+			key.subtype = BonusSubtypeID();
+		return key;
+	};
+
 	auto makeStackExpSelector = [](const BonusKey & key)
 	{
 		return Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::typeSubtype(key.type, key.subtype));
@@ -255,7 +279,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		auto bonuses = preview.getBonuses(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE));
 		for(const auto & bonus : *bonuses)
 		{
-			const auto key = getBonusKey(bonus);
+			const auto key = normalizeBonusKey(getBonusKey(bonus));
 			dynamicBonuses.emplace(key, bonus);
 		}
 	}
@@ -400,7 +424,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = false;
-		const bool subtypeAgnosticPreferred = key.type == BonusType::CASTS || key.type == BonusType::MAGIC_RESISTANCE || key.type == BonusType::STACKS_SPEED || key.type == BonusType::SHOTS || key.type == BonusType::STACK_HEALTH;
+		const bool subtypeAgnosticPreferred = isSubtypeAgnosticType(key.type);
 		if(subtypeAgnosticPreferred && handledSubtypeAgnosticTypes.count(key.type))
 			continue;
 		if(subtypeAgnosticPreferred)
