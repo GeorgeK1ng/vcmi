@@ -276,7 +276,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 						return stackInst.hasBonus(selector) ? 1 : 0;
 
 					return stackInst.valOfBonuses(selector);
-				}, iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign, alwaysVisible});
+				},
+				[selector](const CStackInstance & stackInst)
+				{
+					return stackInst.hasBonus(selector);
+				},
+				iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign, alwaysVisible});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -347,22 +352,6 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			|| bonus->valType == BonusValueType::PERCENT_TO_ALL
 			|| bonus->type == BonusType::MAGIC_RESISTANCE;
 	};
-	auto isBooleanBonusType = [](BonusType type)
-	{
-		switch(type)
-		{
-			case BonusType::NO_DISTANCE_PENALTY:
-			case BonusType::NO_WALL_PENALTY:
-			case BonusType::FREE_SHOOTING:
-			case BonusType::FEARFUL:
-			case BonusType::MIND_IMMUNITY:
-			case BonusType::SPELL_IMMUNITY:
-			case BonusType::NEGATIVE_EFFECTS_IMMUNITY:
-				return true;
-			default:
-				return false;
-		}
-	};
 
 	struct PreferredRowPresentation
 	{
@@ -408,7 +397,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
-		const bool binaryValue = isBooleanBonusType(key.type) || (bonus->val == 0 && bonus->valType == BonusValueType::INDEPENDENT_MIN);
+		const bool binaryValue = false;
 		const bool subtypeAgnosticPreferred = key.type == BonusType::CASTS || key.type == BonusType::MAGIC_RESISTANCE || key.type == BonusType::STACKS_SPEED || key.type == BonusType::SHOTS || key.type == BonusType::STACK_HEALTH;
 		if(subtypeAgnosticPreferred && handledSubtypeAgnosticTypes.count(key.type))
 			continue;
@@ -440,10 +429,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		prepared.alwaysVisible = row.alwaysVisible;
 
 		bool anyNonZero = false;
+		bool anyPresent = false;
 		bool onlyBinary = true;
 		for(int column = 0; column < MAX_RANKS; ++column)
 		{
 			int value = 0;
+			bool present = false;
 			if(row.icon == ImagePath::builtin("stackExperienceIconExperience"))
 			{
 				value = column == 0 ? 0 : static_cast<int>(rankThresholds[std::min(column - 1, static_cast<int>(rankThresholds.size()) - 1)]);
@@ -456,15 +447,31 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
 				preview.giveTotalStackExperience(totalExperience);
 				value = row.valueGetter(preview);
+				present = row.presenceGetter(preview);
 			}
 			prepared.values[column] = value;
 			anyNonZero = anyNonZero || value != 0;
+			anyPresent = anyPresent || present;
 			onlyBinary = onlyBinary && (value == 0 || value == 1);
 		}
 
 		if(anyNonZero || row.alwaysVisible)
 		{
 			prepared.binary = row.binary && onlyBinary;
+			preparedRows.push_back(std::move(prepared));
+		}
+		else if(anyPresent)
+		{
+			prepared.binary = true;
+			for(int column = 0; column < MAX_RANKS; ++column)
+			{
+				const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
+				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
+				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
+				preview.giveTotalStackExperience(totalExperience);
+				prepared.values[column] = row.presenceGetter(preview) ? 1 : 0;
+			}
 			preparedRows.push_back(std::move(prepared));
 		}
 	}

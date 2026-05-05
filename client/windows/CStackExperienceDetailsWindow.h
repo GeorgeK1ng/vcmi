@@ -8,6 +8,7 @@ class CStackWindow::StackExperienceDetailsWindow : public CWindowObject
 	{
 		std::string title;
 		std::function<int(const CStackInstance &)> valueGetter;
+		std::function<bool(const CStackInstance &)> presenceGetter;
 		ImagePath icon;
 		bool hasIcon = false;
 		int iconFrame = -1;
