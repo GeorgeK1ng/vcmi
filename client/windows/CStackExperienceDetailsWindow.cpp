@@ -360,10 +360,55 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	};
 
+	struct PreferredRowPresentation
+	{
+		std::string label;
+		ImagePath icon;
+		std::string tooltip;
+		std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride;
+	};
+
+	auto getPreferredPresentation = [&](const BonusKey & key) -> std::optional<PreferredRowPresentation>
+	{
+		if(key.type == BonusType::PRIMARY_SKILL && key.subtype == BonusSubtypeID(PrimarySkill::ATTACK))
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.attack"), ImagePath::builtin("stackExperienceIconAttack"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.attack"), std::nullopt};
+		if(key.type == BonusType::PRIMARY_SKILL && key.subtype == BonusSubtypeID(PrimarySkill::DEFENSE))
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.defense"), ImagePath::builtin("stackExperienceIconDefense"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.defense"), std::nullopt};
+		if(key.type == BonusType::CREATURE_DAMAGE && key.subtype == BonusSubtypeID(BonusCustomSubtype::creatureDamageMin))
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.minDamage"), ImagePath::builtin("stackExperienceIconMinDamage"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.minDamage"), std::nullopt};
+		if(key.type == BonusType::CREATURE_DAMAGE && key.subtype == BonusSubtypeID(BonusCustomSubtype::creatureDamageMax))
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.maxDamage"), ImagePath::builtin("stackExperienceIconMaxDamage"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.maxDamage"), std::nullopt};
+		if(key.type == BonusType::STACK_HEALTH)
+		{
+			auto override = [selector = makeStackExpSelector(key)](const CStackInstance & stackInst)
+			{
+				int result = 0;
+				auto bonuses = stackInst.getBonuses(selector);
+				for(const auto & b : *bonuses)
+					result += b->val;
+				return result;
+			};
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.health"), ImagePath::builtin("stackExperienceIconHealth"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.health"), override};
+		}
+		if(key.type == BonusType::STACKS_SPEED)
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.speed"), ImagePath::builtin("stackExperienceIconSpeed"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.speed"), std::nullopt};
+		if(key.type == BonusType::SHOTS)
+			return PreferredRowPresentation{LIBRARY->generaltexth->translate("vcmi.stackExperience.table.shots"), ImagePath::builtin("stackExperienceIconShots"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.shots"), std::nullopt};
+		if(key.type == BonusType::CASTS)
+			return PreferredRowPresentation{LIBRARY->generaltexth->allTexts[399], ImagePath::builtin("stackExperienceIconCasts"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.casts"), std::nullopt};
+
+		return std::nullopt;
+	};
+
 	for(const auto & [key, bonus] : dynamicBonuses)
 	{
 		const bool percentValue = isPercentBonus(bonus);
 		const bool binaryValue = isBooleanBonusType(key.type);
+		if(const auto preferredPresentation = getPreferredPresentation(key))
+		{
+			addBonusRow(key, bonus, preferredPresentation->label, preferredPresentation->tooltip, -1, preferredPresentation->icon, percentValue, binaryValue, true, false, preferredPresentation->valueGetterOverride);
+			continue;
+		}
 		addBonusRow(key, bonus, getBonusDisplayName(bonus), getBonusTooltipText(bonus), -1, std::nullopt, percentValue, binaryValue);
 	}
 
