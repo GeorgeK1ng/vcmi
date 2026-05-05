@@ -269,6 +269,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	};
 
 	std::map<BonusKey, std::shared_ptr<const Bonus>> dynamicBonuses;
+	std::set<std::string> loggedDuplicateBonusKeys;
 	for(int column = 0; column < MAX_RANKS; ++column)
 	{
 		auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
@@ -284,24 +285,37 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			if(!inserted)
 			{
 				const auto & kept = it->second;
-				logGlobal->warn(
-					"StackExperienceDetailsWindow: duplicate normalized bonus key detected for creature %s at column %d; "
-					"key(type=%d, subtype=%d). Kept bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d), "
-					"dropped bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d)",
-					this->creature ? this->creature->getJsonKey().c_str() : "<null>",
-					column,
-					static_cast<int>(key.type),
-					key.subtype.getNum(),
-					static_cast<int>(kept->type),
-					kept->subtype.getNum(),
-					kept->val,
-					static_cast<int>(kept->valType),
-					static_cast<int>(kept->source),
-					static_cast<int>(bonus->type),
-					bonus->subtype.getNum(),
-					bonus->val,
-					static_cast<int>(bonus->valType),
-					static_cast<int>(bonus->source));
+				const std::string duplicateSignature = boost::str(boost::format("%s|%d|%d|%d|%d|%d|%d|%d|%d")
+					% (this->creature ? this->creature->getJsonKey() : "<null>")
+					% static_cast<int>(key.type)
+					% key.subtype.getNum()
+					% kept->val
+					% static_cast<int>(kept->valType)
+					% bonus->val
+					% static_cast<int>(bonus->valType)
+					% kept->subtype.getNum()
+					% bonus->subtype.getNum());
+				if(loggedDuplicateBonusKeys.insert(duplicateSignature).second)
+				{
+					logGlobal->warn(
+						"StackExperienceDetailsWindow: duplicate normalized bonus key detected for creature %s (first seen at column %d); "
+						"key(type=%d, subtype=%d). Kept bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d), "
+						"dropped bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d)",
+						this->creature ? this->creature->getJsonKey().c_str() : "<null>",
+						column,
+						static_cast<int>(key.type),
+						key.subtype.getNum(),
+						static_cast<int>(kept->type),
+						kept->subtype.getNum(),
+						kept->val,
+						static_cast<int>(kept->valType),
+						static_cast<int>(kept->source),
+						static_cast<int>(bonus->type),
+						bonus->subtype.getNum(),
+						bonus->val,
+						static_cast<int>(bonus->valType),
+						static_cast<int>(bonus->source));
+				}
 			}
 		}
 	}
