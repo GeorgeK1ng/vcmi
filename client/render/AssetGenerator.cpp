@@ -1431,19 +1431,19 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 	for(int line = 1; line < rowCount; ++line)
 		canvas.drawLine(Point(tableSideMargin, tableTop + rowHeight * line), Point(tableSideMargin + tableWidth - 1, tableTop + rowHeight * line), frameColor, frameColor);
 
-	// Icon slots (36x36) for bonus rows in first column.
+	// Icon slots in first column. Use 32x32 to match runtime row icons and avoid 1px overflow
+	// against 35px table rows, which created visible artifacts on bottom row separators.
 	for(int row = 1; row < rowCount; ++row)
 	{
 		const int cellTop = tableTop + row * rowHeight;
-		const Rect iconRect(tableSideMargin + (rowNameWidth - 36) / 2, cellTop + (rowHeight - 36) / 2, 36, 36);
+		const Rect iconRect(tableSideMargin + (rowNameWidth - 32) / 2, cellTop + (rowHeight - 32) / 2, 32, 32);
 		canvas.drawColorBlended(iconRect, ColorRGBA(0, 0, 0, 64));
 		canvas.drawBorder(iconRect, frameColor);
 	}
 
-	// Header for first rank column ("basic") still needs its left border in header row.
-	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
-	// Skip first-column cell in header row - first row starts directly with rank headers.
-	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	// Separator between icon column and rank columns.
+	// Drawn as a single line to avoid visual "double border" artifacts at the join points.
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	for(int column = 1; column < rankColumns; ++column)
 	{
 		const int x = tableSideMargin + rowNameWidth + column * colWidth;
