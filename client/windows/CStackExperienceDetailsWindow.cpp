@@ -411,6 +411,10 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	
 	auto isPercentBonus = [](const std::shared_ptr<const Bonus> & bonus)
 	{
+		const std::string descriptionText = bonus->description.toString();
+		if(descriptionText.find('%') != std::string::npos)
+			return true;
+
 		return bonus->valType == BonusValueType::PERCENT_TO_BASE
 			|| bonus->valType == BonusValueType::PERCENT_TO_ALL
 			|| bonus->type == BonusType::MAGIC_RESISTANCE;
