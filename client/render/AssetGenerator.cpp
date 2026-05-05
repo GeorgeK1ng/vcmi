@@ -1373,7 +1373,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceIcon(const std::s
 	auto drawCenteredOverlay = [&](const std::shared_ptr<IImage> & overlay, int size = 28)
 	{
 		const int offset = (32 - size) / 2;
-		canvas.drawScaled(overlay, Point(offset, offset), Point(size, size), Rect(0, 0, overlay->width(), overlay->height()));
+		auto scaledOverlay = ENGINE->renderHandler().createImage(Point(size, size), CanvasScalingPolicy::IGNORE);
+		auto scaledOverlayCanvas = scaledOverlay->getCanvas();
+		scaledOverlayCanvas.drawScaled(overlay, Point(0, 0), Point(size, size), Rect(0, 0, overlay->width(), overlay->height()));
+		canvas.draw(std::static_pointer_cast<IImage>(scaledOverlay), Point(offset, offset), Rect(0, 0, size, size));
 	};
 
 	if(iconId == "experience")

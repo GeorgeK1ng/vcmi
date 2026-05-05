@@ -21,9 +21,6 @@
 #include "../IGameSettings.h"
 #include "../GameLibrary.h"
 
-#include <set>
-
-
 VCMI_LIB_NAMESPACE_BEGIN
 
 DamageRange DamageCalculator::getBaseDamageSingle() const
@@ -36,14 +33,9 @@ DamageRange DamageCalculator::getBaseDamageSingle() const
 
 	if(minDmg > maxDmg)
 	{
-		const CreatureID creatureId = info.attacker->creatureId();
-		static std::set<CreatureID> reportedInvalidDamageCreatures;
-		if (reportedInvalidDamageCreatures.insert(creatureId).second)
-		{
-			const auto & creatureName = creatureId.toEntity(LIBRARY)->getNamePluralTranslated();
-			logGlobal->error("Creature %s: min damage %lld exceeds max damage %lld.", creatureName, minDmg, maxDmg);
-			logGlobal->error("This may lead to unexpected results, please report it to the mod's creator.");
-		}
+	const auto & creatureName = info.attacker->creatureId().toEntity(LIBRARY)->getNamePluralTranslated();
+	logGlobal->error("Creature %s: min damage %lld exceeds max damage %lld.", creatureName, minDmg, maxDmg);
+		logGlobal->error("This may lead to unexpected results, please report it to the mod's creator.");
 		// to avoid an RNG crash and make bless and curse spells work as expected
 		std::swap(minDmg, maxDmg);
 	}
