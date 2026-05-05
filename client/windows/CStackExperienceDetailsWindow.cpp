@@ -216,7 +216,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				{
 					const int rank = std::clamp(stackInst.getExpRank(), 0, MAX_RANKS - 1);
 					return static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
-			}, ImagePath::builtin("stackExperienceIconExperience"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, true},
+			},
+			[](const CStackInstance &){ return true; },
+			ImagePath::builtin("stackExperienceIconExperience"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, true},
 	};
 
 	struct BonusKey
@@ -258,7 +260,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 	}
 
-	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false, std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride = std::nullopt, std::optional<Selector> selectorOverride = std::nullopt)
+	auto addBonusRow = [&](const BonusKey & key, const std::shared_ptr<const Bonus> & bonus, const std::string & label, const std::string & descriptionText, int iconFrame = -1, std::optional<ImagePath> iconOverride = std::nullopt, bool percent = false, bool binary = false, bool showSign = true, bool alwaysVisible = false, std::optional<std::function<int(const CStackInstance &)>> valueGetterOverride = std::nullopt, std::optional<CSelector> selectorOverride = std::nullopt)
 	{
 		const auto selector = selectorOverride.value_or(makeStackExpSelector(key));
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
@@ -404,7 +406,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		if(subtypeAgnosticPreferred)
 			handledSubtypeAgnosticTypes.insert(key.type);
 		const auto selectorOverride = subtypeAgnosticPreferred
-			? std::optional<Selector>(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type)))
+			? std::optional<CSelector>(Selector::sourceTypeSel(BonusSource::STACK_EXPERIENCE).And(Selector::type()(key.type)))
 			: std::nullopt;
 		if(const auto preferredPresentation = getPreferredPresentation(key))
 		{
