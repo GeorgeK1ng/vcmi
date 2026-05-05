@@ -16,6 +16,7 @@ class CStackWindow::StackExperienceDetailsWindow : public CWindowObject
 		std::string popupText;
 		bool percent = false;
 		bool binary = false;
+		bool allowPresenceFallback = false;
 		bool showSign = true;
 		bool alwaysVisible = false;
 	};

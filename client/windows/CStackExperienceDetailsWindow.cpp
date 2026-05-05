@@ -218,7 +218,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 					return static_cast<int>(rankThresholds[std::min(rank, static_cast<int>(rankThresholds.size()) - 1)]);
 			},
 			[](const CStackInstance &){ return true; },
-			ImagePath::builtin("stackExperienceIconExperience"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, true},
+			ImagePath::builtin("stackExperienceIconExperience"), true, -1, LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), LIBRARY->generaltexth->translate("vcmi.stackExperience.desc.experience"), false, false, false, false, true},
 	};
 
 	struct BonusKey
@@ -324,6 +324,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 	{
 		const auto selector = selectorOverride.value_or(makeStackExpSelector(key));
 		const ImagePath iconPath = iconOverride.value_or(sourceStack->bonusToGraphics(std::const_pointer_cast<Bonus>(bonus)));
+		const bool allowPresenceFallback = bonus->val == 0;
 		std::string tooltip = descriptionText;
 		std::string popup = descriptionText;
 		boost::replace_all(tooltip, "\n\n", ": ");
@@ -343,7 +344,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 				{
 					return stackInst.hasBonus(selector);
 				},
-				iconPath, true, iconFrame, tooltip, popup, percent, binary, showSign, alwaysVisible});
+					iconPath, true, iconFrame, tooltip, popup, percent, binary, allowPresenceFallback, showSign, alwaysVisible});
 	};
 
 	auto getBonusDisplayName = [&](const std::shared_ptr<const Bonus> & bonus)
@@ -526,7 +527,7 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			prepared.binary = row.binary && onlyBinary;
 			preparedRows.push_back(std::move(prepared));
 		}
-		else if(hasActiveBonus)
+		else if(hasActiveBonus && row.allowPresenceFallback)
 		{
 			// Boolean stack-experience entries are loaded as presence-only bonuses
 			// (CCreatureHandler::loadStackExperience bool branch). Show activation by rank.
