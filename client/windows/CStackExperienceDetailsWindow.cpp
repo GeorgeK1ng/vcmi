@@ -280,7 +280,29 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		for(const auto & bonus : *bonuses)
 		{
 			const auto key = normalizeBonusKey(getBonusKey(bonus));
-			dynamicBonuses.emplace(key, bonus);
+			auto [it, inserted] = dynamicBonuses.emplace(key, bonus);
+			if(!inserted)
+			{
+				const auto & kept = it->second;
+				logGlobal->warn(
+					"StackExperienceDetailsWindow: duplicate normalized bonus key detected for creature %s at column %d; "
+					"key(type=%d, subtype=%d). Kept bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d), "
+					"dropped bonus(type=%d, subtype=%d, val=%d, valType=%d, source=%d)",
+					this->creature ? this->creature->getJsonKey().c_str() : "<null>",
+					column,
+					static_cast<int>(key.type),
+					key.subtype.getNum(),
+					static_cast<int>(kept->type),
+					kept->subtype.getNum(),
+					kept->val,
+					static_cast<int>(kept->valType),
+					static_cast<int>(kept->source),
+					static_cast<int>(bonus->type),
+					bonus->subtype.getNum(),
+					bonus->val,
+					static_cast<int>(bonus->valType),
+					static_cast<int>(bonus->source));
+			}
 		}
 	}
 
