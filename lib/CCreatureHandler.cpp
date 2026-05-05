@@ -974,6 +974,24 @@ void CCreatureHandler::loadCreatureJson(CCreature * creature, const JsonNode & c
 
 void CCreatureHandler::loadStackExperience(CCreature * creature, const JsonNode & input) const
 {
+	auto normalizeSubtypeForStackExperience = [](Bonus & bonus)
+	{
+		switch(bonus.type)
+		{
+			case BonusType::CASTS:
+			case BonusType::MAGIC_RESISTANCE:
+			case BonusType::STACKS_SPEED:
+			case BonusType::SHOTS:
+			case BonusType::STACK_HEALTH:
+			case BonusType::FEARFUL:
+			case BonusType::MIND_IMMUNITY:
+				bonus.subtype = BonusSubtypeID();
+				break;
+			default:
+				break;
+		}
+	};
+
 	for (const JsonNode &exp : input.Vector())
 	{
 		const JsonVector &values = exp["values"].Vector();
@@ -992,6 +1010,7 @@ void CCreatureHandler::loadStackExperience(CCreature * creature, const JsonNode 
 					auto bonus = JsonUtils::parseBonus (exp["bonus"]);
 					bonus->source = BonusSource::STACK_EXPERIENCE;
 					bonus->duration = BonusDuration::PERMANENT;
+					normalizeSubtypeForStackExperience(*bonus);
 					bonus->addLimiter(std::make_shared<RankRangeLimiter>(lowerLimit));
 					creature->addNewBonus (bonus);
 					break; //TODO: allow bonuses to turn off?
@@ -1012,6 +1031,7 @@ void CCreatureHandler::loadStackExperience(CCreature * creature, const JsonNode 
 					auto bonus = JsonUtils::parseBonus (bonusInput);
 					bonus->source = BonusSource::STACK_EXPERIENCE;
 					bonus->duration = BonusDuration::PERMANENT;
+					normalizeSubtypeForStackExperience(*bonus);
 					bonus->addLimiter(std::make_shared<RankRangeLimiter>(lowerLimit));
 					creature->addNewBonus (bonus);
 				}
