@@ -34,22 +34,39 @@
 
 namespace
 {
-int getPreviewExperienceForRank(const std::vector<ui32> & rankThresholds, int rank)
-{
-	if(rank <= 0 || rankThresholds.empty())
-		return 0;
-
-	const int thresholdIndex = std::min(rank - 1, static_cast<int>(rankThresholds.size()) - 1);
-	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
-}
-
 int getPreviewExperienceForBonusColumn(const std::vector<ui32> & rankThresholds, int column)
 {
-	// Table columns are 0..10. Bonus values are defined for ranks 1..10.
-	// Column 0 is baseline; columns 1..10 map to bonus ranks 1..10.
-	const int maxBonusRank = std::max(0, std::min(10, static_cast<int>(rankThresholds.size()) - 1));
-	const int bonusRank = std::clamp(column, 0, maxBonusRank);
-	return getPreviewExperienceForRank(rankThresholds, bonusRank);
+	// Table columns are 0..10.
+	// Column 0 is baseline (no stack experience bonuses),
+	// columns 1..10 map directly to stack experience ranks 1..10.
+	if(column <= 0 || rankThresholds.empty())
+		return 0;
+
+	// expRanks contain 11 entries:
+	//  - indexes 0..9 are thresholds for ranks 1..10,
+	//  - index 10 is maximum experience cap.
+	// Bonus table should use the exact same per-column experience values as Experience row:
+	// column 1 => rankThresholds[0], ..., column 10 => rankThresholds[9].
+	const int availableRankThresholds = std::min(10, static_cast<int>(rankThresholds.size()));
+	const int maxDisplayedRank = std::max(1, availableRankThresholds);
+	const int rank = std::clamp(column, 1, maxDisplayedRank);
+	const int thresholdIndex = rank - 1;
+	return static_cast<int>(rankThresholds[thresholdIndex]);
+}
+
+int getPreviewExperienceForBonusEffectsColumn(const std::vector<ui32> & rankThresholds, int column)
+{
+	// Stack experience bonuses use strict RankRangeLimiter checks (rank > minRank).
+	// To display values from stackExperience "values" arrays (10 entries) in columns 1..10,
+	// sample just above the next threshold:
+	// column 1 -> threshold[1] + 1, ..., column 10 -> threshold[10] + 1.
+	// This matches how RankRangeLimiter builds cumulative bonuses from value deltas.
+	if(column <= 0 || rankThresholds.empty())
+		return 0;
+
+	const int maxThresholdIndex = static_cast<int>(rankThresholds.size()) - 1;
+	const int thresholdIndex = std::clamp(column, 1, maxThresholdIndex);
+	return static_cast<int>(rankThresholds[thresholdIndex]) + 1;
 }
 
 }
@@ -482,12 +499,12 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 			bool isActive = false;
 			if(row.icon == ImagePath::builtin("stackExperienceIconExperience"))
 			{
-				value = column == 0 ? 0 : static_cast<int>(rankThresholds[std::min(column - 1, static_cast<int>(rankThresholds.size()) - 1)]);
+				value = getPreviewExperienceForBonusColumn(rankThresholds, column);
 			}
-			else
-			{
-				const int previewExperience = getPreviewExperienceForBonusColumn(rankThresholds, column);
-				auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
+				else
+				{
+					const int previewExperience = getPreviewExperienceForBonusEffectsColumn(rankThresholds, column);
+					auto gameCallback = GAME->interface() ? GAME->interface()->cb.get() : nullptr;
 				CStackInstance preview(gameCallback, this->creature->getId(), std::max(1, sourceStack->getCount()), true);
 				const TExpType totalExperience = static_cast<TExpType>(previewExperience) * static_cast<TExpType>(preview.getCount());
 				preview.giveTotalStackExperience(totalExperience);
