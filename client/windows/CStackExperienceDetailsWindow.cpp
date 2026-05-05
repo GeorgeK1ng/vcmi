@@ -662,6 +662,21 @@ void CStackWindow::StackExperienceDetailsWindow::rebuildTableRows()
 			const int currentValue = preparedRows[rowIndex].values[currentRank];
 			std::string hoverText = withStackExperiencePlaceholders(preparedRows[rowIndex].tooltipText, currentValue);
 			std::string popupText = withStackExperiencePlaceholders(preparedRows[rowIndex].popupText, currentValue);
+			const std::string currentValueText = preparedRows[rowIndex].binary
+				? (currentValue != 0 ? LIBRARY->generaltexth->translate("vcmi.stackExperience.table.yes") : LIBRARY->generaltexth->translate("vcmi.stackExperience.table.no"))
+				: ((preparedRows[rowIndex].showSign && currentValue > 0 ? "+" : "") + std::to_string(currentValue) + (preparedRows[rowIndex].percent ? "%" : ""));
+
+			const std::string currentValueLabel = LIBRARY->generaltexth->translate("vcmi.stackExperience.popup.currentLevelValue");
+			if(!currentValueLabel.empty())
+			{
+				hoverText += (hoverText.empty() ? "" : "\n") + currentValueLabel + ": " + currentValueText;
+				popupText += (popupText.empty() ? "" : "\n\n") + currentValueLabel + ": " + currentValueText;
+			}
+			else
+			{
+				hoverText += (hoverText.empty() ? "" : "\n") + currentValueText;
+				popupText += (popupText.empty() ? "" : "\n\n") + currentValueText;
+			}
 			if(hoverText.empty())
 				hoverText = !popupText.empty() ? popupText : preparedRows[rowIndex].title;
 			if(popupText.empty())
