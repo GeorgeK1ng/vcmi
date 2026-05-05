@@ -462,6 +462,9 @@ CStackWindow::StackExperienceDetailsWindow::StackExperienceDetailsWindow(const C
 		}
 		else if(anyPresent)
 		{
+			// Boolean stack-experience entries are stored as presence-only bonuses
+			// (see CCreatureHandler::loadStackExperience: bool "values" generate a single
+			// bonus with RankRangeLimiter and no numeric progression). Render them as 0/1.
 			prepared.binary = true;
 			for(int column = 0; column < MAX_RANKS; ++column)
 			{
