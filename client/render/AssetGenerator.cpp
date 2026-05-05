@@ -1440,10 +1440,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createStackExperienceDialogBackground(
 		canvas.drawBorder(iconRect, frameColor);
 	}
 
-	// Header for first rank column ("basic") still needs its left border in header row.
-	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), frameColor, frameColor);
-	// Skip first-column cell in header row - first row starts directly with rank headers.
-	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop + rowHeight), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
+	// Separator between icon column and rank columns.
+	// Drawn as a single line to avoid visual "double border" artifacts at the join points.
+	canvas.drawLine(Point(tableSideMargin + rowNameWidth, tableTop), Point(tableSideMargin + rowNameWidth, tableTop + tableRenderedHeight - 1), frameColor, frameColor);
 	for(int column = 1; column < rankColumns; ++column)
 	{
 		const int x = tableSideMargin + rowNameWidth + column * colWidth;
