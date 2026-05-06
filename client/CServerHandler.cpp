@@ -138,6 +138,7 @@ void CServerHandler::threadRunNetwork()
 void CServerHandler::resetStateForLobby(EStartMode mode, ESelectionScreen screen, EServerMode newServerMode, const std::vector<std::string> & playerNames)
 {
 	hostClientId = GameConnectionID::INVALID;
+	remoteClientLobbyHint = false;
 	setState(EClientState::NONE);
 	serverMode = newServerMode;
 	loadMode = ELoadMode::NONE;

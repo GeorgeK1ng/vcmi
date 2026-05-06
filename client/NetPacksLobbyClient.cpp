@@ -123,6 +123,8 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 		return;
 	}
 
+	handler.setRemoteClientLobbyHint(false);
+
 	if(lobby)
 		lobby->onRemoteClientConnectionChanged();
 }
@@ -222,7 +224,8 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState &
 			break;
 		}
 	}
-	handler.setRemoteClientLobbyHint(hasRemoteClients);
+	if(hasRemoteClients)
+		handler.setRemoteClientLobbyHint(true);
 	if(handler.mapToStart && handler.mi)
 	{
 		handler.startMapAfterConnection(nullptr);
