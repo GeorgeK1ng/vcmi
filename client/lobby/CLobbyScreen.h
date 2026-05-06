@@ -36,7 +36,6 @@ public:
 	void startScenario(bool allowOnlyAI = false);
 	void toggleMode(bool host);
 	void toggleChat();
-	void onRemoteClientConnectionChanged();
 
 	void updateAfterStateChange();
 

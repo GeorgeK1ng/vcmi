@@ -93,10 +93,6 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientCon
 		}
 		handler.setState(EClientState::LOBBY);
 	}
-	else
-	{
-		handler.setRemoteClientLobbyHint(true);
-	}
 }
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected &)
@@ -107,8 +103,6 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConn
 {
 	if(!lobby || pack.clientId == handler.logicConnection->connectionID)
 		return;
-
-	lobby->onRemoteClientConnectionChanged();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
@@ -123,10 +117,6 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 		return;
 	}
 
-	handler.setRemoteClientLobbyHint(false);
-
-	if(lobby)
-		lobby->onRemoteClientConnectionChanged();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & pack)
@@ -215,17 +205,6 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyUpdateState(LobbyUpdateState &
 {
 	pack.hostChanged = pack.state.hostClientId != handler.hostClientId;
 	static_cast<LobbyState &>(handler) = pack.state;
-	bool hasRemoteClients = false;
-	for(const auto & playerEntry : handler.playerNames)
-	{
-		if(playerEntry.second.connection != handler.hostClientId)
-		{
-			hasRemoteClients = true;
-			break;
-		}
-	}
-	if(hasRemoteClients)
-		handler.setRemoteClientLobbyHint(true);
 	if(handler.mapToStart && handler.mi)
 	{
 		handler.startMapAfterConnection(nullptr);

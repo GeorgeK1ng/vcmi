@@ -126,7 +126,6 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 
 	std::string serverHostname;
 	ui16 serverPort;
-	bool remoteClientLobbyHint = false;
 
 	bool isServerLocal() const;
 
@@ -174,7 +173,6 @@ public:
 	bool isHost() const;
 	bool isGuest() const;
 	bool hasRemoteClientInLobby() const;
-	void setRemoteClientLobbyHint(bool hasRemoteClient);
 	bool inLobbyRoom() const;
 	bool inGame() const;
 

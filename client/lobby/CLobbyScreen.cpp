@@ -321,13 +321,6 @@ void CLobbyScreen::toggleChat()
 		buttonChat->setTextOverlay(LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 }
 
-void CLobbyScreen::onRemoteClientConnectionChanged()
-{
-	updateHostLobbyChatState();
-	if(curTab != tabBattleOnlyMode)
-		updateStartButtonState();
-}
-
 void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
