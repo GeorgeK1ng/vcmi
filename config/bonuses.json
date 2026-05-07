@@ -363,6 +363,13 @@
 	
 	"NEGATIVE_EFFECTS_IMMUNITY" :
 	{
+		"subtypeDescriptions" : {
+			"spellSchool.any" : "Immune to negative spell effects.",
+			"spellSchool.air" : "Immune to negative effects from Air spells.",
+			"spellSchool.earth" : "Immune to negative effects from Earth spells.",
+			"spellSchool.fire" : "Immune to negative effects from Fire spells.",
+			"spellSchool.water" : "Immune to negative effects from Water spells."
+		}
 	},
 
 	"NONE":
