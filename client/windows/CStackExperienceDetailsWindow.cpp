@@ -86,8 +86,10 @@ int CStackWindow::StackExperienceDetailsWindow::getStackExperienceTierFromCreatu
 
 int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(const CStackInstance * stack, const CCreature * creature)
 {
+	// Matches asset generator semantics: image suffix N means
+	// table renders N data rows + 1 header row.
 	if(!stack || !creature || !GAME->interface())
-		return 8;
+		return 7;
 
 	struct BonusKey
 	{
@@ -117,14 +119,14 @@ int CStackWindow::StackExperienceDetailsWindow::calculateDynamicTableRowCount(co
 	}
 
 	const int minBonusRows = 1;
-	const int maxDataRows = 8; // keep dialog within 800x600
-	const int dataRows = std::clamp(1 + std::max(minBonusRows, static_cast<int>(uniqueBonuses.size())), minBonusRows + 1, maxDataRows); // Experience + bonus rows
-	return dataRows; // table data rows (header handled by background template)
+	const int maxRowsWithoutHeader = 7; // keep dialog within 800x600
+	const int rowsWithoutHeader = std::clamp(1 + std::max(minBonusRows, static_cast<int>(uniqueBonuses.size())), 1, maxRowsWithoutHeader); // Experience + bonus rows
+	return rowsWithoutHeader;
 }
 
 ImagePath CStackWindow::StackExperienceDetailsWindow::getDialogBackground(int rowCount)
 {
-	const int clampedRowCount = std::clamp(rowCount - 1, 1, 7);
+	const int clampedRowCount = std::clamp(rowCount, 1, 7);
 	return ImagePath::builtin("stackExperienceDialogRows" + std::to_string(clampedRowCount));
 }
 
