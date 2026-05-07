@@ -116,7 +116,7 @@ public:
 		: CWindowObject(PLAYER_COLORED | BORDERED)
 	{
 		OBJECT_CONSTRUCTION;
-		pos = Rect(0, 0, 360, 420);
+		pos = Rect(0, 0, 504, 420);
 		center();
 		backgroundTexture = std::make_shared<CFilledTexture>(ImagePath::builtin("DiBoxBck"), Rect(0, 0, pos.w, pos.h));
 
@@ -141,6 +141,7 @@ public:
 			CButton::tooltip(),
 			[this]() { close(); },
 			EShortcut::GLOBAL_RETURN);
+		closeButton->setBorderColor(Colors::METALLIC_GOLD);
 	}
 
 private:
