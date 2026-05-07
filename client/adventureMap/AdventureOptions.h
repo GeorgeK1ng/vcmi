@@ -17,6 +17,7 @@ class CButton;
 class CLabel;
 class CMultiLineLabel;
 class CSlider;
+class CHoverableArea;
 
 /// Adventure options dialog where you can view the world, dig, play the replay of the last turn,...
 class AdventureOptions : public CWindowObject
@@ -40,6 +41,7 @@ class AdventureOptions : public CWindowObject
 
 	/// Labels for the currently visible buttons (enhanced mode only)
 	std::vector<std::shared_ptr<CMultiLineLabel>> buttonLabels;
+	std::vector<std::shared_ptr<CHoverableArea>> buttonLabelHovers;
 
 	/// Scrollbar – only created when allEntries.size() > MAX_VISIBLE
 	std::shared_ptr<CSlider> scrollBar;
@@ -57,4 +59,3 @@ public:
 
 	static void showScenarioInfo();
 };
-
