@@ -116,6 +116,8 @@ public:
 		: CWindowObject(PLAYER_COLORED | BORDERED)
 	{
 		OBJECT_CONSTRUCTION;
+		pos = Rect(0, 0, 360, 420);
+		center();
 		backgroundTexture = std::make_shared<CFilledTexture>(ImagePath::builtin("DiBoxBck"), Rect(0, 0, pos.w, pos.h));
 
 		constexpr int iconSize = 82;
@@ -503,11 +505,13 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 	{
 		Point skillPos = getSkillPos(index);
 
-		auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(getSkillImage(index), skillPos.x, skillPos.y), false, [=]()
-		{
-			auto skillInfoWindow = std::make_shared<CommanderSkillInfoWindow>(skillToFile(index, parent->info->commander->secondarySkills[index], false), getSkillDescription(index));
-			ENGINE->windows().pushWindow(std::static_pointer_cast<IShowActivatable>(skillInfoWindow));
-		});
+			auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(getSkillImage(index), skillPos.x, skillPos.y), false, [this, index]()
+			{
+				auto skillInfoWindow = std::make_shared<CommanderSkillInfoWindow>(
+					skillToFile(index, parent->info->commander->secondarySkills[index], false),
+					parent->getCommanderSkillDescription(index, parent->info->commander->secondarySkills[index]));
+				ENGINE->windows().pushWindow(std::static_pointer_cast<IShowActivatable>(skillInfoWindow));
+			});
 
 		icon->text = getSkillDescription(index); //used to handle right click description via LRClickableAreaWText::ClickRight()
 
