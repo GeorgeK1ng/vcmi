@@ -22,6 +22,7 @@
 #include "../gui/Shortcut.h"
 #include "../gui/ShortcutHandler.h"
 #include "../widgets/Buttons.h"
+#include "../widgets/Images.h"
 #include "../widgets/MiscWidgets.h"
 #include "../widgets/Slider.h"
 #include "AdventureMapInterface.h"
