@@ -327,6 +327,7 @@ void CLobbyScreen::updateAfterStateChange()
 	updateHostLobbyChatState();
 	const bool shouldFilterByPlayerCount = screenType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI;
 	const size_t requiredHumanPlayers = shouldFilterByPlayerCount ? std::max<size_t>(2, GAME->server().playerNames.size()) : 0;
+	tabSel->setRequiredHumanPlayers(requiredHumanPlayers);
 
 	if(!compatibilityFilterInitialized || (shouldFilterByPlayerCount && requiredHumanPlayers != lastRequiredHumanPlayers))
 	{
