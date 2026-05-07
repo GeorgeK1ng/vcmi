@@ -22,6 +22,8 @@
 #include "../gui/Shortcut.h"
 #include "../gui/ShortcutHandler.h"
 #include "../widgets/Buttons.h"
+#include "../widgets/Images.h"
+#include "../widgets/MiscWidgets.h"
 #include "../widgets/Slider.h"
 #include "AdventureMapInterface.h"
 
@@ -35,7 +37,7 @@
 #include "../widgets/TextControls.h"
 
 AdventureOptions::AdventureOptions()
-	: CWindowObject(PLAYER_COLORED, settings["general"]["enableUiEnhancements"].Bool() ? ImagePath::builtin("AdventureOptionsBackground") : ImagePath::builtin("ADVOPTS"))
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR, ImagePath::builtin("adventureOptionsDialog"))
 {
 	OBJECT_CONSTRUCTION;
 
@@ -91,7 +93,7 @@ AdventureOptions::AdventureOptions()
 		be.shortcut  = shortcut;
 		be.isBlocked = isBlocked;
 		be.callback  = callback;
-		be.labelKey  = (enhanced && !entry["label"].isNull()) ? entry["label"].String() : "";
+		be.labelKey  = entry["label"].isNull() ? "" : entry["label"].String();
 		allEntries.push_back(std::move(be));
 	}
 
@@ -108,7 +110,7 @@ AdventureOptions::AdventureOptions()
 		const int sliderLength = 282;
 
 		scrollBar = std::make_shared<CSlider>(
-			Point(252, sliderY),
+			Point(270, sliderY),
 			sliderLength,
 			[this, enhanced](int val)
 			{
@@ -126,6 +128,8 @@ AdventureOptions::AdventureOptions()
 		scrollBar->setPanningStep(BUTTON_STEP);
 	}
 
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
+
 	exit = std::make_shared<CButton>(Point(203, 313), AnimationPath::builtin("IOK6432.DEF"), CButton::tooltip(), std::bind(&AdventureOptions::close, this), EShortcut::GLOBAL_RETURN);
 }
 
@@ -133,6 +137,7 @@ void AdventureOptions::rebuildVisibleButtons(int scrollPos, bool enhanced)
 {
 	buttons.clear();
 	buttonLabels.clear();
+	buttonLabelHovers.clear();
 
 	OBJECT_CONSTRUCTION;
 
@@ -144,8 +149,9 @@ void AdventureOptions::rebuildVisibleButtons(int scrollPos, bool enhanced)
 		const ButtonEntry & be  = allEntries[i];
 		const int slot          = i - from;
 		const Point btnPos(BUTTON_X, BUTTON_START_Y + slot * BUTTON_STEP);
+		const std::string labelText = be.labelKey.empty() ? std::string() : LIBRARY->generaltexth->translate(be.labelKey);
 
-		auto btn = std::make_shared<CButton>(btnPos, be.animPath, CButton::tooltip(), [this](){ close(); }, be.shortcut);
+		auto btn = std::make_shared<CButton>(btnPos, be.animPath, CButton::tooltip(labelText, ""), [this](){ close(); }, be.shortcut);
 		if(be.callback)
 			btn->addCallback(be.callback);
 		btn->block(be.isBlocked);
@@ -159,7 +165,12 @@ void AdventureOptions::rebuildVisibleButtons(int scrollPos, bool enhanced)
 			buttonLabels.push_back(std::make_shared<CMultiLineLabel>(
 				Rect(bgX + margin, BUTTON_START_Y + 1 + slot * BUTTON_STEP + margin, bgW - 2 * margin, bgH - 2 * margin),
 				FONT_MEDIUM, ETextAlignment::CENTERLEFT, Colors::YELLOW,
-				LIBRARY->generaltexth->translate(be.labelKey)));
+				labelText));
+
+			auto hoverArea = std::make_shared<CHoverableArea>();
+			hoverArea->pos = Rect(bgX, BUTTON_START_Y + 1 + slot * BUTTON_STEP, bgW, bgH);
+			hoverArea->hoverText = labelText;
+			buttonLabelHovers.push_back(hoverArea);
 		}
 
 		buttons.push_back(btn);

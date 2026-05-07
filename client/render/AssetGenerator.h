@@ -69,6 +69,7 @@ private:
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
 	CanvasPtr createBackpackDialogBackground(const Point & size) const;
+	CanvasPtr createAdventureOptionsDialogBackground() const;
 	CanvasPtr createDialogBackground(const Point & size, bool withStatusBar = false) const;
 	CanvasPtr createStackExperienceDialogBackground(const Point & size, int rowCount) const;
 	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;
@@ -86,7 +87,6 @@ private:
 	CanvasPtr createStackArtifactIndicator(const Point & size) const;
 	CanvasPtr createStackExperienceIcon(const std::string & iconId) const;
 	CanvasPtr createStackExperienceInactiveOverlay() const;
-	CanvasPtr createAdventureOptionsBackground(PlayerColor color) const;
 
 	void createPaletteShiftedSprites();
 	void generatePaletteShiftedAnimation(const AnimationPath & source, const std::vector<PaletteAnimation> & animation);
