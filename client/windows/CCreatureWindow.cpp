@@ -109,6 +109,48 @@ private:
 
 };
 
+class CommanderSkillInfoWindow : public CWindowObject
+{
+public:
+	CommanderSkillInfoWindow(const ImagePath & skillIcon, const std::string & text)
+		: CWindowObject(PLAYER_COLORED | BORDERED)
+	{
+		OBJECT_CONSTRUCTION;
+		pos = Rect(0, 0, 504, 420);
+		center();
+		backgroundTexture = std::make_shared<CFilledTexture>(ImagePath::builtin("DiBoxBck"), Rect(0, 0, pos.w, pos.h));
+
+		constexpr int iconSize = 82;
+		const int iconX = (pos.w - iconSize) / 2;
+		constexpr int iconTop = 26;
+		constexpr int textTop = 126;
+		constexpr int horizontalMargin = 28;
+
+		background = std::make_shared<CPicture>(skillIcon, iconX, iconTop);
+		description = std::make_shared<CTextBox>(
+			text,
+			Rect(horizontalMargin, textTop, pos.w - horizontalMargin * 2, pos.h - textTop - 56),
+			0,
+			FONT_MEDIUM,
+			ETextAlignment::CENTER,
+			Colors::WHITE);
+
+		closeButton = std::make_shared<CButton>(
+			Point((pos.w - 64) / 2, pos.h - 44),
+			AnimationPath::builtin("IOK6432.DEF"),
+			CButton::tooltip(),
+			[this]() { close(); },
+			EShortcut::GLOBAL_RETURN);
+		closeButton->setBorderColor(Colors::METALLIC_GOLD);
+	}
+
+private:
+	std::shared_ptr<CFilledTexture> backgroundTexture;
+	std::shared_ptr<CPicture> background;
+	std::shared_ptr<CTextBox> description;
+	std::shared_ptr<CButton> closeButton;
+};
+
 CCommanderSkillIcon::CCommanderSkillIcon(std::shared_ptr<CIntObject> object_, bool isMasterAbility_, std::function<void()> callback)
 	: object(),
 	  isMasterAbility(isMasterAbility_),
@@ -464,10 +506,13 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 	{
 		Point skillPos = getSkillPos(index);
 
-		auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(getSkillImage(index), skillPos.x, skillPos.y), false, [=]()
-		{
-			GAME->interface()->showInfoDialog(getSkillDescription(index));
-		});
+			auto icon = std::make_shared<CCommanderSkillIcon>(std::make_shared<CPicture>(getSkillImage(index), skillPos.x, skillPos.y), false, [this, index]()
+			{
+				auto skillInfoWindow = std::make_shared<CommanderSkillInfoWindow>(
+					skillToFile(index, parent->info->commander->secondarySkills[index], false),
+					parent->getCommanderSkillDescription(index, parent->info->commander->secondarySkills[index]));
+				ENGINE->windows().pushWindow(std::static_pointer_cast<IShowActivatable>(skillInfoWindow));
+			});
 
 		icon->text = getSkillDescription(index); //used to handle right click description via LRClickableAreaWText::ClickRight()
 
