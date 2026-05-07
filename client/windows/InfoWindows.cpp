@@ -39,6 +39,74 @@
 #include "../../lib/mapObjects/MiscObjects.h"
 #include "../../lib/ConditionalWait.h"
 
+#include <algorithm>
+#include <cctype>
+
+namespace
+{
+int getThreatLevelFromRatio(double ratio)
+{
+	if (ratio < 0.1)
+		return 0;
+	if (ratio < 0.25)
+		return 1;
+	if (ratio < 0.6)
+		return 2;
+	if (ratio < 0.9)
+		return 3;
+	if (ratio < 1.1)
+		return 4;
+	if (ratio < 1.3)
+		return 5;
+	if (ratio < 1.8)
+		return 6;
+	if (ratio < 2.5)
+		return 7;
+	if (ratio < 4)
+		return 8;
+	if (ratio < 8)
+		return 9;
+	if (ratio < 20)
+		return 10;
+	return 11;
+}
+
+std::string trimLeadingWhitespaces(std::string value)
+{
+	value.erase(value.begin(), std::find_if(value.begin(), value.end(), [](unsigned char ch)
+	{
+		return !std::isspace(ch);
+	}));
+	return value;
+}
+
+std::string getEnemyHeroThreatText(const CGHeroInstance * enemyHero)
+{
+	if(!settings["general"]["enableUiEnhancements"].Bool() || enemyHero == nullptr)
+		return "";
+
+	auto localState = GAME->interface()->localState;
+	auto currentHero = localState ? localState->getCurrentHero() : nullptr;
+	if(currentHero == nullptr)
+		return "";
+
+	if(currentHero->tempOwner == enemyHero->tempOwner)
+		return "";
+
+	uint64_t localHeroStrength = currentHero->getTotalStrength();
+	if(localHeroStrength == 0)
+		return "";
+
+	double ratio = static_cast<double>(enemyHero->getTotalStrength()) / static_cast<double>(localHeroStrength);
+	int level = getThreatLevelFromRatio(ratio);
+
+	auto title = trimLeadingWhitespaces(LIBRARY->generaltexth->translate("vcmi.adventureMap.monsterThreat.title"));
+	auto threatDescription = LIBRARY->generaltexth->translate("vcmi.adventureMap.monsterThreat.levels." + std::to_string(level));
+
+	return title + threatDescription;
+}
+}
+
 CSelWindow::CSelWindow( const std::string & Text, PlayerColor player, int charperline, const std::vector<std::shared_ptr<CSelectableComponent>> & comps, const std::vector<std::pair<AnimationPath, CFunctionList<void()>>> & Buttons, QueryID askID)
 {
 	OBJECT_CONSTRUCTION;
@@ -306,13 +374,13 @@ CInfoBoxPopup::CInfoBoxPopup(Point position, const CGTownInstance * town)
 }
 
 CInfoBoxPopup::CInfoBoxPopup(Point position, const CGHeroInstance * hero)
-	: AdventureMapPopup(RCLICK_POPUP | PLAYER_COLORED, ImagePath::builtin("HEROQVBK"), position)
+	: AdventureMapPopup(RCLICK_POPUP | PLAYER_COLORED, ImagePath::builtin("HEROQVBK_EXTENDED.png"), position)
 {
 	InfoAboutHero iah;
 	GAME->interface()->cb->getHeroInfo(hero, iah, GAME->interface()->localState->getCurrentArmy()); //todo: should this be nearest hero?
 
 	OBJECT_CONSTRUCTION;
-	tooltip = std::make_shared<CHeroTooltip>(Point(9, 10), iah);
+	tooltip = std::make_shared<CHeroTooltip>(Point(9, 10), iah, getEnemyHeroThreatText(hero));
 
 	if(settings["general"]["enableUiEnhancements"].Bool())
 		background->setPlayerColor(hero->getOwner());
