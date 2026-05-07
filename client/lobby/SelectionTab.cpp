@@ -709,6 +709,13 @@ void SelectionTab::filter(int size, bool selectFirst)
 					selectAbs(firstPos);
 				}
 			}
+			else if(selectedMapIt != curItems.end())
+			{
+				const int selectedMapPos = selectedMapIt - curItems.begin();
+				slider->scrollTo(selectedMapPos);
+				callOnSelect(curItems[selectedMapPos]);
+				selectAbs(selectedMapPos);
+			}
 		}
 	}
 	else
