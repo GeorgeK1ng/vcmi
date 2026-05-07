@@ -138,6 +138,7 @@ void CServerHandler::threadRunNetwork()
 void CServerHandler::resetStateForLobby(EStartMode mode, ESelectionScreen screen, EServerMode newServerMode, const std::vector<std::string> & playerNames)
 {
 	hostClientId = GameConnectionID::INVALID;
+	connectedLobbyClients.clear();
 	setState(EClientState::NONE);
 	serverMode = newServerMode;
 	loadMode = ELoadMode::NONE;
@@ -344,6 +345,12 @@ bool CServerHandler::isGuest() const
 
 bool CServerHandler::hasRemoteClientInLobby() const
 {
+	for(const auto connectionId : connectedLobbyClients)
+	{
+		if(connectionId != hostClientId)
+			return true;
+	}
+
 	for(const auto & playerEntry : playerNames)
 	{
 		if(playerEntry.second.connection != hostClientId)
@@ -351,6 +358,16 @@ bool CServerHandler::hasRemoteClientInLobby() const
 	}
 
 	return false;
+}
+
+void CServerHandler::onLobbyClientConnected(GameConnectionID connectionId)
+{
+	connectedLobbyClients.insert(connectionId);
+}
+
+void CServerHandler::onLobbyClientDisconnected(GameConnectionID connectionId)
+{
+	connectedLobbyClients.erase(connectionId);
 }
 
 const std::string & CServerHandler::getLocalHostname() const

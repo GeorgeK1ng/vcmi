@@ -51,6 +51,8 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyQuickLoadGame(LobbyQuickLoadGa
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyClientConnected(LobbyClientConnected & pack)
 {
+	handler.onLobbyClientConnected(pack.clientId);
+
 	const bool isLocalClient = pack.uuid == handler.logicConnection->uuid;
 	result = !isLocalClient;
 
@@ -103,10 +105,14 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientConnected(LobbyClientConn
 {
 	if(!lobby || pack.clientId == handler.logicConnection->connectionID)
 		return;
+
+	lobby->updateAfterStateChange();
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientDisconnected & pack)
 {
+	handler.onLobbyClientDisconnected(pack.clientId);
+
 	if(pack.clientId == handler.logicConnection->connectionID)
 	{
 		if(auto w = ENGINE->windows().topWindow<CLoadingScreen>())
@@ -116,6 +122,9 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyClientDisconnected(LobbyClientD
 			ENGINE->windows().popWindows(1);
 		return;
 	}
+
+	if(lobby)
+		lobby->updateAfterStateChange();
 
 }
 
