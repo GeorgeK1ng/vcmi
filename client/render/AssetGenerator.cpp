@@ -105,7 +105,7 @@ void AssetGenerator::initialize()
 	}
 
 	addBackpackBackground("heroBackpackDialog", Point(426, 465));
-	addBackpackBackground("adventureOptionsDialog", Point(310, 390));
+	imageFiles[ImagePath::builtin("adventureOptionsDialog")] = [this](){ return createAdventureOptionsDialogBackground();};
 
 	imageFiles[ImagePath::builtin("questDialog.png")] = [this](){ return createQuestWindow();};
 	imageFiles[ImagePath::builtin("stackArtifactIndicatorSmall.png")] = [this](){ return createStackArtifactIndicator(Point(14, 14));};
@@ -189,6 +189,31 @@ void AssetGenerator::addDialogBackground(const std::string & fileName, const Poi
 AssetGenerator::CanvasPtr AssetGenerator::createBackpackDialogBackground(const Point & size) const
 {
 	return createDialogBackground(size, true);
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsDialogBackground() const
+{
+	auto image = createBackpackDialogBackground(Point(310, 390));
+	Canvas canvas = image->getCanvas();
+
+	std::shared_ptr<IImage> backgroundImg = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
+	backgroundImg->adjustPalette(ColorFilter::genRangeShifter(0.f, 0.f, 0.f, 0.75f, 0.75f, 0.75f), 0);
+
+	const Point backgroundSize(189, 48);
+	for(int i = 0; i < 5; i++)
+	{
+		const int startX = 78;
+		const int startY = 25 + i * 58;
+
+		for(int x = 0; x < backgroundSize.x; x += backgroundImg->width())
+		{
+			canvas.draw(backgroundImg, Point(startX + x, startY), Rect(0, 0, std::min(backgroundImg->width(), backgroundSize.x - x), std::min(backgroundImg->height(), backgroundSize.y)));
+		}
+
+		canvas.drawBorder(Rect(startX, startY, backgroundSize.x, backgroundSize.y), Colors::BLACK);
+	}
+
+	return image;
 }
 
 void AssetGenerator::addSpellResearchBackground(const std::string & fileName, const Point & size)

@@ -69,6 +69,7 @@ private:
 	CanvasPtr createAdventureMapButtonClear(const PlayerColor & player, bool small) const;
 	CanvasPtr createCreatureInfoPanel(int boxesAmount) const;
 	CanvasPtr createBackpackDialogBackground(const Point & size) const;
+	CanvasPtr createAdventureOptionsDialogBackground() const;
 	CanvasPtr createDialogBackground(const Point & size, bool withStatusBar = false) const;
 	CanvasPtr createStackExperienceDialogBackground(const Point & size, int rowCount) const;
 	CanvasPtr createRecruitmentDialogBackground(const Point & size) const;

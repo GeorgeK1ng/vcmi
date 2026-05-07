@@ -93,7 +93,7 @@ AdventureOptions::AdventureOptions()
 		be.shortcut  = shortcut;
 		be.isBlocked = isBlocked;
 		be.callback  = callback;
-		be.labelKey  = (enhanced && !entry["label"].isNull()) ? entry["label"].String() : "";
+		be.labelKey  = entry["label"].isNull() ? "" : entry["label"].String();
 		allEntries.push_back(std::move(be));
 	}
 
