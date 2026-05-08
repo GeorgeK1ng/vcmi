@@ -183,6 +183,9 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyStartGame(LobbyStartGame & pac
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyStartGame(LobbyStartGame & pack)
 {
+	if(lobby)
+		lobby->close();
+
 	if(auto w = ENGINE->windows().topWindow<CLoadingScreen>())
 	{
 		w->finish();
