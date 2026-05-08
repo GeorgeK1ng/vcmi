@@ -326,6 +326,24 @@ void CPlayerInterface::yourTurn(QueryID queryID)
 
 		if (hotseatWait) //hot seat or MP message
 		{
+			const CGHeroInstance * heroToSelect = nullptr;
+			for (auto hero : localState->getWanderingHeroes())
+			{
+				if (!localState->isHeroSleeping(hero))
+				{
+					heroToSelect = hero;
+					break;
+				}
+			}
+
+			if (heroToSelect != nullptr)
+				localState->setSelection(heroToSelect);
+			else if (!localState->getOwnedTowns().empty())
+				localState->setSelection(localState->getOwnedTown(0));
+			else
+				localState->setSelection(localState->getWanderingHero(0));
+
+			adventureInt->onSelectionChanged(localState->getCurrentArmy());
 			adventureInt->onHotseatWaitStarted(playerID);
 
 			makingTurn = true;
