@@ -725,6 +725,7 @@ SelectableSlot::SelectableSlot(Rect area, Point oversize, const int width)
 {
 	OBJECT_CONSTRUCTION;
 
+	selectionColor = Colors::YELLOW;
 	selectionWidth = width;
 	selection = std::make_shared<TransparentFilledRectangle>( Rect(-oversize, area.dimensions() + oversize * 2), Colors::TRANSPARENCY, selectionColor, selectionWidth);
 	selectSlot(false);
