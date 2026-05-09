@@ -13,17 +13,52 @@
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
+#include "../render/Colors.h"
 
 #include "Buttons.h"
 
 #include "../CPlayerInterface.h"
 
+#include "../../lib/CConfigHandler.h"
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/entities/artifact/ArtifactUtils.h"
 #include "../../lib/entities/artifact/CArtifact.h"
 #include "../../lib/entities/artifact/CArtifactFittingSet.h"
 #include "../../lib/mapObjects/CGHeroInstance.h"
 #include "../../lib/networkPacks/ArtifactLocation.h"
+
+static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet * artSet, const CArtifact * art, ArtifactPosition targetSlot, bool assumeDestRemoved)
+{
+	std::vector<ArtifactPosition> result;
+	if(!art->hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
+		return result;
+	if(!vstd::contains(art->getPossibleSlots().at(artSet->bearerType()), targetSlot))
+		return result;
+
+	std::set<ArtifactPosition> lockedSlots = {targetSlot};
+
+	for(const auto constituent : art->getConstituents())
+	{
+		ArtifactPosition possibleSlot = ArtifactPosition::PRE_FIRST;
+		for(const auto slot : constituent->getPossibleSlots().at(artSet->bearerType()))
+		{
+			if(!ArtifactUtils::isSlotEquipment(slot))
+				continue;
+			if(vstd::contains(lockedSlots, slot))
+				continue;
+			possibleSlot = slot;
+			break;
+		}
+		if(possibleSlot == ArtifactPosition::PRE_FIRST)
+			return {};
+
+		const auto artifactOnRequiredSlot = artSet->getArt(possibleSlot);
+		if(artifactOnRequiredSlot != nullptr && !(assumeDestRemoved && possibleSlot == targetSlot))
+			result.push_back(possibleSlot);
+		lockedSlots.insert(possibleSlot);
+	}
+	return result;
+}
 
 CArtifactsOfHeroBase::CArtifactsOfHeroBase()
 	: curHero(nullptr)
@@ -163,14 +198,51 @@ void CArtifactsOfHeroBase::scrollBackpack(bool left)
 
 void CArtifactsOfHeroBase::markPossibleSlots(const CArtifact * art, bool assumeDestRemoved)
 {
+	if(!settings["general"]["enableUiEnhancements"].Bool())
+	{
+		for(const auto & artPlace : artWorn)
+			artPlace.second->selectSlot(art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved));
+		return;
+	}
+
 	for(const auto & artPlace : artWorn)
-		artPlace.second->selectSlot(art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved));
+		artPlace.second->setSelectionColor(Colors::YELLOW);
+
+	std::map<ArtifactPosition, bool> selectedSlots;
+	std::map<ArtifactPosition, ColorRGBA> slotColors;
+
+	for(const auto & artPlace : artWorn)
+	{
+		const bool canBeEquipped = art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved);
+		selectedSlots[artPlace.second->slot] = canBeEquipped;
+		slotColors[artPlace.second->slot] = Colors::YELLOW;
+
+		const auto blockingSlots = getBlockingRequiredSlots(curHero, art, artPlace.second->slot, assumeDestRemoved);
+		if(!canBeEquipped && !blockingSlots.empty())
+		{
+			selectedSlots[artPlace.second->slot] = true;
+			for(const auto blockingSlot : blockingSlots)
+			{
+				selectedSlots[blockingSlot] = true;
+				slotColors[blockingSlot] = Colors::RED;
+			}
+		}
+	}
+
+	for(const auto & artPlace : artWorn)
+	{
+		artPlace.second->setSelectionColor(slotColors[artPlace.second->slot]);
+		artPlace.second->selectSlot(selectedSlots[artPlace.second->slot]);
+	}
 }
 
 void CArtifactsOfHeroBase::unmarkSlots()
 {
 	for(auto & artPlace : artWorn)
+	{
+		artPlace.second->setSelectionColor(Colors::YELLOW);
 		artPlace.second->selectSlot(false);
+	}
 
 	for(auto & artPlace : backpack)
 		artPlace->selectSlot(false);

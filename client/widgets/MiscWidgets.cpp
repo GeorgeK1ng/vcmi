@@ -725,7 +725,9 @@ SelectableSlot::SelectableSlot(Rect area, Point oversize, const int width)
 {
 	OBJECT_CONSTRUCTION;
 
-	selection = std::make_shared<TransparentFilledRectangle>( Rect(-oversize, area.dimensions() + oversize * 2), Colors::TRANSPARENCY, Colors::YELLOW, width);
+	selectionColor = Colors::YELLOW;
+	selectionWidth = width;
+	selection = std::make_shared<TransparentFilledRectangle>( Rect(-oversize, area.dimensions() + oversize * 2), Colors::TRANSPARENCY, selectionColor, selectionWidth);
 	selectSlot(false);
 }
 
@@ -753,7 +755,16 @@ bool SelectableSlot::isSelected() const
 void SelectableSlot::setSelectionWidth(int width)
 {
 	OBJECT_CONSTRUCTION;
-	selection = std::make_shared<TransparentFilledRectangle>( selection->pos - pos.topLeft(), Colors::TRANSPARENCY, Colors::YELLOW, width);
+	selectionWidth = width;
+	selection = std::make_shared<TransparentFilledRectangle>( selection->pos - pos.topLeft(), Colors::TRANSPARENCY, selectionColor, selectionWidth);
+	selectSlot(selected);
+}
+
+void SelectableSlot::setSelectionColor(const ColorRGBA & color)
+{
+	OBJECT_CONSTRUCTION;
+	selectionColor = color;
+	selection = std::make_shared<TransparentFilledRectangle>( selection->pos - pos.topLeft(), Colors::TRANSPARENCY, selectionColor, selectionWidth);
 	selectSlot(selected);
 }
 

@@ -36,6 +36,39 @@
 #include "../../lib/networkPacks/ArtifactLocation.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
 
+static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance & hero, const CArtifact & artifact, ArtifactPosition targetSlot)
+{
+	std::vector<ArtifactPosition> result;
+	if(!artifact.hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
+		return result;
+	if(!vstd::contains(artifact.getPossibleSlots().at(hero.bearerType()), targetSlot))
+		return result;
+
+	std::set<ArtifactPosition> lockedSlots = {targetSlot};
+
+	for(const auto constituent : artifact.getConstituents())
+	{
+		ArtifactPosition possibleSlot = ArtifactPosition::PRE_FIRST;
+		for(const auto slot : constituent->getPossibleSlots().at(hero.bearerType()))
+		{
+			if(!ArtifactUtils::isSlotEquipment(slot))
+				continue;
+			if(vstd::contains(lockedSlots, slot))
+				continue;
+			possibleSlot = slot;
+			break;
+		}
+		if(possibleSlot == ArtifactPosition::PRE_FIRST)
+			return {};
+
+		if(hero.getArt(possibleSlot) != nullptr)
+			result.push_back(possibleSlot);
+
+		lockedSlots.insert(possibleSlot);
+	}
+	return result;
+}
+
 CWindowWithArtifacts::CWindowWithArtifacts(const std::vector<CArtifactsOfHeroPtr> * artSets)
 {
 	if(artSets)
@@ -274,9 +307,36 @@ void CWindowWithArtifacts::putPickedArtifact(const CGHeroInstance & curHero, con
 		}
 	}
 	// Check if artifact transfer is possible
-	else if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true) && (!curHero.getArt(targetSlot) || curHero.tempOwner == GAME->interface()->playerID))
+	else if((!curHero.getArt(targetSlot) || curHero.tempOwner == GAME->interface()->playerID))
 	{
-		GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+		if(!settings["general"]["enableUiEnhancements"].Bool())
+		{
+			if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true))
+				GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+			return;
+		}
+
+		const auto requiredSlotsToFree = getRequiredSlotsToFree(curHero, *pickedArt->getType(), dstLoc.slot);
+		if(requiredSlotsToFree.empty())
+		{
+			if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true))
+				GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+			return;
+		}
+
+		std::vector<std::shared_ptr<CComponent>> blockedArtifacts;
+		for(const auto requiredSlot : requiredSlotsToFree)
+		{
+			if(const auto blockedArtifact = curHero.getArt(requiredSlot))
+				blockedArtifacts.push_back(std::make_shared<CComponent>(ComponentType::ARTIFACT, blockedArtifact->getTypeId()));
+		}
+
+		MetaString message = MetaString::createFromRawString("Placing %s will automatically put listed artifacts into your backpack.");
+		message.replaceName(pickedArt->getTypeId());
+		GAME->interface()->showYesNoDialog(message.toString(), [srcLoc, dstLoc]()
+		{
+			GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+		}, nullptr, blockedArtifacts);
 	}
 }
 
