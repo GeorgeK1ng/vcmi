@@ -41,6 +41,8 @@ static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance
 	std::vector<ArtifactPosition> result;
 	if(!artifact.hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
 		return result;
+	if(!vstd::contains(artifact.getPossibleSlots().at(hero.bearerType()), targetSlot))
+		return result;
 
 	std::set<ArtifactPosition> lockedSlots = {targetSlot};
 

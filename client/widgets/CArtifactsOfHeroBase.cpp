@@ -32,6 +32,8 @@ static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet
 	std::vector<ArtifactPosition> result;
 	if(!art->hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
 		return result;
+	if(!vstd::contains(art->getPossibleSlots().at(artSet->bearerType()), targetSlot))
+		return result;
 
 	std::set<ArtifactPosition> lockedSlots = {targetSlot};
 
