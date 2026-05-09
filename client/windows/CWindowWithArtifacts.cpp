@@ -32,7 +32,6 @@
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/entities/artifact/ArtifactUtils.h"
 #include "../../lib/entities/artifact/CArtifact.h"
-#include "../../lib/entities/artifact/CArtifactFittingSet.h"
 #include "../../lib/mapObjects/CGHeroInstance.h"
 #include "../../lib/networkPacks/ArtifactLocation.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -43,24 +42,27 @@ static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance
 	if(!artifact.hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
 		return result;
 
-	CArtifactFittingSet fittingSet(hero);
-	fittingSet.removeArtifact(targetSlot);
-	if(fittingSet.getSlot(targetSlot) == nullptr)
-		fittingSet.artifactsWorn.insert(std::make_pair(targetSlot, ArtSlotInfo(fittingSet.cb)));
-	fittingSet.lockSlot(targetSlot);
+	std::set<ArtifactPosition> lockedSlots = {targetSlot};
 
 	for(const auto constituent : artifact.getConstituents())
 	{
-		const auto possibleSlot = ArtifactUtils::getArtAnyPosition(&fittingSet, constituent->getId());
-		if(!ArtifactUtils::isSlotEquipment(possibleSlot))
+		ArtifactPosition possibleSlot = ArtifactPosition::PRE_FIRST;
+		for(const auto slot : constituent->getPossibleSlots().at(hero.bearerType()))
+		{
+			if(!ArtifactUtils::isSlotEquipment(slot))
+				continue;
+			if(vstd::contains(lockedSlots, slot))
+				continue;
+			possibleSlot = slot;
+			break;
+		}
+		if(possibleSlot == ArtifactPosition::PRE_FIRST)
 			return {};
-		if(fittingSet.getSlot(possibleSlot) == nullptr)
-			fittingSet.artifactsWorn.insert(std::make_pair(possibleSlot, ArtSlotInfo(fittingSet.cb)));
 
 		if(hero.getArt(possibleSlot) != nullptr)
 			result.push_back(possibleSlot);
 
-		fittingSet.lockSlot(possibleSlot);
+		lockedSlots.insert(possibleSlot);
 	}
 	return result;
 }
@@ -303,18 +305,20 @@ void CWindowWithArtifacts::putPickedArtifact(const CGHeroInstance & curHero, con
 		}
 	}
 	// Check if artifact transfer is possible
-	else if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true) && (!curHero.getArt(targetSlot) || curHero.tempOwner == GAME->interface()->playerID))
+	else if((!curHero.getArt(targetSlot) || curHero.tempOwner == GAME->interface()->playerID))
 	{
 		if(!settings["general"]["enableUiEnhancements"].Bool())
 		{
-			GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+			if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true))
+				GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
 			return;
 		}
 
 		const auto requiredSlotsToFree = getRequiredSlotsToFree(curHero, *pickedArt->getType(), dstLoc.slot);
 		if(requiredSlotsToFree.empty())
 		{
-			GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+			if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true))
+				GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
 			return;
 		}
 

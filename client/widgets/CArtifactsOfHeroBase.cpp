@@ -33,24 +33,27 @@ static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet
 	if(!art->hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
 		return result;
 
-	CArtifactFittingSet fittingSet(artSet->getCallback(), artSet->bearerType());
-	fittingSet.artifactsWorn = artSet->artifactsWorn;
-	if(assumeDestRemoved)
-		fittingSet.removeArtifact(targetSlot);
-	if(fittingSet.getSlot(targetSlot) == nullptr)
-		fittingSet.artifactsWorn.insert(std::make_pair(targetSlot, ArtSlotInfo(fittingSet.cb)));
-	fittingSet.lockSlot(targetSlot);
+	std::set<ArtifactPosition> lockedSlots = {targetSlot};
 
 	for(const auto constituent : art->getConstituents())
 	{
-		const auto possibleSlot = ArtifactUtils::getArtAnyPosition(&fittingSet, constituent->getId());
-		if(!ArtifactUtils::isSlotEquipment(possibleSlot))
+		ArtifactPosition possibleSlot = ArtifactPosition::PRE_FIRST;
+		for(const auto slot : constituent->getPossibleSlots().at(artSet->bearerType()))
+		{
+			if(!ArtifactUtils::isSlotEquipment(slot))
+				continue;
+			if(vstd::contains(lockedSlots, slot))
+				continue;
+			possibleSlot = slot;
+			break;
+		}
+		if(possibleSlot == ArtifactPosition::PRE_FIRST)
 			return {};
-		if(fittingSet.getSlot(possibleSlot) == nullptr)
-			fittingSet.artifactsWorn.insert(std::make_pair(possibleSlot, ArtSlotInfo(fittingSet.cb)));
-		if(artSet->getArt(possibleSlot) != nullptr)
+
+		const auto artifactOnRequiredSlot = artSet->getArt(possibleSlot);
+		if(artifactOnRequiredSlot != nullptr && !(assumeDestRemoved && possibleSlot == targetSlot))
 			result.push_back(possibleSlot);
-		fittingSet.lockSlot(possibleSlot);
+		lockedSlots.insert(possibleSlot);
 	}
 	return result;
 }
