@@ -187,6 +187,13 @@ void CArtifactsOfHeroBase::scrollBackpack(bool left)
 
 void CArtifactsOfHeroBase::markPossibleSlots(const CArtifact * art, bool assumeDestRemoved)
 {
+	if(!settings["general"]["enableUiEnhancements"].Bool())
+	{
+		for(const auto & artPlace : artWorn)
+			artPlace.second->selectSlot(art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved));
+		return;
+	}
+
 	for(const auto & artPlace : artWorn)
 		artPlace.second->setSelectionColor(Colors::YELLOW);
 

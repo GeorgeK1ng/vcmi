@@ -301,6 +301,12 @@ void CWindowWithArtifacts::putPickedArtifact(const CGHeroInstance & curHero, con
 	// Check if artifact transfer is possible
 	else if(pickedArt->canBePutAt(&curHero, dstLoc.slot, true) && (!curHero.getArt(targetSlot) || curHero.tempOwner == GAME->interface()->playerID))
 	{
+		if(!settings["general"]["enableUiEnhancements"].Bool())
+		{
+			GAME->interface()->cb->swapArtifacts(srcLoc, dstLoc);
+			return;
+		}
+
 		const auto requiredSlotsToFree = getRequiredSlotsToFree(curHero, *pickedArt->getType(), dstLoc.slot);
 		if(requiredSlotsToFree.empty())
 		{
