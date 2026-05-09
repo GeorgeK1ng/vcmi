@@ -265,6 +265,8 @@ class SelectableSlot : public LRClickableAreaWTextComp
 {
 	std::shared_ptr<TransparentFilledRectangle> selection;
 	bool selected;
+	ColorRGBA selectionColor = Colors::YELLOW;
+	int selectionWidth = 1;
 
 public:
 	SelectableSlot(Rect area, Point oversize, const int width);
@@ -273,5 +275,6 @@ public:
 	void selectSlot(bool on);
 	bool isSelected() const;
 	void setSelectionWidth(int width);
+	void setSelectionColor(const ColorRGBA & color);
 	void moveSelectionForeground();
 };

@@ -25,6 +25,30 @@
 #include "../../lib/mapObjects/CGHeroInstance.h"
 #include "../../lib/networkPacks/ArtifactLocation.h"
 
+static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet * artSet, const CArtifact * art, ArtifactPosition targetSlot, bool assumeDestRemoved)
+{
+	std::vector<ArtifactPosition> result;
+	if(!art->hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
+		return result;
+
+	CArtifactFittingSet fittingSet(artSet->getCallback(), artSet->bearerType());
+	fittingSet.artifactsWorn = artSet->artifactsWorn;
+	if(assumeDestRemoved)
+		fittingSet.removeArtifact(targetSlot);
+	fittingSet.lockSlot(targetSlot);
+
+	for(const auto constituent : art->getConstituents())
+	{
+		const auto possibleSlot = ArtifactUtils::getArtAnyPosition(&fittingSet, constituent->getId());
+		if(!ArtifactUtils::isSlotEquipment(possibleSlot))
+			return {};
+		if(artSet->getArt(possibleSlot) != nullptr)
+			result.push_back(possibleSlot);
+		fittingSet.lockSlot(possibleSlot);
+	}
+	return result;
+}
+
 CArtifactsOfHeroBase::CArtifactsOfHeroBase()
 	: curHero(nullptr)
 {
@@ -164,13 +188,37 @@ void CArtifactsOfHeroBase::scrollBackpack(bool left)
 void CArtifactsOfHeroBase::markPossibleSlots(const CArtifact * art, bool assumeDestRemoved)
 {
 	for(const auto & artPlace : artWorn)
-		artPlace.second->selectSlot(art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved));
+		artPlace.second->setSelectionColor(Colors::YELLOW);
+
+	for(const auto & artPlace : artWorn)
+	{
+		const bool canBeEquipped = art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved);
+		artPlace.second->selectSlot(canBeEquipped);
+
+		const auto blockingSlots = getBlockingRequiredSlots(curHero, art, artPlace.second->slot, assumeDestRemoved);
+		if(!canBeEquipped && !blockingSlots.empty())
+		{
+			artPlace.second->setSelectionColor(Colors::YELLOW);
+			artPlace.second->selectSlot(true);
+			for(const auto blockingSlot : blockingSlots)
+			{
+				if(auto blockingPlace = getArtPlace(blockingSlot))
+				{
+					blockingPlace->setSelectionColor(Colors::RED);
+					blockingPlace->selectSlot(true);
+				}
+			}
+		}
+	}
 }
 
 void CArtifactsOfHeroBase::unmarkSlots()
 {
 	for(auto & artPlace : artWorn)
+	{
+		artPlace.second->setSelectionColor(Colors::YELLOW);
 		artPlace.second->selectSlot(false);
+	}
 
 	for(auto & artPlace : backpack)
 		artPlace->selectSlot(false);
