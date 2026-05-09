@@ -45,6 +45,8 @@ static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance
 
 	CArtifactFittingSet fittingSet(&hero);
 	fittingSet.removeArtifact(targetSlot);
+	if(fittingSet.getSlot(targetSlot) == nullptr)
+		fittingSet.artifactsWorn.insert(std::make_pair(targetSlot, ArtSlotInfo(fittingSet.cb)));
 	fittingSet.lockSlot(targetSlot);
 
 	for(const auto constituent : artifact.getConstituents())
@@ -52,6 +54,8 @@ static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance
 		const auto possibleSlot = ArtifactUtils::getArtAnyPosition(&fittingSet, constituent->getId());
 		if(!ArtifactUtils::isSlotEquipment(possibleSlot))
 			return {};
+		if(fittingSet.getSlot(possibleSlot) == nullptr)
+			fittingSet.artifactsWorn.insert(std::make_pair(possibleSlot, ArtSlotInfo(fittingSet.cb)));
 
 		if(hero.getArt(possibleSlot) != nullptr)
 			result.push_back(possibleSlot);

@@ -13,11 +13,13 @@
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
+#include "../render/Colors.h"
 
 #include "Buttons.h"
 
 #include "../CPlayerInterface.h"
 
+#include "../../lib/CConfigHandler.h"
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/entities/artifact/ArtifactUtils.h"
 #include "../../lib/entities/artifact/CArtifact.h"
@@ -35,6 +37,8 @@ static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet
 	fittingSet.artifactsWorn = artSet->artifactsWorn;
 	if(assumeDestRemoved)
 		fittingSet.removeArtifact(targetSlot);
+	if(fittingSet.getSlot(targetSlot) == nullptr)
+		fittingSet.artifactsWorn.insert(std::make_pair(targetSlot, ArtSlotInfo(fittingSet.cb)));
 	fittingSet.lockSlot(targetSlot);
 
 	for(const auto constituent : art->getConstituents())
@@ -42,6 +46,8 @@ static std::vector<ArtifactPosition> getBlockingRequiredSlots(const CArtifactSet
 		const auto possibleSlot = ArtifactUtils::getArtAnyPosition(&fittingSet, constituent->getId());
 		if(!ArtifactUtils::isSlotEquipment(possibleSlot))
 			return {};
+		if(fittingSet.getSlot(possibleSlot) == nullptr)
+			fittingSet.artifactsWorn.insert(std::make_pair(possibleSlot, ArtSlotInfo(fittingSet.cb)));
 		if(artSet->getArt(possibleSlot) != nullptr)
 			result.push_back(possibleSlot);
 		fittingSet.lockSlot(possibleSlot);
@@ -197,25 +203,31 @@ void CArtifactsOfHeroBase::markPossibleSlots(const CArtifact * art, bool assumeD
 	for(const auto & artPlace : artWorn)
 		artPlace.second->setSelectionColor(Colors::YELLOW);
 
+	std::map<ArtifactPosition, bool> selectedSlots;
+	std::map<ArtifactPosition, ColorRGBA> slotColors;
+
 	for(const auto & artPlace : artWorn)
 	{
 		const bool canBeEquipped = art->canBePutAt(curHero, artPlace.second->slot, assumeDestRemoved);
-		artPlace.second->selectSlot(canBeEquipped);
+		selectedSlots[artPlace.second->slot] = canBeEquipped;
+		slotColors[artPlace.second->slot] = Colors::YELLOW;
 
 		const auto blockingSlots = getBlockingRequiredSlots(curHero, art, artPlace.second->slot, assumeDestRemoved);
 		if(!canBeEquipped && !blockingSlots.empty())
 		{
-			artPlace.second->setSelectionColor(Colors::YELLOW);
-			artPlace.second->selectSlot(true);
+			selectedSlots[artPlace.second->slot] = true;
 			for(const auto blockingSlot : blockingSlots)
 			{
-				if(auto blockingPlace = getArtPlace(blockingSlot))
-				{
-					blockingPlace->setSelectionColor(Colors::RED);
-					blockingPlace->selectSlot(true);
-				}
+				selectedSlots[blockingSlot] = true;
+				slotColors[blockingSlot] = Colors::RED;
 			}
 		}
+	}
+
+	for(const auto & artPlace : artWorn)
+	{
+		artPlace.second->setSelectionColor(slotColors[artPlace.second->slot]);
+		artPlace.second->selectSlot(selectedSlots[artPlace.second->slot]);
 	}
 }
 
