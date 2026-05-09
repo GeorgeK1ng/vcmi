@@ -43,7 +43,7 @@ static std::vector<ArtifactPosition> getRequiredSlotsToFree(const CGHeroInstance
 	if(!artifact.hasParts() || !ArtifactUtils::isSlotEquipment(targetSlot))
 		return result;
 
-	CArtifactFittingSet fittingSet(&hero);
+	CArtifactFittingSet fittingSet(hero);
 	fittingSet.removeArtifact(targetSlot);
 	if(fittingSet.getSlot(targetSlot) == nullptr)
 		fittingSet.artifactsWorn.insert(std::make_pair(targetSlot, ArtSlotInfo(fittingSet.cb)));
