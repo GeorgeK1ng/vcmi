@@ -174,6 +174,12 @@ void CLobbyScreen::updateHostLobbyChatState()
 
 	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 
+	if(GAME->server().hasRemoteClientInLobby())
+	{
+		waitingForPlayersMessageShown = false;
+		return;
+	}
+
 	if(!waitingForPlayersMessageShown)
 	{
 		GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
