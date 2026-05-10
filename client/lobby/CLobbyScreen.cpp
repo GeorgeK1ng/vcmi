@@ -198,7 +198,6 @@ void CLobbyScreen::onRemoteClientLobbyStateChanged()
 		waitingForPlayersMessageShown = false;
 
 	updateHostLobbyChatState();
-	updateStartButtonState();
 }
 
 void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
