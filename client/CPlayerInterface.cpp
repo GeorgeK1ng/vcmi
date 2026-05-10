@@ -329,6 +329,7 @@ void CPlayerInterface::yourTurn(QueryID queryID)
 			adventureInt->onHotseatWaitStarted(playerID);
 
 			makingTurn = true;
+			adventureInt->onPlayerTurnStarted(playerID);
 			std::string msg = LIBRARY->generaltexth->allTexts[13];
 			boost::replace_first(msg, "%s", cb->getStartInfo()->playerInfos.find(playerID)->second.name);
 			std::vector<std::shared_ptr<CComponent>> cmp;
@@ -355,8 +356,6 @@ void CPlayerInterface::acceptTurn(QueryID queryID, bool hotseatWait)
 	if(hotseatWait)
 	{
 		waitWhileDialog(); // wait for player to accept turn in hot-seat mode
-
-		adventureInt->onPlayerTurnStarted(playerID);
 	}
 
 	// warn player if he has no town
