@@ -150,12 +150,11 @@ bool CLobbyScreen::canStartLobbyGame() const
 	if(GAME->server().isGuest() || GAME->server().mi == nullptr)
 		return false;
 
-	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
-		&& GAME->server().serverMode == EServerMode::LOCAL
+	const bool isMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
 		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
 
-	if(isLanMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
+	if(isMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
 		return false;
 
 	return true;
