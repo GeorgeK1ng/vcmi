@@ -39,6 +39,7 @@ public:
 
 private:
 	bool waitingForPlayersMessageShown = false;
+	bool remoteClientPresentInLobby = false;
 	bool compatibilityFilterInitialized = false;
 	size_t lastRequiredHumanPlayers = 0;
 
