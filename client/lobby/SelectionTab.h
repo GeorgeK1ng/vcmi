@@ -90,8 +90,8 @@ public:
 	bool sortModeAscending;
 	int currentMapSizeFilter = 0;
 	bool showRandom;
-	std::string lastCompatibilityNotice;
 	size_t requiredHumanPlayers = 1;
+	size_t hiddenIncompatibleMapsCount = 0;
 
 	std::shared_ptr<CTextInput> inputName;
 
@@ -118,6 +118,7 @@ public:
 	void selectNewestFile();
 	std::shared_ptr<ElementInfo> getSelectedMapInfo() const;
 	void setRequiredHumanPlayers(size_t players);
+	size_t getHiddenIncompatibleMapsCount() const;
 	void rememberCurrentSelection();
 	void restoreLastSelection();
 

@@ -616,8 +616,7 @@ void SelectionTab::filter(int size, bool selectFirst)
 	if(buttonDeleteMode)
 		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
 
-	size_t hiddenIncompatibleMaps = 0;
-	size_t requiredHumanPlayersCount = getRequiredHumanPlayers();
+	hiddenIncompatibleMapsCount = 0;
 
 	for(auto elem : allItems)
 	{
@@ -625,8 +624,8 @@ void SelectionTab::filter(int size, bool selectFirst)
 		{
 			if(!isMapCompatibleWithLobbyPlayerCount(*elem))
 			{
-				++hiddenIncompatibleMaps;
-				continue;
+					++hiddenIncompatibleMapsCount;
+					continue;
 			}
 
 			if(showRandom)
@@ -660,26 +659,6 @@ void SelectionTab::filter(int size, bool selectFirst)
 			if(fileInFolder)
 				curItems.push_back(elem);
 		}
-	}
-
-	if(hiddenIncompatibleMaps && tabType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI)
-	{
-		MetaString warningText;
-		warningText.appendTextID("vcmi.lobby.system.hidingIncompatibleMaps");
-		warningText.replaceNumber(requiredHumanPlayersCount);
-		const std::string warningTextFormatted = warningText.toString();
-
-		if(lastCompatibilityNotice != warningTextFormatted)
-		{
-			logGlobal->info("%s", warningTextFormatted);
-			if(!GAME->server().hotseatMode)
-				GAME->server().getGameChat().onNewLobbyMessageReceived("System", warningTextFormatted);
-			lastCompatibilityNotice = warningTextFormatted;
-		}
-	}
-	else
-	{
-		lastCompatibilityNotice.clear();
 	}
 
 	if(curItems.size())
@@ -1015,6 +994,11 @@ size_t SelectionTab::getRequiredHumanPlayers() const
 void SelectionTab::setRequiredHumanPlayers(size_t players)
 {
 	requiredHumanPlayers = players;
+}
+
+size_t SelectionTab::getHiddenIncompatibleMapsCount() const
+{
+	return hiddenIncompatibleMapsCount;
 }
 
 void SelectionTab::parseMaps(const std::unordered_set<ResourcePath> & files)
