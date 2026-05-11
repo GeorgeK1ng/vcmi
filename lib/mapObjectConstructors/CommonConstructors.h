@@ -30,6 +30,8 @@ class CGCreature;
 class CGBoat;
 class CFaction;
 class CStackBasicDescriptor;
+class IGameInfoCallback;
+class IGameRandomizer;
 
 class CObstacleConstructor : public CDefaultObjectTypeHandler<CGObjectInstance>
 {
@@ -68,7 +70,8 @@ class DLL_LINKAGE MineInstanceConstructor : public CDefaultObjectTypeHandler<CGM
 	GameResID resourceType;
 	ui32 defaultQuantity;
 	AnimationPath kingdomOverviewImage;
-	std::vector<CStackBasicDescriptor> guards;
+	JsonNode guards;
+	bool hasGuardsConfig = false;
 public:
 	void initTypeData(const JsonNode & input) override;
 
@@ -77,7 +80,8 @@ public:
 	std::string getDescriptionTextID() const;
 	std::string getDescriptionTranslated() const;
 	AnimationPath getKingdomOverviewImage() const;
-	const std::vector<CStackBasicDescriptor> & getGuards() const;
+	bool hasGuards() const;
+	std::vector<CStackBasicDescriptor> getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const;
 };
 
 class CTownInstanceConstructor : public CDefaultObjectTypeHandler<CGTownInstance>

@@ -108,12 +108,13 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 
 void CGMine::initObj(IGameRandomizer & gameRandomizer)
 {
-	const auto & configuredGuards = getResourceHandler()->getGuards();
-	const bool isGuardedFromConfig = !configuredGuards.empty();
+	const bool hasGuardsConfig = getResourceHandler()->hasGuards();
+	const auto configuredGuards = getResourceHandler()->getGuards(cb, gameRandomizer);
+	const bool isGuardedFromConfig = hasGuardsConfig && !configuredGuards.empty();
 
 	if(isAbandoned())
 	{
-		if(isGuardedFromConfig)
+		if(hasGuardsConfig)
 		{
 			for(const auto & stack : configuredGuards)
 			{
