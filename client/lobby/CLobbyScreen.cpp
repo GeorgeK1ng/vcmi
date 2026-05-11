@@ -194,8 +194,7 @@ void CLobbyScreen::updateStartButtonState()
 
 void CLobbyScreen::onRemoteClientLobbyStateChanged()
 {
-	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
-	if(remoteClientPresentInLobby)
+	if(GAME->server().hasRemoteClientInLobby())
 		waitingForPlayersMessageShown = false;
 
 	updateHostLobbyChatState();
