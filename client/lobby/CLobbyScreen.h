@@ -43,6 +43,7 @@ private:
 	size_t lastRequiredHumanPlayers = 0;
 
 	bool isMultiplayerNetworkLobby() const;
+	bool isMultiplayerHost() const;
 	bool canStartLobbyGame() const;
 	bool isLanOrOnlineMultiplayerHost() const;
 	void updateHostLobbyChatState();

@@ -151,14 +151,17 @@ bool CLobbyScreen::isMultiplayerNetworkLobby() const
 		&& !GAME->server().hotseatMode;
 }
 
+bool CLobbyScreen::isMultiplayerHost() const
+{
+	return isMultiplayerNetworkLobby() && GAME->server().isHost();
+}
+
 bool CLobbyScreen::canStartLobbyGame() const
 {
 	if(GAME->server().isGuest() || GAME->server().mi == nullptr)
 		return false;
 
-	const bool isMultiplayerHost = isMultiplayerNetworkLobby() && GAME->server().isHost();
-
-	if(isMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
+	if(isMultiplayerHost() && !GAME->server().hasRemoteClientInLobby())
 		return false;
 
 	return true;
@@ -167,9 +170,8 @@ bool CLobbyScreen::canStartLobbyGame() const
 bool CLobbyScreen::isLanOrOnlineMultiplayerHost() const
 {
 	return buttonChat
-		&& isMultiplayerNetworkLobby()
-		&& (GAME->server().serverMode == EServerMode::LOCAL || GAME->server().serverMode == EServerMode::LOBBY_HOST)
-		&& GAME->server().isHost();
+		&& isMultiplayerHost()
+		&& (GAME->server().serverMode == EServerMode::LOCAL || GAME->server().serverMode == EServerMode::LOBBY_HOST);
 }
 
 void CLobbyScreen::updateHostLobbyChatState()
