@@ -893,7 +893,16 @@ void SelectionTab::selectFileName(std::string fname)
 		}
 	}
 
-	selectAbs(-1);
+	int firstPos = boost::range::find_if(curItems, [](std::shared_ptr<ElementInfo> e) { return !e->isFolder; }) - curItems.begin();
+	if(firstPos < curItems.size())
+	{
+		slider->scrollTo(firstPos);
+		selectAbs(firstPos);
+	}
+	else if(callOnSelect)
+	{
+		callOnSelect(nullptr);
+	}
 
 	if(tabType == ESelectionScreen::saveGame && inputName->getText().empty())
 		inputName->setText(LIBRARY->generaltexth->translate("core.genrltxt.11"));
