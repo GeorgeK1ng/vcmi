@@ -94,6 +94,7 @@ void ResourceInstanceConstructor::randomizeObject(CGResource * object, IGameRand
 void MineInstanceConstructor::initTypeData(const JsonNode & input)
 {
 	config = input;
+	guards.setType(JsonNode::JsonType::DATA_VECTOR);
 
 	resourceType = GameResID::NONE; //set up fallback
 	LIBRARY->identifiers()->requestIdentifierIfNotNull("resource", input["resource"], [&](si32 index)
@@ -107,8 +108,15 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 
 	if (!config["description"].isNull())
 		LIBRARY->generaltexth->registerString(config.getModScope(), getDescriptionTextID(), config["description"]);
+	if (!config["onGuardedMessage"].isNull())
+		LIBRARY->generaltexth->registerString(config.getModScope(), getOnGuardedMessageTextID(), config["onGuardedMessage"]);
 
 	kingdomOverviewImage = AnimationPath::fromJson(config["kingdomOverviewImage"]);
+
+	if (config["guards"].isVector())
+	{
+		guards = config["guards"];
+	}
 }
 
 GameResID MineInstanceConstructor::getResourceType() const
@@ -126,6 +134,18 @@ std::string MineInstanceConstructor::getDescriptionTextID() const
 	return TextIdentifier(getBaseTextID(), "description").get();
 }
 
+std::string MineInstanceConstructor::getOnGuardedMessageTextID() const
+{
+	return TextIdentifier(getBaseTextID(), "onGuardedMessage").get();
+}
+
+std::string MineInstanceConstructor::getOnGuardedMessageTranslated() const
+{
+	if (config["onGuardedMessage"].isNull())
+		return {};
+	return LIBRARY->generaltexth->translate(getOnGuardedMessageTextID());
+}
+
 std::string MineInstanceConstructor::getDescriptionTranslated() const
 {
 	return LIBRARY->generaltexth->translate(getDescriptionTextID());
@@ -134,6 +154,13 @@ std::string MineInstanceConstructor::getDescriptionTranslated() const
 AnimationPath MineInstanceConstructor::getKingdomOverviewImage() const
 {
 	return kingdomOverviewImage;
+}
+
+std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const
+{
+	JsonRandom randomizer(const_cast<IGameInfoCallback *>(cb), gameRandomizer);
+	JsonRandom::Variables emptyVariables;
+	return randomizer.loadCreatures(guards, emptyVariables);
 }
 
 void CTownInstanceConstructor::initTypeData(const JsonNode & input)
