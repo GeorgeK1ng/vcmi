@@ -160,15 +160,18 @@ bool CLobbyScreen::canStartLobbyGame() const
 	return true;
 }
 
-void CLobbyScreen::updateHostLobbyChatState()
+bool CLobbyScreen::isLanOrOnlineMultiplayerHost() const
 {
-	const bool isLanMultiplayerHost = buttonChat
+	return buttonChat
 		&& GAME->server().loadMode == ELoadMode::MULTI
 		&& (GAME->server().serverMode == EServerMode::LOCAL || GAME->server().serverMode == EServerMode::LOBBY_HOST)
 		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
+}
 
-	if(!isLanMultiplayerHost)
+void CLobbyScreen::updateHostLobbyChatState()
+{
+	if(!isLanOrOnlineMultiplayerHost())
 		return;
 
 	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
@@ -182,13 +185,7 @@ void CLobbyScreen::updateStartButtonState()
 
 void CLobbyScreen::onRemoteClientLobbyStateChanged()
 {
-	const bool isLanMultiplayerHost = buttonChat
-		&& GAME->server().loadMode == ELoadMode::MULTI
-		&& (GAME->server().serverMode == EServerMode::LOCAL || GAME->server().serverMode == EServerMode::LOBBY_HOST)
-		&& !GAME->server().hotseatMode
-		&& GAME->server().isHost();
-
-	if(!isLanMultiplayerHost)
+	if(!isLanOrOnlineMultiplayerHost())
 	{
 		updateHostLobbyChatState();
 		return;
