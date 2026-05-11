@@ -108,12 +108,26 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 
 void CGMine::initObj(IGameRandomizer & gameRandomizer)
 {
+	const auto & configuredGuards = getResourceHandler()->getGuards();
+	const bool isGuardedFromConfig = !configuredGuards.empty();
+
 	if(isAbandoned())
 	{
-		//set guardians
-		int howManyGuards = gameRandomizer.getDefault().nextInt(abandonedMineGuards.minAmount, abandonedMineGuards.maxAmount);
-		auto guards = std::make_unique<CStackInstance>(cb, abandonedMineGuards.creature, howManyGuards);
-		putStack(SlotID(0), std::move(guards));
+		if(isGuardedFromConfig)
+		{
+			for(const auto & stack : configuredGuards)
+			{
+				auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
+				putStack(SlotID(stacksCount()), std::move(guards));
+			}
+		}
+		else
+		{
+			//set default abandoned mine guardians
+			int howManyGuards = gameRandomizer.getDefault().nextInt(abandonedMineGuards.minAmount, abandonedMineGuards.maxAmount);
+			auto guards = std::make_unique<CStackInstance>(cb, abandonedMineGuards.creature, howManyGuards);
+			putStack(SlotID(0), std::move(guards));
+		}
 
 		assert(!abandonedMineResources.empty());
 		if (!abandonedMineResources.empty())
@@ -128,6 +142,15 @@ void CGMine::initObj(IGameRandomizer & gameRandomizer)
 	}
 	else
 	{
+		if(isGuardedFromConfig)
+		{
+			for(const auto & stack : configuredGuards)
+			{
+				auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
+				putStack(SlotID(stacksCount()), std::move(guards));
+			}
+		}
+
 		if(getResourceHandler()->getResourceType() == GameResID::NONE) // fallback
 			producedResource = GameResID(getObjTypeIndex().getNum());
 		else

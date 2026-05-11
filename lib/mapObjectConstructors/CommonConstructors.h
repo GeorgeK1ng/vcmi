@@ -68,6 +68,7 @@ class DLL_LINKAGE MineInstanceConstructor : public CDefaultObjectTypeHandler<CGM
 	GameResID resourceType;
 	ui32 defaultQuantity;
 	AnimationPath kingdomOverviewImage;
+	std::vector<CStackBasicDescriptor> guards;
 public:
 	void initTypeData(const JsonNode & input) override;
 
@@ -76,6 +77,7 @@ public:
 	std::string getDescriptionTextID() const;
 	std::string getDescriptionTranslated() const;
 	AnimationPath getKingdomOverviewImage() const;
+	const std::vector<CStackBasicDescriptor> & getGuards() const;
 };
 
 class CTownInstanceConstructor : public CDefaultObjectTypeHandler<CGTownInstance>
