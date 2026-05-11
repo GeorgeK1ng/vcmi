@@ -425,9 +425,14 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 					continue;
 				}
 
-				int3 size(*mapSize, *mapSize, mapGenOptions->getLevels());
-
-				bool sizeAllowed = !mapGenOptions->getMapTemplate() || mapGenOptions->getMapTemplate()->matchesSize(size);
+				bool sizeAllowed = true;
+				if(mapGenOptions->getMapTemplate())
+				{
+					const int currentSize = *mapSize;
+					const bool sizeWithOneLevelAllowed = mapGenOptions->getMapTemplate()->matchesSize(int3{currentSize, currentSize, 1});
+					const bool sizeWithTwoLevelsAllowed = mapGenOptions->getMapTemplate()->matchesSize(int3{currentSize, currentSize, 2});
+					sizeAllowed = sizeWithOneLevelAllowed || sizeWithTwoLevelsAllowed;
+				}
 				button->block(!sizeAllowed);
 			}
 		}
