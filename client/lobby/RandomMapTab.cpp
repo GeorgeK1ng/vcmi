@@ -425,9 +425,14 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 					continue;
 				}
 
-				int3 size(*mapSize, *mapSize, mapGenOptions->getLevels());
-
-				bool sizeAllowed = !mapGenOptions->getMapTemplate() || mapGenOptions->getMapTemplate()->matchesSize(size);
+				bool sizeAllowed = true;
+				if(mapGenOptions->getMapTemplate())
+				{
+					const int currentSize = *mapSize;
+					const bool sizeWithOneLevelAllowed = mapGenOptions->getMapTemplate()->matchesSize(int3{currentSize, currentSize, 1});
+					const bool sizeWithTwoLevelsAllowed = mapGenOptions->getMapTemplate()->matchesSize(int3{currentSize, currentSize, 2});
+					sizeAllowed = sizeWithOneLevelAllowed || sizeWithTwoLevelsAllowed;
+				}
 				button->block(!sizeAllowed);
 			}
 		}
@@ -452,14 +457,23 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 	}
 	if(auto w = widget<CToggleButton>("buttonTwoLevels"))
 	{
-		int possibleLevelCount = 2;
+		bool canUseOneLevel = true;
+		bool canUseTwoLevels = true;
 		if(mapGenOptions->getMapTemplate())
 		{
-			auto sizes = mapGenOptions->getMapTemplate()->getMapSizes();
-			possibleLevelCount = sizes.second.z - sizes.first.z + 1;
+			const int currentWidth = opts->getWidth();
+			const int currentHeight = opts->getHeight();
+			canUseOneLevel = mapGenOptions->getMapTemplate()->matchesSize(int3{currentWidth, currentHeight, 1});
+			canUseTwoLevels = mapGenOptions->getMapTemplate()->matchesSize(int3{currentWidth, currentHeight, 2});
 		}
+
+		if(!canUseOneLevel && canUseTwoLevels)
+			opts->setLevels(2);
+		else if(canUseOneLevel && !canUseTwoLevels)
+			opts->setLevels(1);
+
 		w->setSelectedSilent(opts->getLevels() == 2);
-		w->block(possibleLevelCount < 2);
+		w->block(!canUseOneLevel || !canUseTwoLevels);
 	}
 	if(auto w = widget<CToggleGroup>("groupMaxPlayers"))
 	{

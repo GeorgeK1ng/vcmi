@@ -703,11 +703,9 @@ CRmgTemplate::CRmgTemplate()
 
 bool CRmgTemplate::matchesSize(const int3 & value) const
 {
-	const int64_t square = value.x * value.y * value.z;
-	const int64_t minSquare = minSize.x * minSize.y * minSize.z;
-	const int64_t maxSquare = maxSize.x * maxSize.y * maxSize.z;
-
-	return minSquare <= square && square <= maxSquare;
+	return minSize.x <= value.x && value.x <= maxSize.x
+		&& minSize.y <= value.y && value.y <= maxSize.y
+		&& minSize.z <= value.z && value.z <= maxSize.z;
 }
 
 bool CRmgTemplate::isWaterContentAllowed(EWaterContent::EWaterContent waterContent) const
