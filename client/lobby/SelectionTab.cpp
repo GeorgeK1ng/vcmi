@@ -853,12 +853,13 @@ void SelectionTab::selectFileName(std::string fname)
 
 	for(int i = (int)allItems.size() - 1; i >= 0; i--)
 	{
-		if(boost::to_upper_copy(allItems[i]->fileURI) == fname)
-		{
-			auto [folderName, baseFolder, parentExists, fileInFolder] = checkSubfolder(allItems[i]->originalFileURI);
-			curFolder = baseFolder != "" ? baseFolder + "/" : "";
+			if(boost::to_upper_copy(allItems[i]->fileURI) == fname)
+			{
+				auto [folderName, baseFolder, parentExists, fileInFolder] = checkSubfolder(allItems[i]->originalFileURI);
+				// Keep scenario selection on the root list: random maps are accessed via dedicated UI path.
+				curFolder = (baseFolder != "" && baseFolder != "RandomMaps") ? baseFolder + "/" : "";
+			}
 		}
-	}
 
 	filter(-1);
 
