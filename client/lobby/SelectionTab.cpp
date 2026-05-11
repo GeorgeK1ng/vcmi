@@ -697,32 +697,6 @@ void SelectionTab::filter(int size, bool selectFirst)
 				selectAbs(firstPos);
 			}
 		}
-		else if(tabType == ESelectionScreen::newGame || tabType == ESelectionScreen::campaignList)
-		{
-			const std::string selectedMapFileURI = GAME->server().mi ? GAME->server().mi->fileURI : "";
-			const bool selectedRandomMap = tabType == ESelectionScreen::newGame	&& GAME->server().mi && GAME->server().mi->isRandomMap;
-			auto selectedMapIt = boost::range::find_if(curItems, [&selectedMapFileURI](std::shared_ptr<ElementInfo> e)
-			{
-				return !e->isFolder && e->fileURI == selectedMapFileURI;
-			});
-
-			if(selectedMapIt == curItems.end() && !selectedRandomMap)
-			{
-				int firstPos = boost::range::find_if(curItems, [](std::shared_ptr<ElementInfo> e) { return !e->isFolder; }) - curItems.begin();
-				if(firstPos < curItems.size())
-				{
-					slider->scrollTo(firstPos);
-					callOnSelect(curItems[firstPos]);
-					selectAbs(firstPos);
-				}
-			}
-			else if(selectedMapIt != curItems.end())
-			{
-				const auto selectedPos = std::distance(curItems.begin(), selectedMapIt);
-				callOnSelect(curItems.at(static_cast<size_t>(selectedPos)));
-				selectAbs(static_cast<int>(selectedPos));
-			}
-		}
 	}
 	else
 	{
