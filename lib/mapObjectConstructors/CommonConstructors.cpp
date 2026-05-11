@@ -96,6 +96,7 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 	config = input;
 	guards.clear();
 	hasGuardsConfig = false;
+	hasGuardedMessageConfig = false;
 
 	resourceType = GameResID::NONE; //set up fallback
 	LIBRARY->identifiers()->requestIdentifierIfNotNull("resource", input["resource"], [&](si32 index)
@@ -109,6 +110,11 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 
 	if (!config["description"].isNull())
 		LIBRARY->generaltexth->registerString(config.getModScope(), getDescriptionTextID(), config["description"]);
+	if (!config["guardedMessage"].isNull())
+	{
+		hasGuardedMessageConfig = true;
+		LIBRARY->generaltexth->registerString(config.getModScope(), getGuardedMessageTextID(), config["guardedMessage"]);
+	}
 
 	kingdomOverviewImage = AnimationPath::fromJson(config["kingdomOverviewImage"]);
 
@@ -132,6 +138,16 @@ ui32 MineInstanceConstructor::getDefaultQuantity() const
 std::string MineInstanceConstructor::getDescriptionTextID() const
 {
 	return TextIdentifier(getBaseTextID(), "description").get();
+}
+
+std::string MineInstanceConstructor::getGuardedMessageTextID() const
+{
+	return TextIdentifier(getBaseTextID(), "guardedMessage").get();
+}
+
+bool MineInstanceConstructor::hasGuardedMessage() const
+{
+	return hasGuardedMessageConfig;
 }
 
 std::string MineInstanceConstructor::getDescriptionTranslated() const

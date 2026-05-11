@@ -72,12 +72,15 @@ class DLL_LINKAGE MineInstanceConstructor : public CDefaultObjectTypeHandler<CGM
 	AnimationPath kingdomOverviewImage;
 	JsonNode guards;
 	bool hasGuardsConfig = false;
+	bool hasGuardedMessageConfig = false;
 public:
 	void initTypeData(const JsonNode & input) override;
 
 	GameResID getResourceType() const;
 	ui32 getDefaultQuantity() const;
 	std::string getDescriptionTextID() const;
+	std::string getGuardedMessageTextID() const;
+	bool hasGuardedMessage() const;
 	std::string getDescriptionTranslated() const;
 	AnimationPath getKingdomOverviewImage() const;
 	bool hasGuards() const;

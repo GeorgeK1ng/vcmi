@@ -98,7 +98,10 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 	{
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
-		ynd.text.appendLocalString(EMetaText::ADVOB_TXT, isAbandoned() ? 84 : 187); //TODO: alternative text for custom guards
+		if(!isAbandoned() && getResourceHandler()->hasGuards() && getResourceHandler()->hasGuardedMessage())
+			ynd.text.appendTextID(getResourceHandler()->getGuardedMessageTextID());
+		else
+			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, isAbandoned() ? 84 : 187);
 		gameEvents.showBlockingDialog(this, &ynd);
 		return;
 	}
