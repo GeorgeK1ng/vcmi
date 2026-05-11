@@ -95,7 +95,6 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 {
 	config = input;
 	guards.clear();
-	hasGuardsConfig = false;
 	hasGuardedMessageConfig = false;
 
 	resourceType = GameResID::NONE; //set up fallback
@@ -120,7 +119,6 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 
 	if (config["guards"].getType() == JsonNode::JsonType::DATA_VECTOR)
 	{
-		hasGuardsConfig = true;
 		guards = config["guards"];
 	}
 }
@@ -162,12 +160,12 @@ AnimationPath MineInstanceConstructor::getKingdomOverviewImage() const
 
 bool MineInstanceConstructor::hasGuards() const
 {
-	return hasGuardsConfig;
+	return guards.getType() == JsonNode::JsonType::DATA_VECTOR;
 }
 
 std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const
 {
-	if (!hasGuardsConfig)
+	if (!hasGuards())
 		return {};
 
 	JsonRandom randomizer(const_cast<IGameInfoCallback *>(cb), gameRandomizer);

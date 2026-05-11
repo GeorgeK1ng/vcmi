@@ -71,7 +71,6 @@ class DLL_LINKAGE MineInstanceConstructor : public CDefaultObjectTypeHandler<CGM
 	ui32 defaultQuantity;
 	AnimationPath kingdomOverviewImage;
 	JsonNode guards;
-	bool hasGuardsConfig = false;
 	bool hasGuardedMessageConfig = false;
 public:
 	void initTypeData(const JsonNode & input) override;
