@@ -338,11 +338,9 @@ void CLobbyScreen::updateAfterStateChange()
 	onRemoteClientLobbyStateChanged();
 	const bool shouldFilterByPlayerCount = screenType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI;
 	const size_t requiredHumanPlayers = shouldFilterByPlayerCount ? std::max<size_t>(2, GAME->server().playerNames.size()) : 0;
-	tabSel->setRequiredHumanPlayers(requiredHumanPlayers);
-
 	if(!compatibilityFilterInitialized || (shouldFilterByPlayerCount && requiredHumanPlayers != lastRequiredHumanPlayers))
 	{
-		tabSel->filter(-1);
+		tabSel->filter(-1, requiredHumanPlayers);
 		compatibilityFilterInitialized = true;
 		lastRequiredHumanPlayers = requiredHumanPlayers;
 	}

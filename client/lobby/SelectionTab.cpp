@@ -599,6 +599,12 @@ auto SelectionTab::checkSubfolder(std::string path)
 
 // A new size filter (Small, Medium, ...) has been selected. Populate
 // selMaps with the relevant data.
+void SelectionTab::filter(int size, size_t requiredHumanPlayersCount, bool selectFirst)
+{
+	setRequiredHumanPlayers(requiredHumanPlayersCount);
+	filter(size, selectFirst);
+}
+
 void SelectionTab::filter(int size, bool selectFirst)
 {
 	if(size == -1)
