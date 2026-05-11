@@ -135,6 +135,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
 	}
 
+	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
 	updateHostLobbyChatState();
 }
 
@@ -173,7 +174,7 @@ void CLobbyScreen::updateHostLobbyChatState()
 
 	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 
-	if(GAME->server().hasRemoteClientInLobby())
+	if(remoteClientPresentInLobby)
 	{
 		waitingForPlayersMessageShown = false;
 		return;
@@ -335,6 +336,7 @@ void CLobbyScreen::toggleChat()
 void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
+	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
 	updateHostLobbyChatState();
 	const bool shouldFilterByPlayerCount = screenType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI;
 	const size_t requiredHumanPlayers = shouldFilterByPlayerCount ? std::max<size_t>(2, GAME->server().playerNames.size()) : 0;

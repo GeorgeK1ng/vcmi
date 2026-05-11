@@ -170,6 +170,17 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyRestartGame(LobbyRestartGame &
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyPrepareStartGame(LobbyPrepareStartGame & pack)
 {
 	handler.logicConnection->enterLobbyConnectionMode();
+
+	if(settings["session"]["headless"].Bool())
+		return;
+
+	if(!ENGINE->windows().topWindow<CLoadingScreen>())
+	{
+		if(handler.si->campState && !handler.si->campState->getLoadingBackground().empty())
+			ENGINE->windows().createAndPushWindow<CLoadingScreen>(handler.si->campState->getLoadingBackground());
+		else
+			ENGINE->windows().createAndPushWindow<CLoadingScreen>();
+	}
 }
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyStartGame(LobbyStartGame & pack)
