@@ -135,7 +135,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
 	}
 
-	updateHostLobbyChatState();
+	onRemoteClientLobbyStateChanged();
 }
 
 CLobbyScreen::~CLobbyScreen()
@@ -173,17 +173,6 @@ void CLobbyScreen::updateHostLobbyChatState()
 
 	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 
-	if(GAME->server().hasRemoteClientInLobby())
-	{
-		waitingForPlayersMessageShown = false;
-		return;
-	}
-
-	if(!waitingForPlayersMessageShown)
-	{
-		GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
-		waitingForPlayersMessageShown = true;
-	}
 }
 
 void CLobbyScreen::updateStartButtonState()
@@ -193,8 +182,19 @@ void CLobbyScreen::updateStartButtonState()
 
 void CLobbyScreen::onRemoteClientLobbyStateChanged()
 {
-	if(GAME->server().hasRemoteClientInLobby())
+	const bool hasRemoteClient = GAME->server().hasRemoteClientInLobby();
+
+	if(hasRemoteClient)
+	{
 		waitingForPlayersMessageShown = false;
+	}
+	else if(!waitingForPlayersMessageShown)
+	{
+		// Show this message exactly once per "everyone disconnected" event,
+		// regardless of how many state refreshes the lobby screen performs.
+		GAME->server().getGameChat().onNewLobbyMessageReceived("System", LIBRARY->generaltexth->translate("vcmi.lobby.system.waitingForPlayers"));
+		waitingForPlayersMessageShown = true;
+	}
 
 	updateHostLobbyChatState();
 }
@@ -335,7 +335,7 @@ void CLobbyScreen::toggleChat()
 void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
-	updateHostLobbyChatState();
+	onRemoteClientLobbyStateChanged();
 	const bool shouldFilterByPlayerCount = screenType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI;
 	const size_t requiredHumanPlayers = shouldFilterByPlayerCount ? std::max<size_t>(2, GAME->server().playerNames.size()) : 0;
 	tabSel->setRequiredHumanPlayers(requiredHumanPlayers);
