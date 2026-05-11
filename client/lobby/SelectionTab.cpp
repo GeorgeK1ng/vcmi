@@ -919,24 +919,25 @@ std::shared_ptr<ElementInfo> SelectionTab::getSelectedMapInfo() const
 
 void SelectionTab::rememberCurrentSelection()
 {
-	if(getSelectedMapInfo()->isFolder)
+	const auto selectedMapInfo = getSelectedMapInfo();
+	if(!selectedMapInfo || selectedMapInfo->isFolder)
 		return;
 		
 	// TODO: this can be more elegant
 	if(tabType == ESelectionScreen::newGame)
 	{
 		Settings lastMap = settings.write["general"]["lastMap"];
-		lastMap->String() = getSelectedMapInfo()->fileURI;
+		lastMap->String() = selectedMapInfo->fileURI;
 	}
 	else if(tabType == ESelectionScreen::loadGame)
 	{
 		Settings lastSave = settings.write["general"]["lastSave"];
-		lastSave->String() = getSelectedMapInfo()->fileURI;
+		lastSave->String() = selectedMapInfo->fileURI;
 	}
 	else if(tabType == ESelectionScreen::campaignList)
 	{
 		Settings lastCampaign = settings.write["general"]["lastCampaign"];
-		lastCampaign->String() = getSelectedMapInfo()->fileURI;
+		lastCampaign->String() = selectedMapInfo->fileURI;
 	}
 }
 
