@@ -154,7 +154,7 @@ std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(const IGam
 	if (!hasGuardsConfig)
 		return {};
 
-	JsonRandom randomizer(cb, gameRandomizer);
+	JsonRandom randomizer(const_cast<IGameInfoCallback *>(cb), gameRandomizer);
 	JsonRandom::Variables emptyVariables;
 	return randomizer.loadCreatures(guards, emptyVariables);
 }
