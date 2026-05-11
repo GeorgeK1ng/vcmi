@@ -135,6 +135,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
 	}
 
+	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
 	updateHostLobbyChatState();
 }
 
@@ -150,12 +151,11 @@ bool CLobbyScreen::canStartLobbyGame() const
 	if(GAME->server().isGuest() || GAME->server().mi == nullptr)
 		return false;
 
-	const bool isLanMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
-		&& GAME->server().serverMode == EServerMode::LOCAL
+	const bool isMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
 		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
 
-	if(isLanMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
+	if(isMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
 		return false;
 
 	return true;
@@ -174,7 +174,7 @@ void CLobbyScreen::updateHostLobbyChatState()
 
 	buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
 
-	if(GAME->server().hasRemoteClientInLobby())
+	if(remoteClientPresentInLobby)
 	{
 		waitingForPlayersMessageShown = false;
 		return;
@@ -190,6 +190,15 @@ void CLobbyScreen::updateHostLobbyChatState()
 void CLobbyScreen::updateStartButtonState()
 {
 	buttonStart->block(!canStartLobbyGame());
+}
+
+void CLobbyScreen::onRemoteClientLobbyStateChanged()
+{
+	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
+	if(remoteClientPresentInLobby)
+		waitingForPlayersMessageShown = false;
+
+	updateHostLobbyChatState();
 }
 
 void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
@@ -328,6 +337,7 @@ void CLobbyScreen::toggleChat()
 void CLobbyScreen::updateAfterStateChange()
 {
 	OBJECT_CONSTRUCTION;
+	remoteClientPresentInLobby = GAME->server().hasRemoteClientInLobby();
 	updateHostLobbyChatState();
 	const bool shouldFilterByPlayerCount = screenType == ESelectionScreen::newGame && GAME->server().loadMode == ELoadMode::MULTI;
 	const size_t requiredHumanPlayers = shouldFilterByPlayerCount ? std::max<size_t>(2, GAME->server().playerNames.size()) : 0;

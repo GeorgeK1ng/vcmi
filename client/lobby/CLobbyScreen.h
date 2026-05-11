@@ -30,6 +30,7 @@ public:
 	void toggleChat();
 
 	void updateAfterStateChange();
+	void onRemoteClientLobbyStateChanged();
 
 	const CMapInfo * getMapInfo() final;
 	const StartInfo * getStartInfo() final;
@@ -38,6 +39,7 @@ public:
 
 private:
 	bool waitingForPlayersMessageShown = false;
+	bool remoteClientPresentInLobby = false;
 	bool compatibilityFilterInitialized = false;
 	size_t lastRequiredHumanPlayers = 0;
 

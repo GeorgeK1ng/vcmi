@@ -233,6 +233,17 @@ void CPlayerInterface::playerStartsTurn(PlayerColor player)
 		// after map load - remove all active windows and replace them with adventure map
 		ENGINE->windows().clear();
 		ENGINE->windows().pushWindow(adventureInt);
+
+		if(player != playerID)
+		{
+			const CArmedInstance * focusTarget = localState->getCurrentArmy();
+			if(!focusTarget && !localState->getWanderingHeroes().empty())
+				focusTarget = localState->getWanderingHero(0);
+			if(!focusTarget && !localState->getOwnedTowns().empty())
+				focusTarget = localState->getOwnedTown(0);
+			if(focusTarget)
+				adventureInt->centerOnObject(focusTarget);
+		}
 	}
 
 	EVENT_HANDLER_CALLED_BY_CLIENT;
@@ -329,6 +340,7 @@ void CPlayerInterface::yourTurn(QueryID queryID)
 			adventureInt->onHotseatWaitStarted(playerID);
 
 			makingTurn = true;
+			adventureInt->onPlayerTurnStarted(playerID);
 			std::string msg = LIBRARY->generaltexth->allTexts[13];
 			boost::replace_first(msg, "%s", cb->getStartInfo()->playerInfos.find(playerID)->second.name);
 			std::vector<std::shared_ptr<CComponent>> cmp;
@@ -355,8 +367,6 @@ void CPlayerInterface::acceptTurn(QueryID queryID, bool hotseatWait)
 	if(hotseatWait)
 	{
 		waitWhileDialog(); // wait for player to accept turn in hot-seat mode
-
-		adventureInt->onPlayerTurnStarted(playerID);
 	}
 
 	// warn player if he has no town
