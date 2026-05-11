@@ -78,8 +78,8 @@ public:
 	ui32 getDefaultQuantity() const;
 	std::string getDescriptionTextID() const;
 	std::string getOnGuardedMessageTextID() const;
-	std::string getOnGuardedMessageTranslated() const;
 	std::string getDescriptionTranslated() const;
+	std::string getOnGuardedMessageTranslated() const;
 	AnimationPath getKingdomOverviewImage() const;
 	std::vector<CStackBasicDescriptor> getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const;
 };
