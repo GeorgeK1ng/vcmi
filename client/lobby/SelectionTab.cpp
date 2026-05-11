@@ -718,9 +718,9 @@ void SelectionTab::filter(int size, bool selectFirst)
 			}
 			else if(selectedMapIt != curItems.end())
 			{
-				const int selectedPos = static_cast<int>(selectedMapIt - curItems.begin());
-				callOnSelect(curItems[selectedPos]);
-				selectAbs(selectedPos);
+				const auto selectedPos = std::distance(curItems.begin(), selectedMapIt);
+				callOnSelect(curItems.at(static_cast<size_t>(selectedPos)));
+				selectAbs(static_cast<int>(selectedPos));
 			}
 		}
 	}
