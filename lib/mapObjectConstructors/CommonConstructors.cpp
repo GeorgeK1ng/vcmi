@@ -94,7 +94,6 @@ void ResourceInstanceConstructor::randomizeObject(CGResource * object, IGameRand
 void MineInstanceConstructor::initTypeData(const JsonNode & input)
 {
 	config = input;
-	guards.setType(JsonNode::JsonType::DATA_VECTOR);
 
 	resourceType = GameResID::NONE; //set up fallback
 	LIBRARY->identifiers()->requestIdentifierIfNotNull("resource", input["resource"], [&](si32 index)
