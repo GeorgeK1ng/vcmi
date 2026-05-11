@@ -42,6 +42,7 @@ private:
 	bool compatibilityFilterInitialized = false;
 	size_t lastRequiredHumanPlayers = 0;
 
+	bool isMultiplayerNetworkLobby() const;
 	bool canStartLobbyGame() const;
 	bool isLanOrOnlineMultiplayerHost() const;
 	void updateHostLobbyChatState();

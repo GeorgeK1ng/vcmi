@@ -73,7 +73,7 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		}
 	};
 
-	if(screenType != ESelectionScreen::campaignList && GAME->server().loadMode == ELoadMode::MULTI && !GAME->server().hotseatMode)
+	if(screenType != ESelectionScreen::campaignList && isMultiplayerNetworkLobby())
 	{
 		buttonChat = std::make_shared<CButton>(Point(619, 105), AnimationPath::builtin("GSPBUT2.DEF"), LIBRARY->generaltexth->zelp[48], std::bind(&CLobbyScreen::toggleChat, this), EShortcut::LOBBY_TOGGLE_CHAT);
 		buttonChat->setTextOverlay(card->showChat ? LIBRARY->generaltexth->allTexts[531] : LIBRARY->generaltexth->allTexts[532], FONT_SMALL, Colors::WHITE);
@@ -145,14 +145,18 @@ CLobbyScreen::~CLobbyScreen()
 		GAME->server().sendClientDisconnecting();
 }
 
+bool CLobbyScreen::isMultiplayerNetworkLobby() const
+{
+	return GAME->server().loadMode == ELoadMode::MULTI
+		&& !GAME->server().hotseatMode;
+}
+
 bool CLobbyScreen::canStartLobbyGame() const
 {
 	if(GAME->server().isGuest() || GAME->server().mi == nullptr)
 		return false;
 
-	const bool isMultiplayerHost = GAME->server().loadMode == ELoadMode::MULTI
-		&& !GAME->server().hotseatMode
-		&& GAME->server().isHost();
+	const bool isMultiplayerHost = isMultiplayerNetworkLobby() && GAME->server().isHost();
 
 	if(isMultiplayerHost && !GAME->server().hasRemoteClientInLobby())
 		return false;
@@ -163,9 +167,8 @@ bool CLobbyScreen::canStartLobbyGame() const
 bool CLobbyScreen::isLanOrOnlineMultiplayerHost() const
 {
 	return buttonChat
-		&& GAME->server().loadMode == ELoadMode::MULTI
+		&& isMultiplayerNetworkLobby()
 		&& (GAME->server().serverMode == EServerMode::LOCAL || GAME->server().serverMode == EServerMode::LOBBY_HOST)
-		&& !GAME->server().hotseatMode
 		&& GAME->server().isHost();
 }
 
