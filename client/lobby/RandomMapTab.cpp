@@ -452,14 +452,23 @@ void RandomMapTab::setMapGenOptions(std::shared_ptr<CMapGenOptions> opts)
 	}
 	if(auto w = widget<CToggleButton>("buttonTwoLevels"))
 	{
-		int possibleLevelCount = 2;
+		bool canUseOneLevel = true;
+		bool canUseTwoLevels = true;
 		if(mapGenOptions->getMapTemplate())
 		{
-			auto sizes = mapGenOptions->getMapTemplate()->getMapSizes();
-			possibleLevelCount = sizes.second.z - sizes.first.z + 1;
+			const int currentWidth = opts->getWidth();
+			const int currentHeight = opts->getHeight();
+			canUseOneLevel = mapGenOptions->getMapTemplate()->matchesSize(int3{currentWidth, currentHeight, 1});
+			canUseTwoLevels = mapGenOptions->getMapTemplate()->matchesSize(int3{currentWidth, currentHeight, 2});
 		}
+
+		if(!canUseOneLevel && canUseTwoLevels)
+			opts->setLevels(2);
+		else if(canUseOneLevel && !canUseTwoLevels)
+			opts->setLevels(1);
+
 		w->setSelectedSilent(opts->getLevels() == 2);
-		w->block(possibleLevelCount < 2);
+		w->block(!canUseOneLevel || !canUseTwoLevels);
 	}
 	if(auto w = widget<CToggleGroup>("groupMaxPlayers"))
 	{
