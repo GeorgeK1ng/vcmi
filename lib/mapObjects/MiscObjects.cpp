@@ -98,8 +98,9 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 	{
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
-		if(!isAbandoned() && getResourceHandler()->hasGuards() && getResourceHandler()->hasGuardedMessage())
-			ynd.text.appendTextID(getResourceHandler()->getGuardedMessageTextID());
+		const auto guardedMessageTextID = getResourceHandler()->getGuardedMessageTextID();
+		if(!isAbandoned() && !guardedMessageTextID.empty())
+			ynd.text.appendTextID(guardedMessageTextID);
 		else
 			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, isAbandoned() ? 84 : 187);
 		gameEvents.showBlockingDialog(this, &ynd);
@@ -111,13 +112,12 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 
 void CGMine::initObj(IGameRandomizer & gameRandomizer)
 {
-	const bool hasGuardsConfig = getResourceHandler()->hasGuards();
 	const auto configuredGuards = getResourceHandler()->getGuards(cb, gameRandomizer);
-	const bool isGuardedFromConfig = hasGuardsConfig && !configuredGuards.empty();
+	const bool isGuardedFromConfig = !configuredGuards.empty();
 
 	if(isAbandoned())
 	{
-		if(hasGuardsConfig)
+		if(isGuardedFromConfig)
 		{
 			for(const auto & stack : configuredGuards)
 			{

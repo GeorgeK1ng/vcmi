@@ -95,7 +95,6 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 {
 	config = input;
 	guards.clear();
-	hasGuardedMessageConfig = false;
 
 	resourceType = GameResID::NONE; //set up fallback
 	LIBRARY->identifiers()->requestIdentifierIfNotNull("resource", input["resource"], [&](si32 index)
@@ -110,10 +109,7 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 	if (!config["description"].isNull())
 		LIBRARY->generaltexth->registerString(config.getModScope(), getDescriptionTextID(), config["description"]);
 	if (!config["guardedMessage"].isNull())
-	{
-		hasGuardedMessageConfig = true;
 		LIBRARY->generaltexth->registerString(config.getModScope(), getGuardedMessageTextID(), config["guardedMessage"]);
-	}
 
 	kingdomOverviewImage = AnimationPath::fromJson(config["kingdomOverviewImage"]);
 
@@ -140,12 +136,9 @@ std::string MineInstanceConstructor::getDescriptionTextID() const
 
 std::string MineInstanceConstructor::getGuardedMessageTextID() const
 {
+	if (config["guardedMessage"].isNull())
+		return {};
 	return TextIdentifier(getBaseTextID(), "guardedMessage").get();
-}
-
-bool MineInstanceConstructor::hasGuardedMessage() const
-{
-	return hasGuardedMessageConfig;
 }
 
 std::string MineInstanceConstructor::getDescriptionTranslated() const
@@ -158,14 +151,9 @@ AnimationPath MineInstanceConstructor::getKingdomOverviewImage() const
 	return kingdomOverviewImage;
 }
 
-bool MineInstanceConstructor::hasGuards() const
-{
-	return guards.getType() == JsonNode::JsonType::DATA_VECTOR;
-}
-
 std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const
 {
-	if (!hasGuards())
+	if (guards.getType() != JsonNode::JsonType::DATA_VECTOR)
 		return {};
 
 	JsonRandom randomizer(const_cast<IGameInfoCallback *>(cb), gameRandomizer);
