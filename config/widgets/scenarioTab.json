@@ -4,7 +4,7 @@
 		{
 			"name": "background",
 			"type": "picture",
-			"image": "PlayerOptionsBackgroundClear",
+			"image": "SCSelBckC",
 			"position": {"x": 0, "y": 6}
 		},
 		{

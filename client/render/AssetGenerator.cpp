@@ -38,6 +38,7 @@ void AssetGenerator::initialize()
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("PlayerOptionsBackgroundClear.png")] = [this](){ return createPlayerOptionsCleanBackground();};
+	imageFiles[ImagePath::builtin("SCSelBckC.png")] = [this](){ return createScenarioSelectionBackgroundCampaign();};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
 
@@ -269,6 +270,20 @@ AssetGenerator::CanvasPtr AssetGenerator::createOptionsCleanBackground(bool with
 
 	return image;
 }
+
+AssetGenerator::CanvasPtr AssetGenerator::createScenarioSelectionBackgroundCampaign() const
+{
+	auto base = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("SCSelBck.bmp"), EImageBlitMode::OPAQUE));
+	auto camcust = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("CamCust.bmp"), EImageBlitMode::OPAQUE));
+
+	auto image = ENGINE->renderHandler().createImage(base->dimensions(), CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.draw(base, Point(0, 0));
+	canvas.draw(camcust, Point(0, 0), Rect(3, 6, 402, 85));
+
+	return image;
+}
+
 AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
 {
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);
