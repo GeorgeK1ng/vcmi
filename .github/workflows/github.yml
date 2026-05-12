@@ -60,7 +60,6 @@ jobs:
           - platform: msvc-x64
             arch: x64
             toolset: '14.29'
-            vs_version: '18'
             os: windows-2025
             pack: 1
             upload: 0
@@ -69,13 +68,12 @@ jobs:
             preset: windows-msvc-ninja-release
             conan_profile: msvc-x64
             conan_prebuilts: dependencies-windows-x64
-            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
+            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -c tools.microsoft.msbuild:vs_version=18 -o "&:target_pre_windows10=True"
             artifact_platform: x64
 
           - platform: msvc-x86
             arch: amd64_x86
             toolset: '14.29'
-            vs_version: '18'
             os: windows-2025
             pack: 1
             upload: 0
@@ -84,12 +82,11 @@ jobs:
             preset: windows-msvc-ninja-release-x86
             conan_profile: msvc-x86
             conan_prebuilts: dependencies-windows-x86
-            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
+            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -c tools.microsoft.msbuild:vs_version=18 -o "&:target_pre_windows10=True"
             artifact_platform: x86
 
           - platform: msvc-arm64
             arch: arm64
-            vs_version: '18'
             os: windows-11-arm
             pack: 1
             upload: 0
@@ -98,7 +95,7 @@ jobs:
             preset: windows-msvc-ninja-release-arm64
             conan_profile: msvc-arm64
             conan_prebuilts: dependencies-windows-arm64
-            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -o "&:lua_lib=lua"
+            conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -c tools.microsoft.msbuild:vs_version=18 -o "&:lua_lib=lua"
             artifact_platform: arm64
 
           - platform: android-32
@@ -284,7 +281,6 @@ jobs:
           --build=never \
           --profile=dependencies/conan_profiles/${{ matrix.conan_profile }} \
           --conf="tools.cmake.cmaketoolchain:generator=Ninja" \
-          ${{ startsWith(matrix.platform, 'msvc') && format('--conf=tools.microsoft.msbuild:vs_version={0}', matrix.vs_version) || '' }} \
           ${{ matrix.conan_options }}
         ${{ startsWith(matrix.platform, 'msvc') && 'echo CONANRUN_PWSH_SCRIPT="$outFolder/conanrun.ps1" >> $GITHUB_ENV' || '' }}
 
@@ -717,7 +713,6 @@ jobs:
 
           - platform: msvc-arm64
             arch: arm64
-            vs_version: '18'
             os: windows-11-arm
 
     runs-on: ${{ matrix.os }}
