@@ -94,7 +94,7 @@ void ResourceInstanceConstructor::randomizeObject(CGResource * object, IGameRand
 void MineInstanceConstructor::initTypeData(const JsonNode & input)
 {
 	config = input;
-	guards.setType(JsonNode::JsonType::DATA_VECTOR);
+	guards = config["guards"];
 
 	resourceType = GameResID::NONE; //set up fallback
 	LIBRARY->identifiers()->requestIdentifierIfNotNull("resource", input["resource"], [&](si32 index)
@@ -113,10 +113,6 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 
 	kingdomOverviewImage = AnimationPath::fromJson(config["kingdomOverviewImage"]);
 
-	if (config["guards"].isVector())
-	{
-		guards = config["guards"];
-	}
 }
 
 GameResID MineInstanceConstructor::getResourceType() const
@@ -158,6 +154,9 @@ AnimationPath MineInstanceConstructor::getKingdomOverviewImage() const
 
 std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const
 {
+	if (guards.isNull() || !guards.isVector())
+		return {};
+
 	JsonRandom randomizer(const_cast<IGameInfoCallback *>(cb), gameRandomizer);
 	JsonRandom::Variables emptyVariables;
 	return randomizer.loadCreatures(guards, emptyVariables);
