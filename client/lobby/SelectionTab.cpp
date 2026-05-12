@@ -53,28 +53,6 @@
 #include "../../lib/json/JsonUtils.h"
 #include "../../lib/json/JsonNode.h"
 
-namespace
-{
-Rect getScenarioTabPositionFromConfig()
-{
-	const Rect fallback(0, 6, 800, 554);
-	const JsonNode config(JsonPath::builtin("config/widgets/scenarioTab.json"));
-
-	for(const auto & item : config["items"].Vector())
-	{
-		if(item["name"].String() != "background")
-			continue;
-
-		const auto image = ENGINE->renderHandler().loadImage(ImagePath::fromJson(item["image"]), EImageBlitMode::OPAQUE);
-		const auto x = item["position"]["x"].Integer();
-		const auto y = item["position"]["y"].Integer();
-		return Rect(x, y, image->width(), image->height());
-	}
-
-	return fallback;
-}
-}
-
 class ScenarioTabConfigurable : public InterfaceObjectConfigurable
 {
 public:
@@ -92,6 +70,11 @@ public:
 	std::shared_ptr<CLabel> mapSizeFilterLabel() const
 	{
 		return widget<CLabel>("labelMapSizes");
+	}
+
+	std::shared_ptr<CIntObject> backgroundWidget() const
+	{
+		return widget<CIntObject>("background");
 	}
 
 	void setMapSizeLabelVisible(bool visible) const
@@ -234,11 +217,11 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 
 	if(tabType != ESelectionScreen::campaignList)
 	{
-		pos = getScenarioTabPositionFromConfig();
-
 		scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
-		addChild(scenarioTabConfigurable.get(), false);
-		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
+		if(auto configurableBackground = scenarioTabConfigurable->backgroundWidget())
+			pos = configurableBackground->pos;
+		else
+			pos = Rect(0, 6, 800, 554); // fallback for broken json config
 
 		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
 		inputName->setFilterFilename();
@@ -254,6 +237,9 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 
 			buttonsSortBy.push_back(std::make_shared<CButton>(Point(xpos[i], 86), AnimationPath::builtin(sortIconNames[i]), LIBRARY->generaltexth->zelp[107 + i], std::bind(&SelectionTab::sortBy, this, criteria), sortShortcuts[i]));
 		}
+
+		addChild(scenarioTabConfigurable.get(), false);
+		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
 	}
 
 	int positionsToShow = 18;
