@@ -81,7 +81,7 @@ public:
 	std::string getOnGuardedMessageTranslated() const;
 	std::string getDescriptionTranslated() const;
 	AnimationPath getKingdomOverviewImage() const;
-	std::vector<CStackBasicDescriptor> getGuards(const IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const;
+	std::vector<CStackBasicDescriptor> getGuards(IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const;
 };
 
 class CTownInstanceConstructor : public CDefaultObjectTypeHandler<CGTownInstance>
