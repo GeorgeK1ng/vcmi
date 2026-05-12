@@ -72,6 +72,11 @@ public:
 		return widget<CLabel>("labelMapSizes");
 	}
 
+	std::shared_ptr<CIntObject> backgroundWidget() const
+	{
+		return widget<CIntObject>("background");
+	}
+
 	void setMapSizeLabelVisible(bool visible) const
 	{
 		if(auto label = mapSizeFilterLabel())
@@ -212,14 +217,16 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 
 	if(tabType != ESelectionScreen::campaignList)
 	{
-		background = std::make_shared<CPicture>(ImagePath::builtin("SCSELBCK.bmp"), 0, 6);
-		pos = background->pos;
-		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
-		inputName->setFilterFilename();
-
 		scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
 		addChild(scenarioTabConfigurable.get(), false);
 		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
+		if(auto configurableBackground = scenarioTabConfigurable->backgroundWidget())
+			pos = configurableBackground->pos;
+		else
+			pos = Rect(0, 6, 800, 554); // fallback for broken json config
+
+		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
+		inputName->setFilterFilename();
 
 		constexpr std::array xpos = {23, 55, 88, 121, 306, 339};
 		constexpr std::array sortIconNames = {"SCBUTT1.DEF", "SCBUTT2.DEF", "SCBUTCP.DEF", "SCBUTT3.DEF", "SCBUTT4.DEF", "SCBUTT5.DEF"};

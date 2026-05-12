@@ -37,6 +37,7 @@ void AssetGenerator::initialize()
 		boost::filesystem::remove_all(VCMIDirs::get().userDataPath() / "Generated");
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
+	imageFiles[ImagePath::builtin("PlayerOptionsBackgroundClear.png")] = [this](){ return createPlayerOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
 
@@ -235,6 +236,17 @@ auto getColorFilters()
 
 AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground() const
 {
+	return createOptionsCleanBackground(true);
+}
+
+
+AssetGenerator::CanvasPtr AssetGenerator::createPlayerOptionsCleanBackground() const
+{
+	return createOptionsCleanBackground(false);
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createOptionsCleanBackground(bool withPlayerOptionsColumns) const
+{
 	auto locator = ImageLocator(ImagePath::builtin("ADVOPTBK"), EImageBlitMode::OPAQUE);
 
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
@@ -243,16 +255,20 @@ AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground(
 	Canvas canvas = image->getCanvas();
 
 	canvas.draw(img, Point(0, 0), Rect(0, 0, 575, 585));
-	canvas.draw(img, Point(54, 121), Rect(54, 123, 335, 1));
-	canvas.draw(img, Point(158, 84), Rect(156, 84, 2, 37));
-	canvas.draw(img, Point(234, 84), Rect(232, 84, 2, 37));
-	canvas.draw(img, Point(310, 84), Rect(308, 84, 2, 37));
+
+	if(withPlayerOptionsColumns)
+	{
+		canvas.draw(img, Point(54, 121), Rect(54, 123, 335, 1));
+		canvas.draw(img, Point(158, 84), Rect(156, 84, 2, 37));
+		canvas.draw(img, Point(234, 84), Rect(232, 84, 2, 37));
+		canvas.draw(img, Point(310, 84), Rect(308, 84, 2, 37));
+	}
+
 	canvas.draw(img, Point(53, 567), Rect(53, 520, 339, 3));
 	canvas.draw(img, Point(53, 520), Rect(53, 264, 339, 47));
 
 	return image;
 }
-
 AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
 {
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);

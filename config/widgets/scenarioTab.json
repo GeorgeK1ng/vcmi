@@ -2,6 +2,12 @@
 	"items":
 	[
 		{
+			"name": "background",
+			"type": "picture",
+			"image": "SCSelBck",
+			"position": {"x": 0, "y": 6}
+		},
+		{
 			"name": "labelMapSizes",
 			"type": "label",
 			"font": "small",
