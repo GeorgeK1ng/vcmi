@@ -60,6 +60,7 @@ jobs:
           - platform: msvc-x64
             arch: x64
             toolset: '14.29'
+            vs_version: '18'
             os: windows-2025
             pack: 1
             upload: 0
@@ -74,6 +75,7 @@ jobs:
           - platform: msvc-x86
             arch: amd64_x86
             toolset: '14.29'
+            vs_version: '18'
             os: windows-2025
             pack: 1
             upload: 0
@@ -87,6 +89,7 @@ jobs:
 
           - platform: msvc-arm64
             arch: arm64
+            vs_version: '18'
             os: windows-11-arm
             pack: 1
             upload: 0
@@ -281,6 +284,7 @@ jobs:
           --build=never \
           --profile=dependencies/conan_profiles/${{ matrix.conan_profile }} \
           --conf="tools.cmake.cmaketoolchain:generator=Ninja" \
+          ${{ startsWith(matrix.platform, "msvc") && format('--conf=\"tools.microsoft.msbuild:vs_version={0}\"', matrix.vs_version) || "" }} \
           ${{ matrix.conan_options }}
         ${{ startsWith(matrix.platform, 'msvc') && 'echo CONANRUN_PWSH_SCRIPT="$outFolder/conanrun.ps1" >> $GITHUB_ENV' || '' }}
 
@@ -713,6 +717,7 @@ jobs:
 
           - platform: msvc-arm64
             arch: arm64
+            vs_version: '18'
             os: windows-11-arm
 
     runs-on: ${{ matrix.os }}
