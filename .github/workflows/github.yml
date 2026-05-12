@@ -284,7 +284,7 @@ jobs:
           --build=never \
           --profile=dependencies/conan_profiles/${{ matrix.conan_profile }} \
           --conf="tools.cmake.cmaketoolchain:generator=Ninja" \
-          ${{ startsWith(matrix.platform, "msvc") && format('--conf=\"tools.microsoft.msbuild:vs_version={0}\"', matrix.vs_version) || "" }} \
+          ${{ startsWith(matrix.platform, 'msvc') && format('--conf=tools.microsoft.msbuild:vs_version={0}', matrix.vs_version) || '' }} \
           ${{ matrix.conan_options }}
         ${{ startsWith(matrix.platform, 'msvc') && 'echo CONANRUN_PWSH_SCRIPT="$outFolder/conanrun.ps1" >> $GITHUB_ENV' || '' }}
 
