@@ -1,6 +1,6 @@
 # Mine
 
-Currently only one mine per resource allowed.
+Multiple mine object types may produce the same resource.
 
 Beside the common parameters from [Map Object Format](../Map_Object_Format.md) there are some additional parameters:
 
