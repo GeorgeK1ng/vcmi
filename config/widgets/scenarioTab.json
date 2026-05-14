@@ -4,7 +4,7 @@
 		{
 			"name": "background",
 			"type": "picture",
-			"image": "SCSelBckC",
+			"image": "SCSelBckC.png",
 			"position": {"x": 0, "y": 6}
 		},
 		{

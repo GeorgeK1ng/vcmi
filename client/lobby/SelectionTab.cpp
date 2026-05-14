@@ -222,6 +222,8 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 			pos = configurableBackground->pos;
 		else
 			pos = Rect(0, 6, 800, 554); // fallback for broken json config
+		addChild(scenarioTabConfigurable.get(), false);
+		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
 
 		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
 		inputName->setFilterFilename();
@@ -238,8 +240,6 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 			buttonsSortBy.push_back(std::make_shared<CButton>(Point(xpos[i], 86), AnimationPath::builtin(sortIconNames[i]), LIBRARY->generaltexth->zelp[107 + i], std::bind(&SelectionTab::sortBy, this, criteria), sortShortcuts[i]));
 		}
 
-		addChild(scenarioTabConfigurable.get(), false);
-		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
 	}
 
 	int positionsToShow = 18;
