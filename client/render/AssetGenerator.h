@@ -61,6 +61,7 @@ private:
 	CanvasPtr createPlayerOptionsCleanBackground() const;
 	CanvasPtr createOptionsCleanBackground(bool withPlayerOptionsColumns) const;
 	CanvasPtr createScenarioSelectionBackgroundCampaign() const;
+	CanvasPtr createScenarioSelectionTextBackground() const;
 	CanvasPtr createBigSpellBook() const;
 	CanvasPtr createPlayerColoredBackground(const PlayerColor & player) const;
 	CanvasPtr createCombatUnitNumberWindow(float multR, float multG, float multB) const;

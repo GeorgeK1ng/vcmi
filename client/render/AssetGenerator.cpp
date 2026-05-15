@@ -39,6 +39,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("PlayerOptionsBackgroundClear.png")] = [this](){ return createPlayerOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("SCSelBckC.png")] = [this](){ return createScenarioSelectionBackgroundCampaign();};
+	imageFiles[ImagePath::builtin("SCSelTxtBck.png")] = [this](){ return createScenarioSelectionTextBackground();};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
 
@@ -332,6 +333,18 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
 	canvas.draw(img, Point(481, 465), Rect(354, 406, 37, 41));
 	canvas.draw(img, Point(575, 465), Rect(417, 406, 37, 45));
 	canvas.draw(img, Point(667, 465), Rect(478, 406, 37, 47));
+
+	return image;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createScenarioSelectionTextBackground() const
+{
+	auto locator = ImageLocator(ImagePath::builtin("SCSelBck"), EImageBlitMode::OPAQUE);
+	std::shared_ptr<IImage> base = ENGINE->renderHandler().loadImage(locator);
+
+	auto image = ENGINE->renderHandler().createImage(Point(135, 35), CanvasScalingPolicy::IGNORE);
+	Canvas canvas = image->getCanvas();
+	canvas.draw(base, Point(0, 0), Rect(21, 45, 135, 35));
 
 	return image;
 }

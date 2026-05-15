@@ -61,6 +61,7 @@ class SelectionTab : public CIntObject
 		std::shared_ptr<CAnimImage> iconVictoryCondition;
 		std::shared_ptr<CAnimImage> iconLossCondition;
 		std::shared_ptr<CPicture> pictureEmptyLine;
+		std::shared_ptr<CPicture> pictureTextBackground;
 		std::shared_ptr<CLabel> labelName;
 
 		const int LABEL_POS_X = 184;

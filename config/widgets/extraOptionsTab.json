@@ -6,7 +6,7 @@
 		{
 			"name": "background",
 			"type": "picture",
-			"image": "AdventureOptionsBackgroundClear",
+			"image": "PlayerOptionsBackgroundClear",
 			"position": {"x": 0, "y": 6}
 		},
 		{
