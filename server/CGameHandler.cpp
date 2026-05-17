@@ -2537,7 +2537,8 @@ bool CGameHandler::upgradeCreature(ObjectInstanceID objid, SlotID pos, CreatureI
 
 bool CGameHandler::upgradeDwelling(ObjectInstanceID objid, PlayerColor player)
 {
-	auto * dwelling = dynamic_cast<CGDwelling *>(gameState().getObj(objid));
+	const auto * dwellingConst = dynamic_cast<const CGDwelling *>(gameInfo().getObj(objid));
+	auto * dwelling = const_cast<CGDwelling *>(dwellingConst);
 	COMPLAIN_RET_FALSE_IF(!dwelling, "Invalid dwelling object");
 	COMPLAIN_RET_FALSE_IF(dwelling->tempOwner != player, "Dwelling is not owned by player");
 	return dwelling->tryUpgradeDwelling(*this, player);
