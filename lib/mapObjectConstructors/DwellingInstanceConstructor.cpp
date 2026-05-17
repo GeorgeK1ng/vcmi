@@ -156,6 +156,27 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 		for(const CCreature * cre : entry)
 			obj->creatures.back().second.push_back(cre->getId());
 	}
+
+	if (obj->dwellingLevels.empty() && settings["mods"]["dwellingUpgrades"].Bool())
+	{
+		CGDwelling::DwellingLevelDefinition genericLevel;
+		genericLevel.level = 1;
+		genericLevel.cost[GameResID::GOLD] = 1000;
+		genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
+
+		genericLevel.creatures.resize(obj->creatures.size());
+		for (size_t tier = 0; tier < obj->creatures.size(); ++tier)
+		{
+			if (obj->creatures[tier].second.empty())
+				continue;
+
+			genericLevel.creatures[tier].push_back(obj->creatures[tier].second.front());
+			const auto * base = obj->creatures[tier].second.front().toCreature();
+			for (const auto & upgrade : base->upgrades)
+				genericLevel.creatures[tier].push_back(upgrade);
+		}
+		obj->dwellingLevels.push_back(genericLevel);
+	}
 }
 
 void DwellingInstanceConstructor::randomizeObject(CGDwelling * dwelling, IGameRandomizer & gameRandomizer) const

@@ -556,6 +556,9 @@ void CGDwelling::blockingDialogAnswered(IGameEventCallback & gameEvents, const C
 
 bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor player)
 {
+	if (!settings["mods"]["dwellingUpgrades"].Bool())
+		return false;
+
 	if (dwellingLevels.empty())
 		return false;
 

@@ -195,13 +195,18 @@
 			"additionalProperties" : false,
 			"default" : {},
 			"required" : [ 
-				"validation"
+				"validation",
+				"dwellingUpgrades"
 			],
 			"properties" : {
 				"validation" : {
 					"type" : "string",
 					"enum" : [ "off", "basic", "full" ],
 					"default" : "basic"
+				},
+				"dwellingUpgrades" : {
+					"type" : "boolean",
+					"default" : false
 				}
 			}
 		},
