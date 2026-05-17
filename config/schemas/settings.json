@@ -196,7 +196,8 @@
 			"default" : {},
 			"required" : [ 
 				"validation",
-				"dwellingUpgrades"
+				"dwellingUpgrades",
+				"dwellingUpgradesMaxLevel"
 			],
 			"properties" : {
 				"validation" : {
@@ -206,7 +207,11 @@
 				},
 				"dwellingUpgrades" : {
 					"type" : "boolean",
-					"default" : false
+					"default" : true
+				},
+				"dwellingUpgradesMaxLevel" : {
+					"type" : "number",
+					"default" : 10
 				}
 			}
 		},

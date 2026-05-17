@@ -159,23 +159,31 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 
 	if (obj->dwellingLevels.empty() && settings["mods"]["dwellingUpgrades"].Bool())
 	{
-		CGDwelling::DwellingLevelDefinition genericLevel;
-		genericLevel.level = 1;
-		genericLevel.cost[GameResID::GOLD] = 1000;
-		genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
+		int maxLevel = settings["mods"]["dwellingUpgradesMaxLevel"].Integer();
+		vstd::amax(maxLevel, 1);
 
-		genericLevel.creatures.resize(obj->creatures.size());
+		std::vector<std::vector<CreatureID>> tierCreaturePool(obj->creatures.size());
 		for (size_t tier = 0; tier < obj->creatures.size(); ++tier)
 		{
 			if (obj->creatures[tier].second.empty())
 				continue;
 
-			genericLevel.creatures[tier].push_back(obj->creatures[tier].second.front());
+			tierCreaturePool[tier].push_back(obj->creatures[tier].second.front());
 			const auto * base = obj->creatures[tier].second.front().toCreature();
 			for (const auto & upgrade : base->upgrades)
-				genericLevel.creatures[tier].push_back(upgrade);
+				tierCreaturePool[tier].push_back(upgrade);
 		}
-		obj->dwellingLevels.push_back(genericLevel);
+
+		for (int level = 1; level <= maxLevel; ++level)
+		{
+			CGDwelling::DwellingLevelDefinition genericLevel;
+			genericLevel.level = level;
+			genericLevel.cost[GameResID::GOLD] = 1000 * level;
+			genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
+			genericLevel.descriptionText = "Generic dwelling upgrade level " + std::to_string(level);
+			genericLevel.creatures = tierCreaturePool;
+			obj->dwellingLevels.push_back(genericLevel);
+		}
 	}
 }
 
