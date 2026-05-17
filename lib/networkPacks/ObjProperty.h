@@ -47,7 +47,9 @@ enum class ObjProperty : int8_t
 
 	//object with reward
 	REWARD_SELECT,
-	REWARD_CLEARED
+	REWARD_CLEARED,
+
+	DWELLING_UPGRADE_LEVEL
 };
 
 class NumericID : public StaticIdentifier<NumericID>

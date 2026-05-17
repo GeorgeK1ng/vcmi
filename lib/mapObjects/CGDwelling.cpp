@@ -214,6 +214,9 @@ void CGDwelling::setPropertyDer(ObjProperty what, ObjPropertyID identifier)
 			creatures[0].second.resize(1);
 			creatures[0].second[0] = identifier.as<CreatureID>();
 			break;
+		case ObjProperty::DWELLING_UPGRADE_LEVEL:
+			currentDwellingLevel = identifier.as<NumericID>().getNum();
+			break;
 	}
 }
 
@@ -617,7 +620,7 @@ bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor
 			parsedBonus->sid = BonusSourceID(id);
 
 			GiveBonus giveBonus(GiveBonus::ETarget::OBJECT);
-			giveBonus.whoID = id;
+			giveBonus.id = id;
 			giveBonus.bonus = *parsedBonus;
 			gameEvents.sendAndApply(giveBonus);
 			++appliedLevelBonuses;
@@ -625,6 +628,7 @@ bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor
 	}
 
 	currentDwellingLevel = nextLevel;
+	gameEvents.setObjPropertyValue(id, ObjProperty::DWELLING_UPGRADE_LEVEL, currentDwellingLevel);
 	return true;
 }
 
