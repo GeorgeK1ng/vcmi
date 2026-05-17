@@ -218,8 +218,6 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 	if(tabType != ESelectionScreen::campaignList)
 	{
 		scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
-		if(auto configurableBackground = scenarioTabConfigurable->backgroundWidget())
-			pos = configurableBackground->pos;
 		addChild(scenarioTabConfigurable.get(), false);
 		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
 
