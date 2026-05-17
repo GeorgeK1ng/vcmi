@@ -99,6 +99,7 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 	obj->dwellingLevels.clear();
 	obj->currentDwellingLevel = 0;
 	obj->appliedLevelBonuses = 0;
+	obj->currentRecruitCostPercent = 100;
 
 	if (levelsConfig.getType() == JsonNode::JsonType::DATA_STRUCT)
 	{
@@ -120,6 +121,9 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 			if (levelNode.Struct().count("cost"))
 				definition.cost.resolveFromJson(levelNode["cost"]);
 			definition.bonuses = levelNode["bonuses"];
+			definition.recruitCostPercent = levelNode["recruitCostPercent"].Integer();
+			if (definition.recruitCostPercent <= 0)
+				definition.recruitCostPercent = 100;
 
 			if (levelNode.Struct().count("creatures"))
 			{
@@ -157,7 +161,7 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 			obj->creatures.back().second.push_back(cre->getId());
 	}
 
-	if (obj->dwellingLevels.empty() && settings["mods"]["dwellingUpgrades"].Bool())
+	if (obj->dwellingLevels.empty())
 	{
 		int maxLevel = settings["mods"]["dwellingUpgradesMaxLevel"].Integer();
 		vstd::amax(maxLevel, 1);
@@ -182,6 +186,7 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 			genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
 			genericLevel.descriptionText = "Generic dwelling upgrade level " + std::to_string(level);
 			genericLevel.creatures = tierCreaturePool;
+			genericLevel.recruitCostPercent = std::max(50, 100 - level * 5);
 			obj->dwellingLevels.push_back(genericLevel);
 		}
 	}

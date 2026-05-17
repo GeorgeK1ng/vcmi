@@ -302,13 +302,12 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 	buyButton = std::make_shared<CButton>(Point(212 + layoutOffsetX, 313), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], std::bind(&CRecruitmentWindow::buy, this), EShortcut::GLOBAL_ACCEPT);
 	cancelButton = std::make_shared<CButton>(Point(290 + layoutOffsetX, 313), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], std::bind(&CRecruitmentWindow::close, this), EShortcut::GLOBAL_CANCEL);
 	upgradeButton = std::make_shared<CButton>(Point(56 + layoutOffsetX, 313), AnimationPath::builtin("iViewCr.def"), CButton::tooltip("Upgrade dwelling"), std::bind(&CRecruitmentWindow::upgradeDwelling, this));
-	const bool upgradeFeatureEnabled = settings["mods"]["dwellingUpgrades"].Bool();
 	const int nextLevel = dwelling->currentDwellingLevel + 1;
 	const bool hasNextLevel = std::any_of(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
 	{
 		return levelDef.level == nextLevel;
 	});
-	upgradeButton->block(!upgradeFeatureEnabled || !hasNextLevel);
+	upgradeButton->block(!hasNextLevel);
 
 	title = std::make_shared<CLabel>(243 + layoutOffsetX, 32, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW);
 	levelInfo = std::make_shared<CLabel>(243 + layoutOffsetX, 52, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
@@ -326,9 +325,6 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 
 void CRecruitmentWindow::upgradeDwelling()
 {
-	if (!settings["mods"]["dwellingUpgrades"].Bool())
-		return;
-
 	const int nextLevel = dwelling->currentDwellingLevel + 1;
 	const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
 	{

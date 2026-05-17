@@ -556,9 +556,6 @@ void CGDwelling::blockingDialogAnswered(IGameEventCallback & gameEvents, const C
 
 bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor player)
 {
-	if (!settings["mods"]["dwellingUpgrades"].Bool())
-		return false;
-
 	if (dwellingLevels.empty())
 		return false;
 
@@ -631,6 +628,7 @@ bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor
 	}
 
 	currentDwellingLevel = nextLevel;
+	currentRecruitCostPercent = found->recruitCostPercent;
 	gameEvents.setObjPropertyValue(id, ObjProperty::DWELLING_UPGRADE_LEVEL, currentDwellingLevel);
 	return true;
 }

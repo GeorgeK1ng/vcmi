@@ -2464,6 +2464,8 @@ bool CGameHandler::recruitCreatures(ObjectInstanceID objid, ObjectInstanceID dst
 
 	//recruit
 	TResources cost = (c->getFullRecruitCost() * cram);
+	if (dwelling->currentRecruitCostPercent != 100)
+		cost = cost.multipliedBy(static_cast<double>(dwelling->currentRecruitCostPercent) / 100.0);
 	giveResources(army->tempOwner, -cost);
 	statistics->getPlayerAccumulator(army->tempOwner).spentResourcesForArmy += cost;
 

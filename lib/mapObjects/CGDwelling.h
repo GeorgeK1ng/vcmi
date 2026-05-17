@@ -46,23 +46,26 @@ public:
 		ResourceSet cost;
 		std::vector<std::vector<CreatureID>> creatures;
 		JsonNode bonuses;
+		int recruitCostPercent = 100;
 
 		template <typename Handler> void serialize(Handler & h)
 		{
 			h & level;
 			h & nameText;
 			h & descriptionText;
-			h & cost;
-			h & creatures;
-			h & bonuses;
-		}
-	};
+				h & cost;
+				h & creatures;
+				h & bonuses;
+				h & recruitCostPercent;
+			}
+		};
 
 	std::optional<CGDwellingRandomizationInfo> randomizationInfo; //random dwelling options; not serialized
 	TCreaturesSet creatures; //creatures[level] -> <vector of alternative ids (base creature and upgrades, creatures amount>
 	std::vector<DwellingLevelDefinition> dwellingLevels;
 	int currentDwellingLevel = 0;
 	int appliedLevelBonuses = 0;
+	int currentRecruitCostPercent = 100;
 
 	CGDwelling(IGameInfoCallback *cb, BonusNodeType nodeType);
 	CGDwelling(IGameInfoCallback *cb);
@@ -99,11 +102,12 @@ public:
 	{
 		h & static_cast<CArmedInstance&>(*this);
 		h & creatures;
-		h & dwellingLevels;
-		h & currentDwellingLevel;
-		h & appliedLevelBonuses;
-	}
-};
+			h & dwellingLevels;
+			h & currentDwellingLevel;
+			h & appliedLevelBonuses;
+			h & currentRecruitCostPercent;
+		}
+	};
 
 
 VCMI_LIB_NAMESPACE_END
