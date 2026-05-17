@@ -123,7 +123,6 @@ public:
 	void restoreLastSelection();
 
 private:
-	std::shared_ptr<CPicture> background;
 	std::shared_ptr<CSlider> slider;
 	std::vector<std::shared_ptr<CButton>> buttonsSortBy;
 	std::shared_ptr<CLabel> labelTabTitle;

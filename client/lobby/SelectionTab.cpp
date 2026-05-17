@@ -72,6 +72,11 @@ public:
 		return widget<CLabel>("labelMapSizes");
 	}
 
+	std::shared_ptr<CIntObject> backgroundWidget() const
+	{
+		return widget<CIntObject>("background");
+	}
+
 	void setMapSizeLabelVisible(bool visible) const
 	{
 		if(auto label = mapSizeFilterLabel())
@@ -212,14 +217,12 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 
 	if(tabType != ESelectionScreen::campaignList)
 	{
-		background = std::make_shared<CPicture>(ImagePath::builtin("SCSELBCK.bmp"), 0, 6);
-		pos = background->pos;
-		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
-		inputName->setFilterFilename();
-
 		scenarioTabConfigurable = std::make_shared<ScenarioTabConfigurable>(*this);
 		addChild(scenarioTabConfigurable.get(), false);
 		scenarioTabConfigurable->setMapSizeLabelVisible(!CResourceHandler::get()->existsResource(AnimationPath::builtin("SCGTBUT.DEF")));
+
+		inputName = std::make_shared<CTextInput>(inputNameRect, Point(-32, -25), ImagePath::builtin("GSSTRIP.bmp"));
+		inputName->setFilterFilename();
 
 		constexpr std::array xpos = {23, 55, 88, 121, 306, 339};
 		constexpr std::array sortIconNames = {"SCBUTT1.DEF", "SCBUTT2.DEF", "SCBUTCP.DEF", "SCBUTT3.DEF", "SCBUTT4.DEF", "SCBUTT5.DEF"};
@@ -232,6 +235,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 
 			buttonsSortBy.push_back(std::make_shared<CButton>(Point(xpos[i], 86), AnimationPath::builtin(sortIconNames[i]), LIBRARY->generaltexth->zelp[107 + i], std::bind(&SelectionTab::sortBy, this, criteria), sortShortcuts[i]));
 		}
+
 	}
 
 	int positionsToShow = 18;
@@ -1256,4 +1260,5 @@ void SelectionTab::ListItem::updateItem(std::shared_ptr<ElementInfo> info, bool 
 	}
 	labelName->setText(info->name);
 	labelName->setColor(color);
+
 }
