@@ -116,7 +116,9 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 			definition.level = levelId;
 			definition.nameText = levelNode["name"].String();
 			definition.descriptionText = levelNode["description"].String();
-			definition.cost = levelNode["cost"];
+			definition.cost = ResourceSet();
+			if (levelNode.Struct().count("cost"))
+				definition.cost.resolveFromJson(levelNode["cost"]);
 			definition.bonuses = levelNode["bonuses"];
 
 			if (levelNode.Struct().count("creatures"))
