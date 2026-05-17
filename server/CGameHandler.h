@@ -231,6 +231,7 @@ public:
 	bool garrisonSwap(ObjectInstanceID tid);
 	bool upgradeCreature( ObjectInstanceID objid, SlotID pos, CreatureID upgID );
 	bool recruitCreatures(ObjectInstanceID objid, ObjectInstanceID dst, CreatureID crid, int32_t cram, int32_t level, PlayerColor player);
+	bool upgradeDwelling(ObjectInstanceID objid, PlayerColor player);
 	bool buildStructure(ObjectInstanceID tid, BuildingID bid, bool force=false);//force - for events: no cost, no checkings
 	bool visitTownBuilding(ObjectInstanceID tid, BuildingID bid);
 	bool razeStructure(ObjectInstanceID tid, BuildingID bid);

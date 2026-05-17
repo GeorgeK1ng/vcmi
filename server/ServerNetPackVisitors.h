@@ -48,6 +48,7 @@ public:
 	void visitVisitTownBuilding(VisitTownBuilding & pack) override;
 	void visitRecruitCreatures(RecruitCreatures & pack) override;
 	void visitUpgradeCreature(UpgradeCreature & pack) override;
+	void visitUpgradeDwelling(UpgradeDwelling & pack) override;
 	void visitGarrisonHeroSwap(GarrisonHeroSwap & pack) override;
 	void visitExchangeArtifacts(ExchangeArtifacts & pack) override;
 	void visitBulkExchangeArtifacts(BulkExchangeArtifacts & pack) override;

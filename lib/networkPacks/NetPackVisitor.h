@@ -137,6 +137,7 @@ public:
 	virtual void visitSpellResearch(SpellResearch & pack) {}
 	virtual void visitRecruitCreatures(RecruitCreatures & pack) {}
 	virtual void visitUpgradeCreature(UpgradeCreature & pack) {}
+	virtual void visitUpgradeDwelling(UpgradeDwelling & pack) {}
 	virtual void visitGarrisonHeroSwap(GarrisonHeroSwap & pack) {}
 	virtual void visitExchangeArtifacts(ExchangeArtifacts & pack) {}
 	virtual void visitBulkExchangeArtifacts(BulkExchangeArtifacts & pack) {}

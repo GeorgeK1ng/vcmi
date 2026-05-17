@@ -13,6 +13,7 @@
 #include "IOwnableObject.h"
 
 #include "army/CArmedInstance.h"
+#include "../json/JsonNode.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -37,8 +38,31 @@ class DLL_LINKAGE CGDwelling : public CArmedInstance, public IOwnableObject
 public:
 	using TCreaturesSet = std::vector<std::pair<ui32, std::vector<CreatureID> > >;
 
+	struct DwellingLevelDefinition
+	{
+		int level = 0;
+		std::string nameText;
+		std::string descriptionText;
+		ResourceSet cost;
+		std::vector<std::vector<CreatureID>> creatures;
+		JsonNode bonuses;
+
+		template <typename Handler> void serialize(Handler & h)
+		{
+			h & level;
+			h & nameText;
+			h & descriptionText;
+			h & cost;
+			h & creatures;
+			h & bonuses;
+		}
+	};
+
 	std::optional<CGDwellingRandomizationInfo> randomizationInfo; //random dwelling options; not serialized
 	TCreaturesSet creatures; //creatures[level] -> <vector of alternative ids (base creature and upgrades, creatures amount>
+	std::vector<DwellingLevelDefinition> dwellingLevels;
+	int currentDwellingLevel = 0;
+	int appliedLevelBonuses = 0;
 
 	CGDwelling(IGameInfoCallback *cb, BonusNodeType nodeType);
 	CGDwelling(IGameInfoCallback *cb);
@@ -48,6 +72,7 @@ public:
 	ResourceSet dailyIncome() const override;
 	std::vector<CreatureID> providedCreatures() const override;
 	AnimationPath getKingdomOverviewImage() const;
+	bool tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor player);
 
 protected:
 	void serializeJsonOptions(JsonSerializeFormat & handler) override;
@@ -74,6 +99,9 @@ public:
 	{
 		h & static_cast<CArmedInstance&>(*this);
 		h & creatures;
+		h & dwellingLevels;
+		h & currentDwellingLevel;
+		h & appliedLevelBonuses;
 	}
 };
 

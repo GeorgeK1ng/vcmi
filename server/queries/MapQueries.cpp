@@ -165,6 +165,8 @@ bool OpenWindowQuery::blocksPack(const CPackForServer * pack) const
 	{
 		if(dynamic_cast<const RecruitCreatures*>(pack) != nullptr)
 			return false;
+		if(dynamic_cast<const UpgradeDwelling*>(pack) != nullptr)
+			return false;
 
 		// If hero has no free slots, he might get some stacks merged automatically
 		if(dynamic_cast<const ArrangeStacks*>(pack) != nullptr)

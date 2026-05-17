@@ -29,6 +29,7 @@
 #include "../IGameSettings.h"
 #include "../CConfigHandler.h"
 #include "../texts/CGeneralTextHandler.h"
+#include "../json/JsonBonus.h"
 
 #include <vstd/RNG.h>
 
@@ -548,6 +549,83 @@ void CGDwelling::blockingDialogAnswered(IGameEventCallback & gameEvents, const C
 	{
 		heroAcceptsCreatures(gameEvents, hero);
 	}
+}
+
+bool CGDwelling::tryUpgradeDwelling(IGameEventCallback & gameEvents, PlayerColor player)
+{
+	if (dwellingLevels.empty())
+		return false;
+
+	const int nextLevel = currentDwellingLevel + 1;
+	const auto found = std::find_if(dwellingLevels.begin(), dwellingLevels.end(), [nextLevel](const auto & levelDef)
+	{
+		return levelDef.level == nextLevel;
+	});
+	if (found == dwellingLevels.end())
+		return false;
+
+	ResourceSet upgradeCost = found->cost;
+	if (upgradeCost == ResourceSet())
+		upgradeCost[GameResID::GOLD] = 1000;
+
+	const auto * playerState = cb->getPlayerState(player);
+	if (!playerState || !playerState->resources.canAfford(upgradeCost))
+		return false;
+
+	gameEvents.giveResources(player, -upgradeCost);
+
+	SetAvailableCreatures sac;
+	sac.tid = id;
+	sac.creatures = creatures;
+
+	if (!found->creatures.empty())
+	{
+		if (sac.creatures.size() < found->creatures.size())
+			sac.creatures.resize(found->creatures.size());
+
+		for (size_t tier = 0; tier < found->creatures.size(); ++tier)
+		{
+			if (found->creatures[tier].empty())
+				continue;
+
+			sac.creatures[tier].second = found->creatures[tier];
+			if (sac.creatures[tier].first == 0)
+				sac.creatures[tier].first = found->creatures[tier].front().toCreature()->getGrowth();
+		}
+	}
+	gameEvents.sendAndApply(sac);
+
+	for (int i = 0; i < appliedLevelBonuses; ++i)
+	{
+		RemoveBonus removeBonus(GiveBonus::ETarget::OBJECT);
+		removeBonus.whoID = id;
+		removeBonus.source = BonusSource::OTHER;
+		removeBonus.id = BonusSourceID(id);
+		gameEvents.sendAndApply(removeBonus);
+	}
+	appliedLevelBonuses = 0;
+
+	if (found->bonuses.getType() == JsonNode::JsonType::DATA_VECTOR)
+	{
+		for (const auto & bonusNode : found->bonuses.Vector())
+		{
+			auto parsedBonus = JsonUtils::parseBonus(bonusNode);
+			if (!parsedBonus)
+				continue;
+
+			parsedBonus->source = BonusSource::OTHER;
+			parsedBonus->sid = BonusSourceID(id);
+
+			GiveBonus giveBonus(GiveBonus::ETarget::OBJECT);
+			giveBonus.whoID = id;
+			giveBonus.bonus = *parsedBonus;
+			gameEvents.sendAndApply(giveBonus);
+			++appliedLevelBonuses;
+		}
+	}
+
+	currentDwellingLevel = nextLevel;
+	return true;
 }
 
 void CGDwelling::serializeJsonOptions(JsonSerializeFormat & handler)

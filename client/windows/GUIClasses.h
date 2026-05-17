@@ -87,7 +87,9 @@ class CRecruitmentWindow : public CStatusbarWindow
 	std::shared_ptr<CButton> maxButton;
 	std::shared_ptr<CButton> buyButton;
 	std::shared_ptr<CButton> cancelButton;
+	std::shared_ptr<CButton> upgradeButton;
 	std::shared_ptr<CLabel> title;
+	std::shared_ptr<CLabel> levelInfo;
 	std::shared_ptr<CLabel> availableValue;
 	std::shared_ptr<CLabel> toRecruitValue;
 	std::shared_ptr<CLabel> availableTitle;
@@ -97,6 +99,7 @@ class CRecruitmentWindow : public CStatusbarWindow
 
 	void select(std::shared_ptr<CCreatureCard> card);
 	void buy();
+	void upgradeDwelling();
 	void sliderMoved(int to);
 	static ImagePath getRecruitmentBackground(const CGDwelling * dwelling, int level);
 

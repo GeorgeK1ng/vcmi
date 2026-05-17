@@ -54,6 +54,7 @@ void DwellingInstanceConstructor::initTypeData(const JsonNode & input)
 		assert(!availableCreatures[currentLevel].empty());
 	}
 	guards = input["guards"];
+	levelsConfig = input["levels"];
 	bannedForRandomDwelling = input["bannedForRandomDwelling"].Bool();
 	kingdomOverviewImage = AnimationPath::fromJson(input["kingdomOverviewImage"]);
 
@@ -95,6 +96,59 @@ bool DwellingInstanceConstructor::objectFilter(const CGObjectInstance * obj, std
 void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 {
 	obj->creatures.resize(availableCreatures.size());
+	obj->dwellingLevels.clear();
+	obj->currentDwellingLevel = 0;
+	obj->appliedLevelBonuses = 0;
+
+	if (levelsConfig.getType() == JsonNode::JsonType::DATA_STRUCT)
+	{
+		std::vector<std::pair<int, JsonNode>> sortedLevels;
+		for (const auto & entry : levelsConfig.Struct())
+		{
+			int levelId = std::stoi(entry.first);
+			sortedLevels.emplace_back(levelId, entry.second);
+		}
+		std::sort(sortedLevels.begin(), sortedLevels.end(), [](const auto & lhs, const auto & rhs){ return lhs.first < rhs.first; });
+
+		for (const auto & [levelId, levelNode] : sortedLevels)
+		{
+			CGDwelling::DwellingLevelDefinition definition;
+			definition.level = levelId;
+			definition.nameText = levelNode["name"].String();
+			definition.descriptionText = levelNode["description"].String();
+			definition.cost = levelNode["cost"];
+			definition.bonuses = levelNode["bonuses"];
+
+			if (levelNode.Struct().count("creatures"))
+			{
+				const auto & levelCreatures = levelNode["creatures"].Vector();
+				definition.creatures.resize(levelCreatures.size());
+				for (size_t i = 0; i < levelCreatures.size(); ++i)
+				{
+					const auto & creatureVariants = levelCreatures[i].Vector();
+					definition.creatures[i].resize(creatureVariants.size());
+				}
+			}
+			obj->dwellingLevels.push_back(definition);
+			const size_t levelIndex = obj->dwellingLevels.size() - 1;
+			if (levelNode.Struct().count("creatures"))
+			{
+				const auto & levelCreatures = levelNode["creatures"].Vector();
+				for (size_t i = 0; i < levelCreatures.size(); ++i)
+				{
+					const auto & creatureVariants = levelCreatures[i].Vector();
+					for (size_t j = 0; j < creatureVariants.size(); ++j)
+					{
+						LIBRARY->identifiers()->requestIdentifier("creature", creatureVariants[j], [obj, levelIndex, i, j] (si32 index)
+						{
+							obj->dwellingLevels.at(levelIndex).creatures.at(i).at(j) = CreatureID(index);
+						});
+					}
+				}
+			}
+		}
+	}
+
 	for(const auto & entry : availableCreatures)
 	{
 		for(const CCreature * cre : entry)
