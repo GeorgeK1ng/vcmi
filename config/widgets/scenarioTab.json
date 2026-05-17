@@ -8,6 +8,12 @@
 			"position": {"x": 0, "y": 6}
 		},
 		{
+			"name": "labelMapSizesBackground",
+			"type": "picture",
+			"image": "SCSelTxtBck.png",
+			"position": {"x": 21, "y": 45}
+		},
+		{
 			"name": "labelMapSizes",
 			"type": "label",
 			"font": "small",

@@ -1159,8 +1159,6 @@ SelectionTab::ListItem::ListItem(Point position)
 {
 	OBJECT_CONSTRUCTION;
 	pictureEmptyLine = std::make_shared<CPicture>(ImagePath::builtin("camcust"), Rect(25, 121, 349, 26), -8, -14);
-	pictureTextBackground = std::make_shared<CPicture>(ImagePath::builtin("SCSelTxtBck.png"), 13, -14);
-	pictureTextBackground->disable();
 	labelName = std::make_shared<CLabel>(LABEL_POS_X, 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, "", 185);
 	labelName->setAutoRedraw(false);
 	labelAmountOfPlayers = std::make_shared<CLabel>(8, 0, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
@@ -1189,7 +1187,6 @@ void SelectionTab::ListItem::updateItem(std::shared_ptr<ElementInfo> info, bool 
 		iconLossCondition->disable();
 		labelNumberOfCampaignMaps->disable();
 		labelName->disable();
-		pictureTextBackground->disable();
 		return;
 	}
 
@@ -1218,7 +1215,6 @@ void SelectionTab::ListItem::updateItem(std::shared_ptr<ElementInfo> info, bool 
 		}
 		labelName->setText(info->folderName);
 		labelName->setColor(color);
-		pictureTextBackground->disable();
 		return;
 	}
 
@@ -1267,8 +1263,4 @@ void SelectionTab::ListItem::updateItem(std::shared_ptr<ElementInfo> info, bool 
 	labelName->setText(info->name);
 	labelName->setColor(color);
 
-	if(info->name.empty())
-		pictureTextBackground->disable();
-	else
-		pictureTextBackground->enable();
 }
