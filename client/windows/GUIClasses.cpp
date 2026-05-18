@@ -326,8 +326,8 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 void CRecruitmentWindow::upgradeDwelling()
 {
 	const int nextLevel = dwelling->currentDwellingLevel + 1;
-	const int currentDisplayLevel = std::max(1, dwelling->currentDwellingLevel);
-	const int nextDisplayLevel = std::max(1, nextLevel);
+	const int currentDisplayLevel = dwelling->currentDwellingLevel;
+	const int nextDisplayLevel = nextLevel;
 	const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
 	{
 		return levelDef.level == nextLevel;
@@ -390,7 +390,7 @@ void CRecruitmentWindow::availableCreaturesChanged()
 
 	if (level >= 0)
 	{
-		const int currentLevel = std::max(1, dwelling->currentDwellingLevel);
+		const int currentLevel = dwelling->currentDwellingLevel;
 		const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [currentLevel](const auto & levelDef)
 		{
 			return levelDef.level == currentLevel;

@@ -212,7 +212,6 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 			JsonNode growthBonus;
 			growthBonus["type"].String() = "CREATURE_GROWTH_PERCENT";
 			growthBonus["val"].Integer() = level * growthPercentPerLevel;
-			growthBonus["propagator"].String() = "DWELLING_PROPAGATOR";
 			genericLevel.bonuses.Vector().push_back(growthBonus);
 			obj->dwellingLevels.push_back(genericLevel);
 		}
