@@ -20,12 +20,6 @@ class PrimarySkill;
 class DLL_LINKAGE AFactionMember: public IConstBonusProvider, public INativeTerrainProvider
 {
 public:
-	/**
-	 Legacy single-terrain accessor.
-	 Prefer isNativeTerrain(TerrainId) for multi-native checks.
-	*/
-	[[deprecated("Use isNativeTerrain(TerrainId) for multi-native-aware checks")]]
-	virtual TerrainId getNativeTerrain() const;
 	bool isNativeTerrain(TerrainId terrain) const override;
 	/**
 	 Returns magic resistance considering some bonuses.

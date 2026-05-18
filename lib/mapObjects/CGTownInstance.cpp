@@ -1169,16 +1169,6 @@ FactionID CGTownInstance::getFactionID() const
 	return FactionID(subID.getNum());
 }
 
-TerrainId CGTownInstance::getNativeTerrain() const
-{
-	auto const & terrain = getTown()->faction->getNativeTerrain();
-
-	if (!terrain.toEntity(LIBRARY)->isSurface() && !terrain.toEntity(LIBRARY)->isUnderground())
-		logMod->warn("Faction %s has terrain %s as native, but terrain is not suitable for either surface or subterranean layers!", getTown()->faction->getJsonKey(), terrain.toEntity(LIBRARY)->getJsonKey());
-
-	return terrain;
-}
-
 bool CGTownInstance::isNativeTerrain(TerrainId terrain) const
 {
 	return getTown()->faction->isNativeTerrain(terrain);

@@ -202,8 +202,6 @@ public:
 
 	/// INativeTerrainProvider
 	FactionID getFactionID() const override;
-	[[deprecated("Use isNativeTerrain(TerrainId) for multi-native-aware checks")]]
-	TerrainId getNativeTerrain() const;
 	bool isNativeTerrain(TerrainId terrain) const override;
 
 	/// Returns ID of war machine that is produced by specified building or NONE if this is not built or if building does not produce war machines

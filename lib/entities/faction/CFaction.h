@@ -75,8 +75,6 @@ public:
 	std::string getDescriptionTextID() const;
 
 	bool hasTown() const override;
-	[[deprecated("Use isNativeTerrain(TerrainId) or nativeTerrains for multi-native-aware logic")]]
-	TerrainId getNativeTerrain() const;
 	bool isNativeTerrain(TerrainId terrain) const override;
 	EAlignment getAlignment() const override;
 	BoatId getBoatType() const override;

@@ -249,14 +249,6 @@ int32_t CStackInstance::getInitiative(int turn) const
 	return ACreature::getInitiative(turn);
 }
 
-TerrainId CStackInstance::getNativeTerrain() const
-{
-	if(nativeTerrain.hasBonus())
-		return TerrainId::ANY_TERRAIN;
-
-	return getFactionID().toEntity(LIBRARY)->getNativeTerrain();
-}
-
 bool CStackInstance::isNativeTerrain(TerrainId terrain) const
 {
 	if(nativeTerrain.hasBonus())
