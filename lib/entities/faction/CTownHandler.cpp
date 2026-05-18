@@ -756,9 +756,7 @@ void CTownHandler::loadPuzzle(CFaction &faction, const JsonNode &source) const
 assert(faction.puzzleMap.size() == GameConstants::PUZZLE_MAP_PIECES);
 }
 
-namespace
-{
-std::vector<JsonNode> getNativeTerrainEntries(const JsonNode & nativeTerrainConfig)
+static std::vector<JsonNode> getNativeTerrainEntries(const JsonNode & nativeTerrainConfig)
 {
 	if (nativeTerrainConfig.getType() == JsonNode::JsonType::DATA_VECTOR)
 		return nativeTerrainConfig.Vector();
@@ -766,7 +764,7 @@ std::vector<JsonNode> getNativeTerrainEntries(const JsonNode & nativeTerrainConf
 	return {nativeTerrainConfig};
 }
 
-void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::shared_ptr<CFaction> & faction)
+static void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::shared_ptr<CFaction> & faction)
 {
 	faction->nativeTerrain = ETerrainId::NONE;
 	faction->nativeTerrains = {ETerrainId::NONE};
@@ -794,7 +792,6 @@ void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::shared_
 
 	if (!hasNativeTerrain)
 		faction->nativeTerrains.push_back(ETerrainId::NONE);
-}
 }
 
 std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, const JsonNode & source, const std::string & identifier, size_t index)
