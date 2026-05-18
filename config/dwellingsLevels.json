@@ -1,0 +1,8 @@
+{
+	"maxLevel": 10,
+	"baseUpgradeCostGold": 1000,
+	"costStepGold": 1000,
+	"recruitCostStepPercent": 5,
+	"minRecruitCostPercent": 50,
+	"growthPercentPerLevel": 10
+}

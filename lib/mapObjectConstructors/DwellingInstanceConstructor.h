@@ -23,6 +23,7 @@ class DwellingInstanceConstructor : public CDefaultObjectTypeHandler<CGDwelling>
 	std::vector<std::vector<const CCreature *>> availableCreatures;
 
 	JsonNode guards;
+	JsonNode levelsConfig;
 	bool bannedForRandomDwelling = false;
 	AnimationPath kingdomOverviewImage;
 

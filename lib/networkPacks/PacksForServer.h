@@ -372,6 +372,24 @@ struct DLL_LINKAGE UpgradeCreature : public CPackForServer
 	}
 };
 
+struct DLL_LINKAGE UpgradeDwelling : public CPackForServer
+{
+	UpgradeDwelling() = default;
+	explicit UpgradeDwelling(const ObjectInstanceID & TID)
+		: tid(TID)
+	{
+	}
+	ObjectInstanceID tid;
+
+	void visitTyped(ICPackVisitor & visitor) override;
+
+	template <typename Handler> void serialize(Handler & h)
+	{
+		h & static_cast<CPackForServer &>(*this);
+		h & tid;
+	}
+};
+
 struct DLL_LINKAGE GarrisonHeroSwap : public CPackForServer
 {
 	GarrisonHeroSwap() = default;

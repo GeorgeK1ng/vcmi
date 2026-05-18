@@ -2464,6 +2464,8 @@ bool CGameHandler::recruitCreatures(ObjectInstanceID objid, ObjectInstanceID dst
 
 	//recruit
 	TResources cost = (c->getFullRecruitCost() * cram);
+	if (dwelling->currentRecruitCostPercent != 100)
+		cost = cost.multipliedBy(static_cast<double>(dwelling->currentRecruitCostPercent) / 100.0);
 	giveResources(army->tempOwner, -cost);
 	statistics->getPlayerAccumulator(army->tempOwner).spentResourcesForArmy += cost;
 
@@ -2533,6 +2535,15 @@ bool CGameHandler::upgradeCreature(ObjectInstanceID objid, SlotID pos, CreatureI
 	//upgrade creature
 	changeStackType(StackLocation(obj->id, pos), upgID.toCreature());
 	return true;
+}
+
+bool CGameHandler::upgradeDwelling(ObjectInstanceID objid, PlayerColor player)
+{
+	const auto * dwellingConst = dynamic_cast<const CGDwelling *>(gameInfo().getObj(objid));
+	auto * dwelling = const_cast<CGDwelling *>(dwellingConst);
+	COMPLAIN_RET_FALSE_IF(!dwelling, "Invalid dwelling object");
+	COMPLAIN_RET_FALSE_IF(dwelling->tempOwner != player, "Dwelling is not owned by player");
+	return dwelling->tryUpgradeDwelling(*this, player);
 }
 
 bool CGameHandler::changeStackType(const StackLocation &sl, const CCreature *c)

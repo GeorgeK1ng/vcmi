@@ -301,8 +301,16 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 	maxButton = std::make_shared<CButton>(Point(134 + layoutOffsetX, 313), AnimationPath::builtin("IRCBTNS.DEF"), LIBRARY->generaltexth->zelp[553], std::bind(&CSlider::scrollToMax, slider), EShortcut::RECRUITMENT_MAX);
 	buyButton = std::make_shared<CButton>(Point(212 + layoutOffsetX, 313), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], std::bind(&CRecruitmentWindow::buy, this), EShortcut::GLOBAL_ACCEPT);
 	cancelButton = std::make_shared<CButton>(Point(290 + layoutOffsetX, 313), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], std::bind(&CRecruitmentWindow::close, this), EShortcut::GLOBAL_CANCEL);
+	upgradeButton = std::make_shared<CButton>(Point(56 + layoutOffsetX, 313), AnimationPath::builtin("iViewCr.def"), CButton::tooltip("Upgrade dwelling"), std::bind(&CRecruitmentWindow::upgradeDwelling, this));
+	const int nextLevel = dwelling->currentDwellingLevel + 1;
+	const bool hasNextLevel = std::any_of(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
+	{
+		return levelDef.level == nextLevel;
+	});
+	upgradeButton->block(!hasNextLevel);
 
 	title = std::make_shared<CLabel>(243 + layoutOffsetX, 32, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW);
+	levelInfo = std::make_shared<CLabel>(243 + layoutOffsetX, 52, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	availableValue = std::make_shared<CLabel>(204 + layoutOffsetX, 253, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 	toRecruitValue = std::make_shared<CLabel>(279 + layoutOffsetX, 253, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE);
 
@@ -313,6 +321,53 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 	toRecruitTitle = std::make_shared<CLabel>(279 + layoutOffsetX, 233, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->allTexts[16]);
 
 	availableCreaturesChanged();
+}
+
+void CRecruitmentWindow::upgradeDwelling()
+{
+	const int nextLevel = dwelling->currentDwellingLevel + 1;
+	const int currentDisplayLevel = dwelling->currentDwellingLevel;
+	const int nextDisplayLevel = nextLevel;
+	const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
+	{
+		return levelDef.level == nextLevel;
+	});
+	if (found == dwelling->dwellingLevels.end())
+	{
+		GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.noFurtherLevels"));
+		return;
+	}
+
+	ResourceSet cost = found->cost;
+	if (cost == ResourceSet())
+		cost[GameResID::GOLD] = 1000;
+	const bool canAfford = GAME->interface()->cb->getResourceAmount().canAfford(cost);
+
+	std::string text = LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.confirmHeader")
+		+ " " + std::to_string(currentDisplayLevel) + " -> " + std::to_string(nextDisplayLevel)
+		+ "\n" + LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.costLabel") + ":"
+		+ "\nCurrent recruit cost: " + std::to_string(dwelling->currentRecruitCostPercent) + "%"
+		+ "\nNext recruit cost: " + std::to_string(found->recruitCostPercent) + "%";
+	if(!found->nameText.empty())
+		text += "\\n" + found->nameText;
+	if(!found->descriptionText.empty())
+		text += "\\n" + found->descriptionText;
+	std::vector<std::shared_ptr<CComponent>> components;
+	for (auto it = ResourceSet::nziterator(cost); it.valid(); ++it)
+		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, it->resType, it->resVal));
+	if (components.empty())
+		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, GameResID(GameResID::GOLD), 0));
+
+	if (!canAfford)
+	{
+		GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[523], components);
+		return;
+	}
+
+	GAME->interface()->showYesNoDialog(text, [this]()
+	{
+		GAME->interface()->cb->upgradeDwelling(dwelling);
+	}, nullptr, components);
 }
 
 void CRecruitmentWindow::availableCreaturesChanged()
@@ -339,6 +394,23 @@ void CRecruitmentWindow::availableCreaturesChanged()
 		//create new cards
 		for(auto & creature : boost::adaptors::reverse(dwelling->creatures[i].second))
 			cards.push_back(std::make_shared<CCreatureCard>(this, creature.toCreature(), amount));
+	}
+
+	if (level >= 0)
+	{
+		const int currentLevel = dwelling->currentDwellingLevel;
+		const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [currentLevel](const auto & levelDef)
+		{
+			return levelDef.level == currentLevel;
+		});
+		if (found != dwelling->dwellingLevels.end() && !found->nameText.empty())
+		{
+			levelInfo->setText(found->nameText + " (" + LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.levelShort") + " " + std::to_string(currentLevel) + ")");
+		}
+		else
+		{
+			levelInfo->setText(LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.levelShort") + " " + std::to_string(currentLevel));
+		}
 	}
 
 	const int creatureWidth = 102;

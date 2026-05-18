@@ -12,6 +12,7 @@
 
 #include "../gameState/CGameState.h"
 #include "../mapObjects/CGHeroInstance.h"
+#include "../mapObjects/CGDwelling.h"
 #include "../mapObjects/CGTownInstance.h"
 #include "../mapping/CMap.h"
 #include "../networkPacks/PacksForServer.h"
@@ -66,6 +67,12 @@ void CCallback::recruitCreatures(const CGDwelling * obj, const CArmedInstance * 
 		return;
 
 	RecruitCreatures pack(obj->id, dst->id, ID, amount, level);
+	sendRequest(pack);
+}
+
+void CCallback::upgradeDwelling(const CGDwelling * obj)
+{
+	UpgradeDwelling pack(obj->id);
 	sendRequest(pack);
 }
 

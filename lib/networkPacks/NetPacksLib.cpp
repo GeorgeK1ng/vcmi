@@ -608,6 +608,11 @@ void UpgradeCreature::visitTyped(ICPackVisitor & visitor)
 	visitor.visitUpgradeCreature(*this);
 }
 
+void UpgradeDwelling::visitTyped(ICPackVisitor & visitor)
+{
+	visitor.visitUpgradeDwelling(*this);
+}
+
 void GarrisonHeroSwap::visitTyped(ICPackVisitor & visitor)
 {
 	visitor.visitGarrisonHeroSwap(*this);

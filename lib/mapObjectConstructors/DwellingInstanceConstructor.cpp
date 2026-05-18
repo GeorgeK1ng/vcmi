@@ -19,6 +19,7 @@
 #include "../mapObjects/ObjectTemplate.h"
 #include "../modding/IdentifierStorage.h"
 #include "../CConfigHandler.h"
+#include "../json/JsonUtils.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -54,6 +55,7 @@ void DwellingInstanceConstructor::initTypeData(const JsonNode & input)
 		assert(!availableCreatures[currentLevel].empty());
 	}
 	guards = input["guards"];
+	levelsConfig = input["levels"];
 	bannedForRandomDwelling = input["bannedForRandomDwelling"].Bool();
 	kingdomOverviewImage = AnimationPath::fromJson(input["kingdomOverviewImage"]);
 
@@ -95,10 +97,124 @@ bool DwellingInstanceConstructor::objectFilter(const CGObjectInstance * obj, std
 void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 {
 	obj->creatures.resize(availableCreatures.size());
+	obj->dwellingLevels.clear();
+	obj->currentDwellingLevel = 0;
+	obj->appliedLevelBonuses = 0;
+	obj->currentRecruitCostPercent = 100;
+
+	if (levelsConfig.getType() == JsonNode::JsonType::DATA_STRUCT)
+	{
+		std::vector<std::pair<int, JsonNode>> sortedLevels;
+		for (const auto & entry : levelsConfig.Struct())
+		{
+			int levelId = std::stoi(entry.first);
+			sortedLevels.emplace_back(levelId, entry.second);
+		}
+		std::sort(sortedLevels.begin(), sortedLevels.end(), [](const auto & lhs, const auto & rhs){ return lhs.first < rhs.first; });
+
+		for (const auto & [levelId, levelNode] : sortedLevels)
+		{
+			CGDwelling::DwellingLevelDefinition definition;
+			definition.level = levelId;
+			definition.nameText = levelNode["name"].String();
+			definition.descriptionText = levelNode["description"].String();
+			definition.cost = ResourceSet();
+			if (levelNode.Struct().count("cost"))
+				definition.cost.resolveFromJson(levelNode["cost"]);
+			definition.bonuses = levelNode["bonuses"];
+			definition.recruitCostPercent = levelNode["recruitCostPercent"].Integer();
+			if (definition.recruitCostPercent <= 0)
+				definition.recruitCostPercent = 100;
+
+			if (levelNode.Struct().count("creatures"))
+			{
+				const auto & levelCreatures = levelNode["creatures"].Vector();
+				definition.creatures.resize(levelCreatures.size());
+				for (size_t i = 0; i < levelCreatures.size(); ++i)
+				{
+					const auto & creatureVariants = levelCreatures[i].Vector();
+					definition.creatures[i].resize(creatureVariants.size());
+				}
+			}
+			obj->dwellingLevels.push_back(definition);
+			const size_t levelIndex = obj->dwellingLevels.size() - 1;
+			if (levelNode.Struct().count("creatures"))
+			{
+				const auto & levelCreatures = levelNode["creatures"].Vector();
+				for (size_t i = 0; i < levelCreatures.size(); ++i)
+				{
+					const auto & creatureVariants = levelCreatures[i].Vector();
+					for (size_t j = 0; j < creatureVariants.size(); ++j)
+					{
+						LIBRARY->identifiers()->requestIdentifier("creature", creatureVariants[j], [obj, levelIndex, i, j] (si32 index)
+						{
+							obj->dwellingLevels.at(levelIndex).creatures.at(i).at(j) = CreatureID(index);
+						});
+					}
+				}
+			}
+		}
+	}
+
 	for(const auto & entry : availableCreatures)
 	{
 		for(const CCreature * cre : entry)
 			obj->creatures.back().second.push_back(cre->getId());
+	}
+
+	if (obj->dwellingLevels.empty())
+	{
+		const JsonNode genericConfig = JsonUtils::assembleFromFiles("config/dwellingsLevels.json");
+
+		int maxLevel = genericConfig["maxLevel"].Integer();
+		if(maxLevel <= 0)
+			maxLevel = settings["mods"]["dwellingUpgradesMaxLevel"].Integer();
+		vstd::amax(maxLevel, 1);
+
+		int baseUpgradeCost = genericConfig["baseUpgradeCostGold"].Integer();
+		if(baseUpgradeCost <= 0)
+			baseUpgradeCost = 1000;
+		int costStep = genericConfig["costStepGold"].Integer();
+		if(costStep <= 0)
+			costStep = 1000;
+
+		int minRecruitCostPercent = genericConfig["minRecruitCostPercent"].Integer();
+		if(minRecruitCostPercent <= 0)
+			minRecruitCostPercent = 50;
+		int recruitCostStepPercent = genericConfig["recruitCostStepPercent"].Integer();
+		if(recruitCostStepPercent <= 0)
+			recruitCostStepPercent = 5;
+		int growthPercentPerLevel = genericConfig["growthPercentPerLevel"].Integer();
+		if(growthPercentPerLevel <= 0)
+			growthPercentPerLevel = 10;
+
+		std::vector<std::vector<CreatureID>> tierCreaturePool(obj->creatures.size());
+		for (size_t tier = 0; tier < obj->creatures.size(); ++tier)
+		{
+			if (obj->creatures[tier].second.empty())
+				continue;
+
+			tierCreaturePool[tier].push_back(obj->creatures[tier].second.front());
+			const auto * base = obj->creatures[tier].second.front().toCreature();
+			for (const auto & upgrade : base->upgrades)
+				tierCreaturePool[tier].push_back(upgrade);
+		}
+
+		for (int level = 1; level <= maxLevel; ++level)
+		{
+			CGDwelling::DwellingLevelDefinition genericLevel;
+			genericLevel.level = level;
+			genericLevel.cost[GameResID::GOLD] = baseUpgradeCost + (level - 1) * costStep;
+			genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
+			genericLevel.descriptionText = "Generic dwelling upgrade level " + std::to_string(level);
+			genericLevel.creatures = tierCreaturePool;
+			genericLevel.recruitCostPercent = std::max(minRecruitCostPercent, 100 - level * recruitCostStepPercent);
+			JsonNode growthBonus;
+			growthBonus["type"].String() = "CREATURE_GROWTH_PERCENT";
+			growthBonus["val"].Integer() = level * growthPercentPerLevel;
+			genericLevel.bonuses.Vector().push_back(growthBonus);
+			obj->dwellingLevels.push_back(genericLevel);
+		}
 	}
 }
 

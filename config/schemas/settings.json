@@ -195,13 +195,23 @@
 			"additionalProperties" : false,
 			"default" : {},
 			"required" : [ 
-				"validation"
+				"validation",
+				"dwellingUpgrades",
+				"dwellingUpgradesMaxLevel"
 			],
 			"properties" : {
 				"validation" : {
 					"type" : "string",
 					"enum" : [ "off", "basic", "full" ],
 					"default" : "basic"
+				},
+				"dwellingUpgrades" : {
+					"type" : "boolean",
+					"default" : true
+				},
+				"dwellingUpgradesMaxLevel" : {
+					"type" : "number",
+					"default" : 10
 				}
 			}
 		},
