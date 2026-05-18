@@ -796,42 +796,39 @@ std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, 
 	// But allows it to be defined with explicit value of "none" if town should not have native terrain
 	// This is better than allowing such terrain-less towns silently, leading to issues with RMG
 	faction->nativeTerrain = ETerrainId::NONE;
-	faction->nativeTerrains = {faction->nativeTerrain};
+	faction->nativeTerrains = {ETerrainId::NONE};
 	const auto & nativeTerrainConfig = source["nativeTerrain"];
 	if (!nativeTerrainConfig.isNull())
 	{
-		std::vector<JsonNode> terrainIdentifiers;
-		if (nativeTerrainConfig.getType() == JsonNode::JsonType::DATA_VECTOR)
-		{
-			terrainIdentifiers = nativeTerrainConfig.Vector();
-		}
-		else
-		{
-			terrainIdentifiers.push_back(nativeTerrainConfig);
-		}
-
 		faction->nativeTerrains.clear();
-		bool hasNonNoneTerrain = false;
-		bool primaryNativeTerrainAssigned = false;
-		for (const auto & terrainIdentifier : terrainIdentifiers)
+		auto registerTerrain = [=](const JsonNode & terrainIdentifier, bool isPrimary)
 		{
 			if (terrainIdentifier.String() == "none")
-				continue;
+				return false;
 
-			hasNonNoneTerrain = true;
-			const bool setAsPrimaryNativeTerrain = !primaryNativeTerrainAssigned;
-			primaryNativeTerrainAssigned = true;
 			LIBRARY->identifiers()->requestIdentifier("terrain", terrainIdentifier, [=](int32_t index)
 			{
 				auto terrainId = TerrainId(index);
-				if (setAsPrimaryNativeTerrain)
+				if (isPrimary)
 					faction->nativeTerrain = terrainId;
 
 				faction->nativeTerrains.push_back(terrainId);
 			});
+			return true;
+		};
+
+		bool hasNativeTerrain = false;
+		if (nativeTerrainConfig.getType() == JsonNode::JsonType::DATA_VECTOR)
+		{
+			for (const auto & terrainIdentifier : nativeTerrainConfig.Vector())
+				hasNativeTerrain |= registerTerrain(terrainIdentifier, !hasNativeTerrain);
+		}
+		else
+		{
+			hasNativeTerrain = registerTerrain(nativeTerrainConfig, true);
 		}
 
-		if (!hasNonNoneTerrain)
+		if (!hasNativeTerrain)
 			faction->nativeTerrains.push_back(ETerrainId::NONE);
 	}
 
