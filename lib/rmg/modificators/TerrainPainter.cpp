@@ -60,7 +60,10 @@ void TerrainPainter::initTerrainType()
 	{
 		if(zone.isMatchTerrainToTown() && zone.getTownType() != ETownType::NEUTRAL)
 		{
-			auto terrainType = (*LIBRARY->townh)[zone.getTownType()]->nativeTerrain;
+			const auto & nativeTerrains = (*LIBRARY->townh)[zone.getTownType()]->nativeTerrains;
+			TerrainId terrainType = nativeTerrains.empty()
+				? (*LIBRARY->townh)[zone.getTownType()]->nativeTerrain
+				: *RandomGeneratorUtil::nextItem(nativeTerrains, zone.getRand());
 
 			if (terrainType <= ETerrainId::NONE)
 			{
