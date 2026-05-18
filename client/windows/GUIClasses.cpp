@@ -341,6 +341,7 @@ void CRecruitmentWindow::upgradeDwelling()
 	ResourceSet cost = found->cost;
 	if (cost == ResourceSet())
 		cost[GameResID::GOLD] = 1000;
+	const bool canAfford = GAME->interface()->cb->getResourceAmount().canAfford(cost);
 
 	std::string text = LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.confirmHeader")
 		+ " " + std::to_string(currentDisplayLevel) + " -> " + std::to_string(nextDisplayLevel)
@@ -356,6 +357,13 @@ void CRecruitmentWindow::upgradeDwelling()
 		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, it->resType, it->resVal));
 	if (components.empty())
 		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, GameResID(GameResID::GOLD), 0));
+
+	if (!canAfford)
+	{
+		GAME->interface()->showInfoDialog(LIBRARY->generaltexth->allTexts[523], components);
+		return;
+	}
+
 	GAME->interface()->showYesNoDialog(text, [this]()
 	{
 		GAME->interface()->cb->upgradeDwelling(dwelling);
