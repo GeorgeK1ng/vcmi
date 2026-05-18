@@ -355,7 +355,7 @@ void CRecruitmentWindow::upgradeDwelling()
 	for (auto it = ResourceSet::nziterator(cost); it.valid(); ++it)
 		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, it->resType, it->resVal));
 	if (components.empty())
-		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, GameResID::GOLD, 0));
+		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, GameResID(GameResID::GOLD), 0));
 	GAME->interface()->showYesNoDialog(text, [this]()
 	{
 		GAME->interface()->cb->upgradeDwelling(dwelling);
