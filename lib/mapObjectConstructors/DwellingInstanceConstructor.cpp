@@ -19,6 +19,7 @@
 #include "../mapObjects/ObjectTemplate.h"
 #include "../modding/IdentifierStorage.h"
 #include "../CConfigHandler.h"
+#include "../json/JsonUtils.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
@@ -163,8 +164,29 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 
 	if (obj->dwellingLevels.empty())
 	{
-		int maxLevel = settings["mods"]["dwellingUpgradesMaxLevel"].Integer();
+		const JsonNode genericConfig = JsonUtils::assembleFromFiles("config/dwellingsLevels.json");
+
+		int maxLevel = genericConfig["maxLevel"].Integer();
+		if(maxLevel <= 0)
+			maxLevel = settings["mods"]["dwellingUpgradesMaxLevel"].Integer();
 		vstd::amax(maxLevel, 1);
+
+		int baseUpgradeCost = genericConfig["baseUpgradeCostGold"].Integer();
+		if(baseUpgradeCost <= 0)
+			baseUpgradeCost = 1000;
+		int costStep = genericConfig["costStepGold"].Integer();
+		if(costStep <= 0)
+			costStep = 1000;
+
+		int minRecruitCostPercent = genericConfig["minRecruitCostPercent"].Integer();
+		if(minRecruitCostPercent <= 0)
+			minRecruitCostPercent = 50;
+		int recruitCostStepPercent = genericConfig["recruitCostStepPercent"].Integer();
+		if(recruitCostStepPercent <= 0)
+			recruitCostStepPercent = 5;
+		int growthPercentPerLevel = genericConfig["growthPercentPerLevel"].Integer();
+		if(growthPercentPerLevel <= 0)
+			growthPercentPerLevel = 10;
 
 		std::vector<std::vector<CreatureID>> tierCreaturePool(obj->creatures.size());
 		for (size_t tier = 0; tier < obj->creatures.size(); ++tier)
@@ -182,11 +204,16 @@ void DwellingInstanceConstructor::initializeObject(CGDwelling * obj) const
 		{
 			CGDwelling::DwellingLevelDefinition genericLevel;
 			genericLevel.level = level;
-			genericLevel.cost[GameResID::GOLD] = 1000 * level;
+			genericLevel.cost[GameResID::GOLD] = baseUpgradeCost + (level - 1) * costStep;
 			genericLevel.nameText = LIBRARY->generaltexth->translate(getNameTextID());
 			genericLevel.descriptionText = "Generic dwelling upgrade level " + std::to_string(level);
 			genericLevel.creatures = tierCreaturePool;
-			genericLevel.recruitCostPercent = std::max(50, 100 - level * 5);
+			genericLevel.recruitCostPercent = std::max(minRecruitCostPercent, 100 - level * recruitCostStepPercent);
+			JsonNode growthBonus;
+			growthBonus["type"].String() = "CREATURE_GROWTH_PERCENT";
+			growthBonus["val"].Integer() = level * growthPercentPerLevel;
+			growthBonus["propagator"].String() = "DWELLING_PROPAGATOR";
+			genericLevel.bonuses.Vector().push_back(growthBonus);
 			obj->dwellingLevels.push_back(genericLevel);
 		}
 	}
