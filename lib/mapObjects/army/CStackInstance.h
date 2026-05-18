@@ -130,6 +130,7 @@ public:
 
 	int32_t getInitiative(int turn = 0) const final;
 	TerrainId getNativeTerrain() const final;
+	bool isNativeTerrain(TerrainId terrain) const override;
 	TerrainId getCurrentTerrain() const;
 };
 
