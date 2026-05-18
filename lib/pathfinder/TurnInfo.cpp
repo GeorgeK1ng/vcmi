@@ -182,7 +182,7 @@ TurnInfo::TurnInfo(TurnInfoCache * sharedCache, const CGHeroInstance * target, i
 
 		const auto allStacksNativeForTerrain = [this](TerrainId terrainId)
 		{
-			for (const auto & slot : target->Slots())
+			for (const auto & slot : this->target->Slots())
 			{
 				if (!slot.second->isNativeTerrain(terrainId))
 					return false;
