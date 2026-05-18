@@ -366,8 +366,9 @@ void CZonePlacer::prepareZones(TZoneMap &zones, TZoneVector &zonesVector, const 
 					}
 					else
 					{
-						// surface or mixed
-						addZoneEqually(zone, true);
+						// surface-only or mixed surface+underground
+						// mixed should not be forced to surface
+						addZoneEqually(zone, !hasUndergroundTerrain);
 					}
 				}
 			}
