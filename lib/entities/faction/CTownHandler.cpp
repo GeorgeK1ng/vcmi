@@ -812,16 +812,19 @@ std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, 
 
 		faction->nativeTerrains.clear();
 		bool hasNonNoneTerrain = false;
+		bool primaryNativeTerrainAssigned = false;
 		for (const auto & terrainIdentifier : terrainIdentifiers)
 		{
 			if (terrainIdentifier.String() == "none")
 				continue;
 
 			hasNonNoneTerrain = true;
+			const bool setAsPrimaryNativeTerrain = !primaryNativeTerrainAssigned;
+			primaryNativeTerrainAssigned = true;
 			LIBRARY->identifiers()->requestIdentifier("terrain", terrainIdentifier, [=](int32_t index)
 			{
 				auto terrainId = TerrainId(index);
-				if (faction->nativeTerrain == ETerrainId::NONE)
+				if (setAsPrimaryNativeTerrain)
 					faction->nativeTerrain = terrainId;
 
 				faction->nativeTerrains.push_back(terrainId);
