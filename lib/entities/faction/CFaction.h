@@ -75,9 +75,7 @@ public:
 	std::string getDescriptionTextID() const;
 
 	bool hasTown() const override;
-	/// Legacy single-terrain compatibility field accessor.
-	/// Prefer isNativeTerrain for multi-native-terrain-aware checks.
-	TerrainId getNativeTerrain() const override;
+	TerrainId getNativeTerrain() const;
 	bool isNativeTerrain(TerrainId terrain) const override;
 	EAlignment getAlignment() const override;
 	BoatId getBoatType() const override;
