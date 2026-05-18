@@ -172,6 +172,7 @@ public:
 
 	//INativeTerrainProvider
 	FactionID getFactionID() const override;
+	[[deprecated("Use stack/faction isNativeTerrain(TerrainId) checks for multi-native-aware logic")]]
 	TerrainId getNativeTerrain() const override;
 	int getLowestCreatureSpeed() const;
 	si32 manaRegain() const; //how many points of mana can hero regain "naturally" in one day

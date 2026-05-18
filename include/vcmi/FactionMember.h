@@ -21,8 +21,10 @@ class DLL_LINKAGE AFactionMember: public IConstBonusProvider, public INativeTerr
 {
 public:
 	/**
-	 Returns native terrain considering some terrain bonuses.
+	 Legacy single-terrain accessor.
+	 Prefer isNativeTerrain(TerrainId) for multi-native checks.
 	*/
+	[[deprecated("Use isNativeTerrain(TerrainId) for multi-native-aware checks")]]
 	virtual TerrainId getNativeTerrain() const;
 	bool isNativeTerrain(TerrainId terrain) const override;
 	/**

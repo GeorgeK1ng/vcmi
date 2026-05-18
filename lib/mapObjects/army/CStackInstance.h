@@ -129,6 +129,7 @@ public:
 	PlayerColor getOwner() const override;
 
 	int32_t getInitiative(int turn = 0) const final;
+	[[deprecated("Use isNativeTerrain(TerrainId) for multi-native-aware checks")]]
 	TerrainId getNativeTerrain() const final;
 	bool isNativeTerrain(TerrainId terrain) const override;
 	TerrainId getCurrentTerrain() const;
