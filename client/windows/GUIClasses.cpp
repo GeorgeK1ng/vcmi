@@ -326,6 +326,8 @@ CRecruitmentWindow::CRecruitmentWindow(const CGDwelling * Dwelling, int Level, c
 void CRecruitmentWindow::upgradeDwelling()
 {
 	const int nextLevel = dwelling->currentDwellingLevel + 1;
+	const int currentDisplayLevel = std::max(1, dwelling->currentDwellingLevel);
+	const int nextDisplayLevel = std::max(1, nextLevel);
 	const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [nextLevel](const auto & levelDef)
 	{
 		return levelDef.level == nextLevel;
@@ -341,16 +343,23 @@ void CRecruitmentWindow::upgradeDwelling()
 		cost[GameResID::GOLD] = 1000;
 
 	std::string text = LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.confirmHeader")
-		+ " " + std::to_string(dwelling->currentDwellingLevel) + " -> " + std::to_string(nextLevel)
-		+ "\n" + LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.costLabel") + ": " + cost.toString();
+		+ " " + std::to_string(currentDisplayLevel) + " -> " + std::to_string(nextDisplayLevel)
+		+ "\n" + LIBRARY->generaltexth->translate("vcmi.dwellingUpgrade.costLabel") + ":"
+		+ "\nCurrent recruit cost: " + std::to_string(dwelling->currentRecruitCostPercent) + "%"
+		+ "\nNext recruit cost: " + std::to_string(found->recruitCostPercent) + "%";
 	if(!found->nameText.empty())
 		text += "\\n" + found->nameText;
 	if(!found->descriptionText.empty())
 		text += "\\n" + found->descriptionText;
+	std::vector<std::shared_ptr<CComponent>> components;
+	for (auto it = ResourceSet::nziterator(cost); it.valid(); ++it)
+		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, it->resType, it->resVal));
+	if (components.empty())
+		components.push_back(std::make_shared<CComponent>(ComponentType::RESOURCE, GameResID::GOLD, 0));
 	GAME->interface()->showYesNoDialog(text, [this]()
 	{
 		GAME->interface()->cb->upgradeDwelling(dwelling);
-	}, nullptr);
+	}, nullptr, components);
 }
 
 void CRecruitmentWindow::availableCreaturesChanged()
@@ -381,7 +390,7 @@ void CRecruitmentWindow::availableCreaturesChanged()
 
 	if (level >= 0)
 	{
-		const int currentLevel = dwelling->currentDwellingLevel;
+		const int currentLevel = std::max(1, dwelling->currentDwellingLevel);
 		const auto found = std::find_if(dwelling->dwellingLevels.begin(), dwelling->dwellingLevels.end(), [currentLevel](const auto & levelDef)
 		{
 			return levelDef.level == currentLevel;
