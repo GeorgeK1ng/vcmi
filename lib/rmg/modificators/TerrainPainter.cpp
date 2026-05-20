@@ -72,17 +72,17 @@ void TerrainPainter::initTerrainType()
 				return zone.isUnderground() ? terrain->isUnderground() : terrain->isSurface();
 			};
 
-			if (!isCompatibleWithLevel(terrainType))
+			std::vector<TerrainId> compatibleTerrains;
+			for (const auto & candidate : nativeTerrains)
 			{
-				for (const auto & alternativeTerrain : nativeTerrains)
-				{
-					if (isCompatibleWithLevel(alternativeTerrain))
-					{
-						terrainType = alternativeTerrain;
-						break;
-					}
-				}
+				if (isCompatibleWithLevel(candidate))
+					compatibleTerrains.push_back(candidate);
 			}
+
+			// Prefer random native terrain when multiple compatible terrains exist.
+			// If no compatible entry exists, keep legacy primary terrain behavior.
+			if (!compatibleTerrains.empty())
+				terrainType = *RandomGeneratorUtil::nextItem(compatibleTerrains, zone.getRand());
 
 			if (terrainType <= ETerrainId::NONE)
 			{
