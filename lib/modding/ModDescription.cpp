@@ -37,7 +37,7 @@ void ModDescription::mergeModDescriptions(JsonNode & modConfig, const std::strin
 			if (firstLine.find(language.identifier) == std::string::npos)
 			   continue;
 
-			modConfig[language.identifier]["description"].String() = section.substr(endOfFirstLine + 1);
+			modConfig["descriptionMd"][language.identifier].String() = section.substr(endOfFirstLine + 1);
 
 			break;
 		}
@@ -151,17 +151,21 @@ const JsonNode & ModDescription::getLocalizedValue(const std::string & keyName) 
 const JsonNode & ModDescription::getLocalizedDescription() const
 {
 	const std::string language = CGeneralTextHandler::getPreferredLanguage();
-	const JsonNode & localizedValue = getValue(language)["description"];
-	const JsonNode & englishValue = getValue("english")["description"];
-	const JsonNode & baseValue = getValue("description");
+	const JsonNode & localizedMarkdownValue = getValue("descriptionMd")[language];
+	const JsonNode & localizedJsonValue = getValue(language)["description"];
+	const JsonNode & englishMarkdownValue = getValue("descriptionMd")["english"];
+	const JsonNode & baseJsonValue = getValue("description");
 
-	if (!localizedValue.isNull())
-		return localizedValue;
+	if (!localizedMarkdownValue.isNull())
+		return localizedMarkdownValue;
 
-	if (!englishValue.isNull())
-		return englishValue;
+	if (!localizedJsonValue.isNull())
+		return localizedJsonValue;
 
-	return baseValue;
+	if (!englishMarkdownValue.isNull())
+		return englishMarkdownValue;
+
+	return baseJsonValue;
 }
 
 const JsonNode & ModDescription::getValue(const std::string & keyName) const
