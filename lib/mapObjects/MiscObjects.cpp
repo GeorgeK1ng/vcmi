@@ -99,10 +99,14 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
 		const auto guardedMessageTranslated = getResourceHandler()->getOnGuardedMessageTranslated();
-		if(!isAbandoned() && !guardedMessageTranslated.empty())
+		if(isAbandoned())
+			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 84);
+		else if(tempOwner != PlayerColor::NEUTRAL)
+			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
+		else if(!guardedMessageTranslated.empty())
 			ynd.text.appendRawString(guardedMessageTranslated);
 		else
-			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, isAbandoned() ? 84 : 187);
+			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
 		gameEvents.showBlockingDialog(this, &ynd);
 		return;
 	}
@@ -112,6 +116,16 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 
 void CGMine::initObj(IGameRandomizer & gameRandomizer)
 {
+	const auto configuredGuards = getResourceHandler()->getGuards(cb, gameRandomizer);
+	const auto addConfiguredGuards = [&]()
+	{
+		for(const auto & stack : configuredGuards)
+		{
+			auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
+			putStack(SlotID(stacksCount()), std::move(guards));
+		}
+	};
+
 	if(isAbandoned())
 	{
 		//set default abandoned mine guardians
@@ -132,15 +146,8 @@ void CGMine::initObj(IGameRandomizer & gameRandomizer)
 	}
 	else
 	{
-		const auto configuredGuards = getResourceHandler()->getGuards(cb, gameRandomizer);
 		if(!configuredGuards.empty())
-		{
-			for(const auto & stack : configuredGuards)
-			{
-				auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
-				putStack(SlotID(stacksCount()), std::move(guards));
-			}
-		}
+			addConfiguredGuards();
 
 		if(getResourceHandler()->getResourceType() == GameResID::NONE) // fallback
 			producedResource = GameResID(getObjTypeIndex().getNum());
