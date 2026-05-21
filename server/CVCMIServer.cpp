@@ -835,6 +835,12 @@ void CVCMIServer::optionNextCastle(PlayerColor player, int dir)
 	auto & allowed = getPlayerInfo(player).allowedFactions;
 	const bool allowRandomTown = getPlayerInfo(player).isFactionRandom;
 
+	if(allowed.empty())
+	{
+		logGlobal->error("optionNextCastle for player %d has empty allowedFactions, current castle: %d", player.getNum(), cur.getNum());
+		return;
+	}
+
 	if(cur == FactionID::NONE) //no change
 		return;
 

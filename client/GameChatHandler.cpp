@@ -10,6 +10,7 @@
 #include "StdInc.h"
 
 #include "GameChatHandler.h"
+#include "GameEngine.h"
 #include "GameInstance.h"
 #include "CServerHandler.h"
 #include "CPlayerInterface.h"
@@ -56,31 +57,29 @@ void GameChatHandler::sendMessageLobby(const std::string & senderName, const std
 
 void GameChatHandler::onNewLobbyMessageReceived(const std::string & senderName, const std::string & messageText)
 {
+	chatHistory.push_back({senderName, messageText, TextOperations::getCurrentFormattedTimeLocal()});
+
 	if (!SEL)
 	{
 		logGlobal->debug("Received chat message for lobby but lobby not yet exists!");
 		return;
 	}
 
-	auto * lobby = dynamic_cast<CLobbyScreen*>(SEL);
-
-	// FIXME: when can this happen?
-	assert(lobby);
-	assert(lobby->card);
-
-	if(lobby && lobby->card)
+	ENGINE->dispatchMainThread([senderName, messageText]()
 	{
+		auto * lobby = dynamic_cast<CLobbyScreen*>(SEL);
+		if(!lobby || !lobby->card)
+			return;
+
 		MetaString formatted = MetaString::createFromRawString("[%s] %s: %s");
 		formatted.replaceRawString(TextOperations::getCurrentFormattedTimeLocal());
 		formatted.replaceRawString(senderName);
 		formatted.replaceRawString(messageText);
 
 		lobby->card->chat->addNewMessage(formatted.toString());
-		if (!lobby->card->showChat)
-				lobby->toggleChat();
-	}
-
-	chatHistory.push_back({senderName, messageText, TextOperations::getCurrentFormattedTimeLocal()});
+		if(!lobby->card->showChat)
+			lobby->toggleChat();
+	});
 }
 
 void GameChatHandler::onNewGameMessageReceived(PlayerColor sender, const std::string & messageText)
