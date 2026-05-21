@@ -216,8 +216,9 @@ std::string CRewardableObject::getDisplayTextImpl(PlayerColor player, const CGHe
 	else
 	{
 		// scouted version is included unconditionally into hover text (e.g. Shrines - "learn X spell")
-		if (!getScoutedDescriptionMessage(hero).empty())
-			result += "\n" + getDescriptionMessage(player, hero);
+		const auto scoutedDescription = getScoutedDescriptionMessage(hero);
+		if (!scoutedDescription.empty())
+			result += "\n" + scoutedDescription;
 	}
 
 	if (hero)
@@ -265,6 +266,9 @@ std::string CRewardableObject::getPopupText(const CGHeroInstance * hero) const
 
 std::string CRewardableObject::getScoutedDescriptionMessage(const CGHeroInstance * hero) const
 {
+	if (configuration.info.empty())
+		return {};
+
 	auto rewardIndices = getAvailableRewards(hero, Rewardable::EEventType::EVENT_FIRST_VISIT);
 	if (rewardIndices.empty() || !configuration.info[0].description.empty())
 		return configuration.info[0].description.toString();

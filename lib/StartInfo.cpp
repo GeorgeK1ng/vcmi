@@ -10,6 +10,8 @@
 #include "StdInc.h"
 #include "StartInfo.h"
 
+#include "logging/CLogger.h"
+
 #include "texts/CGeneralTextHandler.h"
 #include "GameLibrary.h"
 #include "entities/faction/CFaction.h"
@@ -236,6 +238,24 @@ PlayerConnectionID LobbyInfo::clientFirstId(GameConnectionID clientId) const
 
 PlayerInfo & LobbyInfo::getPlayerInfo(PlayerColor color)
 {
+	if(!mi || !mi->mapHeader)
+	{
+		logGlobal->error("LobbyInfo::getPlayerInfo called with invalid map info for color %d", color.getNum());
+		throw std::runtime_error("LobbyInfo::getPlayerInfo: invalid map info");
+	}
+
+	if(!color.isValidPlayer())
+	{
+		logGlobal->error("LobbyInfo::getPlayerInfo called with invalid player color %d", color.getNum());
+		throw std::runtime_error("LobbyInfo::getPlayerInfo: invalid player color");
+	}
+
+	if(color.getNum() >= mi->mapHeader->players.size())
+	{
+		logGlobal->error("LobbyInfo::getPlayerInfo color %d out of range, players size: %d", color.getNum(), static_cast<int>(mi->mapHeader->players.size()));
+		throw std::runtime_error("LobbyInfo::getPlayerInfo: player color out of range");
+	}
+
 	return mi->mapHeader->players[color.getNum()];
 }
 
