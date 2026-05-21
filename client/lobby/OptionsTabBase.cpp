@@ -16,10 +16,14 @@
 #include "../widgets/ComboBox.h"
 #include "../widgets/CTextInput.h"
 #include "../widgets/Images.h"
+#include "../widgets/ObjectLists.h"
 #include "../widgets/Slider.h"
 #include "../widgets/TextControls.h"
 #include "../CServerHandler.h"
+#include "../GameEngine.h"
 #include "../GameInstance.h"
+#include "../gui/WindowHandler.h"
+#include "../windows/GUIClasses.h"
 
 #include "../../lib/StartInfo.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -232,6 +236,33 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 	build(config);
 
 	//set timers combo box callbacks
+	static const std::vector<std::string> timerPresetTexts = {
+		"vcmi.optionsTab.turnTime.unlimited",
+		"vcmi.optionsTab.turnTime.classic.1",
+		"vcmi.optionsTab.turnTime.classic.2",
+		"vcmi.optionsTab.turnTime.classic.5",
+		"vcmi.optionsTab.turnTime.classic.10",
+		"vcmi.optionsTab.turnTime.classic.20",
+		"vcmi.optionsTab.turnTime.classic.30",
+		"vcmi.optionsTab.turnTime.chess.20",
+		"vcmi.optionsTab.turnTime.chess.15",
+		"vcmi.optionsTab.turnTime.chess.10",
+		"vcmi.optionsTab.turnTime.chess.5",
+		"vcmi.optionsTab.turnTime.chess.2",
+		"vcmi.optionsTab.turnTime.chess.1"
+	};
+
+	static const std::vector<std::string> simturnPresetTexts = {
+		"vcmi.optionsTab.simturns.none",
+		"vcmi.optionsTab.simturns.tillContactMax",
+		"vcmi.optionsTab.simturns.tillContact1",
+		"vcmi.optionsTab.simturns.tillContact2",
+		"vcmi.optionsTab.simturns.tillContact4",
+		"vcmi.optionsTab.simturns.blocked1",
+		"vcmi.optionsTab.simturns.blocked2",
+		"vcmi.optionsTab.simturns.blocked4"
+	};
+
 	if(auto w = widget<ComboBox>("timerModeSwitch"))
 	{
 		w->onConstructItems = [&](std::vector<const void *> & curItems){
@@ -293,10 +324,53 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 				curItems.push_back((void*)i);
 		};
 
+		w->getItemText = [](int, const void * item){
+			size_t itemIndex = (size_t)item;
+			if(itemIndex < simturnPresetTexts.size())
+				return LIBRARY->generaltexth->translate(simturnPresetTexts[itemIndex]);
+			return std::string("");
+		};
+
 		w->onSetItem = [setSimturnsPresetCallback](const void * item){
 			size_t itemIndex = (size_t)item;
 			setSimturnsPresetCallback(itemIndex);
 		};
+
+		w->addCallback([this](){
+			std::vector<std::string> texts;
+			texts.reserve(simturnPresetTexts.size());
+			for(const auto & textId : simturnPresetTexts)
+				texts.push_back(LIBRARY->generaltexth->translate(textId));
+
+			const auto presets = getSimturnsPresets();
+			const auto current = SEL->getStartInfo()->simturnsInfo;
+			size_t selected = 0;
+			for(size_t i = 0; i < presets.size(); ++i)
+			{
+				if(presets[i].optionalTurns == current.optionalTurns &&
+					presets[i].requiredTurns == current.requiredTurns &&
+					presets[i].allowHumanWithAI == current.allowHumanWithAI)
+				{
+					selected = i;
+					break;
+				}
+			}
+
+			ENGINE->windows().popWindows(1);
+			ENGINE->windows().pushWindow(std::make_shared<CObjectListWindow>(
+				texts,
+				nullptr,
+				LIBRARY->generaltexth->translate("vcmi.optionsTab.simturns.select"),
+				LIBRARY->generaltexth->translate("vcmi.optionsTab.simturns.select"),
+				[this](int index){
+					widget<ComboBox>("simturnsPresetSelector")->setItem(index);
+				},
+				static_cast<int>(selected),
+				std::vector<std::shared_ptr<IImage>>(),
+				true,
+				true
+			));
+		});
 	}
 
 	if(auto w = widget<ComboBox>("timerPresetSelector"))
@@ -307,10 +381,51 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 				curItems.push_back((void*)i);
 		};
 
+		w->getItemText = [](int, const void * item){
+			size_t itemIndex = (size_t)item;
+			if(itemIndex < timerPresetTexts.size())
+				return LIBRARY->generaltexth->translate(timerPresetTexts[itemIndex]);
+			return std::string("");
+		};
+
 		w->onSetItem = [setTimerPresetCallback](const void * item){
 			size_t itemIndex = (size_t)item;
 			setTimerPresetCallback(itemIndex);
 		};
+
+		w->addCallback([this](){
+			std::vector<std::string> texts;
+			texts.reserve(timerPresetTexts.size());
+			for(const auto & textId : timerPresetTexts)
+				texts.push_back(LIBRARY->generaltexth->translate(textId));
+
+			const auto presets = getTimerPresets();
+			const auto current = SEL->getStartInfo()->turnTimerInfo;
+			size_t selected = 0;
+			for(size_t i = 0; i < presets.size(); ++i)
+			{
+				if(presets[i] == current)
+				{
+					selected = i;
+					break;
+				}
+			}
+
+			ENGINE->windows().popWindows(1);
+			ENGINE->windows().pushWindow(std::make_shared<CObjectListWindow>(
+				texts,
+				nullptr,
+				LIBRARY->generaltexth->translate("vcmi.optionsTab.turnTime.select"),
+				LIBRARY->generaltexth->translate("vcmi.optionsTab.turnTime.select"),
+				[this](int index){
+					widget<ComboBox>("timerPresetSelector")->setItem(index);
+				},
+				static_cast<int>(selected),
+				std::vector<std::shared_ptr<IImage>>(),
+				true,
+				true
+			));
+		});
 	}
 }
 
@@ -428,6 +543,37 @@ void OptionsTabBase::recreate(bool campaign)
 		}
 	}
 
+	if(auto w = widget<ComboBox>("timerPresetSelector"))
+	{
+		const auto presets = getTimerPresets();
+		for(size_t i = 0; i < presets.size(); ++i)
+		{
+			if(presets[i] == turnTimerRemote)
+			{
+				if(w->getItemText)
+					w->setTextOverlay(w->getItemText(0, (void*)i), EFonts::FONT_SMALL, Colors::WHITE);
+				break;
+			}
+		}
+	}
+
+	if(auto w = widget<ComboBox>("simturnsPresetSelector"))
+	{
+		const auto presets = getSimturnsPresets();
+		const auto current = SEL->getStartInfo()->simturnsInfo;
+		for(size_t i = 0; i < presets.size(); ++i)
+		{
+			if(presets[i].optionalTurns == current.optionalTurns &&
+				presets[i].requiredTurns == current.requiredTurns &&
+				presets[i].allowHumanWithAI == current.allowHumanWithAI)
+			{
+				if(w->getItemText)
+					w->setTextOverlay(w->getItemText(0, (void*)i), EFonts::FONT_SMALL, Colors::WHITE);
+				break;
+			}
+		}
+	}
+
 	if(auto buttonCheatAllowed = widget<CToggleButton>("buttonCheatAllowed"))
 	{
 		buttonCheatAllowed->setSelectedSilent(SEL->getStartInfo()->extraOptionsInfo.cheatsAllowed);
@@ -444,6 +590,12 @@ void OptionsTabBase::recreate(bool campaign)
 	{
 		buttonTurnOptions->block(GAME->server().isGuest() || campaign);
 	}
+
+	if(auto buttonTimerPresetCaption = widget<CButton>("buttonTimerPresetCaption"))
+		buttonTimerPresetCaption->block(true);
+
+	if(auto buttonSimturnsPresetCaption = widget<CButton>("buttonSimturnsPresetCaption"))
+		buttonSimturnsPresetCaption->block(true);
 
 	if(SEL->screenType == ESelectionScreen::scenarioInfo)
 	{
