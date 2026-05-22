@@ -256,7 +256,13 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 				boost::replace_first(message, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
 
 			if(!message.empty())
-				hero->showInfoDialog(gameEvents, message);
+			{
+				InfoWindow iw;
+				iw.type = EInfoWindowMode::AUTO;
+				iw.player = hero->tempOwner;
+				iw.text.appendRawString(message);
+				gameEvents.showInfoDialog(&iw);
+			}
 			else
 				hero->showInfoDialog(gameEvents, 85);
 		}
