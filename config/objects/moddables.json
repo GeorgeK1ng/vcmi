@@ -390,13 +390,13 @@
 				"index" : 7,
 				"battleground": "subterranean",
 				"guards" : [{
-					"creature" : "core:troglodyte",
+					"creature" : "troglodyte",
 					"min" : 100,
 					"max" : 249
 				}],
-				"onGuardedMessage" : "@vcmi.object.abandonedMine.onGuardedMessage",
-				"ownedGuardedMessage" : "@core.advevent.187",
-				"message" : "@vcmi.object.abandonedMine.message"
+				"onGuardedMessage" : 84,
+				"ownedGuardedMessage" : 187,
+				"message" : 85
 			}
 		}
 	},

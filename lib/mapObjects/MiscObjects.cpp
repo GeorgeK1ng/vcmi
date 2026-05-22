@@ -98,9 +98,11 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 	{
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
-		auto guardedMessageTranslated = tempOwner != PlayerColor::NEUTRAL
-			? getResourceHandler()->getOwnedGuardedMessageTranslated()
-			: getResourceHandler()->getOnGuardedMessageTranslated();
+		auto guardedMessageTranslated = isAbandoned()
+			? getResourceHandler()->getOnGuardedMessageTranslated()
+			: (tempOwner != PlayerColor::NEUTRAL
+				? getResourceHandler()->getOwnedGuardedMessageTranslated()
+				: getResourceHandler()->getOnGuardedMessageTranslated());
 		if(!guardedMessageTranslated.empty() && stacksCount() > 0 && guardedMessageTranslated.find("%s") != std::string::npos)
 			boost::replace_first(guardedMessageTranslated, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
 
