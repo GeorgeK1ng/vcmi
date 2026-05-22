@@ -1184,6 +1184,8 @@
 	"vcmi.wiki.header.category": "Kategorie",
 	"vcmi.wiki.header.entry": "Položka",
 	"vcmi.wiki.header.information": "Informace",
+	"vcmi.object.abandonedMine.onGuardedMessage": "Přišel jsi k opuštěnému dolu. Vypadá to, že už se tam usídlili %s. Přeješ si vstoupit?",
+	"vcmi.object.abandonedMine.message": "Vytloukl jsi %s a obnovil těžbu v dole.",
 	"vcmi.wiki.hero.column.amount": "Množství",
 	"vcmi.wiki.hero.column.level": "Úroveň",
 	"vcmi.wiki.hero.column.skill": "Dovednost",

@@ -1200,6 +1200,8 @@
 	"vcmi.wiki.alignment.good": "Good",
 	"vcmi.wiki.alignment.evil": "Evil",
 	"vcmi.wiki.alignment.neutral": "Neutral",
+	"vcmi.object.abandonedMine.onGuardedMessage": "You come upon an abandoned mine.  The mine appears to be infested with %s.  Do you wish to enter?",
+	"vcmi.object.abandonedMine.message": "You beat the %s and are able to restore the mine to production.",
 	"vcmi.wiki.gender.male": "M",
 	"vcmi.wiki.gender.female": "W",
 	"vcmi.wiki.modName.core": "Heroes of Might and Magic III",
