@@ -213,10 +213,11 @@ void CGMine::flagMine(IGameEventCallback & gameEvents, const PlayerColor & playe
 
 	InfoWindow iw;
 	iw.type = EInfoWindowMode::AUTO;
-	if(getResourceHandler()->getResourceType() == GameResID::NONE || getObjTypeIndex() < GameConstants::RESOURCE_QUANTITY)
-		iw.text.appendTextID(TextIdentifier("core.mineevnt", producedResource.getNum()).get()); //not use subID, abandoned mines uses default mine texts
+	const auto configuredDescription = getResourceHandler()->getDescriptionTranslated();
+	if(!configuredDescription.empty())
+		iw.text.appendRawString(configuredDescription);
 	else
-		iw.text.appendRawString(getResourceHandler()->getDescriptionTranslated());
+		iw.text.appendTextID(TextIdentifier("core.mineevnt", producedResource.getNum()).get()); // fallback for legacy configs
 	iw.player = player;
 	iw.components.emplace_back(ComponentType::RESOURCE_PER_DAY, producedResource, getProducedQuantity());
 	gameEvents.showInfoDialog(&iw);
