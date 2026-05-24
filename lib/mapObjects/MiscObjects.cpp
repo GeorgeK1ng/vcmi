@@ -111,7 +111,12 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 			|| guardedMessageTranslated == (useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID());
 
 		if(!missingConfiguredGuardedMessage)
-			ynd.text.appendRawString(guardedMessageTranslated);
+		{
+			if(!guardedMessageTranslated.empty() && guardedMessageTranslated.front() == '@')
+				ynd.text.appendTextID(guardedMessageTranslated.substr(1));
+			else
+				ynd.text.appendRawString(guardedMessageTranslated);
+		}
 		else
 			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
 
