@@ -223,6 +223,20 @@ jobs:
         pipx install conan
         source '${{github.workspace}}/CI/install_conan_dependencies.sh' '${{matrix.conan_prebuilts}}'
 
+    - name: Install MSVC v142 toolset for non-ARM Windows builds
+      if: ${{ startsWith(matrix.platform, 'msvc') && !contains(matrix.platform, 'arm') }}
+      shell: pwsh
+      run: |
+        $vsWhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+        $installPath = & $vsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        if (-not $installPath)
+        {
+          throw 'Visual Studio installation not found.'
+        }
+
+        $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vs_installer.exe'
+        & $installer modify --installPath "$installPath" --quiet --wait --norestart --nocache --add Microsoft.VisualStudio.Component.VC.v142.x86.x64
+
     - name: Setup MSVC Developer Command Prompt
       if: ${{ startsWith(matrix.platform, 'msvc') }}
       uses: ilammy/msvc-dev-cmd@v1
