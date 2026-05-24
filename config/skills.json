@@ -331,12 +331,21 @@
 	"eagleEye" : {
 		"index" : 11,
 		"specialty" : [
-			"main"
+			"main",
+			"preBattle"
 		],
 		"base" : {
 			"effects" : {
 				"main" : {
 					"type" : "LEARN_BATTLE_SPELL_CHANCE",
+					"valueType" : "BASE_NUMBER"
+				},
+				"preBattle" : {
+					"type" : "LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE",
+					"valueType" : "BASE_NUMBER"
+				},
+				"preBattleLevel" : {
+					"type" : "LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE",
 					"valueType" : "BASE_NUMBER"
 				},
 				"val2" : {
@@ -348,18 +357,24 @@
 		"basic" : {
 			"effects" : {
 				"main" : { "val" : 40 },
+				"preBattle" : { "val" : 30 },
+				"preBattleLevel" : { "val" : 3 },
 				"val2" : { "val" : 2 }
 			}
 		},
 		"advanced" : {
 			"effects" : {
 				"main" : { "val" : 50 },
+				"preBattle" : { "val" : 40 },
+				"preBattleLevel" : { "val" : 4 },
 				"val2" : { "val" : 3 }
 			}
 		},
 		"expert" : {
 			"effects" : {
 				"main" : { "val" : 60 },
+				"preBattle" : { "val" : 50 },
+				"preBattleLevel" : { "val" : 5 },
 				"val2" : { "val" : 4 }
 			}
 		}

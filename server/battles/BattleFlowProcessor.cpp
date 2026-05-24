@@ -134,6 +134,47 @@ void BattleFlowProcessor::tryPlaceMoats(const CBattleInfoCallback & battle)
 
 void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 {
+	const auto learnEnemySpellsAtBattleStart = [this](const CGHeroInstance * learner, const CGHeroInstance * enemy)
+	{
+		if (!learner || !enemy || !learner->hasSpellbook())
+			return;
+
+		const auto spellLevelLimit = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
+			? learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
+			: learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT);
+		const auto learnChance = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE);
+		if (spellLevelLimit <= 0 || learnChance <= 0)
+			return;
+
+		ChangeSpells learnedSpells;
+		learnedSpells.learn = 1;
+		learnedSpells.hid = learner->id;
+
+		for(const auto & spellID : enemy->spells)
+		{
+			const auto * spell = spellID.toSpell();
+			if (!spell)
+				continue;
+
+			if (spell->getLevel() > spellLevelLimit)
+				continue;
+
+			if (learner->spellbookContainsSpell(spellID))
+				continue;
+
+			if (gameHandler->getRandomGenerator().nextInt(99) >= learnChance)
+				continue;
+
+			learnedSpells.spells.insert(spellID);
+		}
+
+		if (!learnedSpells.spells.empty())
+			gameHandler->sendAndApply(learnedSpells);
+	};
+
+	learnEnemySpellsAtBattleStart(battle.battleGetFightingHero(BattleSide::ATTACKER), battle.battleGetFightingHero(BattleSide::DEFENDER));
+	learnEnemySpellsAtBattleStart(battle.battleGetFightingHero(BattleSide::DEFENDER), battle.battleGetFightingHero(BattleSide::ATTACKER));
+
 	tryPlaceMoats(battle);
 
 	gameHandler->turnTimerHandler->onBattleStart(battle.getBattle()->getBattleID());
