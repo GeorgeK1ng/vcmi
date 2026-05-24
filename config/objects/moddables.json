@@ -375,6 +375,14 @@
 			"abandoned" :	{
 				"index" : 7,
 				"description" : "@core.mineevnt.7",
+				"guards" : [{
+					"creature" : "troglodyte",
+					"min" : 100,
+					"max" : 249
+				}],
+				"onGuardedMessage" : 84,
+				"ownedGuardedMessage" : 187,
+				"message" : 85,
 				"aiValue" : 3500,
 				"sounds" : {
 					"ambient" : ["LOOPCAVE"],
