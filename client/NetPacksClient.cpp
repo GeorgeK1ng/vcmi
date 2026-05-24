@@ -49,10 +49,7 @@
 #include "../lib/GameConstants.h"
 #include "../lib/CPlayerState.h"
 
-namespace
-{
-std::map<ObjectInstanceID, std::set<SpellID>> pendingBattleStartSpellLearnDialogs;
-}
+static std::map<ObjectInstanceID, std::set<SpellID>> pendingBattleStartSpellLearnDialogs;
 
 // TODO: as Tow suggested these template should all be part of CClient
 // This will require rework spectator interface properly though
