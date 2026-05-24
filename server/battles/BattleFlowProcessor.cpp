@@ -150,7 +150,7 @@ void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 		learnedSpells.learn = 1;
 		learnedSpells.hid = learner->id;
 
-		for(const auto & spellID : enemy->spells)
+		for(const auto & spellID : enemy->getSpellsInSpellbook())
 		{
 			const auto * spell = spellID.toSpell();
 			if (!spell)
