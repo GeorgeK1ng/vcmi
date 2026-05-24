@@ -375,11 +375,11 @@
 			"abandoned" :	{
 				"index" : 7,
 				"description" : "@core.mineevnt.7",
-				"guards" : [{
-					"creature" : "troglodyte",
-					"min" : 100,
-					"max" : 249
-				}],
+					"guards" : [{
+						"creature" : "core:troglodyte",
+						"min" : 100,
+						"max" : 249
+					}],
 				"onGuardedMessage" : 84,
 				"ownedGuardedMessage" : 187,
 				"message" : 85,
@@ -408,7 +408,7 @@
 				"description" : "@core.mineevnt.7",
 				"battleground": "subterranean",
 				"guards" : [{
-					"creature" : "troglodyte",
+					"creature" : "core:troglodyte",
 					"min" : 100,
 					"max" : 249
 				}],
