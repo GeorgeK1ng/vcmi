@@ -98,9 +98,9 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 	{
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
-		// For abandoned mines always use onGuardedMessage.
-		// ownedGuardedMessage is for non-abandoned mines owned by a player.
-		const bool useOwnedGuardedMessage = !isAbandoned() && tempOwner != PlayerColor::NEUTRAL;
+		// ownedGuardedMessage is for any mine already owned by a player and guarded.
+		// It can be either text ID or raw text from config.
+		const bool useOwnedGuardedMessage = tempOwner != PlayerColor::NEUTRAL;
 		auto guardedMessageTranslated = useOwnedGuardedMessage
 			? getResourceHandler()->getOwnedGuardedMessageTranslated()
 			: getResourceHandler()->getOnGuardedMessageTranslated();
