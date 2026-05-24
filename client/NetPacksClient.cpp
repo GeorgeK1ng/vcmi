@@ -586,6 +586,19 @@ void ApplyClientNetPackVisitor::visitSetAvailableCreatures(SetAvailableCreatures
 	callInterfaceIfPresent(cl, p, &IGameEventsReceiver::availableCreaturesChanged, dw);
 }
 
+void ApplyClientNetPackVisitor::visitChangeSpells(ChangeSpells & pack)
+{
+	if(!pack.learn || pack.spells.empty())
+		return;
+
+	const auto * hero = cl.gameInfo().getHero(pack.hid);
+	if(!hero)
+		return;
+
+	callInterfaceIfPresent(cl, hero->tempOwner, &CGameInterface::showInfoDialog, EInfoWindowMode::AUTO,
+		UIHelper::getEagleEyeInfoWindowText(*hero, pack.spells), UIHelper::getSpellsComponents(pack.spells), soundBase::soundID(0));
+}
+
 void ApplyClientNetPackVisitor::visitSetHeroesInTown(SetHeroesInTown & pack)
 {
 	const CGTownInstance * t = gs.getTown(pack.tid);
