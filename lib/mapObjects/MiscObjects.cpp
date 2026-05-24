@@ -146,9 +146,19 @@ void CGMine::initObj(IGameRandomizer & gameRandomizer)
 	}
 
 	const auto configuredGuards = getResourceHandler()->getGuards(cb, gameRandomizer);
-	for(const auto & stack : configuredGuards)
+	if(!configuredGuards.empty())
 	{
-		auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
+		for(const auto & stack : configuredGuards)
+		{
+			auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
+			putStack(SlotID(stacksCount()), std::move(guards));
+		}
+	}
+	else if(isAbandoned())
+	{
+		// Legacy map compatibility (H3M custom abandoned-mine guards), used only when config has no guards.
+		const int howManyGuards = gameRandomizer.getDefault().nextInt(abandonedMineGuards.minAmount, abandonedMineGuards.maxAmount);
+		auto guards = std::make_unique<CStackInstance>(cb, abandonedMineGuards.creature, howManyGuards);
 		putStack(SlotID(stacksCount()), std::move(guards));
 	}
 
