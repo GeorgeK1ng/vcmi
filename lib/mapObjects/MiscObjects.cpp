@@ -106,7 +106,10 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 		if(!guardedMessageTranslated.empty() && stacksCount() > 0 && guardedMessageTranslated.find("%s") != std::string::npos)
 			boost::replace_first(guardedMessageTranslated, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
 
-		if(!guardedMessageTranslated.empty())
+		const bool missingConfiguredGuardedMessage = guardedMessageTranslated.empty()
+			|| guardedMessageTranslated == (useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID());
+
+		if(!missingConfiguredGuardedMessage)
 			ynd.text.appendRawString(guardedMessageTranslated);
 		else
 			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
@@ -213,7 +216,13 @@ void CGMine::flagMine(IGameEventCallback & gameEvents, const PlayerColor & playe
 
 	InfoWindow iw;
 	iw.type = EInfoWindowMode::AUTO;
-	iw.text.appendRawString(getResourceHandler()->getDescriptionTranslated());
+	const auto descriptionText = getResourceHandler()->getDescriptionTranslated();
+	if(!descriptionText.empty() && descriptionText.front() == '@')
+		iw.text.appendTextID(descriptionText.substr(1));
+	else if(!descriptionText.empty() && descriptionText != getResourceHandler()->getDescriptionTextID())
+		iw.text.appendRawString(descriptionText);
+	else
+		iw.text.appendTextID(TextIdentifier("core.mineevnt", producedResource.getNum()).get());
 	iw.player = player;
 	iw.components.emplace_back(ComponentType::RESOURCE_PER_DAY, producedResource, getProducedQuantity());
 	gameEvents.showInfoDialog(&iw);
@@ -254,12 +263,15 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 			if(!message.empty() && stacksCount() > 0 && message.find("%s") != std::string::npos)
 				boost::replace_first(message, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
 
-			if(!message.empty())
+			if(!message.empty() && message != getResourceHandler()->getMessageTextID())
 			{
 				InfoWindow iw;
 				iw.type = EInfoWindowMode::AUTO;
 				iw.player = hero->tempOwner;
-				iw.text.appendRawString(message);
+				if(message.front() == '@')
+					iw.text.appendTextID(message.substr(1));
+				else
+					iw.text.appendRawString(message);
 				gameEvents.showInfoDialog(&iw);
 			}
 			else
