@@ -49,6 +49,11 @@
 #include "../lib/GameConstants.h"
 #include "../lib/CPlayerState.h"
 
+namespace
+{
+std::map<ObjectInstanceID, std::set<SpellID>> pendingBattleStartSpellLearnDialogs;
+}
+
 // TODO: as Tow suggested these template should all be part of CClient
 // This will require rework spectator interface properly though
 
@@ -611,7 +616,11 @@ void ApplyClientNetPackVisitor::visitChangeSpells(ChangeSpells & pack)
 	}
 
 	if(!heroInBattle)
+	{
+		auto & pendingSpells = pendingBattleStartSpellLearnDialogs[pack.hid];
+		pendingSpells.insert(pack.spells.begin(), pack.spells.end());
 		return;
+	}
 
 	callInterfaceIfPresent(cl, hero->tempOwner, &CGameInterface::showInfoDialog, EInfoWindowMode::AUTO,
 		UIHelper::getEagleEyeInfoWindowText(*hero, pack.spells), UIHelper::getSpellsComponents(pack.spells), soundBase::soundID(0));
@@ -770,6 +779,27 @@ void ApplyFirstClientNetPackVisitor::visitBattleStart(BattleStart & pack)
 void ApplyClientNetPackVisitor::visitBattleStart(BattleStart & pack)
 {
 	cl.battleStarted(pack.battleID);
+
+	const auto tryShowPendingDialog = [this](const CGHeroInstance * hero)
+	{
+		if(!hero)
+			return;
+
+		auto pendingIt = pendingBattleStartSpellLearnDialogs.find(hero->id);
+		if(pendingIt == pendingBattleStartSpellLearnDialogs.end() || pendingIt->second.empty())
+			return;
+
+		callInterfaceIfPresent(cl, hero->tempOwner, &CGameInterface::showInfoDialog, EInfoWindowMode::AUTO,
+			UIHelper::getEagleEyeInfoWindowText(*hero, pendingIt->second), UIHelper::getSpellsComponents(pendingIt->second), soundBase::soundID(0));
+		pendingBattleStartSpellLearnDialogs.erase(pendingIt);
+	};
+
+	const auto * battle = gs.getBattle(pack.battleID);
+	if(!battle)
+		return;
+
+	tryShowPendingDialog(battle->battleGetFightingHero(BattleSide::ATTACKER));
+	tryShowPendingDialog(battle->battleGetFightingHero(BattleSide::DEFENDER));
 }
 
 void ApplyFirstClientNetPackVisitor::visitBattleNextRound(BattleNextRound & pack)
