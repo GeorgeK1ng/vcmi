@@ -217,12 +217,6 @@ jobs:
         path: ${{ runner.temp }}/apt-cache
         key: ${{ steps.aptcache.outputs.cache-primary-key }}
 
-    - name: Install Conan Dependencies
-      if: "${{ matrix.conan_prebuilts != '' }}"
-      run: |
-        pipx install conan
-        source '${{github.workspace}}/CI/install_conan_dependencies.sh' '${{matrix.conan_prebuilts}}'
-
     - name: Install MSVC v142 toolset for non-ARM Windows builds
       if: ${{ startsWith(matrix.platform, 'msvc') && !contains(matrix.platform, 'arm') }}
       shell: pwsh
@@ -236,6 +230,12 @@ jobs:
 
         $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vs_installer.exe'
         & $installer modify --installPath "$installPath" --quiet --wait --norestart --nocache --add Microsoft.VisualStudio.Component.VC.v142.x86.x64
+
+    - name: Install Conan Dependencies
+      if: "${{ matrix.conan_prebuilts != '' }}"
+      run: |
+        pipx install conan
+        source '${{github.workspace}}/CI/install_conan_dependencies.sh' '${{matrix.conan_prebuilts}}'
 
     - name: Setup MSVC Developer Command Prompt
       if: ${{ startsWith(matrix.platform, 'msvc') }}
