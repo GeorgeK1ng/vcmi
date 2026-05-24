@@ -111,14 +111,26 @@ void MineInstanceConstructor::initTypeData(const JsonNode & input)
 	if (!config["guards"].isNull())
 		guards = config["guards"];
 
-	if (!config["onGuardedMessage"].isNull())
-		LIBRARY->generaltexth->registerString(config.getModScope(), getOnGuardedMessageTextID(), config["onGuardedMessage"]);
+	auto registerAdventureMessage = [&](const JsonNode & inputNode, const std::string & textID)
+	{
+		if(inputNode.isNull())
+			return;
 
-	if (!config["ownedGuardedMessage"].isNull())
-		LIBRARY->generaltexth->registerString(config.getModScope(), getOwnedGuardedMessageTextID(), config["ownedGuardedMessage"]);
+		if(inputNode.isNumber())
+		{
+			JsonNode asString;
+			asString.String() = "@" + TextIdentifier("core.advevent", inputNode.Integer()).get();
+			LIBRARY->generaltexth->registerString(config.getModScope(), textID, asString);
+		}
+		else
+		{
+			LIBRARY->generaltexth->registerString(config.getModScope(), textID, inputNode);
+		}
+	};
 
-	if (!config["message"].isNull())
-		LIBRARY->generaltexth->registerString(config.getModScope(), getMessageTextID(), config["message"]);
+	registerAdventureMessage(config["onGuardedMessage"], getOnGuardedMessageTextID());
+	registerAdventureMessage(config["ownedGuardedMessage"], getOwnedGuardedMessageTextID());
+	registerAdventureMessage(config["message"], getMessageTextID());
 
 	kingdomOverviewImage = AnimationPath::fromJson(config["kingdomOverviewImage"]);
 }
