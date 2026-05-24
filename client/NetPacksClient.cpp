@@ -595,6 +595,24 @@ void ApplyClientNetPackVisitor::visitChangeSpells(ChangeSpells & pack)
 	if(!hero)
 		return;
 
+	bool heroInBattle = false;
+	for(const auto & battlePtr : gs.currentBattles)
+	{
+		if(!battlePtr)
+			continue;
+
+		const auto * attackerHero = battlePtr->battleGetFightingHero(BattleSide::ATTACKER);
+		const auto * defenderHero = battlePtr->battleGetFightingHero(BattleSide::DEFENDER);
+		if((attackerHero && attackerHero->id == pack.hid) || (defenderHero && defenderHero->id == pack.hid))
+		{
+			heroInBattle = true;
+			break;
+		}
+	}
+
+	if(!heroInBattle)
+		return;
+
 	callInterfaceIfPresent(cl, hero->tempOwner, &CGameInterface::showInfoDialog, EInfoWindowMode::AUTO,
 		UIHelper::getEagleEyeInfoWindowText(*hero, pack.spells), UIHelper::getSpellsComponents(pack.spells), soundBase::soundID(0));
 }
