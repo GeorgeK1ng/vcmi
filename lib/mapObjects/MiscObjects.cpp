@@ -98,9 +98,9 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 	{
 		BlockingDialog ynd(true,false);
 		ynd.player = h->tempOwner;
-		// ownedGuardedMessage is for any mine already owned by a player and guarded.
-		// It can be either text ID or raw text from config.
-		const bool useOwnedGuardedMessage = tempOwner != PlayerColor::NEUTRAL;
+		// Abandoned mines always use onGuardedMessage.
+		// ownedGuardedMessage applies to owned non-abandoned mines.
+		const bool useOwnedGuardedMessage = !isAbandoned() && tempOwner != PlayerColor::NEUTRAL;
 		auto guardedMessageTranslated = useOwnedGuardedMessage
 			? getResourceHandler()->getOwnedGuardedMessageTranslated()
 			: getResourceHandler()->getOnGuardedMessageTranslated();
@@ -153,13 +153,6 @@ void CGMine::initObj(IGameRandomizer & gameRandomizer)
 			auto guards = std::make_unique<CStackInstance>(cb, stack.getId(), stack.getCount());
 			putStack(SlotID(stacksCount()), std::move(guards));
 		}
-	}
-	else if(isAbandoned())
-	{
-		// Legacy map compatibility (H3M custom abandoned-mine guards), used only when config has no guards.
-		const int howManyGuards = gameRandomizer.getDefault().nextInt(abandonedMineGuards.minAmount, abandonedMineGuards.maxAmount);
-		auto guards = std::make_unique<CStackInstance>(cb, abandonedMineGuards.creature, howManyGuards);
-		putStack(SlotID(stacksCount()), std::move(guards));
 	}
 
 	producedQuantity = defaultResProduction();
