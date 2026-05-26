@@ -100,20 +100,11 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 		ynd.player = h->tempOwner;
 		// ownedGuardedMessage applies to any owned mine with guards.
 		const bool useOwnedGuardedMessage = tempOwner != PlayerColor::NEUTRAL;
-		auto guardedMessageTranslated = useOwnedGuardedMessage
-			? getResourceHandler()->getOwnedGuardedMessageTranslated()
-			: getResourceHandler()->getOnGuardedMessageTranslated();
-
-		const bool missingConfiguredGuardedMessage = guardedMessageTranslated.empty()
-			|| guardedMessageTranslated == (useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID());
-
-		if(!missingConfiguredGuardedMessage)
-		{
-			if(!guardedMessageTranslated.empty() && guardedMessageTranslated.front() == '@')
-				ynd.text.appendTextID(guardedMessageTranslated.substr(1));
-			else
-				ynd.text.appendRawString(guardedMessageTranslated);
-		}
+		const auto guardedMessageID = useOwnedGuardedMessage
+			? getResourceHandler()->getOwnedGuardedMessageID()
+			: getResourceHandler()->getOnGuardedMessageID();
+		if(guardedMessageID.has_value())
+			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, guardedMessageID.value());
 		else
 			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
 
@@ -265,17 +256,10 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 	{
 		if(isAbandoned())
 		{
-			auto message = getResourceHandler()->getMessageTranslated();
-			if(!message.empty() && message != getResourceHandler()->getMessageTextID())
+			const auto messageID = getResourceHandler()->getMessageID();
+			if(messageID.has_value())
 			{
-				InfoWindow iw;
-				iw.type = EInfoWindowMode::AUTO;
-				iw.player = hero->tempOwner;
-				if(message.front() == '@')
-					iw.text.appendTextID(message.substr(1));
-				else
-					iw.text.appendRawString(message);
-				gameEvents.showInfoDialog(&iw);
+				hero->showInfoDialog(gameEvents, messageID.value());
 			}
 		}
 		flagMine(gameEvents, hero->tempOwner);
