@@ -103,8 +103,6 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 		auto guardedMessageTranslated = useOwnedGuardedMessage
 			? getResourceHandler()->getOwnedGuardedMessageTranslated()
 			: getResourceHandler()->getOnGuardedMessageTranslated();
-		if(!guardedMessageTranslated.empty() && stacksCount() > 0 && guardedMessageTranslated.find("%s") != std::string::npos)
-			boost::replace_first(guardedMessageTranslated, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
 
 		const bool missingConfiguredGuardedMessage = guardedMessageTranslated.empty()
 			|| guardedMessageTranslated == (useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID());
@@ -268,9 +266,6 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 		if(isAbandoned())
 		{
 			auto message = getResourceHandler()->getMessageTranslated();
-			if(!message.empty() && stacksCount() > 0 && message.find("%s") != std::string::npos)
-				boost::replace_first(message, "%s", getStack(SlotID(0)).getCreature()->getNamePluralTranslated());
-
 			if(!message.empty() && message != getResourceHandler()->getMessageTextID())
 			{
 				InfoWindow iw;
@@ -282,8 +277,6 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 					iw.text.appendRawString(message);
 				gameEvents.showInfoDialog(&iw);
 			}
-			else
-				hero->showInfoDialog(gameEvents, 85);
 		}
 		flagMine(gameEvents, hero->tempOwner);
 	}
