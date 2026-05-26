@@ -494,7 +494,7 @@ void CLevelWindow::createSkillBox()
 		for(auto & skill : skillsToShow)
 		{
 			auto comp = std::make_shared<CSelectableComponent>(ComponentType::SEC_SKILL, skill, hero->getSecSkillLevel(SecondarySkill(skill))+1, CComponent::medium);
-			comp->onChoose = std::bind(&CLevelWindow::close, this);
+			comp->onChoose = std::bind(&CLevelWindow::submitSelection, this);
 			comps.push_back(comp);
 		}
 
@@ -510,7 +510,7 @@ void CLevelWindow::setCloseOnSelection(bool value)
 	closeOnSelection = value;
 }
 
-void CLevelWindow::close()
+void CLevelWindow::submitSelection()
 {
 	if(!selectionSubmitted)
 	{
@@ -546,6 +546,14 @@ void CLevelWindow::close()
 			return;
 		}
 	}
+
+	close();
+}
+
+void CLevelWindow::close()
+{
+	if(!selectionSubmitted && !skills.empty())
+		return;
 
 	CWindowObject::close();
 }
