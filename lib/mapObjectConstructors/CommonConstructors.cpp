@@ -183,6 +183,9 @@ AnimationPath MineInstanceConstructor::getKingdomOverviewImage() const
 
 std::vector<CStackBasicDescriptor> MineInstanceConstructor::getGuards(IGameInfoCallback * cb, IGameRandomizer & gameRandomizer) const
 {
+	if(guards.isNull())
+		return {};
+
 	JsonRandom randomizer(cb, gameRandomizer);
 	JsonRandom::Variables emptyVariables;
 	return randomizer.loadCreatures(guards, emptyVariables);
