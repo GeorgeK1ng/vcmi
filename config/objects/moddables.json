@@ -376,7 +376,7 @@
 				"index" : 7,
 				"description" : "@core.mineevnt.7",
 					"guards" : [{
-						"type" : "troglodyte",
+						"type" : "core:troglodyte",
 						"min" : 100,
 						"max" : 249
 					}],
@@ -408,7 +408,7 @@
 				"description" : "@core.mineevnt.7",
 				"battleground": "subterranean",
 				"guards" : [{
-					"type" : "troglodyte",
+					"type" : "core:troglodyte",
 					"min" : 100,
 					"max" : 249
 				}],
