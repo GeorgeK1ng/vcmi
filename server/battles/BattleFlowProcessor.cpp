@@ -134,21 +134,18 @@ void BattleFlowProcessor::tryPlaceMoats(const CBattleInfoCallback & battle)
 
 void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 {
-	const auto learnEnemySpellsAtBattleStart = [this](const CGHeroInstance * learner, const CGHeroInstance * enemy)
+	const auto getLearnableEnemySpellsAtBattleStart = [this](const CGHeroInstance * learner, const CGHeroInstance * enemy)
 	{
+		std::set<SpellID> learnedSpells;
 		if (!learner || !enemy || !learner->hasSpellbook())
-			return;
+			return learnedSpells;
 
 		const auto spellLevelLimit = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
 			? learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
 			: learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT);
 		const auto learnChance = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE);
 		if (spellLevelLimit <= 0 || learnChance <= 0)
-			return;
-
-		ChangeSpells learnedSpells;
-		learnedSpells.learn = 1;
-		learnedSpells.hid = learner->id;
+			return learnedSpells;
 
 		for(const auto & spellID : enemy->getSpellsInSpellbook())
 		{
@@ -165,15 +162,31 @@ void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 			if (gameHandler->getRandomGenerator().nextInt(99) >= learnChance)
 				continue;
 
-			learnedSpells.spells.insert(spellID);
+			learnedSpells.insert(spellID);
 		}
 
-		if (!learnedSpells.spells.empty())
-			gameHandler->sendAndApply(learnedSpells);
+		return learnedSpells;
 	};
 
-	learnEnemySpellsAtBattleStart(battle.battleGetFightingHero(BattleSide::ATTACKER), battle.battleGetFightingHero(BattleSide::DEFENDER));
-	learnEnemySpellsAtBattleStart(battle.battleGetFightingHero(BattleSide::DEFENDER), battle.battleGetFightingHero(BattleSide::ATTACKER));
+	const auto * attackerHero = battle.battleGetFightingHero(BattleSide::ATTACKER);
+	const auto * defenderHero = battle.battleGetFightingHero(BattleSide::DEFENDER);
+	const auto attackerLearnedSpells = getLearnableEnemySpellsAtBattleStart(attackerHero, defenderHero);
+	const auto defenderLearnedSpells = getLearnableEnemySpellsAtBattleStart(defenderHero, attackerHero);
+
+	const auto applyLearnedSpells = [this](const CGHeroInstance * learner, const std::set<SpellID> & learnedSpells)
+	{
+		if(!learner || learnedSpells.empty())
+			return;
+
+		ChangeSpells changedSpells;
+		changedSpells.learn = 1;
+		changedSpells.hid = learner->id;
+		changedSpells.spells = learnedSpells;
+		gameHandler->sendAndApply(changedSpells);
+	};
+
+	applyLearnedSpells(attackerHero, attackerLearnedSpells);
+	applyLearnedSpells(defenderHero, defenderLearnedSpells);
 
 	tryPlaceMoats(battle);
 
