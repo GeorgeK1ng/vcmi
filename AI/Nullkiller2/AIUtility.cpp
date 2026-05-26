@@ -361,14 +361,16 @@ double getArtifactBonusRelevance(const CGHeroInstance * hero, const std::shared_
 			if (bonus->subtype == BonusCustomSubtype::damageTypeMelee)
 				return veryRelevant * (1 - getArmyPercentageWithBonus(BonusType::SHOOTER));
 			return 0;
-		case BonusType::MANA_PERCENTAGE_REGENERATION:
-		case BonusType::MANA_REGENERATION:
-			return hero->hasSpellbook() ? relevant : notRelevant;
-		case BonusType::LEARN_BATTLE_SPELL_CHANCE:
-			return hero->hasBonusOfType(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT) ? relevant : notRelevant;
-		case BonusType::NO_DISTANCE_PENALTY:
-		case BonusType::NO_WALL_PENALTY:
-			return getArmyPercentageWithBonus(BonusType::SHOOTER) * veryRelevant;
+			case BonusType::MANA_PERCENTAGE_REGENERATION:
+			case BonusType::MANA_REGENERATION:
+				return hero->hasSpellbook() ? relevant : notRelevant;
+			case BonusType::LEARN_BATTLE_SPELL_CHANCE:
+				return hero->hasBonusOfType(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT) ? relevant : notRelevant;
+			case BonusType::LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE:
+				return hero->hasBonusOfType(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE) ? relevant : notRelevant;
+			case BonusType::NO_DISTANCE_PENALTY:
+			case BonusType::NO_WALL_PENALTY:
+				return getArmyPercentageWithBonus(BonusType::SHOOTER) * veryRelevant;
 		case BonusType::SPELLS_OF_SCHOOL:
 			if (!hero->hasSpellbook())
 				return notRelevant;
@@ -444,10 +446,11 @@ int32_t getArtifactBonusScoreImpl(const std::shared_ptr<Bonus> & bonus)
 			return bonus->subtype.getNum() * 6000;
 		case BonusType::SPELL_DAMAGE:
 			return bonus->val * 120;
-		case BonusType::SIGHT_RADIUS:
-			return bonus->val * 1000;
-		case BonusType::LEARN_BATTLE_SPELL_CHANCE:
-			return 0; // irrelevant in gameplay
+			case BonusType::SIGHT_RADIUS:
+				return bonus->val * 1000;
+			case BonusType::LEARN_BATTLE_SPELL_CHANCE:
+			case BonusType::LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE:
+				return 0; // irrelevant in gameplay
 		case BonusType::STACK_HEALTH:
 			return bonus->val * 5000;
 		case BonusType::NO_DISTANCE_PENALTY:
