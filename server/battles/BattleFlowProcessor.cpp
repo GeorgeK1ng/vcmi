@@ -137,7 +137,7 @@ void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 	const auto getLearnableEnemySpellsAtBattleStart = [this](const CGHeroInstance * learner, const CGHeroInstance * enemy)
 	{
 		std::set<SpellID> learnedSpells;
-		if (!learner || !enemy || !learner->hasSpellbook())
+		if (!learner || !enemy)
 			return learnedSpells;
 
 		const auto spellLevelLimit = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
