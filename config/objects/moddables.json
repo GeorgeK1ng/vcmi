@@ -273,7 +273,6 @@
 		"handler": "mine",
 		"lastReservedIndex" : 7,
 		"base" : {
-			"ownedGuardedMessage" : 187,
 			"sounds" : {
 				"visit" : ["FLAGMINE"]
 			}
