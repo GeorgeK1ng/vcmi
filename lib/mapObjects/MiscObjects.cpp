@@ -100,17 +100,9 @@ void CGMine::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance *
 		ynd.player = h->tempOwner;
 		// ownedGuardedMessage applies to any owned mine with guards.
 		const bool useOwnedGuardedMessage = tempOwner != PlayerColor::NEUTRAL;
-		auto guardedMessageTranslated = useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTranslated() : getResourceHandler()->getOnGuardedMessageTranslated();
-
-		const bool missingConfiguredGuardedMessage = guardedMessageTranslated.empty() || guardedMessageTranslated == (useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID());
-
-		if(!missingConfiguredGuardedMessage)
-		{
-			if(!guardedMessageTranslated.empty() && guardedMessageTranslated.front() == '@')
-				ynd.text.appendTextID(guardedMessageTranslated.substr(1));
-			else
-				ynd.text.appendRawString(guardedMessageTranslated);
-		}
+		const std::string guardedMessageTextID = useOwnedGuardedMessage ? getResourceHandler()->getOwnedGuardedMessageTextID() : getResourceHandler()->getOnGuardedMessageTextID();
+		if(!guardedMessageTextID.empty())
+			ynd.text.appendTextID(guardedMessageTextID);
 		else
 			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 187);
 
@@ -218,11 +210,9 @@ void CGMine::flagMine(IGameEventCallback & gameEvents, const PlayerColor & playe
 
 	InfoWindow iw;
 	iw.type = EInfoWindowMode::AUTO;
-	const auto descriptionText = getResourceHandler()->getDescriptionTranslated();
-	if(!descriptionText.empty() && descriptionText.front() == '@')
-		iw.text.appendTextID(descriptionText.substr(1));
-	else if(!descriptionText.empty() && descriptionText != getResourceHandler()->getDescriptionTextID())
-		iw.text.appendRawString(descriptionText);
+	const auto descriptionTextID = getResourceHandler()->getDescriptionTextID();
+	if(!descriptionTextID.empty())
+		iw.text.appendTextID(descriptionTextID);
 	else
 		iw.text.appendTextID(TextIdentifier("core.mineevnt", producedResource.getNum()).get());
 	iw.player = player;
@@ -261,16 +251,13 @@ void CGMine::battleFinished(IGameEventCallback & gameEvents, const CGHeroInstanc
 	{
 		if(isAbandoned())
 		{
-			auto message = getResourceHandler()->getMessageTranslated();
-			if(!message.empty() && message != getResourceHandler()->getMessageTextID())
+			const auto onCaptureMessageTextID = getResourceHandler()->getOnCaptureMessageTextID();
+			if(!onCaptureMessageTextID.empty())
 			{
 				InfoWindow iw;
 				iw.type = EInfoWindowMode::AUTO;
 				iw.player = hero->tempOwner;
-				if(message.front() == '@')
-					iw.text.appendTextID(message.substr(1));
-				else
-					iw.text.appendRawString(message);
+				iw.text.appendTextID(onCaptureMessageTextID);
 				gameEvents.showInfoDialog(&iw);
 			}
 		}
