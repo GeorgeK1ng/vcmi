@@ -161,8 +161,7 @@ void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 			if(!spell)
 				continue;
 
-			if(spell->isCombat()
-				&& spell->getLevel() <= eagleEyeLevel
+			if(spell->getLevel() <= eagleEyeLevel
 				&& !learner->spellbookContainsSpell(spell->getId())
 				&& gameHandler->getRandomGenerator().nextInt(99) < eagleEyeChance)
 			{
