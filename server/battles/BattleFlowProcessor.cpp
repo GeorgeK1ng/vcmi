@@ -134,6 +134,60 @@ void BattleFlowProcessor::tryPlaceMoats(const CBattleInfoCallback & battle)
 
 void BattleFlowProcessor::onBattleStarted(const CBattleInfoCallback & battle)
 {
+	const auto getLearnableEnemySpellsAtBattleStart = [this](const CGHeroInstance * learner, const CGHeroInstance * enemy)
+	{
+		std::set<SpellID> learnedSpells;
+		if (!learner || !enemy || !learner->hasSpellbook())
+			return learnedSpells;
+
+		const auto spellLevelLimit = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
+			? learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT_PRE_BATTLE)
+			: learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_LEVEL_LIMIT);
+		const auto learnChance = learner->valOfBonuses(BonusType::LEARN_BATTLE_SPELL_CHANCE_PRE_BATTLE);
+		if (spellLevelLimit <= 0 || learnChance <= 0)
+			return learnedSpells;
+
+		for(const auto & spellID : enemy->getSpellsInSpellbook())
+		{
+			const auto * spell = spellID.toSpell();
+			if (!spell)
+				continue;
+
+			if (spell->getLevel() > spellLevelLimit)
+				continue;
+
+			if (learner->spellbookContainsSpell(spellID))
+				continue;
+
+			if (gameHandler->getRandomGenerator().nextInt(99) >= learnChance)
+				continue;
+
+			learnedSpells.insert(spellID);
+		}
+
+		return learnedSpells;
+	};
+
+	const auto * attackerHero = battle.battleGetFightingHero(BattleSide::ATTACKER);
+	const auto * defenderHero = battle.battleGetFightingHero(BattleSide::DEFENDER);
+	const auto attackerLearnedSpells = getLearnableEnemySpellsAtBattleStart(attackerHero, defenderHero);
+	const auto defenderLearnedSpells = getLearnableEnemySpellsAtBattleStart(defenderHero, attackerHero);
+
+	const auto applyLearnedSpells = [this](const CGHeroInstance * learner, const std::set<SpellID> & learnedSpells)
+	{
+		if(!learner || learnedSpells.empty())
+			return;
+
+		ChangeSpells changedSpells;
+		changedSpells.learn = 1;
+		changedSpells.hid = learner->id;
+		changedSpells.spells = learnedSpells;
+		gameHandler->sendAndApply(changedSpells);
+	};
+
+	applyLearnedSpells(attackerHero, attackerLearnedSpells);
+	applyLearnedSpells(defenderHero, defenderLearnedSpells);
+
 	tryPlaceMoats(battle);
 
 	gameHandler->turnTimerHandler->onBattleStart(battle.getBattle()->getBattleID());
