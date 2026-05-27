@@ -766,24 +766,22 @@ static std::vector<JsonNode> getNativeTerrainEntries(const JsonNode & nativeTerr
 
 static void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::shared_ptr<CFaction> & faction)
 {
-	// Keep legacy single-value field for old call sites, but also fill multi-value storage.
+	// Keep legacy primary field for compatibility.
 	faction->nativeTerrain = ETerrainId::NONE;
-	faction->nativeTerrains = {ETerrainId::NONE};
+	faction->nativeTerrains.clear();
 
 	if (nativeTerrainConfig.isNull())
 		return;
 
-	faction->nativeTerrains.clear();
-	bool hasNativeTerrain = false;
+	bool hasPrimary = false;
 	for (const auto & terrainIdentifier : getNativeTerrainEntries(nativeTerrainConfig))
 	{
-		// Explicit "none" means "no native terrain", not a terrain identifier to resolve.
+		// Explicit "none" means "no native terrain".
 		if (terrainIdentifier.String() == "none")
 			continue;
 
-		// Primary terrain must follow declaration order, not identifier callback execution order.
-		const bool setPrimary = !hasNativeTerrain;
-		hasNativeTerrain = true;
+		const bool setPrimary = !hasPrimary;
+		hasPrimary = true;
 		LIBRARY->identifiers()->requestIdentifier("terrain", terrainIdentifier, [=](int32_t index)
 		{
 			auto terrainId = TerrainId(index);
@@ -792,10 +790,6 @@ static void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::
 			faction->nativeTerrains.push_back(terrainId);
 		});
 	}
-
-	// Preserve historical behavior: town with no valid native terrain uses NONE.
-	if (!hasNativeTerrain)
-		faction->nativeTerrains.push_back(ETerrainId::NONE);
 }
 
 std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, const JsonNode & source, const std::string & identifier, size_t index)
