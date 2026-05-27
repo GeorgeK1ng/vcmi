@@ -60,7 +60,7 @@ jobs:
           - platform: msvc-x64
             arch: x64
             toolset: '14.29'
-            os: windows-2025
+            os: windows-2025-vs2026
             pack: 1
             upload: 0
             pack_type: RelWithDebInfo
@@ -68,13 +68,14 @@ jobs:
             preset: windows-msvc-ninja-release
             conan_profile: msvc-x64
             conan_prebuilts: dependencies-windows-x64
+            # TODO: move this VS mapping to shared profiles (vcmi-dependencies) once VS2026 support lands there.
             conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
             artifact_platform: x64
 
           - platform: msvc-x86
             arch: amd64_x86
             toolset: '14.29'
-            os: windows-2025
+            os: windows-2025-vs2026
             pack: 1
             upload: 0
             pack_type: RelWithDebInfo
@@ -82,6 +83,7 @@ jobs:
             preset: windows-msvc-ninja-release-x86
             conan_profile: msvc-x86
             conan_prebuilts: dependencies-windows-x86
+            # TODO: move this VS mapping to shared profiles (vcmi-dependencies) once VS2026 support lands there.
             conan_options: -s "&:build_type=RelWithDebInfo" -c tools.env.virtualenv:powershell=pwsh -o "&:target_pre_windows10=True"
             artifact_platform: x86
 
@@ -217,6 +219,29 @@ jobs:
         path: ${{ runner.temp }}/apt-cache
         key: ${{ steps.aptcache.outputs.cache-primary-key }}
 
+    - name: Detect Visual Studio version (Windows)
+      if: ${{ startsWith(matrix.platform, 'msvc') }}
+      shell: pwsh
+      run: |
+        $vsWhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+        $vsInstallationVersion = & $vsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationVersion
+        $vsMajor = ($vsInstallationVersion -split '\.')[0]
+        echo "MSBUILD_VS_VERSION=$vsMajor" >> $env:GITHUB_ENV
+
+    - name: Install MSVC v142 toolset for non-ARM Windows builds
+      if: ${{ startsWith(matrix.platform, 'msvc') && !contains(matrix.platform, 'arm') }}
+      shell: pwsh
+      run: |
+        $vsWhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+        $installPath = & $vsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        if (-not $installPath)
+        {
+          throw 'Visual Studio installation not found.'
+        }
+
+        $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/setup.exe'
+        & $installer modify --installPath "$installPath" --quiet --wait --norestart --add Microsoft.VisualStudio.Component.VC.v142.x86.x64
+
     - name: Install Conan Dependencies
       if: "${{ matrix.conan_prebuilts != '' }}"
       run: |
@@ -274,6 +299,10 @@ jobs:
     - name: Install Conan profile
       if: "${{ matrix.conan_profile != '' }}"
       run: |
+        if [[ -n "${MSBUILD_VS_VERSION}" ]]; then
+          echo "tools.microsoft.msbuild:vs_version=${MSBUILD_VS_VERSION}" >> "$RUNNER_TEMP/platformTools"
+          echo "Configured tools.microsoft.msbuild:vs_version=${MSBUILD_VS_VERSION}"
+        fi
         conan profile detect
         outFolder=conan-generated
         conan install . \
@@ -705,11 +734,11 @@ jobs:
         include:
           - platform: msvc-x64
             arch: x64
-            os: windows-2025
+            os: windows-2025-vs2026
 
           - platform: msvc-x86
             arch: x86
-            os: windows-2025
+            os: windows-2025-vs2026
 
           - platform: msvc-arm64
             arch: arm64
