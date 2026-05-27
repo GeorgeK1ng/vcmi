@@ -37,7 +37,9 @@ void AssetGenerator::initialize()
 		boost::filesystem::remove_all(VCMIDirs::get().userDataPath() / "Generated");
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
-	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
+	imageFiles[ImagePath::builtin("SpellBookSmall.png")] = [this](){ return createBigSpellBook(3, 2);};
+	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook(4, 3);};
+	imageFiles[ImagePath::builtin("SpellBookExtraLarge.png")] = [this](){ return createBigSpellBook(5, 4);};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
 
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowDefault.png")]  = [this](){ return createCombatUnitNumberWindow(0.6f, 0.2f, 1.0f);};
@@ -253,12 +255,18 @@ AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground(
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
+AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageHalf, int rowsPerPage) const
 {
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);
 
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
-	auto image = ENGINE->renderHandler().createImage(Point(800, 600), CanvasScalingPolicy::IGNORE);
+	const int extraColumns = std::max(0, columnsPerPageHalf - 4);
+	const int extraRows = std::max(0, rowsPerPage - 3);
+	const int targetWidth = 800 + extraColumns * 90;
+	const int targetHeight = 600 + extraRows * 97;
+	const int contentBottomY = targetHeight - 55;
+
+	auto image = ENGINE->renderHandler().createImage(Point(targetWidth, targetHeight), CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 	// edges
 	canvas.draw(img, Point(0, 0), Rect(15, 38, 90, 45));
@@ -268,39 +276,42 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
 	// left / right
 	Canvas tmp1 = Canvas(Point(90, 355 - 45), CanvasScalingPolicy::IGNORE);
 	tmp1.draw(img, Point(0, 0), Rect(15, 38 + 45, 90, 355 - 45));
-	canvas.drawScaled(tmp1, Point(0, 45), Point(90, 415));
+	canvas.drawScaled(tmp1, Point(0, 45), Point(90, contentBottomY - 45));
 	Canvas tmp2 = Canvas(Point(95, 355 - 45), CanvasScalingPolicy::IGNORE);
 	tmp2.draw(img, Point(0, 0), Rect(509, 38 + 45, 95, 355 - 45));
-	canvas.drawScaled(tmp2, Point(705, 45), Point(95, 415));
+	canvas.drawScaled(tmp2, Point(targetWidth - 95, 45), Point(95, contentBottomY - 45));
 	// top / bottom
 	Canvas tmp3 = Canvas(Point(409, 45), CanvasScalingPolicy::IGNORE);
 	tmp3.draw(img, Point(0, 0), Rect(100, 38, 409, 45));
-	canvas.drawScaled(tmp3, Point(90, 0), Point(615, 45));
+	canvas.drawScaled(tmp3, Point(90, 0), Point(targetWidth - 185, 45));
 	Canvas tmp4 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp4.draw(img, Point(0, 0), Rect(100, 400, 409, 141));
-	canvas.drawScaled(tmp4, Point(90, 460), Point(615, 141));
+	canvas.drawScaled(tmp4, Point(90, contentBottomY - 85), Point(targetWidth - 185, targetHeight - (contentBottomY - 85)));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp5.draw(img, Point(0, 0), Rect(100, 38 + 45, 509 - 15, 400 - 38));
-	canvas.drawScaled(tmp5, Point(90, 45), Point(615, 415));
+	canvas.drawScaled(tmp5, Point(90, 45), Point(targetWidth - 185, contentBottomY - 45));
 	// carpet
 	Canvas tmp6 = Canvas(Point(590, 59), CanvasScalingPolicy::IGNORE);
 	tmp6.draw(img, Point(0, 0), Rect(15, 484, 590, 59));
-	canvas.drawScaled(tmp6, Point(0, 545), Point(800, 59));
+	canvas.drawScaled(tmp6, Point(0, targetHeight - 55), Point(targetWidth, 59));
+	const int bookmarkY = 464 + extraRows * 97;
 	// remove bookmarks
 	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(i < 30 ? 268 : 327, 464, 1, 46)), Point(269 + i, 464));
+		canvas.draw(Canvas(canvas, Rect(i < 30 ? 268 : 327, bookmarkY, 1, 46)), Point(269 + i, bookmarkY));
 	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(469, 464, 1, 42)), Point(470 + i, 464));
+		canvas.draw(Canvas(canvas, Rect(469, bookmarkY, 1, 42)), Point(470 + i, bookmarkY));
 	for (int i = 0; i < 57; i++)
-		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, 464, 1, 44)), Point(565 + i, 464));
+		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, bookmarkY, 1, 44)), Point(565 + i, bookmarkY));
 	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(656, 464, 1, 47)), Point(657 + i, 464));
+		canvas.draw(Canvas(canvas, Rect(656, bookmarkY, 1, 47)), Point(657 + i, bookmarkY));
 	// draw bookmarks
-	canvas.draw(img, Point(278, 464), Rect(220, 405, 37, 47));
-	canvas.draw(img, Point(481, 465), Rect(354, 406, 37, 41));
-	canvas.draw(img, Point(575, 465), Rect(417, 406, 37, 45));
-	canvas.draw(img, Point(667, 465), Rect(478, 406, 37, 47));
+	canvas.draw(img, Point(278, bookmarkY), Rect(220, 405, 37, 47));
+	canvas.draw(img, Point(481, bookmarkY + 1), Rect(354, 406, 37, 41));
+	canvas.draw(img, Point(575, bookmarkY + 1), Rect(417, 406, 37, 45));
+	canvas.draw(img, Point(667, bookmarkY + 1), Rect(478, 406, 37, 47));
+	const int statusBarOverlayHeight = 30;
+	canvas.drawColorBlended(Rect(0, image->height() - statusBarOverlayHeight, image->width(), statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
 	return image;
 }

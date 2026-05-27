@@ -140,7 +140,7 @@ public:
 };
 
 CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _myInt, bool openOnBattleSpells, const std::function<void(SpellID)> & onSpellSelect):
-	CWindowObject(PLAYER_COLORED | (settings["gameTweaks"]["enableLargeSpellbook"].Bool() ? BORDERED : 0)),
+	CWindowObject(((settings["gameTweaks"]["spellbookSize"].Integer() > 0) || settings["gameTweaks"]["enableLargeSpellbook"].Bool()) ? PLAYER_COLORED_BORDERED_STATUSBAR : PLAYER_COLORED),
 	battleSpellsOnly(openOnBattleSpells),
 	selectedTab(SpellSchool::ANY),
 	currentPage(0),
@@ -149,6 +149,8 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	openOnBattleSpells(openOnBattleSpells),
 	onSpellSelect(onSpellSelect),
 	isBigSpellbook(settings["gameTweaks"]["enableLargeSpellbook"].Bool()),
+	spellbookColumnsPerPageHalf(3),
+	spellbookRowsPerPage(2),
 	spellsPerPage(24),
 	offL(-11),
 	offR(195),
@@ -167,15 +169,31 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 		)
 			customSpellSchools.push_back(schoolId);
 
+	const int configuredSpellbookSize = settings["gameTweaks"]["spellbookSize"].Integer();
+	const int effectiveSpellbookSize = configuredSpellbookSize > 0 ? configuredSpellbookSize : (settings["gameTweaks"]["enableLargeSpellbook"].Bool() ? 1 : 0);
+	isBigSpellbook = effectiveSpellbookSize > 0;
+	const bool isExtraLargeSpellbook = effectiveSpellbookSize >= 2;
+
 	if(isBigSpellbook)
 	{
-		background = std::make_shared<CPicture>(ImagePath::builtin("SpellBookLarge"), 0, 0);
+		const std::string spellbookBackgroundName = isExtraLargeSpellbook ? "SpellBookExtraLarge" : (effectiveSpellbookSize == 0 ? "SpellBookSmall" : "SpellBookLarge");
+		background = std::make_shared<CPicture>(ImagePath::builtin(spellbookBackgroundName), 0, 0);
 		updateShadow();
+		spellbookColumnsPerPageHalf = isExtraLargeSpellbook ? 5 : 4;
+		spellbookRowsPerPage = isExtraLargeSpellbook ? 4 : 3;
+		spellsPerPage = spellbookColumnsPerPageHalf * spellbookRowsPerPage * 2;
+		if(isExtraLargeSpellbook)
+		{
+			offR += 85;
+			offRM += 85;
+		}
 	}
 	else
 	{
 		background = std::make_shared<CPicture>(ImagePath::builtin("SpelBack"), 0, 0);
 		offL = offR = offT = offB = offRM = 0;
+		spellbookColumnsPerPageHalf = 3;
+		spellbookRowsPerPage = 2;
 		spellsPerPage = 12;
 	}
 
@@ -252,13 +270,13 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 		}
 		else
 		{
-			if(v%(isBigSpellbook ? 3 : 2) == 0 || (v%3 == 1 && isBigSpellbook))
+			if(v % spellbookColumnsPerPageHalf < spellbookColumnsPerPageHalf - 1)
 			{
 				xpos+=85;
 			}
 			else
 			{
-				xpos -= (isBigSpellbook ? 2 : 1)*85; ypos+=97;
+				xpos -= (spellbookColumnsPerPageHalf - 1) * 85; ypos += 97;
 			}
 		}
 	}
