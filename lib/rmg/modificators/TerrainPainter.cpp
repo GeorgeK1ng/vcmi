@@ -62,7 +62,7 @@ void TerrainPainter::initTerrainType()
 		{
 			const auto & faction = (*LIBRARY->townh)[zone.getTownType()];
 			const auto & nativeTerrains = faction->nativeTerrains;
-			TerrainId terrainType = faction->nativeTerrain;
+			TerrainId terrainType = ETerrainId::NONE;
 
 			// If preferred native terrain is incompatible with zone level,
 			// try subsequent native terrains in declared order.
@@ -80,9 +80,10 @@ void TerrainPainter::initTerrainType()
 			}
 
 			// Prefer random native terrain when multiple compatible terrains exist.
-			// If no compatible entry exists, keep legacy primary terrain behavior.
 			if (!compatibleTerrains.empty())
 				terrainType = *RandomGeneratorUtil::nextItem(compatibleTerrains, zone.getRand());
+			else if (!nativeTerrains.empty())
+				terrainType = nativeTerrains.front();
 
 			if (terrainType <= ETerrainId::NONE)
 			{

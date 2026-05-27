@@ -766,27 +766,20 @@ static std::vector<JsonNode> getNativeTerrainEntries(const JsonNode & nativeTerr
 
 static void loadNativeTerrains(const JsonNode & nativeTerrainConfig, const std::shared_ptr<CFaction> & faction)
 {
-	// Keep legacy primary field for compatibility.
-	faction->nativeTerrain = ETerrainId::NONE;
 	faction->nativeTerrains.clear();
 
 	if (nativeTerrainConfig.isNull())
 		return;
 
-	bool hasPrimary = false;
 	for (const auto & terrainIdentifier : getNativeTerrainEntries(nativeTerrainConfig))
 	{
 		// Explicit "none" means "no native terrain".
 		if (terrainIdentifier.String() == "none")
 			continue;
 
-		const bool setPrimary = !hasPrimary;
-		hasPrimary = true;
 		LIBRARY->identifiers()->requestIdentifier("terrain", terrainIdentifier, [=](int32_t index)
 		{
 			auto terrainId = TerrainId(index);
-			if (setPrimary)
-				faction->nativeTerrain = terrainId;
 			faction->nativeTerrains.push_back(terrainId);
 		});
 	}
@@ -827,10 +820,8 @@ std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, 
 	faction->preferUndergroundPlacement = preferUndergound.isNull() ? false : preferUndergound.Bool();
 	faction->special = source["special"].Bool();
 
-	// NOTE: semi-workaround - normally, towns are supposed to have native terrains.
-	// Towns without one are exceptions. So, vcmi requires nativeTerrain to be defined
-	// But allows it to be defined with explicit value of "none" if town should not have native terrain
-	// This is better than allowing such terrain-less towns silently, leading to issues with RMG
+	// NOTE: normally, towns are expected to have native terrains.
+	// "none" results in an empty nativeTerrains vector.
 	loadNativeTerrains(source["nativeTerrain"], faction);
 
 	if (!source["town"].isNull())

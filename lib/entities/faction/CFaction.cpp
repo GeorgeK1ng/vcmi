@@ -108,9 +108,6 @@ BoatId CFaction::getBoatType() const
 
 bool CFaction::isNativeTerrain(TerrainId terrain) const
 {
-	if (nativeTerrain == ETerrainId::ANY_TERRAIN)
-		return true;
-
 	return vstd::contains(nativeTerrains, terrain);
 }
 
