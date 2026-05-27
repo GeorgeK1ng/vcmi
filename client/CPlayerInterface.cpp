@@ -1924,5 +1924,5 @@ void CPlayerInterface::unregisterBattleInterface(std::shared_ptr<CBattleGameInte
 
 void CPlayerInterface::responseStatistic(StatisticDataSet & statistic)
 {
-	ENGINE->windows().createAndPushWindow<CStatisticScreen>(statistic);
+	ENGINE->windows().createAndPushWindow<CStatisticScreen>(statistic, false);
 }

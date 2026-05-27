@@ -43,13 +43,14 @@ std::string CStatisticScreen::getDay(int d)
 	return std::to_string(CGameState::getDate(d, Date::MONTH)) + "/" + std::to_string(CGameState::getDate(d, Date::WEEK)) + "/" + std::to_string(CGameState::getDate(d, Date::DAY_OF_WEEK));
 }
 
-CStatisticScreen::CStatisticScreen(const StatisticDataSet & stat)
-	: CWindowObject(BORDERED), statistic(stat)
+CStatisticScreen::CStatisticScreen(const StatisticDataSet & stat, bool colorizeBackground)
+	: CWindowObject(BORDERED), statistic(stat), colorizeBackground(colorizeBackground)
 {
 	OBJECT_CONSTRUCTION;
 	pos = center(Rect(0, 0, 800, 600));
-	filledBackground = std::make_shared<FilledTexturePlayerColored>(Rect(0, 0, pos.w, pos.h));
-	filledBackground->setPlayerColor(PlayerColor(1));
+	filledBackground = std::make_shared<FilledTexturePlayerIndexed>(ImagePath::builtin("DIBOXBCK"), Rect(0, 0, pos.w, pos.h));
+	if(colorizeBackground)
+		filledBackground->setPlayerColor(PlayerColor(1));
 
 	contentArea = Rect(10, 40, 780, 510);
 	layout.emplace_back(std::make_shared<CLabel>(400, 20, FONT_BIG, ETextAlignment::CENTER, Colors::YELLOW, LIBRARY->generaltexth->translate("vcmi.statisticWindow.statistics")));
@@ -87,9 +88,9 @@ void CStatisticScreen::onSelectButton()
 			{
 				OBJECT_CONSTRUCTION;
 				mainContent = getContent(content, possibleRes[index]);
-			});
+			}, colorizeBackground);
 		}
-	});
+	}, colorizeBackground);
 }
 
 TData CStatisticScreen::extractData(const StatisticDataSet & stat, const ExtractFunctor & selector) const
@@ -221,13 +222,14 @@ std::shared_ptr<CIntObject> CStatisticScreen::getContent(Content c, EGameResID r
 	return nullptr;
 }
 
-StatisticSelector::StatisticSelector(const std::vector<std::string> & texts, const std::function<void(int selectedIndex)> & cb)
+StatisticSelector::StatisticSelector(const std::vector<std::string> & texts, const std::function<void(int selectedIndex)> & cb, bool colorizeBackground)
 	: CWindowObject(BORDERED | NEEDS_ANIMATED_BACKGROUND), texts(texts), cb(cb)
 {
 	OBJECT_CONSTRUCTION;
 	pos = center(Rect(0, 0, 128 + 16, std::min(static_cast<int>(texts.size()), LINES) * 40));
-	filledBackground = std::make_shared<FilledTexturePlayerColored>(Rect(0, 0, pos.w, pos.h));
-	filledBackground->setPlayerColor(PlayerColor(1));
+	filledBackground = std::make_shared<FilledTexturePlayerIndexed>(ImagePath::builtin("DIBOXBCK"), Rect(0, 0, pos.w, pos.h));
+	if(colorizeBackground)
+		filledBackground->setPlayerColor(PlayerColor(1));
 
 	slider = std::make_shared<CSlider>(Point(pos.w - 16, 0), pos.h, [this](int to){ update(to); redraw(); }, LINES, texts.size(), 0, Orientation::VERTICAL, CSlider::BLUE);
 	slider->setPanningStep(40);

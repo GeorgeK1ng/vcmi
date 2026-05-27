@@ -11,7 +11,7 @@
 #include "../windows/CWindowObject.h"
 #include "../../lib/gameState/GameStatistics.h"
 
-class FilledTexturePlayerColored;
+class FilledTexturePlayerIndexed;
 class CButton;
 class GraphicalPrimitiveCanvas;
 class LineChart;
@@ -58,7 +58,8 @@ class CStatisticScreen : public CWindowObject
 		{ CHART_MAP_EXPLORED,              { "vcmi.statisticWindow.title.mapExplored",             false } },
 	};
 
-	std::shared_ptr<FilledTexturePlayerColored> filledBackground;
+	std::shared_ptr<FilledTexturePlayerIndexed> filledBackground;
+	bool colorizeBackground;
 	std::vector<std::shared_ptr<CIntObject>> layout;
 	std::shared_ptr<CButton> buttonCsvSave;
 	std::shared_ptr<CButton> buttonSelect;
@@ -72,13 +73,13 @@ class CStatisticScreen : public CWindowObject
 	std::shared_ptr<CIntObject> getContent(Content c, EGameResID res);
 	void onSelectButton();
 public:
-	CStatisticScreen(const StatisticDataSet & stat);
+	CStatisticScreen(const StatisticDataSet & stat, bool colorizeBackground = true);
 	static std::string getDay(int day);
 };
 
 class StatisticSelector : public CWindowObject
 {
-	std::shared_ptr<FilledTexturePlayerColored> filledBackground;
+	std::shared_ptr<FilledTexturePlayerIndexed> filledBackground;
 	std::vector<std::shared_ptr<CButton>> buttons;
 	std::shared_ptr<CSlider> slider;
 
@@ -89,7 +90,7 @@ class StatisticSelector : public CWindowObject
 
 	void update(int to);
 public:
-	StatisticSelector(const std::vector<std::string> & texts, const std::function<void(int selectedIndex)> & cb);
+	StatisticSelector(const std::vector<std::string> & texts, const std::function<void(int selectedIndex)> & cb, bool colorizeBackground);
 };
 
 class OverviewPanel : public CIntObject
