@@ -540,7 +540,9 @@ void CPlayerInterface::heroGotLevel(const CGHeroInstance *hero, PrimarySkill psk
 
 		pendingLevelUpRequestID = cb->selectionMade(selection, queryID);
 	});
-	levelWindow->setCloseOnSelection(false);
+	// Auto-resolved level-ups do not receive a QueryReply acknowledgement,
+	// so allow the dialog to close itself when the player acknowledges it.
+	levelWindow->setCloseOnSelection(queryID < 0);
 	pendingLevelUpDialog = levelWindow;
 	ENGINE->windows().pushWindow(levelWindow);
 }
