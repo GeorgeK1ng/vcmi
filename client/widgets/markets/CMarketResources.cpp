@@ -28,7 +28,11 @@ CMarketResources::CMarketResources(const IMarket * market, const CGHeroInstance 
 	: CMarketBase(market, hero)
 	, CResourcesSelling(
 		[this](const std::shared_ptr<CTradeableItem> & heroSlot){CMarketResources::onSlotClickPressed(heroSlot, bidTradePanel);},
-		[this](EGameResID resource){ return getTradeInterface()->cb->getResourceAmount(resource); })
+		[tradeInterface](EGameResID resource)
+		{
+			auto * interface = tradeInterface ? tradeInterface : GAME->interface();
+			return interface->cb->getResourceAmount(resource);
+		})
 	, CResourcesBuying(
 		[this](const std::shared_ptr<CTradeableItem> & resSlot){CMarketResources::onSlotClickPressed(resSlot, offerTradePanel);},
 		[this](){CMarketResources::updateSubtitles();})
