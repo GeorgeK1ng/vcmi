@@ -36,10 +36,11 @@
 #include "../../lib/mapObjects/CGTownInstance.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
 
-CMarketWindow::CMarketWindow(const IMarket * market, const CGHeroInstance * hero, const std::function<void()> & onWindowClosed, EMarketMode mode, bool allowResourceTradeWhenNotMakingTurn)
+CMarketWindow::CMarketWindow(const IMarket * market, const CGHeroInstance * hero, const std::function<void()> & onWindowClosed, EMarketMode mode, bool allowResourceTradeWhenNotMakingTurn, CPlayerInterface * resourceTradeInterface)
 	: CWindowObject(PLAYER_COLORED)
 	, windowClosedCallback(onWindowClosed)
 	, allowResourceTradeWhenNotMakingTurn(allowResourceTradeWhenNotMakingTurn)
+	, resourceTradeInterface(resourceTradeInterface)
 {
 	assert(mode == EMarketMode::RESOURCE_RESOURCE || mode == EMarketMode::RESOURCE_PLAYER || mode == EMarketMode::CREATURE_RESOURCE ||
 		mode == EMarketMode::RESOURCE_ARTIFACT || mode == EMarketMode::ARTIFACT_RESOURCE || mode == EMarketMode::ARTIFACT_EXP ||
@@ -248,7 +249,9 @@ void CMarketWindow::createMarketResources(const IMarket * market, const CGHeroIn
 	auto image = getImagePathBasedOnResources("TPMRKRES");
 
 	background = createBg(image, PLAYER_COLORED);
-	marketWidget = std::make_shared<CMarketResources>(market, hero, allowResourceTradeWhenNotMakingTurn);
+	if(resourceTradeInterface)
+		background->setPlayerColor(resourceTradeInterface->playerID);
+	marketWidget = std::make_shared<CMarketResources>(market, hero, allowResourceTradeWhenNotMakingTurn, resourceTradeInterface);
 	initWidgetInternals(EMarketMode::RESOURCE_RESOURCE, LIBRARY->generaltexth->zelp[600]);
 }
 

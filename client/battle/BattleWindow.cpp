@@ -656,7 +656,8 @@ void BattleWindow::offerMarketplaceForSurrender()
 				nullptr,
 				[this]() { reallySurrender(false); },
 				EMarketMode::RESOURCE_RESOURCE,
-				true);
+				true,
+				owner.curInt.get());
 		},
 		nullptr);
 }
