@@ -655,7 +655,8 @@ void BattleWindow::offerMarketplaceForSurrender()
 				townWithMarket,
 				nullptr,
 				[this]() { reallySurrender(false); },
-				EMarketMode::RESOURCE_RESOURCE);
+				EMarketMode::RESOURCE_RESOURCE,
+				true);
 		},
 		nullptr);
 }

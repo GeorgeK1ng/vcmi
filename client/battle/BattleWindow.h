@@ -16,6 +16,7 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 class CStack;
+class CGTownInstance;
 
 VCMI_LIB_NAMESPACE_END
 
@@ -29,7 +30,6 @@ class HeroInfoBasicPanel;
 class StackInfoBasicPanel;
 class QuickSpellPanel;
 class UnitActionPanel;
-class CGTownInstance;
 
 /// GUI object that handles functionality of panel at the bottom of combat screen
 class BattleWindow : public InterfaceObjectConfigurable

@@ -15,7 +15,7 @@
 class CMarketWindow final : public CStatusbarWindow, public CWindowWithArtifacts, public IGarrisonHolder, public IMarketHolder
 {
 public:
-	CMarketWindow(const IMarket * market, const CGHeroInstance * hero, const std::function<void()> & onWindowClosed, EMarketMode mode);
+	CMarketWindow(const IMarket * market, const CGHeroInstance * hero, const std::function<void()> & onWindowClosed, EMarketMode mode, bool allowResourceTradeWhenNotMakingTurn = false);
 	void updateResources() override;
 	void updateArtifacts() override;
 	void updateGarrisons() override;
@@ -44,6 +44,7 @@ private:
 	std::vector<std::shared_ptr<CButton>> changeModeButtons;
 	std::shared_ptr<CButton> quitButton;
 	std::function<void()> windowClosedCallback;
+	bool allowResourceTradeWhenNotMakingTurn;
 	const Point quitButtonPos = Point(516, 520);
 	std::shared_ptr<CMarketBase> marketWidget;
 

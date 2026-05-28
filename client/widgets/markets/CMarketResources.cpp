@@ -24,13 +24,14 @@
 #include "../../../lib/mapObjects/IMarket.h"
 #include "../../../lib/GameLibrary.h"
 
-CMarketResources::CMarketResources(const IMarket * market, const CGHeroInstance * hero)
+CMarketResources::CMarketResources(const IMarket * market, const CGHeroInstance * hero, bool allowTradeWhenNotMakingTurn)
 	: CMarketBase(market, hero)
 	, CResourcesSelling([this](const std::shared_ptr<CTradeableItem> & heroSlot){CMarketResources::onSlotClickPressed(heroSlot, bidTradePanel);})
 	, CResourcesBuying(
 		[this](const std::shared_ptr<CTradeableItem> & resSlot){CMarketResources::onSlotClickPressed(resSlot, offerTradePanel);},
 		[this](){CMarketResources::updateSubtitles();})
 	, CMarketSlider([this](int newVal){CMarketSlider::onOfferSliderMoved(newVal);})
+	, allowTradeWhenNotMakingTurn(allowTradeWhenNotMakingTurn)
 {
 	OBJECT_CONSTRUCTION;
 
@@ -89,7 +90,7 @@ void CMarketResources::highlightingChanged()
 		const bool isControlsBlocked = bidTradePanel->getHighlightedItemId() != offerTradePanel->getHighlightedItemId() ? false : true;
 		offerSlider->block(isControlsBlocked);
 		maxAmount->block(isControlsBlocked);
-		deal->block(isControlsBlocked || !GAME->interface()->makingTurn);
+		deal->block(isControlsBlocked || (!GAME->interface()->makingTurn && !allowTradeWhenNotMakingTurn));
 	}
 	CMarketBase::highlightingChanged();
 	CMarketTraderText::highlightingChanged();
