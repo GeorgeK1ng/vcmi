@@ -562,6 +562,11 @@
 	{
 		"blockDescriptionPropagation": true
 	},
+
+	"SURRENDER_MARKETPLACE_ACCESS":
+	{
+		"blockDescriptionPropagation": true
+	},
 	
 	"DEITYOFFIRE":
 	{

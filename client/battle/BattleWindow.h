@@ -29,6 +29,7 @@ class HeroInfoBasicPanel;
 class StackInfoBasicPanel;
 class QuickSpellPanel;
 class UnitActionPanel;
+class CGTownInstance;
 
 /// GUI object that handles functionality of panel at the bottom of combat screen
 class BattleWindow : public InterfaceObjectConfigurable
@@ -65,7 +66,10 @@ class BattleWindow : public InterfaceObjectConfigurable
 
 	/// functions for handling actions after they were confirmed by popup window
 	void reallyFlee();
-	void reallySurrender();
+	void reallySurrender(bool allowMarketplaceOffer = true);
+	void offerMarketplaceForSurrender();
+	bool canOfferMarketplaceForSurrender() const;
+	const CGTownInstance * findTownWithMarketplace() const;
 	
 	void useSpellIfPossible(int slot);
 

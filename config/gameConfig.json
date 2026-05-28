@@ -763,7 +763,9 @@
 			// if enabled, equipped creature artifacts are displayed as an icon on stack slots
 			"stackArtifactIndication": false,
 			// if enabled, all heroes gain commander creature in battle (WoG feature)
-			"commanders": false
+			"commanders": false,
+			// if enabled, players without enough gold to surrender can open a marketplace and retry payment after selling resources
+			"surrenderMarketplace": false
 		},
 		
 		"pathfinder" :
