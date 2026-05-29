@@ -41,6 +41,39 @@
 
 #include <future>
 
+static bool dependencyMatchesUpdatedMod(const QString & dependency, const QString & updatedMod)
+{
+	return dependency == updatedMod || dependency.startsWith(updatedMod + '.');
+}
+
+static bool modDependsOnUpdatedMod(const std::shared_ptr<ModStateModel> & modStateModel, const QString & modName, const QString & updatedMod)
+{
+	QSet<QString> processed;
+	QStringList candidates = modStateModel->getMod(modName).getDependencies();
+
+	while(!candidates.empty())
+	{
+		const QString dependency = candidates.back();
+		candidates.pop_back();
+
+		if(dependencyMatchesUpdatedMod(dependency, updatedMod))
+			return true;
+
+		if(processed.contains(dependency))
+			continue;
+		processed.insert(dependency);
+
+		if(!modStateModel->isModExists(dependency))
+			continue;
+
+		for(const auto & nestedDependency : modStateModel->getMod(dependency).getDependencies())
+			if(!processed.contains(nestedDependency))
+				candidates.push_back(nestedDependency);
+	}
+
+	return false;
+}
+
 void CModListView::setupModModel()
 {
 	static const QString repositoryCachePath = CLauncherDirs::downloadsPath() + "/repositoryCache.json";
@@ -1150,6 +1183,7 @@ void CModListView::installMods(QStringList archives)
 	QStringList modNames;
 	QStringList modsToEnable;
 	QMap<QString, QMap<QString, bool>> submodStateBeforeUpdate;
+	QMap<QString, bool> dependentModStateBeforeUpdate;
 
 	for(QString archive : archives)
 	{
@@ -1176,6 +1210,21 @@ void CModListView::installMods(QStringList archives)
 			const auto modSettings = modStateModel->getModSettings(mod);
 			for(const auto & settingID : modSettings.keys())
 				submodStateBeforeUpdate[mod][mod + '.' + settingID] = modSettings.value(settingID);
+
+			// Disabling an updated mod also disables other active mods that depend on it.
+			// Preserve both enabled and disabled dependent mods, so their state can be
+			// restored after the updated dependency is installed again.
+			for(const auto & otherMod : modStateModel->getAllMods())
+			{
+				if(otherMod == mod || otherMod.startsWith(mod + '.'))
+					continue;
+
+				if(!modStateModel->isModInstalled(otherMod))
+					continue;
+
+				if(modDependsOnUpdatedMod(modStateModel, otherMod, mod) && !dependentModStateBeforeUpdate.contains(otherMod))
+					dependentModStateBeforeUpdate[otherMod] = modStateModel->isModEnabled(otherMod);
+			}
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
 			if(modStateModel->isModEnabled(mod))
@@ -1233,6 +1282,22 @@ void CModListView::installMods(QStringList archives)
 			else if(!wasEnabled && modStateModel->isModEnabled(submod))
 				manager->disableMod(submod);
 		}
+	}
+
+	QStringList dependentModsToEnable;
+	for(const auto & mod : dependentModStateBeforeUpdate.keys())
+	{
+		if(dependentModStateBeforeUpdate.value(mod) && modStateModel->isModExists(mod) && !modStateModel->isModEnabled(mod))
+			dependentModsToEnable.push_back(mod);
+	}
+
+	if(!dependentModsToEnable.empty())
+		manager->enableMods(dependentModsToEnable);
+
+	for(const auto & mod : dependentModStateBeforeUpdate.keys())
+	{
+		if(!dependentModStateBeforeUpdate.value(mod) && modStateModel->isModExists(mod) && modStateModel->isModEnabled(mod))
+			manager->disableMod(mod);
 	}
 
 	checkManagerErrors();
