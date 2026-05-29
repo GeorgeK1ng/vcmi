@@ -95,10 +95,12 @@ void CMarketWindow::update()
 
 void CMarketWindow::close()
 {
-	if(windowClosedCallback)
-		windowClosedCallback();
+	auto callback = std::move(windowClosedCallback);
 
 	CWindowObject::close();
+
+	if(callback)
+		callback();
 }
 
 bool CMarketWindow::holdsGarrison(const CArmedInstance * army)
