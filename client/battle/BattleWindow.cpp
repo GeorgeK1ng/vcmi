@@ -631,9 +631,12 @@ const CGTownInstance * BattleWindow::findTownWithMarketplace() const
 
 bool BattleWindow::canOfferMarketplaceForSurrender() const
 {
-	const CGHeroInstance * hero = owner.currentHero();
+	const CGHeroInstance * hero = owner.getBattle()->battleGetMyHero();
+	if(hero && hero->hasBonusOfType(BonusType::SURRENDER_MARKETPLACE_ACCESS))
+		return true;
 
-	return hero && hero->hasBonusOfType(BonusType::SURRENDER_MARKETPLACE_ACCESS);
+	const PlayerState * playerState = owner.curInt->cb->getPlayerState(owner.curInt->playerID);
+	return playerState && playerState->hasBonusOfType(BonusType::SURRENDER_MARKETPLACE_ACCESS);
 }
 
 void BattleWindow::offerMarketplaceForSurrender()

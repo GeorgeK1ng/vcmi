@@ -1271,7 +1271,7 @@ Increases amount of counted marketplaces when trading in town. You may want to u
 
 ### SURRENDER_MARKETPLACE_ACCESS
 
-Allows affected hero to open a marketplace after failing to pay surrender cost, sell resources, and retry surrender payment. This can be granted by artifacts, global/per-hero game config bonuses, or other hero bonus sources.
+Allows affected hero or player to open a marketplace after failing to pay surrender cost, sell resources, and retry surrender payment. This can be granted by artifacts, global/per-hero game config bonuses, or other bonus sources.
 
 ### DEITYOFFIRE
 
