@@ -171,8 +171,7 @@
 				"stackExperience" : { "type" : "boolean" },
 				"stackArtifact" : { "type" : "boolean" },
 				"stackArtifactIndication" : { "type" : "boolean" },
-				"commanders" : { "type" : "boolean" },
-				"surrenderMarketplace" : { "type" : "boolean" }
+				"commanders" : { "type" : "boolean" }
 			}
 		},
 		"pathfinder": {

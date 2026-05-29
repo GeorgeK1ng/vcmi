@@ -44,7 +44,6 @@
 #include "../../lib/CPlayerState.h"
 #include "../../lib/CStack.h"
 #include "../../lib/GameLibrary.h"
-#include "../../lib/IGameSettings.h"
 #include "../../lib/StartInfo.h"
 #include "../../lib/battle/BattleInfo.h"
 #include "../../lib/bonuses/BonusEnum.h"
@@ -634,8 +633,7 @@ bool BattleWindow::canOfferMarketplaceForSurrender() const
 {
 	const CGHeroInstance * hero = owner.currentHero();
 
-	return owner.curInt->cb->getSettings().getBoolean(EGameSettings::MODULE_SURRENDER_MARKETPLACE)
-		|| (hero && hero->hasBonusOfType(BonusType::SURRENDER_MARKETPLACE_ACCESS));
+	return hero && hero->hasBonusOfType(BonusType::SURRENDER_MARKETPLACE_ACCESS);
 }
 
 void BattleWindow::offerMarketplaceForSurrender()
