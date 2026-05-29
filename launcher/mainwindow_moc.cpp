@@ -73,20 +73,6 @@ QRect MainWindow::makeWindowGeometryVisible(QRect windowGeometry)
 	return windowGeometry;
 }
 
-QRect MainWindow::scaleWindowGeometryForDpi(QRect windowGeometry, qreal oldDevicePixelRatio, qreal newDevicePixelRatio, const QPoint & origin)
-{
-	if(oldDevicePixelRatio <= 0 || newDevicePixelRatio <= 0 || qFuzzyCompare(oldDevicePixelRatio, newDevicePixelRatio))
-		return windowGeometry;
-
-	const qreal scale = oldDevicePixelRatio / newDevicePixelRatio;
-	const QPoint relativePosition = windowGeometry.topLeft() - origin;
-
-	windowGeometry.moveTopLeft(origin + QPoint(qRound(relativePosition.x() * scale), qRound(relativePosition.y() * scale)));
-	windowGeometry.setSize(QSize(qRound(windowGeometry.width() * scale), qRound(windowGeometry.height() * scale)));
-
-	return windowGeometry;
-}
-
 void MainWindow::connectScreenChangeHandlers()
 {
 	auto queueVisibilityUpdate = [this]()
@@ -98,14 +84,12 @@ void MainWindow::connectScreenChangeHandlers()
 	{
 		connect(screen, &QScreen::geometryChanged, this, queueVisibilityUpdate);
 		connect(screen, &QScreen::availableGeometryChanged, this, queueVisibilityUpdate);
-		connect(screen, &QScreen::logicalDotsPerInchChanged, this, queueVisibilityUpdate);
 	}
 
 	connect(qApp, &QGuiApplication::screenAdded, this, [this, queueVisibilityUpdate](QScreen * screen)
 	{
 		connect(screen, &QScreen::geometryChanged, this, queueVisibilityUpdate);
 		connect(screen, &QScreen::availableGeometryChanged, this, queueVisibilityUpdate);
-		connect(screen, &QScreen::logicalDotsPerInchChanged, this, queueVisibilityUpdate);
 		queueVisibilityUpdate();
 	});
 	connect(qApp, &QGuiApplication::screenRemoved, this, queueVisibilityUpdate);
@@ -113,15 +97,7 @@ void MainWindow::connectScreenChangeHandlers()
 
 void MainWindow::ensureWindowIsVisible()
 {
-	QRect windowGeometry = geometry();
-	if(auto * targetScreen = findBestScreenForGeometry(windowGeometry))
-	{
-		const qreal newDevicePixelRatio = targetScreen->devicePixelRatio();
-		windowGeometry = scaleWindowGeometryForDpi(windowGeometry, currentDevicePixelRatio, newDevicePixelRatio, targetScreen->availableGeometry().topLeft());
-		currentDevicePixelRatio = newDevicePixelRatio;
-	}
-
-	setGeometry(makeWindowGeometryVisible(windowGeometry));
+	setGeometry(makeWindowGeometryVisible(geometry()));
 }
 #endif
 
@@ -214,13 +190,6 @@ MainWindow::MainWindow(QWidget * parent)
 		windowPosition = s.value("MainWindow/WindowPosition").toPoint();
 
 	QRect windowGeometry(windowPosition, windowSize);
-	if(auto * targetScreen = findBestScreenForGeometry(windowGeometry))
-	{
-		const qreal savedDevicePixelRatio = s.value("MainWindow/DevicePixelRatio", targetScreen->devicePixelRatio()).toReal();
-		currentDevicePixelRatio = targetScreen->devicePixelRatio();
-		windowGeometry = scaleWindowGeometryForDpi(windowGeometry, savedDevicePixelRatio, currentDevicePixelRatio, targetScreen->availableGeometry().topLeft());
-	}
-
 	setGeometry(makeWindowGeometryVisible(windowGeometry));
 	connectScreenChangeHandlers();
 #endif
@@ -310,16 +279,6 @@ void MainWindow::changeEvent(QEvent * event)
 	QMainWindow::changeEvent(event);
 }
 
-#ifndef VCMI_MOBILE
-void MainWindow::moveEvent(QMoveEvent * event)
-{
-	QMainWindow::moveEvent(event);
-
-	if(auto * targetScreen = findBestScreenForGeometry(geometry()))
-		currentDevicePixelRatio = targetScreen->devicePixelRatio();
-}
-#endif
-
 MainWindow::~MainWindow()
 {
 #ifndef VCMI_MOBILE
@@ -327,7 +286,6 @@ MainWindow::~MainWindow()
 	QSettings s = CLauncherDirs::getSettings(Ui::appName);
 	s.setValue("MainWindow/WindowSize", size());
 	s.setValue("MainWindow/WindowPosition", pos());
-	s.setValue("MainWindow/DevicePixelRatio", currentDevicePixelRatio);
 #endif
 
 	delete ui;
