@@ -95,7 +95,8 @@ void CMarketWindow::update()
 
 void CMarketWindow::close()
 {
-	auto callback = std::move(windowClosedCallback);
+	auto callback = windowClosedCallback;
+	windowClosedCallback = nullptr;
 
 	CWindowObject::close();
 

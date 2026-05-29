@@ -192,7 +192,7 @@ CResourcesBuying::CResourcesBuying(const CTradeableItem::ClickPressedFunctor & c
 }
 
 CResourcesSelling::CResourcesSelling(const CTradeableItem::ClickPressedFunctor & clickPressedCallback, ResourceAmountGetter resourceAmountGetter)
-	: resourceAmountGetter(std::move(resourceAmountGetter))
+	: resourceAmountGetter(resourceAmountGetter)
 {
 	OBJECT_CONSTRUCTION;
 
