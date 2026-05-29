@@ -45,9 +45,17 @@ class MainWindow : public QMainWindow
 
 #ifndef VCMI_MOBILE
 	std::unique_ptr<CConsoleHandler> console;
+	qreal currentDevicePixelRatio = 1.;
 #endif
 
 	void load();
+#ifndef VCMI_MOBILE
+	static QScreen * findBestScreenForGeometry(const QRect & windowGeometry);
+	static QRect makeWindowGeometryVisible(QRect windowGeometry);
+	static QRect scaleWindowGeometryForDpi(QRect windowGeometry, qreal oldDevicePixelRatio, qreal newDevicePixelRatio, const QPoint & origin);
+	void connectScreenChangeHandlers();
+	void ensureWindowIsVisible();
+#endif
 
 	enum TabRows
 	{
@@ -81,6 +89,9 @@ public:
 
 protected:
 	void changeEvent(QEvent * event) override;
+#ifndef VCMI_MOBILE
+	void moveEvent(QMoveEvent * event) override;
+#endif
 
 public slots:
 	void on_startGameButton_clicked();
