@@ -647,14 +647,20 @@ void BattleWindow::offerMarketplaceForSurrender()
 		return;
 	}
 
+	const int goldBeforeMarketplace = owner.curInt->cb->getResourceAmount(EGameResID::GOLD);
+
 	owner.curInt->showYesNoDialog(
 		LIBRARY->generaltexth->translate("vcmi.battle.surrender.tryMarketplace"),
-		[this, townWithMarket]()
+		[this, townWithMarket, goldBeforeMarketplace]()
 		{
 			ENGINE->windows().createAndPushWindow<CMarketWindow>(
 				townWithMarket,
 				nullptr,
-				[this]() { reallySurrender(false); },
+				[this, goldBeforeMarketplace]()
+				{
+					const bool soldResourcesForGold = owner.curInt->cb->getResourceAmount(EGameResID::GOLD) > goldBeforeMarketplace;
+					reallySurrender(false, soldResourcesForGold);
+				},
 				EMarketMode::RESOURCE_RESOURCE,
 				true,
 				owner.curInt.get());
@@ -662,12 +668,14 @@ void BattleWindow::offerMarketplaceForSurrender()
 		nullptr);
 }
 
-void BattleWindow::reallySurrender(bool allowMarketplaceOffer)
+void BattleWindow::reallySurrender(bool allowMarketplaceOffer, bool marketplaceSaleFailed)
 {
 	if (owner.curInt->cb->getResourceAmount(EGameResID::GOLD) < owner.getBattle()->battleGetSurrenderCost())
 	{
 		if(allowMarketplaceOffer && canOfferMarketplaceForSurrender())
 			offerMarketplaceForSurrender();
+		else if(marketplaceSaleFailed)
+			owner.curInt->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.battle.surrender.marketplaceFailed"));
 		else
 			owner.curInt->showInfoDialog(LIBRARY->generaltexth->allTexts[29]); //You don't have enough gold!
 	}

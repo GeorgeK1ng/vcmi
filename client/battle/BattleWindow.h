@@ -66,7 +66,7 @@ class BattleWindow : public InterfaceObjectConfigurable
 
 	/// functions for handling actions after they were confirmed by popup window
 	void reallyFlee();
-	void reallySurrender(bool allowMarketplaceOffer = true);
+	void reallySurrender(bool allowMarketplaceOffer = true, bool marketplaceSaleFailed = false);
 	void offerMarketplaceForSurrender();
 	bool canOfferMarketplaceForSurrender() const;
 	const CGTownInstance * findTownWithMarketplace() const;
