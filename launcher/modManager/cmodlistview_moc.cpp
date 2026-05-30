@@ -41,37 +41,66 @@
 
 #include <future>
 
-static bool dependencyMatchesUpdatedMod(const QString & dependency, const QString & updatedMod)
+static QStringList findInstalledModsDependingOnUpdatedMod(const std::shared_ptr<ModStateModel> & modStateModel, const QString & updatedMod)
 {
-	return dependency == updatedMod || dependency.startsWith(updatedMod + '.');
-}
+	QStringList allMods = modStateModel->getAllMods();
+	QSet<QString> installedMods;
+	QMap<QString, QStringList> reverseDependencies;
 
-static bool modDependsOnUpdatedMod(const std::shared_ptr<ModStateModel> & modStateModel, const QString & modName, const QString & updatedMod)
-{
-	QSet<QString> processed;
-	QStringList candidates = modStateModel->getMod(modName).getDependencies();
+	int processedMods = 0;
+	for(const auto & mod : allMods)
+	{
+		if(++processedMods % 50 == 0)
+			qApp->processEvents();
+
+		if(!modStateModel->isModInstalled(mod))
+			continue;
+
+		installedMods.insert(mod);
+
+		for(const auto & dependency : modStateModel->getMod(mod).getDependencies())
+			reverseDependencies[dependency].push_back(mod);
+	}
+
+	QSet<QString> processedDependencies;
+	QSet<QString> result;
+	QStringList candidates;
+	candidates.push_back(updatedMod);
+
+	for(const auto & mod : installedMods)
+		if(mod.startsWith(updatedMod + '.'))
+			candidates.push_back(mod);
 
 	while(!candidates.empty())
 	{
+		if(++processedMods % 50 == 0)
+			qApp->processEvents();
+
 		const QString dependency = candidates.back();
 		candidates.pop_back();
 
-		if(dependencyMatchesUpdatedMod(dependency, updatedMod))
-			return true;
-
-		if(processed.contains(dependency))
+		if(processedDependencies.contains(dependency))
 			continue;
-		processed.insert(dependency);
+		processedDependencies.insert(dependency);
 
-		if(!modStateModel->isModExists(dependency))
-			continue;
+		for(const auto & dependentMod : reverseDependencies.value(dependency))
+		{
+			if(dependentMod == updatedMod || dependentMod.startsWith(updatedMod + '.'))
+				continue;
 
-		for(const auto & nestedDependency : modStateModel->getMod(dependency).getDependencies())
-			if(!processed.contains(nestedDependency))
-				candidates.push_back(nestedDependency);
+			if(result.contains(dependentMod))
+				continue;
+
+			result.insert(dependentMod);
+			candidates.push_back(dependentMod);
+		}
 	}
 
-	return false;
+	QStringList resultList;
+	for(const auto & mod : result)
+		resultList.push_back(mod);
+
+	return resultList;
 }
 
 void CModListView::setupModModel()
@@ -1214,16 +1243,13 @@ void CModListView::installMods(QStringList archives)
 			// Disabling an updated mod also disables other active mods that depend on it.
 			// Preserve both enabled and disabled dependent mods, so their state can be
 			// restored after the updated dependency is installed again.
-			for(const auto & otherMod : modStateModel->getAllMods())
+			ui->progressBar->setFormat(tr("Preparing update for %1").arg(modStateModel->getMod(mod).getName()));
+			qApp->processEvents();
+
+			for(const auto & dependentMod : findInstalledModsDependingOnUpdatedMod(modStateModel, mod))
 			{
-				if(otherMod == mod || otherMod.startsWith(mod + '.'))
-					continue;
-
-				if(!modStateModel->isModInstalled(otherMod))
-					continue;
-
-				if(modDependsOnUpdatedMod(modStateModel, otherMod, mod) && !dependentModStateBeforeUpdate.contains(otherMod))
-					dependentModStateBeforeUpdate[otherMod] = modStateModel->isModEnabled(otherMod);
+				if(!dependentModStateBeforeUpdate.contains(dependentMod))
+					dependentModStateBeforeUpdate[dependentMod] = modStateModel->isModEnabled(dependentMod);
 			}
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
@@ -1292,12 +1318,21 @@ void CModListView::installMods(QStringList archives)
 	}
 
 	if(!dependentModsToEnable.empty())
+	{
+		ui->progressBar->setFormat(tr("Restoring dependent mods"));
+		qApp->processEvents();
 		manager->enableMods(dependentModsToEnable);
+		qApp->processEvents();
+	}
 
 	for(const auto & mod : dependentModStateBeforeUpdate.keys())
 	{
 		if(!dependentModStateBeforeUpdate.value(mod) && modStateModel->isModExists(mod) && modStateModel->isModEnabled(mod))
+		{
+			ui->progressBar->setFormat(tr("Restoring dependent mods"));
+			qApp->processEvents();
 			manager->disableMod(mod);
+		}
 	}
 
 	checkManagerErrors();
