@@ -44,7 +44,6 @@ class CDownloadManager : public QObject
 	QList<FileEntry> currentDownloads;
 
 	FileEntry & getEntry(QNetworkReply * reply);
-	void writeReplyData(FileEntry & entry);
 	void startDownload(FileEntry & entry);
 	void startNextDownload();
 	bool hasDownloadInProgress() const;
@@ -62,7 +61,6 @@ public:
 public slots:
 	void downloadFinished(QNetworkReply * reply);
 	void downloadProgressChanged(qint64 bytesReceived, qint64 bytesTotal);
-	void downloadReadyRead();
 
 signals:
 	// for status bar updates. Merges all queued downloads into one

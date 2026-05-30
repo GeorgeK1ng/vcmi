@@ -1280,6 +1280,9 @@ void CModListView::installMods(QStringList archives)
 			}
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
+			ui->progressBar->setFormat(tr("Uninstalling old version of %1").arg(modStateModel->getMod(mod).getName()));
+			qApp->processEvents();
+
 			if(modStateModel->isModEnabled(mod))
 				modsToEnable.push_back(mod);
 
@@ -1311,7 +1314,10 @@ void CModListView::installMods(QStringList archives)
 	}
 
 
+	ui->progressBar->setFormat(tr("Refreshing mod list"));
+	qApp->processEvents();
 	reload(lastInstalled);
+	qApp->processEvents();
 
 	if(!modsToEnable.empty())
 	{
@@ -1657,9 +1663,25 @@ void CModListView::doUninstallMod(const QString & modName, bool silent)
 	}
 
 	if(modStateModel->isModEnabled(modName))
+	{
+		ui->progressBar->setFormat(tr("Disabling mod %1").arg(modStateModel->getMod(modName).getName()));
+		qApp->processEvents();
 		manager->disableMod(modName);
+	}
+
 	manager->uninstallMod(modName);
-	reload(modName);
+
+	if(silent)
+	{
+		ui->progressBar->setFormat(tr("Refreshing mod list"));
+		qApp->processEvents();
+		modStateModel->reloadLocalState();
+		qApp->processEvents();
+	}
+	else
+	{
+		reload(modName);
+	}
 }
 
 bool CModListView::isModAvailable(const QString & modName)

@@ -357,7 +357,18 @@ bool ModStateController::doUninstallMod(QString modname)
 		return addError(modname, tr("Mod data was not found"));
 
 	QDir modFullDir(modDir);
-	if(!removeModDir(modDir))
+	auto futureRemove = std::async(std::launch::async, [this, modDir]()
+	{
+		return removeModDir(modDir);
+	});
+
+	while(futureRemove.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
+	{
+		extractionProgress(0, 0);
+		qApp->processEvents();
+	}
+
+	if(!futureRemove.get())
 		return addError(modname, tr("Mod is located in a protected directory, please remove it manually:\n") + modFullDir.absolutePath());
 
 	return true;
