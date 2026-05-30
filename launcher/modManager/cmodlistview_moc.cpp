@@ -1317,11 +1317,11 @@ void CModListView::installMods(QStringList archives)
 			dependentModsToEnable.push_back(mod);
 	}
 
-	if(!dependentModsToEnable.empty())
+	for(const auto & mod : dependentModsToEnable)
 	{
 		ui->progressBar->setFormat(tr("Restoring dependent mods"));
 		qApp->processEvents();
-		manager->enableMods(dependentModsToEnable);
+		manager->enableMods({mod});
 		qApp->processEvents();
 	}
 
