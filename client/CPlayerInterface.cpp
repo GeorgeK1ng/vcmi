@@ -118,7 +118,8 @@
 
 #include "../lib/filesystem/Filesystem.h"
 
-#include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 
 // The macro below is used to mark functions that are called by client when game state changes.
 // They all assume that interface mutex is locked.
@@ -127,6 +128,66 @@
 #define BATTLE_EVENT_POSSIBLE_RETURN	if (GAME->interface() != this) return; if (isAutoFightOn && !battleInt) return
 
 std::shared_ptr<BattleInterface> CPlayerInterface::battleInt;
+
+static constexpr const char * SAVEGAME_EXTENSION = ".vsgm1";
+
+static boost::filesystem::path autosavePath(const std::string & prefix, int index)
+{
+	return VCMIDirs::get().userSavePath() / boost::filesystem::path("Autosave/" + prefix + std::to_string(index) + SAVEGAME_EXTENSION);
+}
+
+static void rotateAutosaves(const std::string & prefix, int autosaveCountLimit)
+{
+	if(autosaveCountLimit <= 0)
+		return;
+
+	boost::system::error_code error;
+	const auto newestSave = autosavePath(prefix, 1);
+	boost::filesystem::create_directories(newestSave.parent_path(), error);
+	if(error)
+	{
+		logGlobal->warn("Failed to create autosave directory %s: %s", newestSave.parent_path().string(), error.message());
+		return;
+	}
+
+	const auto oldestSave = autosavePath(prefix, autosaveCountLimit);
+	boost::filesystem::remove(oldestSave, error);
+	if(error)
+	{
+		logGlobal->warn("Failed to remove old autosave %s: %s", oldestSave.string(), error.message());
+		error.clear();
+	}
+
+	for(int index = autosaveCountLimit - 1; index >= 1; --index)
+	{
+		const auto source = autosavePath(prefix, index);
+		if(!boost::filesystem::exists(source, error))
+		{
+			if(error)
+			{
+				logGlobal->warn("Failed to check autosave %s: %s", source.string(), error.message());
+				error.clear();
+			}
+			continue;
+		}
+
+		const auto target = autosavePath(prefix, index + 1);
+		boost::filesystem::remove(target, error);
+		if(error)
+		{
+			logGlobal->warn("Failed to remove autosave %s: %s", target.string(), error.message());
+			error.clear();
+			continue;
+		}
+
+		boost::filesystem::rename(source, target, error);
+		if(error)
+		{
+			logGlobal->warn("Failed to rotate autosave %s to %s: %s", source.string(), target.string(), error.message());
+			error.clear();
+		}
+	}
+}
 
 CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	localState(std::make_unique<PlayerLocalState>(*this)),
@@ -143,7 +204,6 @@ CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	makingTurn = false;
 	showingDialog = new ConditionalWait();
 	cingconsole = new CInGameConsole();
-	autosaveCount = 0;
 	isAutoFightOn = false;
 	isAutoFightEndBattle = false;
 	ignoreEvents = false;
@@ -278,13 +338,11 @@ void CPlayerInterface::performAutosave()
 			}
 		}
 
-		autosaveCount++;
-
 		int autosaveCountLimit = settings["general"]["autosaveCountLimit"].Integer();
 		if(autosaveCountLimit > 0)
 		{
-			cb->save("Saves/Autosave/" + prefix + std::to_string(autosaveCount), false);
-			autosaveCount %= autosaveCountLimit;
+			rotateAutosaves(prefix, autosaveCountLimit);
+			cb->save("Saves/Autosave/" + prefix + "1", false);
 		}
 		else
 		{
@@ -1518,37 +1576,6 @@ void CPlayerInterface::update()
 void CPlayerInterface::endNetwork()
 {
 	showingDialog->requestTermination();
-}
-
-int CPlayerInterface::getLastIndex( std::string namePrefix)
-{
-	using namespace boost::filesystem;
-	using namespace boost::algorithm;
-
-	path gamesDir = VCMIDirs::get().userSavePath();
-	std::map<std::time_t, int> dates; //save number => datestamp
-
-	const directory_iterator enddir;
-	if (!exists(gamesDir))
-		create_directory(gamesDir);
-	else
-	for (directory_iterator dir(gamesDir); dir != enddir; ++dir)
-	{
-		if (is_regular_file(dir->status()))
-		{
-			std::string name = dir->path().filename().string();
-			if (starts_with(name, namePrefix) && ends_with(name, ".vcgm1"))
-			{
-				char nr = name[namePrefix.size()];
-				if (std::isdigit(nr))
-					dates[last_write_time(dir->path())] = boost::lexical_cast<int>(nr);
-			}
-		}
-	}
-
-	if (!dates.empty())
-		return (--dates.end())->second; //return latest file number
-	return 0;
 }
 
 void CPlayerInterface::gameOver(PlayerColor player, const EVictoryLossCheckResult & victoryLossCheckResult )
