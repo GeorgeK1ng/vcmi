@@ -95,8 +95,9 @@ void CMarketWindow::update()
 
 void CMarketWindow::close()
 {
-	auto callback = windowClosedCallback;
-	windowClosedCallback = nullptr;
+	// Detach the callback before closing: CWindowObject::close() can destroy this window,
+	// and the callback may reopen dialogs/windows, so it must run at most once after close.
+	auto callback = std::exchange(windowClosedCallback, nullptr);
 
 	CWindowObject::close();
 
