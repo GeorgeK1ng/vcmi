@@ -28,6 +28,8 @@
 
 namespace
 {
+static constexpr int ASYNC_UI_UPDATE_INTERVAL_MS = 10;
+
 void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
 {
 	const QFileInfoList entries = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -79,7 +81,7 @@ bool extractContentArchives(ModStateController * controller, const QString & mod
 			return true;
 		});
 
-		while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+		while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
 		{
 			qApp->processEvents();
 		}
@@ -288,7 +290,7 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 		return std::make_pair(detectedModDirName, std::move(detectedFiles));
 	});
 
-	while(futureDetectArchive.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+	while(futureDetectArchive.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
 	{
 		extractionProgress(0, 0);
 		qApp->processEvents();
@@ -315,7 +317,7 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 		return true;
 	});
 	
-	while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+	while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
 	{
 		extractionProgress(filesCounter, filesToExtract.size());
 		qApp->processEvents();

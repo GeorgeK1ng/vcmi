@@ -41,6 +41,8 @@
 
 #include <future>
 
+static constexpr int ASYNC_UI_UPDATE_INTERVAL_MS = 10;
+
 enum class ZipArchiveContent
 {
 	Mod,
@@ -1085,7 +1087,7 @@ void CModListView::installFiles(QStringList files)
 				return detectZipArchiveContent(realFilename);
 			});
 
-			while(futureArchiveContent.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+			while(futureArchiveContent.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
 				qApp->processEvents();
 
 			try
@@ -1205,7 +1207,7 @@ void CModListView::installFiles(QStringList files)
 			return ce.installChronicles(exe);
 		});
 
-		while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+		while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
 		{
 			extractionProgress(static_cast<int>(prog * 1000.f), 1000);
 			qApp->processEvents();
