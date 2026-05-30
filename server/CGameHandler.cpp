@@ -97,7 +97,6 @@
 #define COMPLAIN_RET(txt) {complain(txt); return false;}
 #define COMPLAIN_RETF(txt, FORMAT) {complain(boost::str(boost::format(txt) % FORMAT)); return false;}
 
-static constexpr const char * SAVEGAME_EXTENSION = ".vsgm1";
 static constexpr const char * SAVES_MOUNT_POINT = "Saves/";
 
 static std::string autosaveNameWithIndex(const std::string & filename, int index)
@@ -108,7 +107,7 @@ static std::string autosaveNameWithIndex(const std::string & filename, int index
 static boost::filesystem::path savegamePath(const std::string & filename)
 {
 	ResourcePath savePath(filename, EResType::SAVEGAME);
-	std::string localFilename = savePath.getOriginalName() + SAVEGAME_EXTENSION;
+	std::string localFilename = savePath.getOriginalName() + ".vsgm1";
 
 	if(localFilename.size() > std::string(SAVES_MOUNT_POINT).size() && boost::istarts_with(localFilename, SAVES_MOUNT_POINT))
 		localFilename.erase(0, std::string(SAVES_MOUNT_POINT).size());
@@ -136,14 +135,8 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 	}
 
 	boost::system::error_code error;
-	const auto newestSave = savegamePath(filename);
-	boost::filesystem::create_directories(newestSave.parent_path(), error);
-	if(error)
-	{
-		logGlobal->warn("Failed to create autosave directory %s: %s", newestSave.parent_path().string(), error.message());
-		return;
-	}
 
+	// Free the last allowed slot first. Then N-1 can be renamed to N, N-2 to N-1, etc.
 	const auto oldestSave = savegamePath(autosaveNameWithIndex(filename, autosaveCountLimit));
 	boost::filesystem::remove(oldestSave, error);
 	if(error)
@@ -166,14 +159,6 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 		}
 
 		const auto target = savegamePath(autosaveNameWithIndex(filename, index + 1));
-		boost::filesystem::remove(target, error);
-		if(error)
-		{
-			logGlobal->warn("Failed to remove autosave %s: %s", target.string(), error.message());
-			error.clear();
-			continue;
-		}
-
 		boost::filesystem::rename(source, target, error);
 		if(error)
 		{
@@ -1719,7 +1704,7 @@ void CGameHandler::save(const std::string & filename, PlayerColor playerToNotify
 	logGlobal->info("Saving to %s", filename);
 	rotateAutosaves(filename, autosaveCountLimit);
 	ResourcePath savePath(filename, EResType::SAVEGAME);
-	const auto savefname = savePath.getOriginalName() + SAVEGAME_EXTENSION;
+	const auto savefname = savePath.getOriginalName() + ".vsgm1";
 	CResourceHandler::get("local")->createResource(savefname);
 
 	std::string filenameWithoutPath;
