@@ -89,7 +89,7 @@ void CDownloadManager::downloadFinished(QNetworkReply * reply)
 	}
 	else
 	{
-		file.file->write(file.reply->readAll());
+		writeReplyData(file);
 		file.file->close();
 		file.status = FileEntry::FINISHED;
 	}
@@ -130,7 +130,6 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 	auto reply = dynamic_cast<QNetworkReply *>(sender());
 	FileEntry & entry = getEntry(reply);
 
-	entry.file->write(entry.reply->readAll());
 	entry.bytesReceived = bytesReceived;
 	if(bytesTotal > entry.totalSize)
 		entry.totalSize = bytesTotal;
@@ -147,6 +146,21 @@ void CDownloadManager::downloadProgressChanged(qint64 bytesReceived, qint64 byte
 		total = received;
 
 	Q_EMIT downloadProgress(entry.filename, received, total);
+}
+
+void CDownloadManager::writeReplyData(FileEntry & entry)
+{
+	static constexpr qint64 CHUNK_SIZE = 64 * 1024;
+
+	while(entry.reply->bytesAvailable() > 0)
+		entry.file->write(entry.reply->read(CHUNK_SIZE));
+}
+
+void CDownloadManager::downloadReadyRead()
+{
+	auto reply = dynamic_cast<QNetworkReply *>(sender());
+	FileEntry & entry = getEntry(reply);
+	writeReplyData(entry);
 }
 
 bool CDownloadManager::downloadInProgress(const QUrl & url) const
@@ -167,6 +181,8 @@ void CDownloadManager::startDownload(FileEntry & entry)
 
 	connect(entry.reply, SIGNAL(downloadProgress(qint64,qint64)),
 		SLOT(downloadProgressChanged(qint64,qint64)));
+	connect(entry.reply, SIGNAL(readyRead()),
+		SLOT(downloadReadyRead()));
 }
 
 void CDownloadManager::startNextDownload()
