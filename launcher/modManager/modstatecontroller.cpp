@@ -26,11 +26,9 @@
 
 #include <future>
 
-namespace
-{
 static constexpr int ASYNC_UI_UPDATE_INTERVAL_MS = 10;
 
-void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
+static void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
 {
 	const QFileInfoList entries = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 	for(const QFileInfo & entry : entries)
@@ -46,7 +44,7 @@ void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
 	}
 }
 
-bool extractContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+static bool extractContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
 {
 	QVector<QString> archives;
 	findContentArchives(QDir(modPath), archives);
@@ -101,7 +99,7 @@ bool extractContentArchives(ModStateController * controller, const QString & mod
 	return true;
 }
 
-bool extractNestedModArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+static bool extractNestedModArchives(ModStateController * controller, const QString & modName, const QString & modPath)
 {
 	try
 	{
@@ -114,7 +112,7 @@ bool extractNestedModArchives(ModStateController * controller, const QString & m
 	}
 }
 
-QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
+static QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
 {
 	try {
 		ZipArchive archive(qstringToPath(path));
@@ -149,8 +147,6 @@ QString detectModArchive(QString path, QString modName, std::vector<std::string>
 	
 	return "";
 }
-}
-
 
 ModStateController::ModStateController(std::shared_ptr<ModStateModel> modList)
 	: modList(modList)
