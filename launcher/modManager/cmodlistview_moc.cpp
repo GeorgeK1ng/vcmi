@@ -41,6 +41,38 @@
 
 #include <future>
 
+enum class ZipArchiveContent
+{
+	Mod,
+	Maps
+};
+
+static ZipArchiveContent detectZipArchiveContent(const QString & filename)
+{
+	ZipArchive archive(qstringToPath(filename));
+	auto fileList = archive.listFiles();
+
+	bool hasModJson = false;
+	bool hasMaps = false;
+
+	for(const auto & file : fileList)
+	{
+		QString lower = QString::fromStdString(file).toLower();
+
+		// Check for mod.json anywhere in archive
+		if(lower.endsWith("mod.json"))
+			hasModJson = true;
+
+		// Check for map files anywhere
+		if(lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
+			hasMaps = true;
+	}
+
+	if(hasModJson || !hasMaps)
+		return ZipArchiveContent::Mod;
+	return ZipArchiveContent::Maps;
+}
+
 static QStringList findInstalledModsDependingOnUpdatedMod(const std::shared_ptr<ModStateModel> & modStateModel, const QString & updatedMod)
 {
 	QStringList allMods = modStateModel->getAllMods();
@@ -1042,33 +1074,26 @@ void CModListView::installFiles(QStringList files)
 
 		if(realFilename.endsWith(".zip", Qt::CaseInsensitive))
 		{
-			try {
-			// TODO: there is some weird crash on Android where this constructor fails to open file
-			ZipArchive archive(qstringToPath(realFilename));
-			auto fileList = archive.listFiles();
+			ui->progressWidget->setVisible(true);
+			ui->progressBar->setMaximum(0);
+			ui->progressBar->setValue(0);
+			ui->progressBar->setFormat(tr("Scanning archive %1").arg(QFileInfo(realFilename).fileName()));
+			qApp->processEvents();
 
-			bool hasModJson = false;
-			bool hasMaps = false;
-
-			for (const auto& file : fileList)
+			auto futureArchiveContent = std::async(std::launch::async, [realFilename]()
 			{
-				QString lower = QString::fromStdString(file).toLower();
+				return detectZipArchiveContent(realFilename);
+			});
 
-				// Check for mod.json anywhere in archive
-				if (lower.endsWith("mod.json"))
-					hasModJson = true;
+			while(futureArchiveContent.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+				qApp->processEvents();
 
-				// Check for map files anywhere
-				if (lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
-					hasMaps = true;
-			}
-
-			if (hasModJson)
-				mods.push_back(filename);
-			else if (hasMaps)
-				maps.push_back(filename);
-			else
-				mods.push_back(filename);
+			try
+			{
+				if(futureArchiveContent.get() == ZipArchiveContent::Maps)
+					maps.push_back(filename);
+				else
+					mods.push_back(filename);
 			}
 			catch (const std::runtime_error & e)
 			{
@@ -1275,6 +1300,7 @@ void CModListView::installMods(QStringList archives)
 			modDisplayName = modStateModel->getMod(modNames[i]).getName();
 
 		ui->progressBar->setFormat(tr("Installing mod %1").arg(modDisplayName));
+		qApp->processEvents();
 
 		manager->installMod(modNames[i], archives[i]);
 

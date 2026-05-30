@@ -281,7 +281,22 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 		return addError(modname, tr("Mod archive is missing"));
 
 	std::vector<std::string> filesToExtract;
-	QString modDirName = ::detectModArchive(archivePath, modname, filesToExtract);
+	auto futureDetectArchive = std::async(std::launch::async, [archivePath, modname]()
+	{
+		std::vector<std::string> detectedFiles;
+		QString detectedModDirName = ::detectModArchive(archivePath, modname, detectedFiles);
+		return std::make_pair(detectedModDirName, std::move(detectedFiles));
+	});
+
+	while(futureDetectArchive.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+	{
+		extractionProgress(0, 0);
+		qApp->processEvents();
+	}
+
+	auto detectResult = futureDetectArchive.get();
+	QString modDirName = detectResult.first;
+	filesToExtract = std::move(detectResult.second);
 	if(!modDirName.size())
 		return addError(modname, tr("Mod archive is invalid or corrupted"));
 	
