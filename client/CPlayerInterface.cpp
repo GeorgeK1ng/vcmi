@@ -81,7 +81,6 @@
 #include "../lib/StartInfo.h"
 #include "../lib/TerrainHandler.h"
 #include "../lib/UnlockGuard.h"
-#include "../lib/VCMIDirs.h"
 
 #include "../lib/battle/CPlayerBattleCallback.h"
 
@@ -118,9 +117,6 @@
 
 #include "../lib/filesystem/Filesystem.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/system/error_code.hpp>
-
 // The macro below is used to mark functions that are called by client when game state changes.
 // They all assume that interface mutex is locked.
 #define EVENT_HANDLER_CALLED_BY_CLIENT
@@ -128,66 +124,6 @@
 #define BATTLE_EVENT_POSSIBLE_RETURN	if (GAME->interface() != this) return; if (isAutoFightOn && !battleInt) return
 
 std::shared_ptr<BattleInterface> CPlayerInterface::battleInt;
-
-static constexpr const char * SAVEGAME_EXTENSION = ".vsgm1";
-
-static boost::filesystem::path autosavePath(const std::string & prefix, int index)
-{
-	return VCMIDirs::get().userSavePath() / boost::filesystem::path("Autosave/" + prefix + std::to_string(index) + SAVEGAME_EXTENSION);
-}
-
-static void rotateAutosaves(const std::string & prefix, int autosaveCountLimit)
-{
-	if(autosaveCountLimit <= 0)
-		return;
-
-	boost::system::error_code error;
-	const auto newestSave = autosavePath(prefix, 1);
-	boost::filesystem::create_directories(newestSave.parent_path(), error);
-	if(error)
-	{
-		logGlobal->warn("Failed to create autosave directory %s: %s", newestSave.parent_path().string(), error.message());
-		return;
-	}
-
-	const auto oldestSave = autosavePath(prefix, autosaveCountLimit);
-	boost::filesystem::remove(oldestSave, error);
-	if(error)
-	{
-		logGlobal->warn("Failed to remove old autosave %s: %s", oldestSave.string(), error.message());
-		error.clear();
-	}
-
-	for(int index = autosaveCountLimit - 1; index >= 1; --index)
-	{
-		const auto source = autosavePath(prefix, index);
-		if(!boost::filesystem::exists(source, error))
-		{
-			if(error)
-			{
-				logGlobal->warn("Failed to check autosave %s: %s", source.string(), error.message());
-				error.clear();
-			}
-			continue;
-		}
-
-		const auto target = autosavePath(prefix, index + 1);
-		boost::filesystem::remove(target, error);
-		if(error)
-		{
-			logGlobal->warn("Failed to remove autosave %s: %s", target.string(), error.message());
-			error.clear();
-			continue;
-		}
-
-		boost::filesystem::rename(source, target, error);
-		if(error)
-		{
-			logGlobal->warn("Failed to rotate autosave %s to %s: %s", source.string(), target.string(), error.message());
-			error.clear();
-		}
-	}
-}
 
 CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	localState(std::make_unique<PlayerLocalState>(*this)),
@@ -340,10 +276,7 @@ void CPlayerInterface::performAutosave()
 
 		int autosaveCountLimit = settings["general"]["autosaveCountLimit"].Integer();
 		if(autosaveCountLimit > 0)
-		{
-			rotateAutosaves(prefix, autosaveCountLimit);
-			cb->save("Saves/Autosave/" + prefix + "1", false);
-		}
+			cb->save("Saves/Autosave/" + prefix + "1", false, autosaveCountLimit);
 		else
 		{
 			std::string stringifiedDate = std::to_string(cb->getDate(Date::MONTH))
