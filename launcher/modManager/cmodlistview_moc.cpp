@@ -41,52 +41,14 @@
 
 #include <future>
 
-static constexpr int ASYNC_UI_UPDATE_INTERVAL_MS = 10;
-
-enum class ZipArchiveContent
-{
-	Mod,
-	Maps
-};
-
-static ZipArchiveContent detectZipArchiveContent(const QString & filename)
-{
-	ZipArchive archive(qstringToPath(filename));
-	auto fileList = archive.listFiles();
-
-	bool hasModJson = false;
-	bool hasMaps = false;
-
-	for(const auto & file : fileList)
-	{
-		QString lower = QString::fromStdString(file).toLower();
-
-		// Check for mod.json anywhere in archive
-		if(lower.endsWith("mod.json"))
-			hasModJson = true;
-
-		// Check for map files anywhere
-		if(lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
-			hasMaps = true;
-	}
-
-	if(hasModJson || !hasMaps)
-		return ZipArchiveContent::Mod;
-	return ZipArchiveContent::Maps;
-}
-
 static QStringList findInstalledModsDependingOnUpdatedMod(const std::shared_ptr<ModStateModel> & modStateModel, const QString & updatedMod)
 {
 	QStringList allMods = modStateModel->getAllMods();
 	QSet<QString> installedMods;
 	QMap<QString, QStringList> reverseDependencies;
 
-	int processedMods = 0;
 	for(const auto & mod : allMods)
 	{
-		if(++processedMods % 50 == 0)
-			qApp->processEvents();
-
 		if(!modStateModel->isModInstalled(mod))
 			continue;
 
@@ -107,9 +69,6 @@ static QStringList findInstalledModsDependingOnUpdatedMod(const std::shared_ptr<
 
 	while(!candidates.empty())
 	{
-		if(++processedMods % 50 == 0)
-			qApp->processEvents();
-
 		const QString dependency = candidates.back();
 		candidates.pop_back();
 
@@ -1076,26 +1035,33 @@ void CModListView::installFiles(QStringList files)
 
 		if(realFilename.endsWith(".zip", Qt::CaseInsensitive))
 		{
-			ui->progressWidget->setVisible(true);
-			ui->progressBar->setMaximum(0);
-			ui->progressBar->setValue(0);
-			ui->progressBar->setFormat(tr("Scanning archive %1").arg(QFileInfo(realFilename).fileName()));
-			qApp->processEvents();
+			try {
+			// TODO: there is some weird crash on Android where this constructor fails to open file
+			ZipArchive archive(qstringToPath(realFilename));
+			auto fileList = archive.listFiles();
 
-			auto futureArchiveContent = std::async(std::launch::async, [realFilename]()
+			bool hasModJson = false;
+			bool hasMaps = false;
+
+			for (const auto& file : fileList)
 			{
-				return detectZipArchiveContent(realFilename);
-			});
+				QString lower = QString::fromStdString(file).toLower();
 
-			while(futureArchiveContent.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
-				qApp->processEvents();
+				// Check for mod.json anywhere in archive
+				if (lower.endsWith("mod.json"))
+					hasModJson = true;
 
-			try
-			{
-				if(futureArchiveContent.get() == ZipArchiveContent::Maps)
-					maps.push_back(filename);
-				else
-					mods.push_back(filename);
+				// Check for map files anywhere
+				if (lower.endsWith(".h3m") || lower.endsWith(".h3c") || lower.endsWith(".vmap") || lower.endsWith(".vcmp"))
+					hasMaps = true;
+			}
+
+			if (hasModJson)
+				mods.push_back(filename);
+			else if (hasMaps)
+				maps.push_back(filename);
+			else
+				mods.push_back(filename);
 			}
 			catch (const std::runtime_error & e)
 			{
@@ -1207,7 +1173,7 @@ void CModListView::installFiles(QStringList files)
 			return ce.installChronicles(exe);
 		});
 
-		while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
+		while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
 		{
 			extractionProgress(static_cast<int>(prog * 1000.f), 1000);
 			qApp->processEvents();
@@ -1267,12 +1233,6 @@ void CModListView::installMods(QStringList archives)
 			for(const auto & settingID : modSettings.keys())
 				submodStateBeforeUpdate[mod][mod + '.' + settingID] = modSettings.value(settingID);
 
-			// Disabling an updated mod also disables other active mods that depend on it.
-			// Preserve both enabled and disabled dependent mods, so their state can be
-			// restored after the updated dependency is installed again.
-			ui->progressBar->setFormat(tr("Preparing update for %1").arg(modStateModel->getMod(mod).getName()));
-			qApp->processEvents();
-
 			for(const auto & dependentMod : findInstalledModsDependingOnUpdatedMod(modStateModel, mod))
 			{
 				if(!dependentModStateBeforeUpdate.contains(dependentMod))
@@ -1280,9 +1240,6 @@ void CModListView::installMods(QStringList archives)
 			}
 
 			logGlobal->info("Uninstalling old version of mod '%s'", mod.toStdString());
-			ui->progressBar->setFormat(tr("Uninstalling old version of %1").arg(modStateModel->getMod(mod).getName()));
-			qApp->processEvents();
-
 			if(modStateModel->isModEnabled(mod))
 				modsToEnable.push_back(mod);
 
@@ -1305,7 +1262,6 @@ void CModListView::installMods(QStringList archives)
 			modDisplayName = modStateModel->getMod(modNames[i]).getName();
 
 		ui->progressBar->setFormat(tr("Installing mod %1").arg(modDisplayName));
-		qApp->processEvents();
 
 		manager->installMod(modNames[i], archives[i]);
 
@@ -1314,10 +1270,7 @@ void CModListView::installMods(QStringList archives)
 	}
 
 
-	ui->progressBar->setFormat(tr("Refreshing mod list"));
-	qApp->processEvents();
 	reload(lastInstalled);
-	qApp->processEvents();
 
 	if(!modsToEnable.empty())
 	{
@@ -1344,29 +1297,16 @@ void CModListView::installMods(QStringList archives)
 		}
 	}
 
-	QStringList dependentModsToEnable;
 	for(const auto & mod : dependentModStateBeforeUpdate.keys())
 	{
 		if(dependentModStateBeforeUpdate.value(mod) && modStateModel->isModExists(mod) && !modStateModel->isModEnabled(mod))
-			dependentModsToEnable.push_back(mod);
-	}
-
-	for(const auto & mod : dependentModsToEnable)
-	{
-		ui->progressBar->setFormat(tr("Restoring dependent mods"));
-		qApp->processEvents();
-		manager->enableMods({mod});
-		qApp->processEvents();
+			manager->enableMods({mod});
 	}
 
 	for(const auto & mod : dependentModStateBeforeUpdate.keys())
 	{
 		if(!dependentModStateBeforeUpdate.value(mod) && modStateModel->isModExists(mod) && modStateModel->isModEnabled(mod))
-		{
-			ui->progressBar->setFormat(tr("Restoring dependent mods"));
-			qApp->processEvents();
 			manager->disableMod(mod);
-		}
 	}
 
 	checkManagerErrors();
@@ -1663,25 +1603,9 @@ void CModListView::doUninstallMod(const QString & modName, bool silent)
 	}
 
 	if(modStateModel->isModEnabled(modName))
-	{
-		ui->progressBar->setFormat(tr("Disabling mod %1").arg(modStateModel->getMod(modName).getName()));
-		qApp->processEvents();
 		manager->disableMod(modName);
-	}
-
 	manager->uninstallMod(modName);
-
-	if(silent)
-	{
-		ui->progressBar->setFormat(tr("Refreshing mod list"));
-		qApp->processEvents();
-		modStateModel->reloadLocalState();
-		qApp->processEvents();
-	}
-	else
-	{
-		reload(modName);
-	}
+	reload(modName);
 }
 
 bool CModListView::isModAvailable(const QString & modName)

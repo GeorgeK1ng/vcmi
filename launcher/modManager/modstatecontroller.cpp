@@ -26,9 +26,9 @@
 
 #include <future>
 
-static constexpr int ASYNC_UI_UPDATE_INTERVAL_MS = 10;
-
-static void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
+namespace
+{
+void findContentArchives(const QDir & currentDir, QVector<QString> & archives)
 {
 	const QFileInfoList entries = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 	for(const QFileInfo & entry : entries)
@@ -44,7 +44,7 @@ static void findContentArchives(const QDir & currentDir, QVector<QString> & arch
 	}
 }
 
-static bool extractContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+bool extractContentArchives(ModStateController * controller, const QString & modName, const QString & modPath)
 {
 	QVector<QString> archives;
 	findContentArchives(QDir(modPath), archives);
@@ -79,7 +79,7 @@ static bool extractContentArchives(ModStateController * controller, const QStrin
 			return true;
 		});
 
-		while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
+		while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
 		{
 			qApp->processEvents();
 		}
@@ -99,7 +99,7 @@ static bool extractContentArchives(ModStateController * controller, const QStrin
 	return true;
 }
 
-static bool extractNestedModArchives(ModStateController * controller, const QString & modName, const QString & modPath)
+bool extractNestedModArchives(ModStateController * controller, const QString & modName, const QString & modPath)
 {
 	try
 	{
@@ -112,7 +112,7 @@ static bool extractNestedModArchives(ModStateController * controller, const QStr
 	}
 }
 
-static QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
+QString detectModArchive(QString path, QString modName, std::vector<std::string> & filesToExtract)
 {
 	try {
 		ZipArchive archive(qstringToPath(path));
@@ -147,6 +147,8 @@ static QString detectModArchive(QString path, QString modName, std::vector<std::
 	
 	return "";
 }
+}
+
 
 ModStateController::ModStateController(std::shared_ptr<ModStateModel> modList)
 	: modList(modList)
@@ -279,22 +281,7 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 		return addError(modname, tr("Mod archive is missing"));
 
 	std::vector<std::string> filesToExtract;
-	auto futureDetectArchive = std::async(std::launch::async, [archivePath, modname]()
-	{
-		std::vector<std::string> detectedFiles;
-		QString detectedModDirName = ::detectModArchive(archivePath, modname, detectedFiles);
-		return std::make_pair(detectedModDirName, std::move(detectedFiles));
-	});
-
-	while(futureDetectArchive.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
-	{
-		extractionProgress(0, 0);
-		qApp->processEvents();
-	}
-
-	auto detectResult = futureDetectArchive.get();
-	QString modDirName = detectResult.first;
-	filesToExtract = std::move(detectResult.second);
+	QString modDirName = ::detectModArchive(archivePath, modname, filesToExtract);
 	if(!modDirName.size())
 		return addError(modname, tr("Mod archive is invalid or corrupted"));
 	
@@ -313,7 +300,7 @@ bool ModStateController::doInstallMod(QString modname, QString archivePath)
 		return true;
 	});
 	
-	while(futureExtract.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
+	while(futureExtract.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
 	{
 		extractionProgress(filesCounter, filesToExtract.size());
 		qApp->processEvents();
@@ -357,18 +344,7 @@ bool ModStateController::doUninstallMod(QString modname)
 		return addError(modname, tr("Mod data was not found"));
 
 	QDir modFullDir(modDir);
-	auto futureRemove = std::async(std::launch::async, [this, modDir]()
-	{
-		return removeModDir(modDir);
-	});
-
-	while(futureRemove.wait_for(std::chrono::milliseconds(ASYNC_UI_UPDATE_INTERVAL_MS)) != std::future_status::ready)
-	{
-		extractionProgress(0, 0);
-		qApp->processEvents();
-	}
-
-	if(!futureRemove.get())
+	if(!removeModDir(modDir))
 		return addError(modname, tr("Mod is located in a protected directory, please remove it manually:\n") + modFullDir.absolutePath());
 
 	return true;
