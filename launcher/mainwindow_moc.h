@@ -66,6 +66,8 @@ public:
 
 	void updateTranslation();
 	void computeSidePanelSizes();
+	void ensureWindowVisibleOnExistingScreen();
+	void saveWindowSettings();
 	
 	void detectPreferredLanguage();
 	void enterSetup();
