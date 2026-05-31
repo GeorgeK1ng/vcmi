@@ -1,0 +1,76 @@
+{
+	"hotaMaximus" : {
+		"class" : "deathknight",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/necropolis/heroes/maximus/icons/portraitLarge.png",
+			"small" : "hota/necropolis/heroes/maximus/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/necropolis/heroes/maximus/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/necropolis/heroes/maximus/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "skeleton",
+				"min" : 20,
+				"max" : 30
+			},
+			{
+				"creature" : "walkingDead",
+				"min" : 4,
+				"max" : 6
+			},
+			{
+				"creature" : "wight",
+				"min" : 4,
+				"max" : 6
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "necromancy",
+				"level" : "advanced"
+			}
+		],
+		"specialty" : {
+			"base" : {
+				"limiters" : [
+					{
+						"creature" : "blackKnight",
+						"includeUpgrades" : true,
+						"type" : "CREATURE_TYPE_LIMITER"
+					}
+				]
+			},
+			"bonuses" : {
+				"damage" : {
+					"subtype" : "creatureDamageBoth",
+					"type" : "CREATURE_DAMAGE",
+					"val" : 10
+				},
+				"attack" : {
+					"subtype" : "attack",
+					"type" : "PRIMARY_SKILL",
+					"val" : 10
+				},
+				"defence" : {
+					"subtype" : "defence",
+					"type" : "PRIMARY_SKILL",
+					"val" : 10
+				}
+			}
+		},
+		"spellbook" : [
+			"slow"
+		],
+		"texts" : {
+			"name" : "Maximus",
+			"biography" : "Maximus is one of Kastore's closest associates, a strong and fierce warrior. He is in charge of the necromancer country's defenses while Kastore is away.",
+			"specialty" : {
+				"name" : "Black Knights",
+				"tooltip" : "Creature Bonus: Black Knight",
+				"description" : "Increases allied Black Knights and Dread Knights' Attack, Defense, and Damage by 10."
+			}
+		}
+	}
+}

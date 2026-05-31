@@ -1,0 +1,29 @@
+{
+	"name" : "Skills",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos, mrhaandi",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+
+	"chinese" : {
+		"name" : "技能",
+		"description" : ""
+	},
+	"czech" : {
+		"name" : "Schopnosti",
+		"description" : ""
+	},
+	"french" : {
+		"name" : "Compétences",
+		"description" : ""
+	},
+	"latvian" : {
+		"name" : "Prasmes",
+		"description" : ""
+	},
+	"german" : {
+		"name" : "Sekundärfähigkeiten",
+		"description" : "Individuell auswählbare Mods, die die Balanceänderungen der Sekundärfähigkeiten in HotA ins Spiel übernehmen."
+	}
+}

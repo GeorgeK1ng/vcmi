@@ -1,0 +1,98 @@
+{
+	"name" : "Additional bonuses icons",
+	"description" : "Additional icons for creatures abilities.",
+	"version" : "1.0.0",
+	"author" : "Kurek",
+	"contact" : "",
+	"modType" : "Graphical",
+	"creatures" : [
+		"config/satyr",
+		"config/fangarm",
+		"config/leprechaun",
+		"config/steelGolem"
+	],
+	"chinese" : {
+		"name" : "额外技能图标",
+		"description" : "生物技能的额外图标。",
+		"translations" : [
+			"translation/chinese.json"
+		]
+	},
+	"german" : {
+		"name" : "Zusatzsymbole - Neutrals",
+		"description" : "Zusätzliche Symbole und Beschreibungen für die Fähigkeiten der neutralen Kreaturen.",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"czech" : {
+		"name" : "Ikony bonusů",
+		"description" : "Ikony pro schopnosti jednotek.",
+		"translations" : [
+			"translation/czech.json"
+		]
+	},
+	"french" : {
+		"name" : "Icônes de bonus supplémentaires",
+		"description" : "Icônes supplémentaires pour les capacités des créatures.",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Papildu bonusu ikonas",
+		"description" : "Papildu ikonas radījumu spējām.",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	},
+	"russian" : {
+		"name" : "Дополнительные иконки бонусов",
+		"description" : "Дополнительные иконки для способностей существ.",
+		"translations" : [
+			"translation/russian.json"
+		]
+	},
+	"japanese" : {
+		"name" : "Additional bonuses icons",
+		"description" : "Additional icons for creatures abilities.",
+		"translations" : [
+			"translation/japanese.json"
+		]
+	},
+	"polish" : {
+		"translations" : [
+			"translation/polish.json"
+		]
+	},
+	"hungarian" : {
+		"translations" : [
+			"translation/hungarian.json"
+		]
+	},
+	"portuguese" : {
+		"translations" : [
+			"translation/portuguese.json"
+		]
+	},
+	"spanish" : {
+		"translations" : [
+			"translation/spanish.json"
+		]
+	},
+	"swedish" : {
+		"translations" : [
+			"translation/swedish.json"
+		]
+	},
+	"turkish" : {
+		"translations" : [
+			"translation/turkish.json"
+		]
+	},
+	"ukrainian" : {
+		"translations" : [
+			"translation/ukrainian.json"
+		]
+	}
+}

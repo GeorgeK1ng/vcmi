@@ -1,0 +1,58 @@
+{
+	"name" : "Game balance",
+	"description" : "Balance improvements made by HotA Crew for Horn of The Abyss expansion.",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.4",
+	"compatibility" : {
+		"min" : "1.7.2"
+	},
+	"settings" : {
+		"combat" : {
+			"badLuckChance" : [
+				2,
+				4,
+				6
+			],
+			"areaShotCanTargetEmptyHex" : true,
+			"noSpellHitAndRunRounds" : 1
+		}
+	},
+	"chinese" : {
+		"name" : "游戏平衡",
+		"description" : "深渊号角中的平衡性改进。"
+	},
+	"czech" : {
+		"name" : "Vyvážení hry",
+		"description" : "Zlepšené vyvážení hry provedené týmem HotA pro rozšíření Horn of The Abyss."
+	},
+	"french" : {
+		"name" : "Équilibre du jeu",
+		"description" : "Améliorations d'équilibrage apportées par l'équipe de HotA pour l'extension Horn of the Abyss."
+	},
+	"latvian" : {
+		"name" : "Spēles līdzsvars",
+		"description" : "HotA Crew veiktie līdzsvara uzlabojumi paplašinājumam 'Horn of The Abyss'."
+	},
+	"polish" : {
+		"name" : "Balans gry",
+		"description" : "Balans gry stworzony przez HotA Crew dla dodatku Horn of The Abyss"
+	},
+	"swedish" : {
+		"name" : "Spelbalans",
+		"description" : "Förbättrad spelbalans av HotA-teamet för expansionen 'Horn of The Abyss'"
+	},
+	"ukrainian" : {
+		"name" : "Ігровий Баланс",
+		"description" : "Поліпшення балансу, зроблені HotA Crew для доповнення Horn of The Abyss"
+	},
+	"portuguese" : {
+		"name" : "Equilíbrio do Jogo",
+		"description" : "Melhorias de equilíbrio feitas pela Equipe HotA para a expansão Horn of The Abyss."
+	},
+	"german" : {
+		"name" : "Spielbalance",
+		"description" : "Implementiert die Balance-Verbesserungen von HotA in vielen auswählbaren Modulen."
+	}
+}

@@ -1,0 +1,46 @@
+{
+	"name" : "Spells",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.3.12",
+	"settings" : {
+		"spells" : {
+			"dimensionDoorTriggersGuards" : true
+		}
+	},
+	"spells" : [
+		"config/hotaGameBalance/spells.json"
+	],
+
+	"chinese" : {
+		"name" : "法术",
+		"description" : ""
+	},
+	"czech" : {
+		"name" : "Kouzla",
+		"description" : ""
+	},
+	"german" : {
+		"name" : "Zaubersprüche",
+		"description" : "Übernimmt die Balanceänderungen an Zaubersprüchen, die in HotA eingeführt wurden.",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"french" : {
+		"name" : "Sorts",
+		"description" : "",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Burvestības",
+		"description" : "",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	}
+}

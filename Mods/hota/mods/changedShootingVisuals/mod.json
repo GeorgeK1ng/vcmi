@@ -1,0 +1,56 @@
+{
+	"name" : "Changed shooting visuals",
+	"description" : "Visuals additions for shooting creatures made by HotA Team",
+	"modType" : "Mechanics",
+	"author" : "",
+	"contact" : "",
+	"licenseName" : "Creative Commons Attribution-ShareAlike",
+	"licenseURL" : "http://creativecommons.org/licenses/by-sa/4.0/deed",
+	"version" : "1.3.6",
+	"creatures" : [
+		"config/stormyElemental",
+		"config/icyElemental",
+		"config/lightningyTitan",
+		"config/powerMonks",
+		"config/fieryBeholders",
+		"config/enchanterArrow"
+	],
+	"spells" : [
+		"config/hotaStorm",
+		"config/hotaIce",
+		"config/hotaLightning",
+		"config/hotaLightGlobe",
+		"config/gogFireball",
+		"config/hotaRay",
+		"config/hotaEnchanterArrow"
+	],
+
+	"chinese" : {
+		"name" : "射击视觉效果改进",
+		"description" : "由Hota团队制作的射击生物视觉效果改进。"
+	},
+	"czech" : {
+		"name" : "Změněné efekty střelby",
+		"description" : "Vizuální vylepšení střelby jednotek vytvořené HotA týmem"
+	},
+	"french" : {
+		"name" : "Modification des visuels de tir",
+		"description" : "Ajouts visuels pour le tir sur les créatures, réalisés par l'équipe HotA."
+	},
+	"latvian" : {
+		"name" : "Mainīti šaušanas vizuālie efekti",
+		"description" : "Vizuālie papildinājumi šaujamām radībām, ko veidojusi HotA komanda"
+	},
+	"polish" : {
+		"name" : "Zmiana efektów strzałów",
+		"description" : "Dodatki graficzne do jednostek strzelających wykonane przez HotA Team"
+	},
+	"portuguese" : {
+		"name" : "Visuais de Disparo Alterados",
+		"description" : "Adições visuais para criaturas de disparo feitas pela Equipe HotA"
+	},
+	"german" : {
+		"name" : "Neue Fernkampfgrafiken",
+		"description" : "Fügt neue Angriffsgrafiken für Schießer hinzu.\nOriginale Grafiken wurden vom HotA Team bereitgestellt."
+	}
+}

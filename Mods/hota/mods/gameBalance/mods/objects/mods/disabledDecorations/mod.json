@@ -1,0 +1,34 @@
+{
+	"name" : "Disabled Decorations",
+	"description" : "Prevents some decorations intended exclusively for map editor use from being generated on random maps.",
+	"modType" : "Objects",
+	"author" : "Karyoplasma",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+	"depends" : [
+		"hota.mapdecorations"
+	],
+	"objects" : [
+		"config/hotaGameBalance/disabledDecorations.json"
+	],
+	"chinese" : {
+		"name" : "禁用装饰物",
+		"description" : "阻止某些仅供地图编辑器使用的装饰物在随机地图上生成。"
+	},
+	"czech" : {
+		"name" : "Zakázané dekorace",
+		"description" : "Zamezí generování některých dekorací na náhodných mapách určených výhradně pro použití v editoru map."
+	},
+	"french" : {
+		"name" : "Décors désactivés",
+		"description" : "Évite que certains décors destinés exclusivement à l'utilisation de l'éditeur de cartes ne servent pour les cartes aléatoires."
+	},
+	"latvian" : {
+		"name" : "Invalīdu rotājumi",
+		"description" : "Neļauj ģenerēt dažus dekorācijas, kas paredzētas tikai kartes redaktora lietošanai, nejaušās kartēs."
+	},
+	"german" : {
+		"name" : "Verbotene Dekorationen",
+		"description" : "Verhindert, dass Dekorationen, die in HotA ausschließlich für die Verwendung im Karteneditor vorgesehen sind, auf zufälligen Karten generiert werden."
+	}
+}

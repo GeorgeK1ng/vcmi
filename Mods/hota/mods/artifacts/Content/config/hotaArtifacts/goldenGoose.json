@@ -1,0 +1,33 @@
+{
+	"goldenGoose" : {
+		"type" : [
+			"HERO"
+		],
+		"slot" : "MISC",
+		"class" : "RELIC",
+		"value" : 22500,
+		"components" : [
+			"endlessPurseOfGold",
+			"endlessBagOfGold",
+			"endlessSackOfGold"
+		],
+		"bonuses" : {
+			"gold" : {
+				"type" : "GENERATE_RESOURCE",
+				"subtype" : "gold",
+				"valueType" : "BASE_NUMBER",
+				"val" : 4750 // Toghether with component effects, this adds up to 7000
+			}
+		},
+		"graphics" : {
+			"image" : "hota/artifactsIcons/goldenGoose",
+			"map" : "hota/artifactsMap/AVA0160",
+			"scenarioBonus" : "hota/artifactsCampaignBonuses/goldenGoose"
+		},
+		"text" : {
+			"name" : "Golden Goose",
+			"description" : "{Golden Goose}\n\nCounting component effects the Golden Goose increases your income by 7000 gold per day.",
+			"event" : "You wander on an abandoned house of a collector in search for a camp place. Most of the goods were long stolen by the marauders, but you were able to find a couple of dusty pet statues. You vaguely recognize one of them. You rub the dust off one of them, and discover a golden goose."
+		}
+	}
+}

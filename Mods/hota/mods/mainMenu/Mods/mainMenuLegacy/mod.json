@@ -1,0 +1,62 @@
+{
+	"name" : "Main menu theme (legacy)",
+	"description" : "Changes main menu theme to one used by Horn of the Abyss mod",
+	"version" : "1.0",
+	"modType" : "Interface",
+	"author" : "Hota Crew, ported by VCMI Team",
+	"contact" : "http://forum.vcmi.eu/viewtopic.php?t=748",
+	"keepDisabled" : true,
+
+	"conflicts" : [
+		"h3-themes.ab",
+		"h3-themes.beta",
+		"h3-themes.complete",
+		"h3-themes.hc-1",
+		"h3-themes.hc-2",
+		"h3-themes.hc-3",
+		"h3-themes.hc-4",
+		"h3-themes.hc-5",
+		"h3-themes.hc-6",
+		"h3-themes.hc-7",
+		"h3-themes.hc-8",
+		"h3-themes.hd",
+		"h3-themes.hota-16",
+		"h3-themes.hota-17",
+		"h3-themes.legends",
+		"h3-themes.roe",
+		"h3-themes.sod",
+		"h3-themes.tow",
+		"h3-themes.vcmi",
+		"h3-themes.vcmi-ai",
+		"h3-themes.wog",
+		"h3-themes",
+		"wake-of-gods.mainmenu",
+		"tides-of-war.tow-main-menu",
+		"hi-rez-menu"
+	],
+
+	"chinese" : {
+		"name" : "主菜单主题（经典）",
+		"description" : "将主菜单主题修改为深渊号角曾用的一个。"
+	},
+	"czech" : {
+		"name" : "Vzhled hlavního menu (klasické)",
+		"description" : "Mění vzhled hlavního menu na ikonické menu Horn of the Abyss."
+	},
+	"french" : {
+		"name" : "Thème du menu principal (ancien)",
+		"description" : "Modifie le thème du menu principal pour utiliser celui du mod Horn of the Abyss"
+	},
+	"latvian" : {
+		"name" : "Galvenās izvēlnes tēma (mantota)",
+		"description" : "Maina galvenās izvēlnes tēmu uz tādu, kādu izmanto Horn of the Abyss mods."
+	},
+	"polish" : {
+		"name" : "Motyw menu głównego (wersja starsza)",
+		"description" : "Zmienia motyw muzyczny menu głównego na ten z Horn of the Abyss"
+	},
+	"german" : {
+		"name" : "Hauptmenü (klassisch)",
+		"description" : "Stellt die Grafiken des Hauptmenüs aus den älteren HotA-Versionen wieder her."
+	}
+}

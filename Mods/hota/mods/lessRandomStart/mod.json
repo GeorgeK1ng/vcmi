@@ -1,0 +1,54 @@
+{
+	"name" : "Less random start",
+	"description" : "Heroes with a starting army always have all troops (and a war machine), without the possibility of absence of any of them. Towns with Fort always have level 2 dwelling built by default.",
+	"modType" : "Mechanics",
+	"author" : "avatar",
+	"contact" : "https://forum.vcmi.eu/",
+	"version" : "1.0",
+	"compatibility" : {
+		"min" : "1.2"
+	},
+	"settings" : {
+		"heroes" : {
+			"startingStackChances" : [
+				100,
+				100,
+				100
+			]
+		},
+		"towns" : {
+			"startingDwellingChances" : [
+				100,
+				100
+			]
+		}
+	},
+	"chinese" : {
+		"name" : "减少初始随机",
+		"description" : "英雄总是拥有全部的初始军队（包括战争机器），不会缺少任一部队。拥有要塞的城镇总是默认建有二级巢穴。"
+	},
+	"czech" : {
+		"name" : "Méně náhodný start",
+		"description" : "Hrdinové s počáteční armádou vždy mají všechny jednotky a bojový stroj, bez možnosti, že by některá z nich chyběla. Města s tvrzí mají vždy automaticky postavené obydlí pro jednotky 2. úrovně."
+	},
+	"french" : {
+		"name" : "Démarrage moins aléatoire",
+		"description" : "Les héros disposant d'une armée de départ ont toujours toutes leurs troupes (et une machine de guerre), sans possibilité d'absence. Les villes avec un fort possèdent toujours une habitation de niveau 2 construite par défaut."
+	},
+	"latvian" : {
+		"name" : "Mazāk nejaušas sākšanas",
+		"description" : "Varoņiem ar sākuma armiju vienmēr ir visi karaspēki (un kara mašīna), bez iespējas, ka kāds no tiem varētu nebūt klāt. Pilsētās ar fortiem pēc noklusējuma vienmēr ir uzbūvēta 2. līmeņa mājokļa ēka."
+	},
+	"polish" : {
+		"name" : "Mniej losowy start",
+		"description" : "Bohaterowie zawsze zaczynają z pełną armią startową (i machiną wojenną), bez ryzyka braku jednostek. Miasta z Fortem mają zawsze zbudowany poziom 2 siedliska stworzeń."
+	},
+	"portuguese" : {
+		"name" : "Início Menos Aleatório",
+		"description" : "Heróis com um exército inicial sempre têm todas as tropas (e uma máquina de guerra), sem a possibilidade de ausência de nenhuma delas. Cidades com Forte sempre têm a moradia de nível 2 construída por padrão."
+	},
+	"german" : {
+		"name" : "Garantierter Start",
+		"description" : "Helden beginnen das Spiel stets mit 3 Truppen oder 2 Truppen und einer Kriegsmachine. Städte mit Fort verfügen garantiert über das Kreaturengebäude der zweiten Stufe."
+	}
+}

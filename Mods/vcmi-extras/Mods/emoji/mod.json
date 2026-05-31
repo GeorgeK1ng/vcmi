@@ -1,0 +1,29 @@
+{
+	"name" : "Emoji Support",
+	"description" : "Adds support for displaying emojis in in-game chat by using an emoji-compatible font.",
+	"author" : "Google Inc.",
+	"licenseName" : "SIL OPEN FONT LICENSE Version 1.1",
+	"contact" : "vcmi.eu",
+	"version" : "1.0.0",
+	"compatibility" : {
+		"min" : "1.6.6"
+	},
+	"modType" : "Interface",
+
+	"chinese" : {
+		"name" : "Emoji支持",
+		"description" : "通过使用兼容emoji的字体来添加对游戏内聊天中的emoji显示的支持。"
+	},
+	"czech" : {
+		"name" : "Podpora emoji",
+		"description" : "Přidává podporu zobrazení emoji ve hře v chatu pomocí fontu s podporou emoji."
+	},
+	"polish" : {
+		"name" : "Obsługa emoji",
+		"description" : "Dodaje obsługę wyświetlania emoji w czacie gry dzięki czcionce wspierającej emoji."
+	},
+	"german" : {
+		"name" : "Emoji-Unterstützung",
+		"description" : "Erlaubt die Anzeige von Emojis im Ingame-Chat durch einen Emoji-kompatiblen Font."
+	}
+}

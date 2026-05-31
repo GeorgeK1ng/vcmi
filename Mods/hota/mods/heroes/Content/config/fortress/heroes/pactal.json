@@ -1,0 +1,49 @@
+{
+	"pactal" : {
+		"class" : "beastmaster",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/fortress/heroes/pactal/icons/portraitLarge.png",
+			"small" : "hota/fortress/heroes/pactal/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/fortress/heroes/pactal/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/fortress/heroes/pactal/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "gnoll",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "lizardman",
+				"min" : 4,
+				"max" : 7
+			},
+			{
+				"creature" : "serpentFly",
+				"min" : 3,
+				"max" : 4
+			}
+		],
+		"skills" : [
+			{
+				"level" : "advanced",
+				"skill" : "armorer"
+			}
+		],
+
+		"specialty" : {
+			"secondary" : "armorer"
+		},
+		"texts" : {
+			"biography" : "Pactal is the leader of the Nightcrawlers. He is cunning and cruel, and possesses the artifact 'Hollow Eye'. Because he cruelly devours the young of the Lizardmen, he is nicknamed 'Child Eater'. Under his leadership, the Nightcrawlers tribe gradually grew stronger and enslaved the people of the Bloodied Feather Clan.",
+			"name" : "Pactal",
+			"specialty" : {
+				"tooltip" : "Secondary Skill Bonus: Armorer",
+				"name" : "Armorer",
+				"description" : "Receives a 5% per level bonus to Armorer skill percentage."
+			}
+		}
+	}
+}

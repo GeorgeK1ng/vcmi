@@ -1,0 +1,53 @@
+{
+	"areshrak" : {
+		"class" : "beastmaster",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/fortress/heroes/areshrak/icons/portraitLarge.png",
+			"small" : "hota/fortress/heroes/areshrak/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/fortress/heroes/areshrak/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/fortress/heroes/areshrak/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "gnoll",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "ballista",
+				"min" : 1,
+				"max" : 1
+			},
+			{
+				"creature" : "serpentFly",
+				"min" : 3,
+				"max" : 4
+			}
+		],
+		"skills" : [
+			{
+				"level" : "basic",
+				"skill" : "armorer"
+			},
+			{
+				"skill" : "artillery",
+				"level" : "basic"
+			}
+		],
+
+		"specialty" : {
+			"creature" : "ballista"
+		},
+		"texts" : {
+			"biography" : "Areshrak is a lizardman from the Couatl Islands off the coast of Jadame, who is a subordinate of Pactal. Usurped control of breeding wyverns, gorgons and other creatures after betraying the former breeder, and he handles relations with the local flight of Rust Dragons.",
+			"name" : "Areshrak",
+			"specialty" : {
+				"tooltip" : "Ballista specialist",
+				"name" : "Ballista",
+				"description" : "Increases the Attack and Defense skills of any Ballista by 5% for every 5 levels (rounded up)."
+			}
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"name" : "Chronicles icons",
+	"description" : "Chronicles icons for VCMI",
+	"author" : "3DO",
+	"contact" : "vcmi.eu",
+	"version" : "1.0.0",
+	"modType" : "Compatibility",
+	"depends" : [
+		"chronicles"
+	],
+	"keepDisabled" : true,
+	"settings" : {
+		"mapFormat" : {
+			"chronicles" : {
+				"iconIndex" : 50
+			}
+		}
+	},
+	"chinese" : {
+		"name" : "历代记图标",
+		"description" : "VCMI的历代记图标"
+	},
+	"czech" : {
+		"name" : "Ikony Kronik",
+		"description" : "Ikony Kronik pro VCMI."
+	},
+	"polish" : {
+		"name" : "Ikony Kronik",
+		"description" : "Ikony Kronik dla VCMI"
+	},
+	"german" : {
+		"name" : "Chronicles Icons",
+		"description" : "Chronicles Icons für VCMI."
+	}
+}

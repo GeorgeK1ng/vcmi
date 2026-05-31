@@ -1,0 +1,79 @@
+{
+	"name" : "Objects",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.3.11",
+	"depends" : [
+		"hota.mapobjects"
+	],
+	"settings" : {
+		"dwellings" : {
+			"accumulateWhenOwned" : true
+		}
+	},
+	"objects" : [
+		"config/hotaGameBalance/objectsRefusable.json",
+		"config/hotaGameBalance/creatureBanks.json",
+		"config/hotaGameBalance/cartographer.json",
+		"config/hotaGameBalance/stables.json"
+	],
+	"russian" : {
+		"name" : "Объекты",
+		"description" : "",
+		"translations" : [
+			"translation/russian.json"
+		]
+	},
+	"chinese" : {
+		"name" : "物体",
+		"description" : ""
+	},
+	"czech" : {
+		"name" : "Objekty",
+		"description" : ""
+	},
+	"german" : {
+		"name" : "Objekte",
+		"description" : "Erweitert das Spiel um neue Funktionen, wie das Ablehnen von Belohnungen in Gelehrten- und Hexenhütten und übernimmt die von HotA angepasste Balance von Kartenobjekten.",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"french" : {
+		"name" : "Objets",
+		"description" : "",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Objekti",
+		"description" : "",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	},
+	"swedish" : {
+		"name" : "Objects",
+		"description" : "",
+		"translations" : [
+			"translation/swedish.json"
+		]
+	},
+	"polish" : {
+		"name" : "Objects",
+		"description" : "",
+		"translations" : [
+			"translation/polish.json"
+		]
+	},
+	"japanese" : {
+		"name" : "Objects",
+		"description" : "",
+		"translations" : [
+			"translation/japanese.json"
+		]
+	}
+}

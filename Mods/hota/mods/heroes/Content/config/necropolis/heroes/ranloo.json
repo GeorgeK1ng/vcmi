@@ -1,0 +1,55 @@
+{
+	"ranloo" : {
+		"class" : "deathknight",
+		"female" : false,
+		"onlyOnMapWithoutWater" : true,
+		"images" : {
+			"large" : "hota/necropolis/heroes/ranloo/icons/portraitLarge.png",
+			"small" : "hota/necropolis/heroes/ranloo/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/necropolis/heroes/ranloo/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/necropolis/heroes/ranloo/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "skeleton",
+				"min" : 20,
+				"max" : 30
+			},
+			{
+				"creature" : "ballista",
+				"min" : 1,
+				"max" : 1
+			},
+			{
+				"creature" : "wight",
+				"min" : 4,
+				"max" : 6
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "necromancy",
+				"level" : "basic"
+			},
+			{
+				"skill" : "artillery",
+				"level" : "basic"
+			}
+		],
+		"specialty" : {
+			"creature" : "ballista"
+		},
+		"spellbook" : [
+			"haste"
+		],
+		"texts" : {
+			"name" : "Ranloo",
+			"biography" : "Following a childhood dream, Ranloo became an aide at Mestley's armory. Ancient master's gift was no lore, rather a bite to the neck and a pit in the Talon woods. Undeath wasn't fun, but Ranloo's hands got as crafty as ever. Soon he was wearing Mestley's Master Blacksmith diadem after running him through with a missile from a self-designed ballista.",
+			"specialty" : {
+				"name" : "Ballista",
+				"tooltip" : "Artillery Bonus: Ballista",
+				"description" : "Increases the Attack and Defense skills of any Ballista by 5% for every 5 levels (rounded up)."
+			}
+		}
+	}
+}

@@ -1,0 +1,33 @@
+{
+	"charmOfEclipse" : {
+		"type" : [
+			"HERO"
+		],
+		"slot" : "MISC",
+		"class" : "MINOR",
+		"value" : 5000,
+		"bonuses" : {
+			"skill" : {
+				"type" : "PRIMARY_SKILL",
+				"subtype" : "spellpower",
+				"valueType" : "PERCENT_TO_ALL",
+				"val" : -10,
+				"propagator" : "BATTLE_WIDE",
+				"propagationUpdater" : "BONUS_OWNER_UPDATER",
+				"limiters" : [
+					"OPPOSITE_SIDE"
+				]
+			}
+		},
+		"graphics" : {
+			"image" : "hota/artifactsIcons/charmOfEclipse",
+			"map" : "hota/artifactsMap/AVA0162",
+			"scenarioBonus" : "hota/artifactsCampaignBonuses/charmOfEclipse"
+		},
+		"text" : {
+			"name" : "Charm of Eclipse",
+			"description" : "{Charm of Eclipse}\n\nThis item reduces the Power skill of enemy hero by 10% during combat.",
+			"event" : "While messing around with a curious trinket that you managed to trade something equally unneeded for at a peddler, you find that, although it's made of metal, it doesn't reflect the sun rays, but rather absorbs them readily."
+		}
+	}
+}

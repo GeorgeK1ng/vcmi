@@ -1,0 +1,34 @@
+{
+	"name" : "Object Density",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+	"depends" : [
+		"hota.mapobjects"
+	],
+	"objects" : [
+		"config/hotaGameBalance/objectsRmgValues.json"
+	],
+	"chinese" : {
+		"name" : "物体密集程度",
+		"description" : ""
+	},
+	"czech" : {
+		"name" : "Úprava četnosti objektů",
+		"description" : ""
+	},
+	"french" : {
+		"name" : "Densité des objets",
+		"description" : ""
+	},
+	"latvian" : {
+		"name" : "Objekta blīvums",
+		"description" : ""
+	},
+	"german" : {
+		"name" : "Objektdichte-Fix",
+		"description" : "Passt die Dichte, mit der manche Objekte auf zufälligen Karten generiert werden, an die HotA-Werte an."
+	}
+}

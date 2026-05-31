@@ -1,0 +1,50 @@
+{
+	"01corkes" : {
+		"class" : "captain",
+		"images" : {
+			"large" : "hota/cove/heroes/corkes/icons/portraitLarge.png",
+			"small" : "hota/cove/heroes/corkes/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/cove/heroes/corkes/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/cove/heroes/corkes/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "nymph",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "crewmate",
+				"min" : 6,
+				"max" : 9
+			},
+			{
+				"creature" : "pirate",
+				"min" : 4,
+				"max" : 7
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "offence",
+				"level" : "basic"
+			},
+			{
+				"skill" : "pathfinding",
+				"level" : "basic"
+			}
+		],
+		"specialty" : {
+			"secondary" : "offence"
+		},
+		"texts" : {
+			"name" : "Corkes",
+			"biography" : "Not many wish to get into Corkes' enemy list.  This quick-tempered pirate is one of the most experienced and cruel sea dogs. Many merchants know that it is better to submit the goods willingly than to start a suicidal battle with him.  He is easily distinguishable by the eye patch that he never takes off.",
+			"specialty" : {
+				"name" : "Offense",
+				"description" : "Receives a 5% per level bonus to Offense skill percentage.",
+				"tooltip" : "Skill Bonus: Offense"
+			}
+		}
+	}
+}

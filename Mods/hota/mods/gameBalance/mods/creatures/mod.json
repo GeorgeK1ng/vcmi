@@ -1,0 +1,108 @@
+{
+	"name" : "Creatures",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos, Karyoplasma",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.3.11",
+	"softDepends" : [
+		"hota.cove",
+		"hota.cannon",
+		"hota.factory"
+	],
+	"creatures" : [
+		"config/hotaGameBalance/creatures.json",
+		"config/hotaGameBalance/creaturesCove.json",
+		"config/hotaGameBalance/creaturesFactory.json"
+	],
+	"chinese" : {
+		"name" : "生物",
+		"description" : "",
+		"translations" : [
+			"translation/chinese.json"
+		]
+	},
+	"german" : {
+		"name" : "Kreaturen",
+		"description" : "Gleicht die Kreaturen aus dem Basisspiel an die HotA-Änderungen an.",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"french" : {
+		"name" : "Créatures",
+		"description" : "",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Radības",
+		"description" : "",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	},
+	"czech" : {
+		"name" : "Vlastnosti jednotek",
+		"description" : "",
+		"translations" : [
+			"translation/czech.json"
+		]
+	},
+	"russian" : {
+		"name" : "Существа",
+		"description" : "",
+		"translations" : [
+			"translation/russian.json"
+		]
+	},
+	"polish" : {
+		"name" : "Creatures",
+		"description" : "",
+		"translations" : [
+			"translation/polish.json"
+		]
+	},
+	"swedish" : {
+		"name" : "Creatures",
+		"description" : "",
+		"translations" : [
+			"translation/swedish.json"
+		]
+	},
+	"ukrainian" : {
+		"name" : "Creatures",
+		"description" : "",
+		"translations" : [
+			"translation/ukrainian.json"
+		]
+	},
+	"japanese" : {
+		"name" : "Creatures",
+		"description" : "",
+		"translations" : [
+			"translation/japanese.json"
+		]
+	},
+	"hungarian" : {
+		"translations" : [
+			"translation/hungarian.json"
+		]
+	},
+	"portuguese" : {
+		"translations" : [
+			"translation/portuguese.json"
+		]
+	},
+	"spanish" : {
+		"translations" : [
+			"translation/spanish.json"
+		]
+	},
+	"turkish" : {
+		"translations" : [
+			"translation/turkish.json"
+		]
+	}
+}

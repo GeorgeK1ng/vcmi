@@ -1,0 +1,51 @@
+{
+	"ironfistOfTheOgre" : {
+		"type" : [
+			"HERO"
+		],
+		"slot" : "RIGHT_HAND",
+		"class" : "RELIC",
+		"value" : 20000,
+		"components" : [
+			"ogresClubOfHavoc",
+			"targOfTheRampagingOgre",
+			"tunicOfTheCyclopsKing",
+			"crownOfTheSupremeMagi"
+		],
+		"bonuses" : {
+			"spell1" : {
+				"type" : "OPENING_BATTLE_SPELL",
+				"subtype" : "haste",
+				"valueType" : "BASE_NUMBER",
+				"val" : 50
+			},
+			"spell2" : {
+				"type" : "OPENING_BATTLE_SPELL",
+				"subtype" : "bloodlust",
+				"valueType" : "BASE_NUMBER",
+				"val" : 50
+			},
+			"spell3" : {
+				"type" : "OPENING_BATTLE_SPELL",
+				"subtype" : "fireShield",
+				"val" : 50
+			},
+			"spell4" : {
+				"type" : "OPENING_BATTLE_SPELL",
+				"subtype" : "counterstrike",
+				"valueType" : "BASE_NUMBER",
+				"val" : 50
+			}
+		},
+		"graphics" : {
+			"image" : "hota/artifactsIcons/ironfistOfTheOgre",
+			"map" : "hota/artifactsMap/AVA0144",
+			"scenarioBonus" : "hota/artifactsCampaignBonuses/ironfistOfTheOgre"
+		},
+		"text" : {
+			"name" : "Ironfist of the Ogre",
+			"description" : "{Ironfist of the Ogre}\n\nCounting component effects the Ironfist of the Ogre gives hero +5 Attack, +5 Defence, +4 Power, and +4 Knowledge. Casts these spells on expert level at the beginning of combat on all of your creatures for 50 rounds: Haste, Bloodlust, Fire Shield, and Counterstrike.",
+			"event" : "On passing by a small cave you hear deep thumping. You enter the cave and see a juvenile Cyclops cracking nuts with an enormous hammer. Every strike ends in shells and nut pieces being scattered all over the cave. You teach the Cyclops to crack nuts more sparingly by crushing them against each other. Overjoyed with this discovery, the youth gifts you the hammer."
+		}
+	}
+}

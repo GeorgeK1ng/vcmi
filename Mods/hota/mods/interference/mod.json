@@ -1,0 +1,64 @@
+{
+	"name" : "Interference skill",
+	"description" : "This mod adds new skill, 'Interference', a new hero, Giselle, with specialty in interference skill and changes heroes with resistance skill to use interference instead",
+	"modType" : "Skills",
+	"author" : "avatar",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.4.0",
+	"softDepends" : [
+		"hota.highlandsterrain"
+	],
+	"changelog" : {
+		"1.4.0" : [
+			"Mod now also contains interference skill itself"
+		],
+		"1.3.6" : [
+			"Added chances for OH3 factions"
+		],
+		"1.3.5" : [
+			"Release version"
+		]
+	},
+	"heroClasses" : [
+		"config/hotaInterference/interferenceChances"
+	],
+	"heroes" : [
+		"config/hotaInterference/heroStartingSkillChanges",
+		"config/rampart/heroes/giselle"
+	],
+	"skills" : [
+		"config/hotaInterference/interference"
+	],
+	"objects" : [
+		"config/hotaInterference/hermitsShack"
+	],
+
+	"chinese" : {
+		"name" : "干扰术技能",
+		"description" : "这个模组添加新技能干扰术和特长干扰术的新英雄吉赛尔，并将其他英雄的抵抗力技能替换为干扰术。"
+	},
+	"czech" : {
+		"name" : "Síla vůle",
+		"description" : "Přidává novou dovednost Síla vůle, která snižuje sílu kouzel nepřátelského hrdiny během bitvy"
+	},
+	"french" : {
+		"name" : "Compétence d'interférence",
+		"description" : "Ajoute une nouvelle compétence, « Interférence », une nouvelle héroïne, Giselle, spécialisée dans cette compétence, et modifie les héros dotés d'une compétence de résistance pour qu'ils utilisent l'interférence à la place."
+	},
+	"latvian" : {
+		"name" : "Traucēšanās prasme",
+		"description" : "Pievieno jaunu prasmi « Iejaukšanās », jaunu varoni Žizeli ar specializāciju iejaukšanās prasmē un maina varoņus ar pretestības prasmi, lai tā vietā izmantotu iejaukšanos."
+	},
+	"polish" : {
+		"name" : "Umiejętność - Zakłócanie",
+		"description" : "Mod dodaje nową umiejętność – Zakłocanie, nową bohaterkę Giselle ze specjalizacją w tej umiejętności oraz zmienia bohaterów z odpornością na czary, by korzystali z zakłócania"
+	},
+	"portuguese" : {
+		"name" : "Habilidade Interferência",
+		"description" : "Este mod adiciona a nova habilidade 'Interferência', uma nova heroína, Giselle, com especialidade na habilidade de interferência e altera os heróis com a habilidade de resistência para usar interferência em seu lugar"
+	},
+	"german" : {
+		"name" : "Interferenz",
+		"description" : "Ersetzt die Sekundärfähigkeit 'Resistenz' mit 'Interferenz'. Fügt **Giselle**, eine auf Interferenz spezialisierte Heldin, hinzu und ändert Helden, die mit 'Resistenz' starten so ab, dass sie stattdessen Interferenz benutzen."
+	}
+}

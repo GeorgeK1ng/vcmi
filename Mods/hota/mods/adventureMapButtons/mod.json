@@ -1,0 +1,25 @@
+{
+	"name" : "Adventure map buttons",
+	"description" : "Adds Revisit and Anchor button",
+	"modType" : "Compatibility",
+	"author" : "Hota Crew, ported by VCMI Team",
+	"contact" : "http://forum.vcmi.eu/viewtopic.php?t=748",
+	"licenseName" : "Creative Commons Attribution-ShareAlike",
+	"licenseURL" : "http://creativecommons.org/licenses/by-sa/4.0/deed",
+	"version" : "1.0",
+	"depends" : [
+		"vcmi-extras.adventuremap"
+	],
+	"french" : {
+		"name" : "Boutons de carte d'aventure",
+		"description" : "Ajoute les boutons Revisiter et Ancrer"
+	},
+	"latvian" : {
+		"name" : "Piedzīvojumu kartes pogas",
+		"description" : "Pievieno pogu “Atkārtota apmeklējums” un “Enkurs”."
+	},
+	"german" : {
+		"name" : "Abenteuerkarten-Buttons",
+		"description" : "Fügt auf der Abenteuerkarte 2 Schaltflächen zum Spielinterface hinzu:\nErneutes Besuchen eines Objekts und einen Anker-Knopf für das Luftschiff."
+	}
+}

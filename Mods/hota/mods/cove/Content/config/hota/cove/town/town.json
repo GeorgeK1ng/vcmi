@@ -1,0 +1,290 @@
+{
+	"cove" : {
+		"town" : {
+			"primaryResource" : "sulfur",
+			"moatAbility" : "coveMoat",
+			"defaultTavern" : 5,
+			"townBackground" : "hota/cove/town/background",
+			"hallBackground" : "TPTHBKDG",
+			"guildBackground" : "TPMAGE.png",
+			"guildWindow" : "hota/cove/town/mageguild",
+			"buildingsIcons" : "hota/cove/town/townhall",
+
+			"musicTheme" : [
+				"music/factions/CoveTown"
+			],
+			"tavernVideo" : "tvrncove.BIK",
+
+			"creatures" : [
+				[
+					"nymph",
+					"oceanid"
+				],
+				[
+					"crewmate",
+					"seaman"
+				],
+				[
+					"pirate",
+					"corsair",
+					"seadog"
+				],
+				[
+					"stormbird",
+					"ayssid"
+				],
+				[
+					"seaWitch",
+					"sorceress"
+				],
+				[
+					"nix",
+					"nixWarrior"
+				],
+				[
+					"seaserpent",
+					"haspid"
+				]
+			],
+
+			"hallSlots" : [
+				[
+					[
+						"villageHall",
+						"townHall",
+						"cityHall",
+						"capitol"
+					],
+					[
+						"fort",
+						"citadel",
+						"castle"
+					],
+					[
+						"tavern"
+					],
+					[
+						"blacksmith"
+					]
+				],
+				[
+					[
+						"marketplace",
+						"resourceSilo"
+					],
+					[
+						"mageGuild1",
+						"mageGuild2",
+						"mageGuild3",
+						"mageGuild4"
+					],
+					[
+						"special3"
+					],
+					[
+						"shipyard"
+					]
+				],
+				[
+					[
+						"horde1",
+						"horde1Upgr"
+					],
+					[
+						"special4"
+					],
+					[
+						"horde2",
+						"horde2Upgr"
+					]
+				],
+				[
+					[
+						"dwellingLvl1",
+						"dwellingUpLvl1"
+					],
+					[
+						"dwellingLvl2",
+						"dwellingUpLvl2"
+					],
+					[
+						"dwellingLvl3",
+						"dwellingUpLvl3",
+						"dwellingUp2Lvl3"
+					],
+					[
+						"dwellingLvl4",
+						"dwellingUpLvl4"
+					]
+				],
+				[
+					[
+						"dwellingLvl5",
+						"dwellingUpLvl5"
+					],
+					[
+						"dwellingLvl6",
+						"dwellingUpLvl6"
+					],
+					[
+						"dwellingLvl7",
+						"dwellingUpLvl7"
+					]
+				]
+			],
+
+			"horde" : [
+				1,
+				3
+			],
+
+			"icons" : {
+				"fort" : {
+					"built" : {
+						"large" : "hota/cove/town/icons/fortbuildedlarge.png",
+						"small" : "hota/cove/town/icons/fortbuildedsmall.png"
+					},
+					"normal" : {
+						"large" : "hota/cove/town/icons/fortlarge.png",
+						"small" : "hota/cove/town/icons/fortsmall.png"
+					}
+				},
+				"village" : {
+					"built" : {
+						"large" : "hota/cove/town/icons/hallbuildedlarge.png",
+						"small" : "hota/cove/town/icons/hallbuildedsmall.png"
+					},
+					"normal" : {
+						"large" : "hota/cove/town/icons/halllarge.png",
+						"small" : "hota/cove/town/icons/hallsmall.png"
+					}
+				}
+			},
+
+			"mapObject" : {
+				"filters" : {
+					"citadel" : [
+						"allOf",
+						[
+							"citadel"
+						],
+						[
+							"noneOf",
+							[
+								"castle"
+							]
+						]
+					],
+					"castle" : [
+						"allOf",
+						[
+							"castle"
+						],
+						[
+							"noneOf",
+							[
+								"capitol"
+							]
+						]
+					]
+				},
+				"templates" : {
+					"village" : {
+						"animation" : "hota/cove/town/adventureMap/AVCCOVE0.def"
+					},
+					"fort" : {
+						"animation" : "hota/cove/town/adventureMap/AVCcovf0.def"
+					},
+					"citadel" : {
+						"animation" : "hota/cove/town/adventureMap/AVCcovc0.def"
+					},
+					"castle" : {
+						"animation" : "hota/cove/town/adventureMap/AVCCOVX0.def"
+					},
+					"capitol" : {
+						"animation" : "hota/cove/town/adventureMap/AVCcovz0.def"
+					}
+				}
+			},
+
+			"mageGuild" : 4,
+			"guildSpells" : {
+				"airShield" : 2,
+				"antiMagic" : 10,
+				"berserk" : 5,
+				"bless" : 10,
+				"bloodlust" : 5,
+				"chainLightning" : 10,
+				"clone" : 10,
+				"counterstrike" : 5,
+				"cure" : 5,
+				"destroyUndead" : 2,
+				"disguise" : 2,
+				"dispel" : 10,
+				"disruptingRay" : 4,
+				"earthquake" : 8,
+				"fireShield" : 5,
+				"fireWall" : 4,
+				"fireball" : 2,
+				"forceField" : 4,
+				"forgetfulness" : 8,
+				"fortune" : 4,
+				"frenzy" : 5,
+				"frostRing" : 30,
+				"haste" : 10,
+				"hypnotize" : 4,
+				"iceBolt" : 50,
+				"inferno" : 5,
+				"landMine" : 4,
+				"lightningBolt" : 4,
+				"magicArrow" : 30,
+				"meteorShower" : 10,
+				"mirth" : 8,
+				"misfortune" : 4,
+				"prayer" : 10,
+				"precision" : 4,
+				"protectAir" : 2,
+				"protectEarth" : 4,
+				"protectFire" : 3,
+				"protectWater" : 3,
+				"quicksand" : 4,
+				"removeObstacle" : 4,
+				"resurrection" : 5,
+				"scuttleBoat" : 8,
+				"shield" : 3,
+				"slayer" : 5,
+				"slow" : 5,
+				"sorrow" : 5,
+				"stoneSkin" : 5,
+				"summonBoat" : 5,
+				"teleport" : 10,
+				"townPortal" : 10,
+				"viewAir" : 3,
+				"viewEarth" : 3,
+				"visions" : 2,
+				"waterWalk" : 10,
+				"weakness" : 8
+			},
+
+			"names" : [
+				"Tartaglia",
+				"Lewindale",
+				"Port Evendore",
+				"Rotunda",
+				"Watergate",
+				"Brown's Bay",
+				"Nithenes",
+				"Downhaven",
+				"Lakenshire",
+				"Noral",
+				"Westland Pier",
+				"Walendale",
+				"Port Crowland",
+				"Jordanhall",
+				"Sleepy Creek",
+				"Hitchgrove"
+			]
+		},
+		"description" : "{Cove}\n\nCaptains and Navigators use Coves as their bases of operation. Their armies are composed of diverse humans and marine monsters.\nCove represents Regna."
+	}
+}

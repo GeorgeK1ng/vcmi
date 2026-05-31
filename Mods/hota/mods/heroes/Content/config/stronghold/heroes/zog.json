@@ -1,0 +1,55 @@
+{
+	"zog" : {
+		"class" : "battlemage",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/stronghold/heroes/zog/icons/portraitLarge.png",
+			"small" : "hota/stronghold/heroes/zog/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/stronghold/heroes/zog/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/stronghold/heroes/zog/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "goblin",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "goblinWolfRider",
+				"min" : 5,
+				"max" : 7
+			},
+			{
+				"creature" : "ogre",
+				"min" : 3,
+				"max" : 4
+			}
+		],
+		"skills" : [
+			{
+				"level" : "basic",
+				"skill" : "wisdom"
+			},
+			{
+				"level" : "basic",
+				"skill" : "leadership"
+			}
+		],
+		"spellbook" : [
+			"slow"
+		],
+		"specialty" : {
+			"creature" : "ogre"
+		},
+		"texts" : {
+			"biography" : "Zog the Cruel is the leader of the ogres in the Jadame. Possessing the 'Ironfist of the Ogre', he is so powerful that he allows ogres and orcs to wreak havoc on this wasteland, thus establishing his own tribe.",
+			"name" : "Zog",
+			"specialty" : {
+				"tooltip" : "Creature Bonus: Ogre",
+				"name" : "Ogres",
+				"description" : "Increases the speed of Ogres or Ogre Magi by 1 and their Attack and Defense skills by 5% for every 4 levels (rounded up)."
+			}
+		}
+	}
+}

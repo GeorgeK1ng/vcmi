@@ -1,0 +1,45 @@
+{
+	"name" : "Ballistics",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Hota Crew, ported by Manfred",
+	"contact" : "VCMI Discord: https://discord.gg/chBT42V",
+	"licenseName" : "Creative Commons Attribution-ShareAlike",
+	"licenseURL" : "http://creativecommons.org/licenses/by-sa/4.0/deed",
+	"version" : "1.0",
+	"spells" : [
+		"config/hotaCatapult/catapultShot.json"
+	],
+	"skills" : [
+		"config/hotaCatapult/skills.json"
+	],
+
+	"chinese" : {
+		"name" : "弹道术",
+		"description" : ""
+	},
+	"czech" : {
+		"name" : "Balistika",
+		"description" : ""
+	},
+	"french" : {
+		"name" : "Balistique",
+		"description" : ""
+	},
+	"latvian" : {
+		"name" : "Ballistika",
+		"description" : ""
+	},
+	"polish" : {
+		"name" : "Balistika",
+		"description" : ""
+	},
+	"russian" : {
+		"name" : "Баллистика",
+		"description" : ""
+	},
+	"german" : {
+		"name" : "Ballistik",
+		"description" : ""
+	}
+}

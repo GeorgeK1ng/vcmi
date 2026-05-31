@@ -1,0 +1,94 @@
+{
+	"blackbeard" : {
+		"name" : {
+			"singular" : "Blackbeard",
+			"plural" : "Blackbeards"
+		},
+		"faction" : "cove",
+		"level" : 0,
+		"speed" : 4,
+		"hitPoints" : 40,
+		"attack" : 5,
+		"defense" : 5,
+		"damage" : {
+			"min" : 6,
+			"max" : 12
+		},
+		"growth" : 9,
+		"aiValue" : 156,
+		"fightValue" : 130,
+		"doubleWide" : false,
+		"special" : true,
+		"shots" : 24,
+		"cost" : {
+			"gold" : 2000
+		},
+		"abilities" : {
+			"canCast" : {
+				"type" : "SPELLCASTER",
+				"subtype" : "spell.protectWater",
+				"val" : 1
+			},
+			"castsAmount" : {
+				"type" : "CASTS",
+				"val" : 1
+			},
+			"spellpower" : {
+				"type" : "CREATURE_SPELL_POWER",
+				"val" : 100
+			},
+			"magicResistance" : {
+				"type" : "SPELL_DAMAGE_REDUCTION",
+				"subtype" : "spellSchool.any",
+				"val" : 5
+			},
+			"enchant" : {
+				"type" : "CREATURE_ENCHANT_POWER",
+				"val" : 1
+			}
+		},
+		"graphics" : {
+			"iconSmall" : "hota/cove/commander/icons/blackBeardSmall.png",
+			"iconLarge" : "hota/cove/commander/icons/blackBeardLarge.png",
+			"map" : "hota/cove/commander/adventureMap/blackBeard.def",
+			"animation" : "hota/cove/commander/battle/blackBeard.def",
+			"timeBetweenFidgets" : 1,
+			"animationTime" : {
+				"walk" : 1.0,
+				"idle" : 12.0,
+				"attack" : 1.0
+			},
+			"missile" : {
+				"attackClimaxFrame" : 5,
+				"frameAngles" : [
+					90,
+					72,
+					45,
+					27,
+					0,
+					-27,
+					-45,
+					-72,
+					-90
+				],
+				"offset" : {
+					"lowerX" : 28,
+					"lowerY" : 3,
+					"middleX" : 62,
+					"middleY" : -53,
+					"upperX" : 37,
+					"upperY" : -98
+				},
+				"projectile" : "hota/creatures/battle/projectiles/PPIRATE.def"
+			}
+		},
+		"sound" : {
+			"attack" : "hota/cove/creatures/pirate/PIRTATTK.wav",
+			"defend" : "hota/cove/creatures/pirate/PIRTDFND.wav",
+			"killed" : "hota/cove/creatures/pirate/PIRTKILL.wav",
+			"shoot" : "hota/cove/creatures/pirate/PIRTSHOT.wav",
+			"move" : "hota/cove/creatures/pirate/PIRTMOVE.wav",
+			"wince" : "hota/cove/creatures/pirate/PIRTWNCE.wav"
+		}
+	}
+}

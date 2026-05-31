@@ -1,0 +1,55 @@
+{
+	"athe" : {
+		"class" : "heretic",
+		"female" : true,
+		"special" : true,
+		"images" : {
+			"large" : "hota/inferno/heroes/athe/icons/portraitLarge.png",
+			"small" : "hota/inferno/heroes/athe/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/inferno/heroes/athe/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/inferno/heroes/athe/icons/specialtySmall.png"
+		},
+		"spellbook" : [
+			"bloodlust"
+		],
+		"army" : [
+			{
+				"creature" : "imp",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "gog",
+				"min" : 5,
+				"max" : 8
+			},
+			{
+				"creature" : "hellHound",
+				"min" : 3,
+				"max" : 4
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "wisdom",
+				"level" : "basic"
+			},
+			{
+				"skill" : "earthMagic",
+				"level" : "basic"
+			}
+		],
+		"specialty" : {
+			"secondary" : "sorcery"
+		},
+		"texts" : {
+			"biography" : "Athe doesn't care about her own situation, nor does she care about the benefits of following the Kreegan demons. In her eyes, all creatures are equal, whether they are efreet, genie, human or demon.",
+			"name" : "Athe",
+			"specialty" : {
+				"tooltip" : "Secondary Skill Bonus: Sorcery",
+				"name" : "Sorcery",
+				"description" : "Receives a 5% per level bonus to sorcery skill percentage."
+			}
+		}
+	}
+}

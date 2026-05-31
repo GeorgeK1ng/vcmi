@@ -1,0 +1,55 @@
+{
+	"boyd" : {
+		"class" : "deathknight",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/necropolis/heroes/boyd/icons/portraitLarge.png",
+			"small" : "hota/necropolis/heroes/boyd/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/necropolis/heroes/boyd/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/necropolis/heroes/boyd/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "skeleton",
+				"min" : 20,
+				"max" : 30
+			},
+			{
+				"creature" : "skeleton",
+				"min" : 20,
+				"max" : 30
+			},
+			{
+				"creature" : "skeleton",
+				"min" : 20,
+				"max" : 30
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "necromancy",
+				"level" : "basic"
+			},
+			{
+				"skill" : "armorer",
+				"level" : "basic"
+			}
+		],
+		"specialty" : {
+			"creature" : "skeleton"
+		},
+		"spellbook" : [
+			"shield"
+		],
+		"texts" : {
+			"name" : "Boyd",
+			"biography" : "All scary stories feature a horseman who had been hanged, stabbed or even beheaded and now rides by night, intending to exact revenge on his killers. Nonsense, a necromancer would say, a dead man risen by himself cannot have memory or will. It may well be so, but then Boyd has scores to settle not only with the traitor who slayed him, but also with the one who denied him rest in peace.",
+			"specialty" : {
+				"name" : "Skeletons",
+				"tooltip" : "Creature Bonus: Skeleton",
+				"description" : "Increases the speed of Skeletons or Skeleton Warriors by 1 and their Attack and Defense skills for each level attained after 1st level."
+			}
+		}
+	}
+}

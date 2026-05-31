@@ -1,0 +1,34 @@
+{
+	"name" : "Disabled Objects",
+	"description" : "Prevents selected objects from appearing on random maps",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+	"depends" : [
+		"hota.mapobjects"
+	],
+	"objects" : [
+		"config/hotaGameBalance/objectsRmgValues.json"
+	],
+	"chinese" : {
+		"name" : "禁用物体",
+		"description" : "在随机地图上禁用特定物体"
+	},
+	"czech" : {
+		"name" : "Zakázané objekty",
+		"description" : "Zabraňuje zobrazení vybraných objektů na náhodně generovaných mapách"
+	},
+	"french" : {
+		"name" : "Objets désactivés",
+		"description" : "Empêche l'apparition des objets sélectionnés sur les cartes aléatoires"
+	},
+	"latvian" : {
+		"name" : "Atspējoti objekti",
+		"description" : "Neļauj atlasītajiem objektiem parādīties nejaušās kartēs"
+	},
+	"german" : {
+		"name" : "Verbotene Objekte",
+		"description" : "Verbietet Kartenobjekte, die in HotA standardmäßig deaktiviert sind, auf zufälligen Karten."
+	}
+}

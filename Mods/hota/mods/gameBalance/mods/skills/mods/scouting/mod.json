@@ -1,0 +1,106 @@
+{
+	"name" : "Scouting",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+	"settings" : {
+		"pathfinder" : {
+			"originalFlyRules" : false
+		}
+	},
+	"skills" : [
+		"config/hotaGameBalance/skills.json"
+	],
+	"chinese" : {
+		"name" : "侦察术",
+		"description" : "",
+		"translations" : [
+			"translation/chinese.json"
+		]
+	},
+	"czech" : {
+		"name" : "Průzkumník",
+		"description" : "",
+		"translations" : [
+			"translation/czech.json"
+		]
+	},
+	"german" : {
+		"name" : "Spähen",
+		"description" : "",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"french" : {
+		"name" : "Scoutisme",
+		"description" : "",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Skautu darbība",
+		"description" : "",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	},
+	"polish" : {
+		"name" : "Scouting",
+		"description" : "",
+		"translations" : [
+			"translation/polish.json"
+		]
+	},
+	"swedish" : {
+		"name" : "Scouting",
+		"description" : "",
+		"translations" : [
+			"translation/swedish.json"
+		]
+	},
+	"ukrainian" : {
+		"name" : "Scouting",
+		"description" : "",
+		"translations" : [
+			"translation/ukrainian.json"
+		]
+	},
+	"russian" : {
+		"name" : "Разведка",
+		"description" : "",
+		"translations" : [
+			"translation/russian.json"
+		]
+	},
+	"japanese" : {
+		"name" : "Scouting",
+		"description" : "",
+		"translations" : [
+			"translation/japanese.json"
+		]
+	},
+	"hungarian" : {
+		"translations" : [
+			"translation/hungarian.json"
+		]
+	},
+	"portuguese" : {
+		"translations" : [
+			"translation/portuguese.json"
+		]
+	},
+	"spanish" : {
+		"translations" : [
+			"translation/spanish.json"
+		]
+	},
+	"turkish" : {
+		"translations" : [
+			"translation/turkish.json"
+		]
+	}
+}

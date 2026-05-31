@@ -1,0 +1,69 @@
+{
+	"kydoimos" : {
+		"class" : "demoniac",
+		"female" : false,
+		"special" : true,
+		"images" : {
+			"large" : "hota/inferno/heroes/kydoimos/icons/portraitLarge.png",
+			"small" : "hota/inferno/heroes/kydoimos/icons/portraitSmall.png",
+			"specialtyLarge" : "hota/inferno/heroes/kydoimos/icons/specialtyLarge.png",
+			"specialtySmall" : "hota/inferno/heroes/kydoimos/icons/specialtySmall.png"
+		},
+		"army" : [
+			{
+				"creature" : "imp",
+				"min" : 15,
+				"max" : 25
+			},
+			{
+				"creature" : "gog",
+				"min" : 5,
+				"max" : 8
+			},
+			{
+				"creature" : "hellHound",
+				"min" : 3,
+				"max" : 4
+			}
+		],
+		"skills" : [
+			{
+				"skill" : "leadership",
+				"level" : "basic"
+			},
+			{
+				"skill" : "offence",
+				"level" : "basic"
+			}
+		],
+		"specialty" : {
+			"base" : {
+				"limiters" : [
+					{
+						"bonusType" : "DRAGON_NATURE",
+						"type" : "HAS_ANOTHER_BONUS_LIMITER"
+					}
+				],
+				"type" : "PRIMARY_SKILL",
+				"val" : 5
+			},
+			"bonuses" : {
+				"attack" : {
+					"subtype" : "attack"
+				},
+				"defence" : {
+					"subtype" : "defence"
+				}
+			}
+		},
+		"texts" : {
+			"biography" : "Kydoimos's name was the personification of the din of battle, confusion, uproar and hubbub in mythology. He is a powerful warlord in Kreegan.",
+			"name" : "Kydoimos",
+			"specialty" : {
+				"tooltip" : "Creature Bonus: Dragons",
+				"name" : "Dragons",
+				"description" : "All Dragons receive +5 Attack and +5 Defense."
+			}
+		}
+	}
+}

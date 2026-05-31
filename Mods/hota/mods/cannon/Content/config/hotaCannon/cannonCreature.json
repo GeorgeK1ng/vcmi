@@ -1,0 +1,179 @@
+{
+	"cannon" : {
+		"name" : {
+			"plural" : "Cannons",
+			"singular" : "Cannon"
+		},
+		"faction" : "neutral",
+		"level" : 6,
+		"aiValue" : 1637,
+		"special" : true,
+		"attack" : 20,
+		"cost" : {
+			"gold" : 4000
+		},
+		"damage" : {
+			"max" : 7,
+			"min" : 4
+		},
+		"defense" : 10,
+		"fightValue" : 1360,
+		"graphics" : {
+			"animation" : "hota/battle/SMCANNON.def",
+			"iconSmall" : "hota/iconsSmall/cannonCreature.png",
+			"iconLarge" : "hota/iconslarge/cannonCreature.png",
+			"map" : "hota/map/cannonMap.def",
+			"timeBetweenFidgets" : 1,
+			"animationTime" : {
+				"walk" : 1.0,
+				"idle" : 10.0,
+				"attack" : 0.5
+			},
+			"missile" : {
+				"projectile" : "hota/battle/SMCANX.def",
+				"attackClimaxFrame" : 4,
+				"offset" : {
+					"upperX" : 44,
+					"upperY" : -63,
+					"middleX" : 79,
+					"middleY" : -55,
+					"lowerX" : 27,
+					"lowerY" : -46
+				},
+				"frameAngles" : [
+					90,
+					72,
+					45,
+					27,
+					0,
+					-27,
+					-45,
+					-72,
+					-90
+				]
+			}
+		},
+		"doubleWide" : true,
+		"growth" : 0,
+		"hitPoints" : 250,
+		"shots" : 8,
+		"sound" : {
+			"killed" : "hota/cannon/CANNKILL.wav",
+			"shoot" : "hota/cannon/CANNSHOT.wav",
+			"wince" : "hota/cannon/CANNWNCE.wav"
+		},
+		"speed" : 0,
+		"abilities" : {
+			"warMachine" : {
+				"type" : "SIEGE_WEAPON"
+			},
+			"shooter" : {
+				"type" : "SHOOTER"
+			},
+			"canShootWalls" : {
+				"type" : "CATAPULT",
+				"subtype" : "cannonSiegeShot"
+			},
+			"noRetaliation" : {
+				"type" : "NO_RETALIATION",
+				"val" : 0
+			},
+			"cpuControlledCannon" : {
+				"hidden" : true,
+				"type" : "CPU_CONTROLLED"
+			}
+		},
+		"stackExperience" : [
+			{
+				"bonus" : {
+					"type" : "PRIMARY_SKILL",
+					"subtype" : "attack"
+				},
+				"values" : [
+					1,
+					1,
+					2,
+					3,
+					4,
+					5,
+					5,
+					6,
+					7,
+					8
+				]
+			},
+			{
+				"bonus" : {
+					"type" : "PRIMARY_SKILL",
+					"subtype" : "defence"
+				},
+				"values" : [
+					1,
+					2,
+					3,
+					3,
+					4,
+					5,
+					6,
+					6,
+					7,
+					8
+				]
+			},
+			{
+				"bonus" : {
+					"type" : "CREATURE_DAMAGE",
+					"subtype" : "creatureDamageMax"
+				},
+				"values" : [
+					1,
+					2,
+					2,
+					3,
+					4,
+					4,
+					5,
+					6,
+					7,
+					7
+				]
+			},
+			{
+				"bonus" : {
+					"type" : "CREATURE_DAMAGE",
+					"subtype" : "creatureDamageMin"
+				},
+				"values" : [
+					0,
+					1,
+					2,
+					3,
+					3,
+					4,
+					5,
+					6,
+					6,
+					7
+				]
+			},
+			{
+				"bonus" : {
+					"type" : "STACK_HEALTH",
+					"valueType" : "PERCENT_TO_BASE"
+				},
+				"values" : [
+					5,
+					10,
+					15,
+					20,
+					25,
+					30,
+					35,
+					40,
+					45,
+					50
+				]
+			}
+		]
+	}
+}

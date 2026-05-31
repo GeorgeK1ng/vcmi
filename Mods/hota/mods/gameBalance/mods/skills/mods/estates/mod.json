@@ -1,0 +1,101 @@
+{
+	"name" : "Estates",
+	"description" : "",
+	"modType" : "Mechanics",
+	"author" : "Kuririn, avatar, wnukos",
+	"contact" : "http://forum.df2.ru/index.php?showtopic=32286",
+	"version" : "1.0",
+	"skills" : [
+		"config/hotaGameBalance/skills.json"
+	],
+	"chinese" : {
+		"name" : "理财术",
+		"description" : "",
+		"translations" : [
+			"translation/chinese.json"
+		]
+	},
+	"czech" : {
+		"name" : "Hospodaření",
+		"description" : "",
+		"translations" : [
+			"translation/czech.json"
+		]
+	},
+	"german" : {
+		"name" : "Grundbesitz",
+		"description" : "",
+		"translations" : [
+			"translation/german.json"
+		]
+	},
+	"french" : {
+		"name" : "Domaines",
+		"description" : "",
+		"translations" : [
+			"translation/french.json"
+		]
+	},
+	"latvian" : {
+		"name" : "Īpašumi",
+		"description" : "",
+		"translations" : [
+			"translation/latvian.json"
+		]
+	},
+	"polish" : {
+		"name" : "Estates",
+		"description" : "",
+		"translations" : [
+			"translation/polish.json"
+		]
+	},
+	"swedish" : {
+		"name" : "Estates",
+		"description" : "",
+		"translations" : [
+			"translation/swedish.json"
+		]
+	},
+	"ukrainian" : {
+		"name" : "Estates",
+		"description" : "",
+		"translations" : [
+			"translation/ukrainian.json"
+		]
+	},
+	"russian" : {
+		"name" : "Казначей",
+		"description" : "",
+		"translations" : [
+			"translation/russian.json"
+		]
+	},
+	"japanese" : {
+		"name" : "Estates",
+		"description" : "",
+		"translations" : [
+			"translation/japanese.json"
+		]
+	},
+	"hungarian" : {
+		"translations" : [
+			"translation/hungarian.json"
+		]
+	},
+	"portuguese" : {
+		"translations" : [
+			"translation/portuguese.json"
+		]
+	},
+	"spanish" : {
+		"translations" : [
+			"translation/spanish.json"
+		]
+	},
+	"turkish" : {
+		"translations" : [
+			"translation/turkish.json"
+		]
+	}
+}

@@ -1,0 +1,49 @@
+{
+	"name" : "Text Polishing",
+	"description" : "Changes the ingame description of spells, map objects and artifacts to the ones used in HotA.",
+	"keepDisabled" : true,
+	"modType" : "Other",
+	"author" : "Karyoplasma. Game texts by HotA Crew.",
+	"contact" : "https://github.com/vcmi-mods/horn-of-the-abyss",
+	"compatibility" : {
+		"min" : "1.7.2"
+	},
+	"depends" : [
+		"hota.gamebalance.spells",
+		"hota.gamebalance.artifacts"
+	],
+	"version" : "1.0.0",
+	"changelog" : {
+		"1.0.0" : [
+			"Initial release",
+			"Added English HotA texts"
+		]
+	},
+	"english" : {
+		"name" : "English Text Polishing",
+		"description" : "Changes the English ingame description of spells, map objects and artifacts to the ones used in HotA.",
+		"translations" : [
+			"config/englishTextPolishing/artifactDescriptions.json",
+			"config/englishTextPolishing/gameTextChanges.json",
+			"config/englishTextPolishing/heroTexts.json",
+			"config/englishTextPolishing/objectDescriptions.json",
+			"config/englishTextPolishing/spellDescriptions.json"
+		]
+	},
+	"chinese" : {
+		"name" : "英文文本润色",
+		"description" : "将游戏内法术、地图物体和宝物的英文描述修改为深渊号角所使用的版本（仅在语言为英文时生效）。"
+	},
+	"french" : {
+		"name" : "Lissage de texte",
+		"description" : "Modifie la description en jeu des sorts, des objets de la carte et des artefacts pour qu'elle corresponde à celle utilisée dans HotA."
+	},
+	"latvian" : {
+		"name" : "Teksta pulēšana",
+		"description" : "Maina burvestību, kartes objektu un artefaktu aprakstus spēlē uz tiem, kas tiek izmantoti HotA."
+	},
+	"german" : {
+		"name" : "Nicht Aktivieren",
+		"description" : "Diese Mod ist ausschließlich für die Englische Sprache und hat keinen Effekt auf die Deutsche Übersetzung."
+	}
+}
