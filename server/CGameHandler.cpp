@@ -126,6 +126,59 @@ static bool hasAutosaveIndex(const std::string & filename, int autosaveCountLimi
 	});
 }
 
+static bool autosaveIndexFromPath(const boost::filesystem::path & filePath, const std::string & stemPrefix, size_t width, int & index)
+{
+	if(!boost::iequals(filePath.extension().string(), ".vsgm1"))
+		return false;
+
+	const auto stem = filePath.stem().string();
+	if(!boost::starts_with(stem, stemPrefix))
+		return false;
+
+	const auto indexText = stem.substr(stemPrefix.size());
+	if(indexText.size() != width || !std::all_of(indexText.begin(), indexText.end(), [](const char character)
+	{
+		return std::isdigit(static_cast<unsigned char>(character));
+	}))
+		return false;
+
+	index = boost::lexical_cast<int>(indexText);
+	return true;
+}
+
+static std::set<int> existingAutosaveIndexes(const boost::filesystem::path & newestSave, int autosaveCountLimit)
+{
+	std::set<int> result;
+	boost::system::error_code error;
+	const auto autosaveDirectory = newestSave.parent_path();
+	if(!boost::filesystem::exists(autosaveDirectory, error))
+		return result;
+
+	if(error)
+	{
+		logGlobal->warn("Failed to check autosave directory %s: %s", autosaveDirectory.string(), error.message());
+		return result;
+	}
+
+	const auto newestStem = newestSave.stem().string();
+	const size_t width = autosaveIndexWidth(autosaveCountLimit);
+	if(newestStem.size() < width)
+		return result;
+
+	const auto stemPrefix = newestStem.substr(0, newestStem.size() - width);
+	for(boost::filesystem::directory_iterator entry(autosaveDirectory, error); !error && entry != boost::filesystem::directory_iterator(); entry.increment(error))
+	{
+		int index = 0;
+		if(autosaveIndexFromPath(entry->path(), stemPrefix, width, index))
+			result.insert(index);
+	}
+
+	if(error)
+		logGlobal->warn("Failed to scan autosave directory %s: %s", autosaveDirectory.string(), error.message());
+
+	return result;
+}
+
 static boost::filesystem::path savegamePath(const std::string & filename)
 {
 	ResourcePath savePath(filename, EResType::SAVEGAME);
@@ -157,29 +210,27 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 	}
 
 	boost::system::error_code error;
+	const auto newestSave = savegamePath(filename);
+	const auto existingIndexes = existingAutosaveIndexes(newestSave, autosaveCountLimit);
 
 	// Free the last allowed slot first. Then N-1 can be renamed to N, N-2 to N-1, etc.
-	const auto oldestSave = savegamePath(autosaveNameWithIndex(filename, autosaveCountLimit, autosaveCountLimit));
-	boost::filesystem::remove(oldestSave, error);
-	if(error)
+	if(existingIndexes.contains(autosaveCountLimit))
 	{
-		logGlobal->warn("Failed to remove old autosave %s: %s", oldestSave.string(), error.message());
-		error.clear();
+		const auto oldestSave = savegamePath(autosaveNameWithIndex(filename, autosaveCountLimit, autosaveCountLimit));
+		boost::filesystem::remove(oldestSave, error);
+		if(error)
+		{
+			logGlobal->warn("Failed to remove old autosave %s: %s", oldestSave.string(), error.message());
+			error.clear();
+		}
 	}
 
 	for(int index = autosaveCountLimit - 1; index >= 1; --index)
 	{
-		const auto source = savegamePath(autosaveNameWithIndex(filename, index, autosaveCountLimit));
-		if(!boost::filesystem::exists(source, error))
-		{
-			if(error)
-			{
-				logGlobal->warn("Failed to check autosave %s: %s", source.string(), error.message());
-				error.clear();
-			}
+		if(!existingIndexes.contains(index))
 			continue;
-		}
 
+		const auto source = savegamePath(autosaveNameWithIndex(filename, index, autosaveCountLimit));
 		const auto target = savegamePath(autosaveNameWithIndex(filename, index + 1, autosaveCountLimit));
 		boost::filesystem::rename(source, target, error);
 		if(error)
