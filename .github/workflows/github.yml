@@ -60,7 +60,7 @@ jobs:
           - platform: msvc-x64
             arch: x64
             toolset: '14.29'
-            os: windows-2025
+            os: windows-2025-vs2026
             pack: 1
             upload: 0
             pack_type: RelWithDebInfo
@@ -74,7 +74,7 @@ jobs:
           - platform: msvc-x86
             arch: amd64_x86
             toolset: '14.29'
-            os: windows-2025
+            os: windows-2025-vs2026
             pack: 1
             upload: 0
             pack_type: RelWithDebInfo
@@ -216,6 +216,25 @@ jobs:
       with:
         path: ${{ runner.temp }}/apt-cache
         key: ${{ steps.aptcache.outputs.cache-primary-key }}
+
+    - name: Detect Visual Studio version (Windows)
+      if: ${{ startsWith(matrix.platform, 'windows') }}
+      shell: pwsh
+      run: |
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vsInstallationVersion = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationVersion
+        $vsMajor = ($vsInstallationVersion -split '\.')[0]
+        echo "MSBUILD_VS_VERSION=$vsMajor" >> $env:GITHUB_ENV
+
+    - name: Install MSVC v142 toolset (Windows non-ARM)
+      if: ${{ startsWith(matrix.platform, 'windows') && matrix.platform != 'windows-arm64' }}
+      shell: pwsh
+      run: |
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+
+        $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+        & $installer modify --installPath "$installPath" --add Microsoft.VisualStudio.Component.VC.v142.x86.x64 --quiet --norestart
 
     - name: Install Conan Dependencies
       if: "${{ matrix.conan_prebuilts != '' }}"
