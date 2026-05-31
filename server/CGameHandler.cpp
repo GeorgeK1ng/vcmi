@@ -99,9 +99,31 @@
 
 static constexpr const char * SAVES_MOUNT_POINT = "Saves/";
 
-static std::string autosaveNameWithIndex(const std::string & filename, int index)
+static size_t autosaveIndexWidth(int autosaveCountLimit)
 {
-	return filename.substr(0, filename.size() - 1) + std::to_string(index);
+	return std::max<size_t>(3, std::to_string(autosaveCountLimit).size());
+}
+
+static std::string autosaveNameWithIndex(const std::string & filename, int index, int autosaveCountLimit)
+{
+	std::string number = std::to_string(index);
+	const size_t width = autosaveIndexWidth(autosaveCountLimit);
+	if(number.size() < width)
+		number.insert(0, width - number.size(), '0');
+
+	return filename.substr(0, filename.size() - width) + number;
+}
+
+static bool hasAutosaveIndex(const std::string & filename, int autosaveCountLimit)
+{
+	const size_t width = autosaveIndexWidth(autosaveCountLimit);
+	if(filename.size() < width)
+		return false;
+
+	return std::all_of(filename.end() - width, filename.end(), [](const char character)
+	{
+		return std::isdigit(static_cast<unsigned char>(character));
+	});
 }
 
 static boost::filesystem::path savegamePath(const std::string & filename)
@@ -128,7 +150,7 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 	if(autosaveCountLimit <= 0)
 		return;
 
-	if(filename.empty() || filename.back() != '1')
+	if(!hasAutosaveIndex(filename, autosaveCountLimit))
 	{
 		logGlobal->warn("Autosave rotation requested for unexpected save name %s", filename);
 		return;
@@ -137,7 +159,7 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 	boost::system::error_code error;
 
 	// Free the last allowed slot first. Then N-1 can be renamed to N, N-2 to N-1, etc.
-	const auto oldestSave = savegamePath(autosaveNameWithIndex(filename, autosaveCountLimit));
+	const auto oldestSave = savegamePath(autosaveNameWithIndex(filename, autosaveCountLimit, autosaveCountLimit));
 	boost::filesystem::remove(oldestSave, error);
 	if(error)
 	{
@@ -147,7 +169,7 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 
 	for(int index = autosaveCountLimit - 1; index >= 1; --index)
 	{
-		const auto source = savegamePath(autosaveNameWithIndex(filename, index));
+		const auto source = savegamePath(autosaveNameWithIndex(filename, index, autosaveCountLimit));
 		if(!boost::filesystem::exists(source, error))
 		{
 			if(error)
@@ -158,7 +180,7 @@ static void rotateAutosaves(const std::string & filename, int autosaveCountLimit
 			continue;
 		}
 
-		const auto target = savegamePath(autosaveNameWithIndex(filename, index + 1));
+		const auto target = savegamePath(autosaveNameWithIndex(filename, index + 1, autosaveCountLimit));
 		boost::filesystem::rename(source, target, error);
 		if(error)
 		{

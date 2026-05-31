@@ -125,6 +125,21 @@
 
 std::shared_ptr<BattleInterface> CPlayerInterface::battleInt;
 
+static size_t autosaveIndexWidth(int autosaveCountLimit)
+{
+	return std::max<size_t>(3, std::to_string(autosaveCountLimit).size());
+}
+
+static std::string autosaveIndex(int index, int autosaveCountLimit)
+{
+	std::string number = std::to_string(index);
+	const size_t width = autosaveIndexWidth(autosaveCountLimit);
+	if(number.size() < width)
+		number.insert(0, width - number.size(), '0');
+
+	return number;
+}
+
 CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	localState(std::make_unique<PlayerLocalState>(*this)),
 	movementController(std::make_unique<HeroMovementController>()),
@@ -276,7 +291,7 @@ void CPlayerInterface::performAutosave()
 
 		int autosaveCountLimit = settings["general"]["autosaveCountLimit"].Integer();
 		if(autosaveCountLimit > 0)
-			cb->save("Saves/Autosave/" + prefix + "1", false, autosaveCountLimit);
+			cb->save("Saves/Autosave/" + prefix + autosaveIndex(1, autosaveCountLimit), false, autosaveCountLimit);
 		else
 		{
 			std::string stringifiedDate = std::to_string(cb->getDate(Date::MONTH))
