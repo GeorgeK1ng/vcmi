@@ -1705,7 +1705,7 @@ void CGameHandler::save(const std::string & filename, PlayerColor playerToNotify
 	rotateAutosaves(filename, autosaveCountLimit);
 	ResourcePath savePath(filename, EResType::SAVEGAME);
 	const auto savefname = savePath.getOriginalName() + ".vsgm1";
-	CResourceHandler::get("local")->createResource(savefname);
+	CResourceHandler::get("local")->createResource(savefname, CResourceHandler::get("local")->existsResource(savePath));
 
 	std::string filenameWithoutPath;
 	auto pos = filename.find_last_of("/\\");
