@@ -174,6 +174,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	const int effectiveSpellbookSize = hasConfiguredSpellbookSize ? configuredSpellbookSize : (settings["gameTweaks"]["enableLargeSpellbook"].Bool() ? 1 : 0);
 	isBigSpellbook = effectiveSpellbookSize > 0;
 	const bool isExtraLargeSpellbook = effectiveSpellbookSize >= 2;
+	const int extraSpellbookRows = isExtraLargeSpellbook ? 1 : 0;
 
 	if(isBigSpellbook)
 	{
@@ -187,6 +188,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 		{
 			offR += 85;
 			offRM += 85;
+			offB += extraSpellbookRows * 97;
 		}
 	}
 	else
@@ -202,7 +204,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 
 	pos = background->center(Point(pos.w/2 + pos.x, pos.h/2 + pos.y));
 
-	Rect r(90, isBigSpellbook ? 480 : 420, isBigSpellbook ? 160 : 110, 16);
+	Rect r(90, isBigSpellbook ? 480 + extraSpellbookRows * 97 : 420, isBigSpellbook ? 160 : 110, 16);
 	if(settings["general"]["enableUiEnhancements"].Bool())
 	{
 		const ColorRGBA rectangleColor = ColorRGBA(0, 0, 0, 75);
@@ -237,7 +239,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	mana = std::make_shared<CLabel>(435 + (isBigSpellbook ? 159 : 0), 426 + offB, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, std::to_string(myHero->mana));
 
 	if(isBigSpellbook)
-		statusBar = CGStatusBar::create(400, 587);
+		statusBar = CGStatusBar::create(400, 587 + extraSpellbookRows * 97);
 	else
 		statusBar = CGStatusBar::create(7, 569, ImagePath::builtin("Spelroll.bmp"));
 
