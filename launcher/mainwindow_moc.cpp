@@ -90,16 +90,37 @@ MainWindow::MainWindow(QWidget * parent)
 	ui->setupUi(this);
 
 #ifndef VCMI_MOBILE
-	connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen * screen)
+	auto scheduleRelocateToRemainingScreen = [this](bool forceCenterOnRemainingScreen)
 	{
-		const bool launcherWasOnRemovedScreen = screen != nullptr
-			&& screen->geometry().contains(frameGeometry().center());
-
-		QTimer::singleShot(0, this, [this, launcherWasOnRemovedScreen]()
+		auto relocateToRemainingScreen = [this, forceCenterOnRemainingScreen]()
 		{
-			ensureWindowVisibleOnExistingScreen(launcherWasOnRemovedScreen, false);
-			saveWindowSettings();
-		});
+			QScreen * targetScreen = nullptr;
+			if(forceCenterOnRemainingScreen)
+			{
+				const auto screens = QGuiApplication::screens();
+				targetScreen = QGuiApplication::primaryScreen();
+
+				if(targetScreen == nullptr || !screens.contains(targetScreen))
+					targetScreen = screens.isEmpty() ? nullptr : screens.front();
+			}
+
+			ensureWindowVisibleOnExistingScreen(forceCenterOnRemainingScreen, !forceCenterOnRemainingScreen, targetScreen);
+			saveWindowSettingsUnchecked();
+		};
+
+		QTimer::singleShot(0, this, relocateToRemainingScreen);
+		QTimer::singleShot(250, this, relocateToRemainingScreen);
+	};
+
+	connect(qApp, &QGuiApplication::screenRemoved, this, [this, scheduleRelocateToRemainingScreen](QScreen * removedScreen)
+	{
+		const bool launcherWasOnRemovedScreen = removedScreen != nullptr
+			&& removedScreen->geometry().contains(frameGeometry().center());
+		scheduleRelocateToRemainingScreen(launcherWasOnRemovedScreen);
+	});
+	connect(qApp, &QGuiApplication::primaryScreenChanged, this, [scheduleRelocateToRemainingScreen](QScreen *)
+	{
+		scheduleRelocateToRemainingScreen(false);
 	});
 #endif
 
@@ -141,7 +162,7 @@ MainWindow::MainWindow(QWidget * parent)
 		UpdateDialog::showUpdateDialog(false);
 }
 
-void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool preferCurrentGeometryScreen)
+void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool preferCurrentGeometryScreen, QScreen * forcedTargetScreen)
 {
 #ifndef VCMI_MOBILE
 	// Work with frame geometry so native window decorations are kept on-screen too.
@@ -152,8 +173,13 @@ void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool pre
 	// the old coordinates belong to a missing display, so center the window instead of
 	// pinning it to the nearest edge. The caller can also force centering on the
 	// selected screen, e.g. for startup or when the launcher's screen was removed.
+	// Screen removal passes the remaining screen explicitly because windowHandle()
+	// can still point to the removed screen during the hotplug transition.
 	QRect windowGeometry = frameGeometry();
-	QScreen * targetScreen = preferCurrentGeometryScreen ? QGuiApplication::screenAt(windowGeometry.center()) : nullptr;
+	QScreen * targetScreen = forcedTargetScreen;
+	if(targetScreen == nullptr && preferCurrentGeometryScreen)
+		targetScreen = QGuiApplication::screenAt(windowGeometry.center());
+
 	bool savedScreenIsMissing = preferCurrentGeometryScreen && targetScreen == nullptr;
 	if(targetScreen == nullptr && !centerWindow && windowHandle())
 		targetScreen = windowHandle()->screen();
@@ -203,7 +229,13 @@ void MainWindow::saveWindowSettings()
 {
 #ifndef VCMI_MOBILE
 	ensureWindowVisibleOnExistingScreen();
+	saveWindowSettingsUnchecked();
+#endif
+}
 
+void MainWindow::saveWindowSettingsUnchecked()
+{
+#ifndef VCMI_MOBILE
 	//save window settings
 	Settings windowGeometry = settings.write["launcher"]["mainWindow"]["geometry"];
 	windowGeometry["valid"].Bool() = true;

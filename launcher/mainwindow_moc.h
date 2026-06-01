@@ -22,6 +22,7 @@ class MainWindow;
 const QString appName = "launcher";
 }
 
+class QScreen;
 class QTableWidgetItem;
 class CModList;
 class CModListView;
@@ -66,7 +67,10 @@ public:
 
 	void updateTranslation();
 	void computeSidePanelSizes();
-	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false, bool preferCurrentGeometryScreen = true);
+	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false,
+		bool preferCurrentGeometryScreen = true,
+		QScreen * forcedTargetScreen = nullptr);
+	void saveWindowSettingsUnchecked();
 	
 	void detectPreferredLanguage();
 	void enterSetup();
