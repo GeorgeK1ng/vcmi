@@ -296,7 +296,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	for(int i = 0; i < 38; ++i)
 		tmp4.draw(Canvas(tmp4, Rect(316, 6, 1, 45)), Point(317 + i, 6));
 	for(int i = 0; i < 38; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(377, 6, 1, 47)), Point(378 + i, 6));
+		tmp4.draw(Canvas(tmp4, Rect(376, 6, 1, 47)), Point(378 + i, 6));
 	canvas.drawScaled(tmp4, Point(90, 460 + deltaY), Point(615 + deltaX, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
@@ -316,11 +316,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, bookmarkY, 1, 44)), Point(565 + i, bookmarkY));
 	for (int i = 0; i < 56; i++)
 		canvas.draw(Canvas(canvas, Rect(656, bookmarkY, 1, 47)), Point(657 + i, bookmarkY));
+	const int rightBookmarkOffset = extraLargeWidth;
 	// draw bookmarks
 	canvas.draw(img, Point(278, bookmarkY), Rect(220, 405, 37, 47));
-	canvas.draw(img, Point(481, bookmarkY + 1), Rect(354, 406, 37, 41));
-	canvas.draw(img, Point(575, bookmarkY + 1), Rect(417, 406, 37, 45));
-	canvas.draw(img, Point(667, bookmarkY + 1), Rect(478, 406, 37, 47));
+	canvas.draw(img, Point(481 + rightBookmarkOffset, bookmarkY + 1), Rect(354, 406, 37, 41));
+	canvas.draw(img, Point(575 + rightBookmarkOffset, bookmarkY + 1), Rect(417, 406, 37, 45));
+	canvas.draw(img, Point(667 + rightBookmarkOffset, bookmarkY + 1), Rect(478, 406, 37, 47));
 	const int statusBarOverlayHeight = 30;
 	canvas.drawColorBlended(Rect(0, image->height() - statusBarOverlayHeight, image->width(), statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
 
