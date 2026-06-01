@@ -58,7 +58,7 @@ private:
 	std::map<AnimationPath, AnimationLayoutMap> animationFiles;
 
 	CanvasPtr createAdventureOptionsCleanBackground() const;
-	CanvasPtr createBigSpellBook() const;
+	CanvasPtr createBigSpellBook(int columnsPerPageHalf = 4, int rowsPerPage = 3) const;
 	CanvasPtr createPlayerColoredBackground(const PlayerColor & player) const;
 	CanvasPtr createCombatUnitNumberWindow(float multR, float multG, float multB) const;
 	CanvasPtr createCampaignBackground(int selection) const;

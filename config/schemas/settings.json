@@ -859,6 +859,9 @@
 					"type" : "boolean",
 					"default" : true
 				},
+				"spellbookSize" : {
+					"type": "number"
+				},
 				"enableLargeSpellbook" : {
 					"type": "boolean",
 					"default": true
