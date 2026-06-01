@@ -90,9 +90,16 @@ MainWindow::MainWindow(QWidget * parent)
 	ui->setupUi(this);
 
 #ifndef VCMI_MOBILE
-	connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen *)
+	connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen * screen)
 	{
-		QTimer::singleShot(0, this, &MainWindow::saveWindowSettings);
+		const bool launcherWasOnRemovedScreen = screen != nullptr
+			&& screen->geometry().contains(frameGeometry().center());
+
+		QTimer::singleShot(0, this, [this, launcherWasOnRemovedScreen]()
+		{
+			ensureWindowVisibleOnExistingScreen(launcherWasOnRemovedScreen, false);
+			saveWindowSettings();
+		});
 	});
 #endif
 
@@ -107,7 +114,8 @@ MainWindow::MainWindow(QWidget * parent)
 #ifndef VCMI_MOBILE
 	//load window settings
 	const auto & windowGeometry = settings["launcher"]["mainWindow"]["geometry"];
-	if(windowGeometry["valid"].Bool())
+	const bool hasSavedWindowGeometry = windowGeometry["valid"].Bool();
+	if(hasSavedWindowGeometry)
 	{
 		QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
 		if(windowSize.isValid())
@@ -115,7 +123,7 @@ MainWindow::MainWindow(QWidget * parent)
 
 		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
 	}
-	ensureWindowVisibleOnExistingScreen();
+	ensureWindowVisibleOnExistingScreen(true, hasSavedWindowGeometry);
 #endif
 
 	computeSidePanelSizes();
@@ -133,7 +141,7 @@ MainWindow::MainWindow(QWidget * parent)
 		UpdateDialog::showUpdateDialog(false);
 }
 
-void MainWindow::ensureWindowVisibleOnExistingScreen()
+void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool preferCurrentGeometryScreen)
 {
 #ifndef VCMI_MOBILE
 	// Work with frame geometry so native window decorations are kept on-screen too.
@@ -142,14 +150,16 @@ void MainWindow::ensureWindowVisibleOnExistingScreen()
 	// belongs to another connected monitor. If no screen contains the frame, fall back
 	// to the window handle screen and then to the primary screen. In that fallback case
 	// the old coordinates belong to a missing display, so center the window instead of
-	// pinning it to the nearest edge.
+	// pinning it to the nearest edge. The caller can also force centering on the
+	// selected screen, e.g. for startup or when the launcher's screen was removed.
 	QRect windowGeometry = frameGeometry();
-	auto * targetScreen = QGuiApplication::screenAt(windowGeometry.center());
-	bool centerWindow = targetScreen == nullptr;
-	if(targetScreen == nullptr && windowHandle())
+	QScreen * targetScreen = preferCurrentGeometryScreen ? QGuiApplication::screenAt(windowGeometry.center()) : nullptr;
+	bool savedScreenIsMissing = preferCurrentGeometryScreen && targetScreen == nullptr;
+	if(targetScreen == nullptr && !centerWindow && windowHandle())
 		targetScreen = windowHandle()->screen();
 	if(targetScreen == nullptr)
 		targetScreen = QGuiApplication::primaryScreen();
+	centerWindow = centerWindow || savedScreenIsMissing;
 
 	if(targetScreen == nullptr)
 		return;

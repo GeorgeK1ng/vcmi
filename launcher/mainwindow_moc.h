@@ -66,7 +66,7 @@ public:
 
 	void updateTranslation();
 	void computeSidePanelSizes();
-	void ensureWindowVisibleOnExistingScreen();
+	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false, bool preferCurrentGeometryScreen = true);
 	
 	void detectPreferredLanguage();
 	void enterSetup();
