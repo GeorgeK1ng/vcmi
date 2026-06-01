@@ -86,15 +86,22 @@ void CSettingsView::setDisplayList()
 	for (const auto screen : QGuiApplication::screens())
 		list << QString{"%1 - %2"}.arg(screen->name(), resolutionToString(screen->size()));
 
+	int displayIndex = settings["video"]["displayIndex"].Integer();
+	if(displayIndex < 0 || displayIndex >= list.count())
+	{
+		displayIndex = 0;
+		Settings node = settings.write["video"]["displayIndex"];
+		node->Float() = displayIndex;
+	}
+
 	if(list.count() < 2)
 	{
 		ui->comboBoxDisplayIndex->hide();
 		ui->labelDisplayIndex->hide();
-		fillValidResolutionsForScreen(0);
+		fillValidResolutionsForScreen(displayIndex);
 	}
 	else
 	{
-		int displayIndex = settings["video"]["displayIndex"].Integer();
 		ui->comboBoxDisplayIndex->addItems(list);
 		// calls fillValidResolutions() in slot
 		ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
@@ -340,6 +347,11 @@ QSize CSettingsView::getPreferredRenderingResolution()
 		return QSize(resX, resY);
 	}
 #endif
+	const auto screens = QGuiApplication::screens();
+	int displayIndex = settings["video"]["displayIndex"].Integer();
+	if(displayIndex >= 0 && displayIndex < screens.size())
+		return screens[displayIndex]->geometry().size() * screens[displayIndex]->devicePixelRatio();
+
 	return QApplication::primaryScreen()->geometry().size() * QApplication::primaryScreen()->devicePixelRatio();
 }
 
@@ -391,7 +403,7 @@ static QVector<QSize> findAvailableResolutions(int displayIndex)
 
 	int modesCount = SDL_GetNumDisplayModes(displayIndex);
 
-	for (int i =0; i < modesCount; ++i)
+	for (int i = 0; i < modesCount; ++i)
 	{
 		SDL_DisplayMode mode;
 		if (SDL_GetDisplayMode(displayIndex, i, &mode) != 0)
@@ -408,6 +420,20 @@ static QVector<QSize> findAvailableResolutions(int displayIndex)
 	});
 
 	result.erase(boost::unique(result).end(), result.end());
+
+	SDL_Quit();
+
+	return result;
+}
+
+static QSize findDesktopResolution(int displayIndex)
+{
+	SDL_Init(SDL_INIT_VIDEO);
+
+	SDL_DisplayMode mode;
+	QSize result;
+	if(SDL_GetDesktopDisplayMode(displayIndex, &mode) == 0)
+		result = QSize(mode.w, mode.h);
 
 	SDL_Quit();
 
@@ -431,7 +457,16 @@ void CSettingsView::fillValidResolutionsForScreen(int screenIndex)
 	{
 		QVector<QSize> resolutions = findAvailableResolutions(screenIndex);
 
-		if(!resolutions.contains(currentRes))
+		// Windowed mode allows custom resolutions, but only while they still fit on
+		// the selected display. This prevents stale 4K TV resolutions from keeping
+		// oversized scaling ranges after switching to a smaller monitor.
+		QSize desktopResolution = findDesktopResolution(screenIndex);
+		bool currentWindowedResolutionFits = !fullscreen
+			&& desktopResolution.isValid()
+			&& currentRes.width() <= desktopResolution.width()
+			&& currentRes.height() <= desktopResolution.height();
+
+		if(currentWindowedResolutionFits && !resolutions.contains(currentRes))
 			resolutions.append(currentRes);
 
 		for(const auto & entry : resolutions)
@@ -447,8 +482,15 @@ void CSettingsView::fillValidResolutionsForScreen(int screenIndex)
 	ui->comboBoxResolution->setCurrentIndex(resIndex);
 
 	// if selected resolution no longer exists, force update value to the largest (last) resolution
-	if(resIndex == -1)
+	if(resIndex == -1 && ui->comboBoxResolution->count() > 0)
+	{
 		ui->comboBoxResolution->setCurrentIndex(ui->comboBoxResolution->count() - 1);
+		QStringList selectedResolution = ui->comboBoxResolution->currentText().split("x");
+
+		Settings node = settings.write["video"]["resolution"];
+		node["width"].Float() = selectedResolution[0].toInt();
+		node["height"].Float() = selectedResolution[1].toInt();
+	}
 }
 
 void CSettingsView::fillValidRenderers()
@@ -538,6 +580,7 @@ void CSettingsView::on_comboBoxDisplayIndex_currentIndexChanged(int index)
 	node["displayIndex"].Float() = index;
 
 	fillValidResolutionsForScreen(index);
+	fillValidScalingRange();
 }
 
 void CSettingsView::on_comboBoxFriendlyAI_currentIndexChanged(int index)
