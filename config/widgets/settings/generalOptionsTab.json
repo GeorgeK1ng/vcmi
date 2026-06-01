@@ -141,9 +141,31 @@
 					"callback": "performanceOverlayChanged"
 				},
 				{
-					"name": "enableLargeSpellbookCheckbox",
-					"help": "vcmi.systemOptions.enableLargeSpellbookButton",
-					"callback": "enableLargeSpellbookChanged"
+					"name": "spellbookSizePicker",
+					"type": "toggleGroup",
+					"position": {"x": 10, "y": 230},
+					"items":
+					[
+						{
+							"index": 0,
+							"type": "checkbox",
+							"help": "vcmi.systemOptions.enableLargeSpellbookButton",
+							"position": {"x": 0, "y": 0}
+						},
+						{
+							"index": 1,
+							"type": "checkbox",
+							"help": "vcmi.systemOptions.enableLargeSpellbookButton",
+							"position": {"x": 0, "y": 30}
+						},
+						{
+							"index": 2,
+							"type": "checkbox",
+							"help": "vcmi.systemOptions.enableLargeSpellbookButton",
+							"position": {"x": 0, "y": 60}
+						}
+					],
+					"callback": "spellbookSizeChanged"
 				},
 				{
 					"name": "spellbookAnimationCheckbox",
