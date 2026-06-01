@@ -485,11 +485,17 @@ void CSettingsView::fillValidResolutionsForScreen(int screenIndex)
 	if(resIndex == -1 && ui->comboBoxResolution->count() > 0)
 	{
 		ui->comboBoxResolution->setCurrentIndex(ui->comboBoxResolution->count() - 1);
-		QStringList selectedResolution = ui->comboBoxResolution->currentText().split("x");
 
-		Settings node = settings.write["video"]["resolution"];
-		node["width"].Float() = selectedResolution[0].toInt();
-		node["height"].Float() = selectedResolution[1].toInt();
+		// Borderless fullscreen uses desktop resolution only for display purposes.
+		// Persist fallback resolution only for modes where this setting is selectable.
+		if(!fullscreen || realFullscreen)
+		{
+			QStringList selectedResolution = ui->comboBoxResolution->currentText().split("x");
+
+			Settings node = settings.write["video"]["resolution"];
+			node["width"].Integer() = selectedResolution[0].toInt();
+			node["height"].Integer() = selectedResolution[1].toInt();
+		}
 	}
 }
 
