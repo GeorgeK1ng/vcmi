@@ -142,9 +142,12 @@ void MainWindow::ensureWindowVisibleOnExistingScreen()
 	// Prefer the screen containing the saved/current frame center: before show(), Qt may
 	// still report the primary screen via windowHandle(), even when the saved position
 	// belongs to another connected monitor. If no screen contains the frame, fall back
-	// to the window handle screen and then to the primary screen.
+	// to the window handle screen and then to the primary screen. In that fallback case
+	// the old coordinates belong to a missing display, so center the window instead of
+	// pinning it to the nearest edge.
 	QRect windowGeometry = frameGeometry();
 	auto * targetScreen = QGuiApplication::screenAt(windowGeometry.center());
+	bool centerWindow = targetScreen == nullptr;
 	if(targetScreen == nullptr && windowHandle())
 		targetScreen = windowHandle()->screen();
 	if(targetScreen == nullptr)
@@ -166,6 +169,10 @@ void MainWindow::ensureWindowVisibleOnExistingScreen()
 	}
 
 	QPoint windowPosition = windowGeometry.topLeft();
+	if(centerWindow)
+		windowPosition = QPoint(availableGeometry.left() + (availableGeometry.width() - windowSize.width()) / 2,
+			availableGeometry.top() + (availableGeometry.height() - windowSize.height()) / 2);
+
 	if(windowSize.width() >= availableGeometry.width())
 		windowPosition.setX(availableGeometry.left());
 	else
