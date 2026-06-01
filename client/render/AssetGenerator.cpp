@@ -260,13 +260,9 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);
 
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
-	const int extraColumns = std::max(0, columnsPerPageHalf - 4);
-	const int extraRows = std::max(0, rowsPerPage - 3);
-	const int targetWidth = 800 + extraColumns * 90;
-	const int targetHeight = 600 + extraRows * 97;
-	const int contentBottomY = targetHeight - 55;
-
-	auto image = ENGINE->renderHandler().createImage(Point(targetWidth, targetHeight), CanvasScalingPolicy::IGNORE);
+	(void)columnsPerPageHalf;
+	(void)rowsPerPage;
+	auto image = ENGINE->renderHandler().createImage(Point(800, 600), CanvasScalingPolicy::IGNORE);
 	Canvas canvas = image->getCanvas();
 	// edges
 	canvas.draw(img, Point(0, 0), Rect(15, 38, 90, 45));
@@ -276,26 +272,26 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	// left / right
 	Canvas tmp1 = Canvas(Point(90, 355 - 45), CanvasScalingPolicy::IGNORE);
 	tmp1.draw(img, Point(0, 0), Rect(15, 38 + 45, 90, 355 - 45));
-	canvas.drawScaled(tmp1, Point(0, 45), Point(90, contentBottomY - 45));
+	canvas.drawScaled(tmp1, Point(0, 45), Point(90, 415));
 	Canvas tmp2 = Canvas(Point(95, 355 - 45), CanvasScalingPolicy::IGNORE);
 	tmp2.draw(img, Point(0, 0), Rect(509, 38 + 45, 95, 355 - 45));
-	canvas.drawScaled(tmp2, Point(targetWidth - 95, 45), Point(95, contentBottomY - 45));
+	canvas.drawScaled(tmp2, Point(705, 45), Point(95, 415));
 	// top / bottom
 	Canvas tmp3 = Canvas(Point(409, 45), CanvasScalingPolicy::IGNORE);
 	tmp3.draw(img, Point(0, 0), Rect(100, 38, 409, 45));
-	canvas.drawScaled(tmp3, Point(90, 0), Point(targetWidth - 185, 45));
+	canvas.drawScaled(tmp3, Point(90, 0), Point(615, 45));
 	Canvas tmp4 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp4.draw(img, Point(0, 0), Rect(100, 400, 409, 141));
-	canvas.drawScaled(tmp4, Point(90, contentBottomY - 85), Point(targetWidth - 185, targetHeight - (contentBottomY - 85)));
+	canvas.drawScaled(tmp4, Point(90, 460), Point(615, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp5.draw(img, Point(0, 0), Rect(100, 38 + 45, 509 - 15, 400 - 38));
-	canvas.drawScaled(tmp5, Point(90, 45), Point(targetWidth - 185, contentBottomY - 45));
+	canvas.drawScaled(tmp5, Point(90, 45), Point(615, 415));
 	// carpet
 	Canvas tmp6 = Canvas(Point(590, 59), CanvasScalingPolicy::IGNORE);
 	tmp6.draw(img, Point(0, 0), Rect(15, 484, 590, 59));
-	canvas.drawScaled(tmp6, Point(0, targetHeight - 55), Point(targetWidth, 59));
-	const int bookmarkY = 464 + extraRows * 97;
+	canvas.drawScaled(tmp6, Point(0, 545), Point(800, 59));
+	const int bookmarkY = 464;
 	// remove bookmarks
 	for (int i = 0; i < 56; i++)
 		canvas.draw(Canvas(canvas, Rect(i < 30 ? 268 : 327, bookmarkY, 1, 46)), Point(269 + i, bookmarkY));
