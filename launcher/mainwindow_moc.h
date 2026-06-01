@@ -49,6 +49,10 @@ class MainWindow : public QMainWindow
 #endif
 
 	void load();
+	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false,
+		bool preferCurrentGeometryScreen = true,
+		QScreen * forcedTargetScreen = nullptr);
+	void saveWindowSettingsUnchecked();
 
 	enum TabRows
 	{
@@ -67,10 +71,6 @@ public:
 
 	void updateTranslation();
 	void computeSidePanelSizes();
-	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false,
-		bool preferCurrentGeometryScreen = true,
-		QScreen * forcedTargetScreen = nullptr);
-	void saveWindowSettingsUnchecked();
 	
 	void detectPreferredLanguage();
 	void enterSetup();

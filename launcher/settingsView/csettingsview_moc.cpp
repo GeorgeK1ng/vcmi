@@ -91,7 +91,7 @@ void CSettingsView::setDisplayList()
 	{
 		displayIndex = 0;
 		Settings node = settings.write["video"]["displayIndex"];
-		node->Float() = displayIndex;
+		node->Integer() = displayIndex;
 	}
 
 	if(list.count() < 2)
@@ -548,8 +548,8 @@ void CSettingsView::on_comboBoxResolution_currentTextChanged(const QString & arg
 	QStringList list = arg1.split("x");
 
 	Settings node = settings.write["video"]["resolution"];
-	node["width"].Float() = list[0].toInt();
-	node["height"].Float() = list[1].toInt();
+	node["width"].Integer() = list[0].toInt();
+	node["height"].Integer() = list[1].toInt();
 
 	fillValidResolutions();
 	fillValidScalingRange();
@@ -583,7 +583,7 @@ void CSettingsView::on_buttonFullModExtraction_toggled(bool value)
 void CSettingsView::on_comboBoxDisplayIndex_currentIndexChanged(int index)
 {
 	Settings node = settings.write["video"];
-	node["displayIndex"].Float() = index;
+	node["displayIndex"].Integer() = index;
 
 	fillValidResolutionsForScreen(index);
 	fillValidScalingRange();

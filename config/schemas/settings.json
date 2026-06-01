@@ -785,10 +785,10 @@
 							"required" : [ "valid", "x", "y", "width", "height" ],
 							"properties" : {
 								"valid" : { "type" : "boolean", "default" : false },
-								"x" : { "type" : "number", "default" : 0 },
-								"y" : { "type" : "number", "default" : 0 },
-								"width" : { "type" : "number", "default" : 0 },
-								"height" : { "type" : "number", "default" : 0 }
+								"x" : { "type" : "integer", "default" : 0 },
+								"y" : { "type" : "integer", "default" : 0 },
+								"width" : { "type" : "integer", "default" : 0 },
+								"height" : { "type" : "integer", "default" : 0 }
 							}
 						}
 					}

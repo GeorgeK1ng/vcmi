@@ -104,7 +104,9 @@ MainWindow::MainWindow(QWidget * parent)
 					targetScreen = screens.isEmpty() ? nullptr : screens.front();
 			}
 
-			ensureWindowVisibleOnExistingScreen(forceCenterOnRemainingScreen, !forceCenterOnRemainingScreen, targetScreen);
+			ensureWindowVisibleOnExistingScreen(forceCenterOnRemainingScreen,
+				!forceCenterOnRemainingScreen,
+				targetScreen);
 			saveWindowSettingsUnchecked();
 		};
 
@@ -162,7 +164,10 @@ MainWindow::MainWindow(QWidget * parent)
 		UpdateDialog::showUpdateDialog(false);
 }
 
-void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool preferCurrentGeometryScreen, QScreen * forcedTargetScreen)
+void MainWindow::ensureWindowVisibleOnExistingScreen(
+	bool centerWindow,
+	bool preferCurrentGeometryScreen,
+	QScreen * forcedTargetScreen)
 {
 #ifndef VCMI_MOBILE
 	// Work with frame geometry so native window decorations are kept on-screen too.
@@ -175,16 +180,26 @@ void MainWindow::ensureWindowVisibleOnExistingScreen(bool centerWindow, bool pre
 	// selected screen, e.g. for startup or when the launcher's screen was removed.
 	// Screen removal passes the remaining screen explicitly because windowHandle()
 	// can still point to the removed screen during the hotplug transition.
+	const auto screens = QGuiApplication::screens();
 	QRect windowGeometry = frameGeometry();
 	QScreen * targetScreen = forcedTargetScreen;
+	if(targetScreen != nullptr && !screens.contains(targetScreen))
+		targetScreen = nullptr;
+
 	if(targetScreen == nullptr && preferCurrentGeometryScreen)
 		targetScreen = QGuiApplication::screenAt(windowGeometry.center());
 
 	bool savedScreenIsMissing = preferCurrentGeometryScreen && targetScreen == nullptr;
 	if(targetScreen == nullptr && !centerWindow && windowHandle())
+	{
 		targetScreen = windowHandle()->screen();
+		if(targetScreen != nullptr && !screens.contains(targetScreen))
+			targetScreen = nullptr;
+	}
 	if(targetScreen == nullptr)
 		targetScreen = QGuiApplication::primaryScreen();
+	if(targetScreen != nullptr && !screens.contains(targetScreen))
+		targetScreen = nullptr;
 	centerWindow = centerWindow || savedScreenIsMissing;
 
 	if(targetScreen == nullptr)
