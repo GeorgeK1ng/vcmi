@@ -21,8 +21,6 @@
 #include "../lib/texts/Languages.h"
 #include "../lib/ExceptionsCommon.h"
 
-#include "../vcmiqt/launcherdirs.h"
-
 #include "updatedialog_moc.h"
 #include "main.h"
 #include "helper.h"
@@ -108,15 +106,15 @@ MainWindow::MainWindow(QWidget * parent)
 
 #ifndef VCMI_MOBILE
 	//load window settings
-	QSettings s = CLauncherDirs::getSettings(Ui::appName);
-
-	auto size = s.value("MainWindow/WindowSize").toSize();
-	if(size.isValid())
+	const auto & windowGeometry = settings["launcher"]["mainWindow"]["geometry"];
+	if(windowGeometry["valid"].Bool())
 	{
-		resize(size);
+		QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
+		if(windowSize.isValid())
+			resize(windowSize);
+
+		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
 	}
-	if(const auto position = s.value("MainWindow/WindowPosition"); position.isValid())
-		move(position.toPoint());
 	ensureWindowVisibleOnExistingScreen();
 #endif
 
@@ -197,9 +195,12 @@ void MainWindow::saveWindowSettings()
 	ensureWindowVisibleOnExistingScreen();
 
 	//save window settings
-	QSettings s = CLauncherDirs::getSettings(Ui::appName);
-	s.setValue("MainWindow/WindowSize", size());
-	s.setValue("MainWindow/WindowPosition", pos());
+	Settings windowGeometry = settings.write["launcher"]["mainWindow"]["geometry"];
+	windowGeometry["valid"].Bool() = true;
+	windowGeometry["x"].Float() = pos().x();
+	windowGeometry["y"].Float() = pos().y();
+	windowGeometry["width"].Float() = size().width();
+	windowGeometry["height"].Float() = size().height();
 #endif
 }
 
