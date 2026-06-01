@@ -720,7 +720,8 @@
 				"ignoreSslErrors",
 				"updateOnStartup",
 				"updateConfigUrl",
-				"trackClipboardState"
+				"trackClipboardState",
+				"mainWindow"
 			],
 			"properties" : {
 				"defaultRepositoryEnabled" : {
@@ -770,6 +771,27 @@
 					"defaultAndroid": false,
 					"defaultDesktop" : true
 
+				},
+				"mainWindow" : {
+					"type" : "object",
+					"default" : {},
+					"additionalProperties" : false,
+					"required" : [ "geometry" ],
+					"properties" : {
+						"geometry" : {
+							"type" : "object",
+							"default" : {},
+							"additionalProperties" : false,
+							"required" : [ "valid", "x", "y", "width", "height" ],
+							"properties" : {
+								"valid" : { "type" : "boolean", "default" : false },
+								"x" : { "type" : "number", "default" : 0 },
+								"y" : { "type" : "number", "default" : 0 },
+								"width" : { "type" : "number", "default" : 0 },
+								"height" : { "type" : "number", "default" : 0 }
+							}
+						}
+					}
 				}
 			}
 		},

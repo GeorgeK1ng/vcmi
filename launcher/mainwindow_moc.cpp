@@ -21,8 +21,6 @@
 #include "../lib/texts/Languages.h"
 #include "../lib/ExceptionsCommon.h"
 
-#include "../vcmiqt/launcherdirs.h"
-
 #include "updatedialog_moc.h"
 #include "main.h"
 #include "helper.h"
@@ -91,6 +89,13 @@ MainWindow::MainWindow(QWidget * parent)
 
 	ui->setupUi(this);
 
+#ifndef VCMI_MOBILE
+	connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen *)
+	{
+		QTimer::singleShot(0, this, &MainWindow::saveWindowSettings);
+	});
+#endif
+
 	setAcceptDrops(true);
 
 	setWindowIcon(QIcon{":/icons/menu-game.png"});
@@ -101,18 +106,16 @@ MainWindow::MainWindow(QWidget * parent)
 
 #ifndef VCMI_MOBILE
 	//load window settings
-	QSettings s = CLauncherDirs::getSettings(Ui::appName);
+	const auto & windowGeometry = settings["launcher"]["mainWindow"]["geometry"];
+	if(windowGeometry["valid"].Bool())
+	{
+		QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
+		if(windowSize.isValid())
+			resize(windowSize);
 
-	auto size = s.value("MainWindow/WindowSize").toSize();
-	if(size.isValid())
-	{
-		resize(size);
+		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
 	}
-	auto position = s.value("MainWindow/WindowPosition").toPoint();
-	if(!position.isNull())
-	{
-		move(position);
-	}
+	ensureWindowVisibleOnExistingScreen();
 #endif
 
 	computeSidePanelSizes();
@@ -128,6 +131,77 @@ MainWindow::MainWindow(QWidget * parent)
 	
 	if(settings["launcher"]["updateOnStartup"].Bool())
 		UpdateDialog::showUpdateDialog(false);
+}
+
+void MainWindow::ensureWindowVisibleOnExistingScreen()
+{
+#ifndef VCMI_MOBILE
+	// Work with frame geometry so native window decorations are kept on-screen too.
+	// Prefer the screen containing the saved/current frame center: before show(), Qt may
+	// still report the primary screen via windowHandle(), even when the saved position
+	// belongs to another connected monitor. If no screen contains the frame, fall back
+	// to the window handle screen and then to the primary screen. In that fallback case
+	// the old coordinates belong to a missing display, so center the window instead of
+	// pinning it to the nearest edge.
+	QRect windowGeometry = frameGeometry();
+	auto * targetScreen = QGuiApplication::screenAt(windowGeometry.center());
+	bool centerWindow = targetScreen == nullptr;
+	if(targetScreen == nullptr && windowHandle())
+		targetScreen = windowHandle()->screen();
+	if(targetScreen == nullptr)
+		targetScreen = QGuiApplication::primaryScreen();
+
+	if(targetScreen == nullptr)
+		return;
+
+	const QRect availableGeometry = targetScreen->availableGeometry();
+	if(!availableGeometry.isValid())
+		return;
+
+	QSize windowSize = windowGeometry.size();
+	if(windowSize.width() > availableGeometry.width() || windowSize.height() > availableGeometry.height())
+	{
+		windowSize = windowSize.boundedTo(availableGeometry.size());
+		windowGeometry.setSize(windowSize);
+		resize(windowSize);
+	}
+
+	QPoint windowPosition = windowGeometry.topLeft();
+	if(centerWindow)
+		windowPosition = QPoint(availableGeometry.left() + (availableGeometry.width() - windowSize.width()) / 2,
+			availableGeometry.top() + (availableGeometry.height() - windowSize.height()) / 2);
+
+	if(windowSize.width() >= availableGeometry.width())
+		windowPosition.setX(availableGeometry.left());
+	else
+		windowPosition.setX(qBound(availableGeometry.left(),
+			windowPosition.x(),
+			availableGeometry.right() - windowSize.width() + 1));
+
+	if(windowSize.height() >= availableGeometry.height())
+		windowPosition.setY(availableGeometry.top());
+	else
+		windowPosition.setY(qBound(availableGeometry.top(),
+			windowPosition.y(),
+			availableGeometry.bottom() - windowSize.height() + 1));
+
+	move(windowPosition);
+#endif
+}
+
+void MainWindow::saveWindowSettings()
+{
+#ifndef VCMI_MOBILE
+	ensureWindowVisibleOnExistingScreen();
+
+	//save window settings
+	Settings windowGeometry = settings.write["launcher"]["mainWindow"]["geometry"];
+	windowGeometry["valid"].Bool() = true;
+	windowGeometry["x"].Integer() = pos().x();
+	windowGeometry["y"].Integer() = pos().y();
+	windowGeometry["width"].Integer() = size().width();
+	windowGeometry["height"].Integer() = size().height();
+#endif
 }
 
 void MainWindow::detectPreferredLanguage()
@@ -202,12 +276,7 @@ void MainWindow::changeEvent(QEvent * event)
 
 MainWindow::~MainWindow()
 {
-#ifndef VCMI_MOBILE
-	//save window settings
-	QSettings s = CLauncherDirs::getSettings(Ui::appName);
-	s.setValue("MainWindow/WindowSize", size());
-	s.setValue("MainWindow/WindowPosition", pos());
-#endif
+	saveWindowSettings();
 
 	delete ui;
 }
