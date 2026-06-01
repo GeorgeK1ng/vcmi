@@ -197,10 +197,10 @@ void MainWindow::saveWindowSettings()
 	//save window settings
 	Settings windowGeometry = settings.write["launcher"]["mainWindow"]["geometry"];
 	windowGeometry["valid"].Bool() = true;
-	windowGeometry["x"].Float() = pos().x();
-	windowGeometry["y"].Float() = pos().y();
-	windowGeometry["width"].Float() = size().width();
-	windowGeometry["height"].Float() = size().height();
+	windowGeometry["x"].Integer() = pos().x();
+	windowGeometry["y"].Integer() = pos().y();
+	windowGeometry["width"].Integer() = size().width();
+	windowGeometry["height"].Integer() = size().height();
 #endif
 }
 
