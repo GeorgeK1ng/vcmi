@@ -289,14 +289,15 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	Canvas tmp4 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp4.draw(img, Point(0, 0), Rect(100, 400, 409, 141));
 	// Remove bookmark artwork before scaling bottom strip, otherwise wider spellbooks also scale the old bookmarks.
-	for(int i = 0; i < 38; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(119, 5, 1, 47)), Point(120 + i, 5));
-	for(int i = 0; i < 38; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(253, 6, 1, 41)), Point(254 + i, 6));
-	for(int i = 0; i < 38; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(316, 6, 1, 45)), Point(317 + i, 6));
-	for(int i = 0; i < 38; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(376, 6, 1, 47)), Point(378 + i, 6));
+	auto eraseSourceBookmark = [&tmp4](int sourceX, int targetX, int y, int width, int height)
+	{
+		for(int i = 0; i < width; ++i)
+			tmp4.draw(Canvas(tmp4, Rect(sourceX, y, 1, height)), Point(targetX + i, y));
+	};
+	eraseSourceBookmark(119, 120, 5, 40, 58);
+	eraseSourceBookmark(253, 254, 6, 42, 58);
+	eraseSourceBookmark(316, 317, 6, 42, 58);
+	eraseSourceBookmark(375, 376, 6, 33, 58);
 	canvas.drawScaled(tmp4, Point(90, 460 + deltaY), Point(615 + deltaX, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
@@ -316,6 +317,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, bookmarkY, 1, 44)), Point(565 + i, bookmarkY));
 	for (int i = 0; i < 56; i++)
 		canvas.draw(Canvas(canvas, Rect(656, bookmarkY, 1, 47)), Point(657 + i, bookmarkY));
+	// Smooth out original rectangular bookmark slots into one dark control rail before drawing new bookmarks.
+	canvas.drawColorBlended(Rect(90, bookmarkY + 42, targetWidth - 185, 30), ColorRGBA(0, 0, 0, 88));
 	const int rightBookmarkOffset = extraLargeWidth;
 	// draw bookmarks
 	canvas.draw(img, Point(278, bookmarkY), Rect(220, 405, 37, 47));
