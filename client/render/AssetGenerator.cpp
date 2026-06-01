@@ -262,7 +262,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	std::shared_ptr<IImage> img = ENGINE->renderHandler().loadImage(locator);
 	const int extraColumns = std::max(0, columnsPerPageHalf - 3);
 	const int extraRows = std::max(0, rowsPerPage - 4);
-	const int deltaX = extraColumns * 85;
+	const int extraLargeWidth = columnsPerPageHalf >= 4 ? 100 : 0;
+	const int deltaX = extraColumns * 85 + extraLargeWidth;
 	const int deltaY = extraRows * 97;
 	const int targetWidth = 800 + deltaX;
 	const int targetHeight = 600 + deltaY;

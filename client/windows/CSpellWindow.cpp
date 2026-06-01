@@ -186,7 +186,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 		spellsPerPage = spellbookColumnsPerPageHalf * spellbookRowsPerPage * 2;
 		if(isExtraLargeSpellbook)
 		{
-			offR += 85;
+			offR += 185;
 			offRM += 85;
 			offB += extraSpellbookRows * 97;
 		}
