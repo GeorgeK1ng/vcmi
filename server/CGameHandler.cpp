@@ -307,8 +307,16 @@ void CGameHandler::levelUpCommander(const CCommanderInstance * c)
 
 	if (!skillAmount)
 	{
-		sendAndApply(clu);
-		levelUpCommander(c);
+		if(hero->getOwner().isValidPlayer())
+		{
+			auto commanderLevelUp = std::make_shared<CCommanderLevelUpDialogQuery>(this, clu, hero);
+			queries->addQuery(commanderLevelUp);
+		}
+		else
+		{
+			sendAndApply(clu);
+			levelUpCommander(c);
+		}
 	}
 	else if (skillAmount == 1  ||  hero->tempOwner == PlayerColor::NEUTRAL) //choose skill automatically
 	{
