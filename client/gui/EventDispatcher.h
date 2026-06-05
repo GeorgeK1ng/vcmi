@@ -67,6 +67,7 @@ public:
 	/// Mouse events
 	void dispatchMouseLeftButtonPressed(const Point & position, int tolerance);
 	void dispatchMouseLeftButtonReleased(const Point & position, int tolerance);
+	void dispatchMouseLeftButtonCancelled(const Point & position);
 	void dispatchMouseScrolled(const Point & distance, const Point & position);
 	void dispatchMouseDoubleClick(const Point & position, int tolerance);
 	void dispatchMouseMoved(const Point & distance, const Point & position);
@@ -81,6 +82,7 @@ public:
 	void dispatchGesturePanningEnded(const Point & initialPosition, const Point & finalPosition);
 	void dispatchGesturePanning(const Point & initialPosition, const Point & currentPosition, const Point & lastUpdateDistance);
 	void dispatchGesturePinch(const Point & initialPosition, double distance);
+	bool hasGestureReceiverAtPosition(const Point & position) const;
 
 	/// Text input events
 	void dispatchTextInput(const std::string & text);

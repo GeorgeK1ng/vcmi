@@ -33,7 +33,7 @@
 #include <SDL_timer.h>
 
 InputSourceTouch::InputSourceTouch()
-	: lastTapTimeTicks(0), lastLeftClickTimeTicks(0), numTouchFingers(0)
+	: lastTapTimeTicks(0), lastLeftClickTimeTicks(0), numTouchFingers(0), touchStartedWithLeftClick(false)
 {
 	params.useRelativeMode = settings["general"]["userRelativePointer"].Bool();
 	params.relativeModeSpeedFactor = settings["general"]["relativePointerSpeedMultiplier"].Float();
@@ -98,6 +98,11 @@ void InputSourceTouch::handleEventFingerMotion(const SDL_TouchFingerEvent & tfin
 			Point distance = convertTouchToMouse(tfinger) - lastTapPosition;
 			if ( std::abs(distance.x) > params.panningSensitivityThreshold || std::abs(distance.y) > params.panningSensitivityThreshold)
 			{
+				if(touchStartedWithLeftClick)
+				{
+					ENGINE->events().dispatchMouseLeftButtonCancelled(lastTapPosition);
+					touchStartedWithLeftClick = false;
+				}
 				state = state == TouchState::TAP_DOWN_SHORT ? TouchState::TAP_DOWN_PANNING : TouchState::TAP_DOWN_PANNING_POPUP;
 				ENGINE->events().dispatchGesturePanningStarted(lastTapPosition);
 			}
@@ -162,12 +167,20 @@ void InputSourceTouch::handleEventFingerDown(const SDL_TouchFingerEvent & tfinge
 		{
 			lastTapPosition = convertTouchToMouse(tfinger);
 			ENGINE->input().setCursorPosition(lastTapPosition);
+			touchStartedWithLeftClick = !ENGINE->events().hasGestureReceiverAtPosition(lastTapPosition);
+			if(touchStartedWithLeftClick)
+				ENGINE->events().dispatchMouseLeftButtonPressed(lastTapPosition, params.touchToleranceDistance);
 			state = TouchState::TAP_DOWN_SHORT;
 			break;
 		}
 		case TouchState::TAP_DOWN_SHORT:
 		{
 			ENGINE->input().setCursorPosition(convertTouchToMouse(tfinger));
+			if(touchStartedWithLeftClick)
+			{
+				ENGINE->events().dispatchMouseLeftButtonCancelled(lastTapPosition);
+				touchStartedWithLeftClick = false;
+			}
 			ENGINE->events().dispatchGesturePanningStarted(lastTapPosition);
 			state = TouchState::TAP_DOWN_DOUBLE;
 			break;
@@ -220,18 +233,21 @@ void InputSourceTouch::handleEventFingerUp(const SDL_TouchFingerEvent & tfinger)
 		case TouchState::TAP_DOWN_SHORT:
 		{
 			ENGINE->input().setCursorPosition(convertTouchToMouse(tfinger));
-			if(tfinger.timestamp - lastLeftClickTimeTicks < params.doubleTouchTimeMilliseconds && (convertTouchToMouse(tfinger) - lastLeftClickPosition).length() < params.doubleTouchToleranceDistance)
+			Point position = convertTouchToMouse(tfinger);
+			if(tfinger.timestamp - lastLeftClickTimeTicks < params.doubleTouchTimeMilliseconds && (position - lastLeftClickPosition).length() < params.doubleTouchToleranceDistance)
 			{
-				ENGINE->events().dispatchMouseDoubleClick(convertTouchToMouse(tfinger), params.touchToleranceDistance);
-				ENGINE->events().dispatchMouseLeftButtonReleased(convertTouchToMouse(tfinger), params.touchToleranceDistance);
+				ENGINE->events().dispatchMouseDoubleClick(position, params.touchToleranceDistance);
+				ENGINE->events().dispatchMouseLeftButtonReleased(position, params.touchToleranceDistance);
 			}
 			else
 			{
-				ENGINE->events().dispatchMouseLeftButtonPressed(convertTouchToMouse(tfinger), params.touchToleranceDistance);
-				ENGINE->events().dispatchMouseLeftButtonReleased(convertTouchToMouse(tfinger), params.touchToleranceDistance);
+				if(!touchStartedWithLeftClick)
+					ENGINE->events().dispatchMouseLeftButtonPressed(position, params.touchToleranceDistance);
+				ENGINE->events().dispatchMouseLeftButtonReleased(position, params.touchToleranceDistance);
 				lastLeftClickTimeTicks = tfinger.timestamp;
-				lastLeftClickPosition = convertTouchToMouse(tfinger);
+				lastLeftClickPosition = position;
 			}
+			touchStartedWithLeftClick = false;
 			state = TouchState::IDLE;
 			break;
 		}
@@ -281,6 +297,11 @@ void InputSourceTouch::handleUpdate()
 		uint32_t currentTime = SDL_GetTicks();
 		if (currentTime > lastTapTimeTicks + params.longTouchTimeMilliseconds)
 		{
+			if(touchStartedWithLeftClick)
+			{
+				ENGINE->events().dispatchMouseLeftButtonCancelled(lastTapPosition);
+				touchStartedWithLeftClick = false;
+			}
 			ENGINE->events().dispatchShowPopup(ENGINE->getCursorPosition(), params.touchToleranceDistance);
 
 			if (ENGINE->windows().isTopWindowPopup())

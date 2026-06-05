@@ -110,6 +110,7 @@ class InputSourceTouch
 	uint32_t lastLeftClickTimeTicks;
 	Point lastLeftClickPosition;
 	int numTouchFingers;
+	bool touchStartedWithLeftClick;
 
 	std::map<SDL_FingerID, float> motionAccumulatedX;
 	std::map<SDL_FingerID, float> motionAccumulatedY;
