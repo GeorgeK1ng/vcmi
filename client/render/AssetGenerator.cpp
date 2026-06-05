@@ -317,8 +317,8 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, bookmarkY, 1, 44)), Point(565 + i, bookmarkY));
 	for (int i = 0; i < 56; i++)
 		canvas.draw(Canvas(canvas, Rect(656, bookmarkY, 1, 47)), Point(657 + i, bookmarkY));
-	const int rightBookmarkOffset = extraLargeWidth;
-	const int exitBookmarkOffset = rightBookmarkOffset + extraLargeWidth;
+	const int rightBookmarkOffset = extraLargeWidth == 0 ? 0 : extraLargeWidth - 6;
+	const int exitBookmarkOffset = extraLargeWidth == 0 ? 0 : 2 * extraLargeWidth - 15;
 	// draw bookmarks
 	canvas.draw(img, Point(278, bookmarkY), Rect(220, 405, 37, 47));
 	canvas.draw(img, Point(481 + rightBookmarkOffset, bookmarkY + 1), Rect(354, 406, 37, 41));
