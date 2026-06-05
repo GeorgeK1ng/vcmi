@@ -157,8 +157,16 @@ void CGameHandler::levelUpHero(const CGHeroInstance * hero)
 
 	if (hlu.skills.size() == 0)
 	{
-		sendAndApply(hlu);
-		levelUpHero(hero);
+		if(hero->getOwner().isValidPlayer())
+		{
+			auto levelUpQuery = std::make_shared<CHeroLevelUpDialogQuery>(this, hlu, hero);
+			queries->addQuery(levelUpQuery);
+		}
+		else
+		{
+			sendAndApply(hlu);
+			levelUpHero(hero);
+		}
 	}
 	else if (hlu.skills.size() == 1 || !hero->getOwner().isValidPlayer())
 	{
@@ -337,6 +345,12 @@ void CGameHandler::giveStackExperience(const CArmedInstance * army, TExpType val
 
 void CGameHandler::giveExperience(const CGHeroInstance * hero, TExpType amountToGain)
 {
+	giveExperienceWithoutLevelUp(hero, amountToGain);
+	expGiven(hero);
+}
+
+void CGameHandler::giveExperienceWithoutLevelUp(const CGHeroInstance * hero, TExpType amountToGain)
+{
 	TExpType maxExp = LIBRARY->heroh->reqExp(LIBRARY->heroh->maxSupportedLevel());
 	TExpType currHeroExp = hero->exp;
 
@@ -386,7 +400,6 @@ void CGameHandler::giveExperience(const CGHeroInstance * hero, TExpType amountTo
 		sendAndApply(scp);
 	}
 
-	expGiven(hero);
 }
 
 void CGameHandler::changePrimSkill(const CGHeroInstance * hero, PrimarySkill which, si64 val, ChangeValueMode mode)
