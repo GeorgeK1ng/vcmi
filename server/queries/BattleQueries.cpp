@@ -20,6 +20,7 @@
 #include "../../lib/battle/BattleLayout.h"
 #include "../../lib/battle/SideInBattle.h"
 #include "../../lib/CPlayerState.h"
+#include "../../lib/gameState/CGameState.h"
 #include "../../lib/mapObjects/CGObjectInstance.h"
 #include "../../lib/networkPacks/PacksForServer.h"
 
