@@ -297,7 +297,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	eraseSourceBookmark(119, 120, 5, 40, 58);
 	eraseSourceBookmark(253, 254, 6, 42, 58);
 	eraseSourceBookmark(316, 317, 6, 42, 58);
-	eraseSourceBookmark(375, 376, 6, 37, 58);
+	eraseSourceBookmark(375, 376, 6, 44, 58);
 	canvas.drawScaled(tmp4, Point(90, 460 + deltaY), Point(615 + deltaX, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
