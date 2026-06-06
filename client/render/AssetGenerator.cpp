@@ -294,24 +294,15 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	canvas.drawScaled(tmp3, Point(90, 0), Point(615 + deltaX, 45));
 	Canvas tmp4 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp4.draw(img, Point(0, 0), Rect(100, 400, 409, 141));
-	// Remove bookmark artwork before scaling bottom strip, otherwise wider spellbooks also scale the old bookmarks.
-	auto eraseSourceBookmark = [&tmp4](int sourceX, int targetX, int y, int width, int height)
-	{
-		const int patchWidth = 8;
-		// Copy the clean source into an independent canvas. A cropped Canvas shares its backing image
-		// with tmp4, so drawing overlapping tiles directly from it would progressively corrupt the patch.
-		Canvas cleanPatch(Point(patchWidth, height), CanvasScalingPolicy::IGNORE);
-		cleanPatch.draw(Canvas(tmp4, Rect(sourceX - patchWidth + 1, y, patchWidth, height)), Point(0, 0));
-		for(int x = 0; x < width; x += patchWidth)
-		{
-			const int blitWidth = std::min(patchWidth, width - x);
-			tmp4.draw(Canvas(cleanPatch, Rect(0, 0, blitWidth, height)), Point(targetX + x, y));
-		}
-	};
-	eraseSourceBookmark(119, 120, 5, 40, 58);
-	eraseSourceBookmark(253, 254, 6, 42, 58);
-	eraseSourceBookmark(316, 317, 6, 42, 58);
-	eraseSourceBookmark(375, 376, 6, 44, 58);
+	// Remove bookmarks before scaling using the same single-column reconstruction as the original generator.
+	for(int i = 0; i < 40; ++i)
+		tmp4.draw(Canvas(tmp4, Rect(119, 5, 1, 58)), Point(120 + i, 5));
+	for(int i = 0; i < 42; ++i)
+		tmp4.draw(Canvas(tmp4, Rect(253, 6, 1, 58)), Point(254 + i, 6));
+	for(int i = 0; i < 42; ++i)
+		tmp4.draw(Canvas(tmp4, Rect(316, 6, 1, 58)), Point(317 + i, 6));
+	for(int i = 0; i < 33; ++i)
+		tmp4.draw(Canvas(tmp4, Rect(375, 6, 1, 58)), Point(376 + i, 6));
 	canvas.drawScaled(tmp4, Point(90, 460 + deltaY), Point(615 + deltaX, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
