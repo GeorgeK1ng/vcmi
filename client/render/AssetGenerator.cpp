@@ -329,10 +329,24 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	canvas.draw(img, Point(481 + rightBookmarkOffset, bookmarkY + 1), Rect(354, 406, 37, 41));
 	canvas.draw(img, Point(575 + rightBookmarkOffset, bookmarkY + 1), Rect(417, 406, 37, 45));
 	canvas.draw(img, Point(667 + exitBookmarkOffset, bookmarkY + 1), Rect(478, 406, 37, 47));
-	const int statusBarOverlayHeight = 30;
-	canvas.drawColorBlended(Rect(0, image->height() - statusBarOverlayHeight, image->width(), statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
+	if(columnsPerPageHalf < 3)
+		return image;
 
-	return image;
+	// Leave horizontal space for PLAYER_COLORED_BORDERED_STATUSBAR and rebuild the status bar on top of the book.
+	const int horizontalBorderMargin = 15;
+	const int statusBarOverlayHeight = 30;
+	auto result = createDialogBackground(Point(image->width() + 2 * horizontalBorderMargin, image->height()));
+	Canvas resultCanvas = result->getCanvas();
+	resultCanvas.draw(image, Point(horizontalBorderMargin, 0));
+
+	auto dialogBackground = ENGINE->renderHandler().loadImage(ImageLocator(ImagePath::builtin("DiBoxBck"), EImageBlitMode::OPAQUE));
+	for(int x = 0; x < result->width(); x += dialogBackground->width())
+	{
+		resultCanvas.draw(dialogBackground, Point(x, result->height() - statusBarOverlayHeight), Rect(0, 0, std::min(dialogBackground->width(), result->width() - x), statusBarOverlayHeight));
+	}
+	resultCanvas.drawColorBlended(Rect(0, result->height() - statusBarOverlayHeight, result->width(), statusBarOverlayHeight), ColorRGBA(0, 0, 0, 88));
+
+	return result;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createMuPopUpCustom() const
