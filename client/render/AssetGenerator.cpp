@@ -294,15 +294,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	canvas.drawScaled(tmp3, Point(90, 0), Point(615 + deltaX, 45));
 	Canvas tmp4 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
 	tmp4.draw(img, Point(0, 0), Rect(100, 400, 409, 141));
-	// Remove bookmarks before scaling using the same single-column reconstruction as the original generator.
-	for(int i = 0; i < 40; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(119, 5, 1, 58)), Point(120 + i, 5));
-	for(int i = 0; i < 42; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(253, 6, 1, 58)), Point(254 + i, 6));
-	for(int i = 0; i < 42; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(316, 6, 1, 58)), Point(317 + i, 6));
-	for(int i = 0; i < 33; ++i)
-		tmp4.draw(Canvas(tmp4, Rect(375, 6, 1, 58)), Point(376 + i, 6));
 	canvas.drawScaled(tmp4, Point(90, 460 + deltaY), Point(615 + deltaX, 141));
 	// middle
 	Canvas tmp5 = Canvas(Point(409, 141), CanvasScalingPolicy::IGNORE);
@@ -313,15 +304,26 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	tmp6.draw(img, Point(0, 0), Rect(15, 484, 590, 59));
 	canvas.drawScaled(tmp6, Point(0, 545 + deltaY), Point(targetWidth, 59));
 	const int bookmarkY = 464 + deltaY;
-	// remove bookmarks
-	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(i < 30 ? 268 : 327, bookmarkY, 1, 46)), Point(269 + i, bookmarkY));
-	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(469, bookmarkY, 1, 42)), Point(470 + i, bookmarkY));
-	for (int i = 0; i < 57; i++)
-		canvas.draw(Canvas(canvas, Rect(i < 30 ? 564 : 630, bookmarkY, 1, 44)), Point(565 + i, bookmarkY));
-	for (int i = 0; i < 56; i++)
-		canvas.draw(Canvas(canvas, Rect(656, bookmarkY, 1, 47)), Point(657 + i, bookmarkY));
+	// Remove bookmarks after scaling, matching the original generator. Map its cleanup coordinates to wider books.
+	auto scaleBottomX = [deltaX](int x)
+	{
+		return 90 + (x - 90) * (615 + deltaX) / 615;
+	};
+	auto eraseScaledBookmark = [&canvas, &scaleBottomX, bookmarkY](int begin, int end, int sourceLeft, int sourceRight, int switchAt, int height)
+	{
+		const int scaledBegin = scaleBottomX(begin);
+		const int scaledEnd = scaleBottomX(end);
+		const int scaledSwitch = scaleBottomX(switchAt);
+		for(int x = scaledBegin; x < scaledEnd; ++x)
+		{
+			const int sourceX = scaleBottomX(x < scaledSwitch ? sourceLeft : sourceRight);
+			canvas.draw(Canvas(canvas, Rect(sourceX, bookmarkY, 1, height)), Point(x, bookmarkY));
+		}
+	};
+	eraseScaledBookmark(269, 325, 268, 327, 299, 46);
+	eraseScaledBookmark(470, 526, 469, 469, 526, 42);
+	eraseScaledBookmark(565, 622, 564, 630, 595, 44);
+	eraseScaledBookmark(657, 713, 656, 656, 713, 47);
 	const int rightBookmarkOffset = extraLargeWidth == 0 ? 0 : extraLargeWidth - 6;
 	const int exitBookmarkOffset = extraLargeWidth == 0 ? 0 : 2 * extraLargeWidth - 15;
 	// draw bookmarks
