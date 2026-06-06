@@ -157,10 +157,7 @@ namespace
 {
 int getConfiguredSpellbookSize()
 {
-	const int configuredSize = settings["gameTweaks"]["spellbookSize"].Integer();
-	return configuredSize >= 0 && configuredSize <= 2
-		? configuredSize
-		: (settings["gameTweaks"]["enableLargeSpellbook"].Bool() ? 1 : 0);
+	return settings["gameTweaks"]["spellbookSize"].Integer();
 }
 
 bool useBorderedSpellbook()
