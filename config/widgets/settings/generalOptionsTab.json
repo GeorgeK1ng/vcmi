@@ -186,10 +186,6 @@
 			]
 		},
 		{
-			"type": "checkboxFake",
-			"position": {"x": 10, "y": 328}
-		},
-		{
 			"name": "spellbookAnimationCheckbox",
 			"type": "checkbox",
 			"help": "core.help.364",
