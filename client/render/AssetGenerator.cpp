@@ -297,8 +297,11 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	// Remove bookmark artwork before scaling bottom strip, otherwise wider spellbooks also scale the old bookmarks.
 	auto eraseSourceBookmark = [&tmp4](int sourceX, int targetX, int y, int width, int height)
 	{
-		for(int i = 0; i < width; ++i)
-			tmp4.draw(Canvas(tmp4, Rect(sourceX, y, 1, height)), Point(targetX + i, y));
+		const int patchWidth = 8;
+		Canvas cleanPatch(Point(patchWidth, height), CanvasScalingPolicy::IGNORE);
+		cleanPatch.draw(tmp4, Point(0, 0), Rect(sourceX - patchWidth + 1, y, patchWidth, height));
+		for(int x = 0; x < width; x += patchWidth)
+			tmp4.draw(cleanPatch, Point(targetX + x, y), Rect(0, 0, std::min(patchWidth, width - x), height));
 	};
 	eraseSourceBookmark(119, 120, 5, 40, 58);
 	eraseSourceBookmark(253, 254, 6, 42, 58);
