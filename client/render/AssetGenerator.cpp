@@ -298,7 +298,10 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	auto eraseSourceBookmark = [&tmp4](int sourceX, int targetX, int y, int width, int height)
 	{
 		const int patchWidth = 8;
-		Canvas cleanPatch(tmp4, Rect(sourceX - patchWidth + 1, y, patchWidth, height));
+		// Copy the clean source into an independent canvas. A cropped Canvas shares its backing image
+		// with tmp4, so drawing overlapping tiles directly from it would progressively corrupt the patch.
+		Canvas cleanPatch(Point(patchWidth, height), CanvasScalingPolicy::IGNORE);
+		cleanPatch.draw(Canvas(tmp4, Rect(sourceX - patchWidth + 1, y, patchWidth, height)), Point(0, 0));
 		for(int x = 0; x < width; x += patchWidth)
 		{
 			const int blitWidth = std::min(patchWidth, width - x);
