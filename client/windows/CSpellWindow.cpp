@@ -224,7 +224,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	offL += horizontalBookPadding;
 	offR += horizontalBookPadding;
 	offRM += horizontalBookPadding;
-	pos = background->center(Point(pos.w/2 + pos.x, pos.h/2 + pos.y));
+	pos = background->center(Point(ENGINE->screenDimensions().x / 2, pos.h / 2 + pos.y));
 
 	Rect r(90 + horizontalBookPadding, isBigSpellbook ? 480 + extraSpellbookRows * 97 : 420, isBigSpellbook ? 160 : 110, 16);
 	if(settings["general"]["enableUiEnhancements"].Bool())
@@ -261,7 +261,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	mana = std::make_shared<CLabel>(435 + horizontalBookPadding + (isBigSpellbook ? 159 : 0) + extraLargeRightBookmarkOffset, 426 + offB, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, std::to_string(myHero->mana));
 
 	if(isBigSpellbook)
-		statusBar = CGStatusBar::create(400 + horizontalBookPadding, 587 + extraSpellbookRows * 97 + bottomStatusBarPadding);
+		statusBar = CGStatusBar::create(background->pos.w / 2, 587 + extraSpellbookRows * 97 + bottomStatusBarPadding - (hasBorderedStatusBar ? 3 : 0));
 	else
 		statusBar = CGStatusBar::create(7, 569, ImagePath::builtin("Spelroll.bmp"));
 
