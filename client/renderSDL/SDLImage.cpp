@@ -262,9 +262,9 @@ std::shared_ptr<SDLImageShared> SDLImageShared::createScaled(const SDLImageShare
 
 	auto scaler = std::make_shared<SDLImageScaler>(from->surf, Rect(from->margins, from->fullSize), true);
 
-	const auto & scalingTask = [self, algorithm, scaler]()
+	const auto & scalingTask = [self, integerScaleFactor, algorithm, scaler]()
 	{
-		scaler->scaleSurfaceIntegerFactor(ENGINE->screenHandler().getScalingFactor(), algorithm);
+		scaler->scaleSurfaceIntegerFactor(integerScaleFactor, algorithm);
 		self->surf = scaler->acquireResultSurface();
 		self->fullSize = scaler->getResultDimensions().dimensions();
 		self->margins = scaler->getResultDimensions().topLeft();
