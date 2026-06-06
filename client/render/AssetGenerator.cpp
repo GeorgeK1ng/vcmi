@@ -39,7 +39,8 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
 	imageFiles[ImagePath::builtin("SpellBookSmall.png")] = [this](){ return createBigSpellBook(2, 3);};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook(3, 4);};
-	imageFiles[ImagePath::builtin("SpellBookExtraLarge.png")] = [this](){ return createBigSpellBook(4, 5);};
+	imageFiles[ImagePath::builtin("SpellBookLargeBordered.png")] = [this](){ return createBigSpellBook(3, 4, true);};
+	imageFiles[ImagePath::builtin("SpellBookExtraLarge.png")] = [this](){ return createBigSpellBook(4, 5, true);};
 	imageFiles[ImagePath::builtin("MuPopUpCustom.png")] = [this](){ return createMuPopUpCustom();};
 
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowDefault.png")]  = [this](){ return createCombatUnitNumberWindow(0.6f, 0.2f, 1.0f);};
@@ -255,7 +256,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground(
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageHalf, int rowsPerPage) const
+AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageHalf, int rowsPerPage, bool withBorderedStatusBar) const
 {
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);
 
@@ -329,13 +330,14 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	canvas.draw(img, Point(481 + rightBookmarkOffset, bookmarkY + 1), Rect(354, 406, 37, 41));
 	canvas.draw(img, Point(575 + rightBookmarkOffset, bookmarkY + 1), Rect(417, 406, 37, 45));
 	canvas.draw(img, Point(667 + exitBookmarkOffset, bookmarkY + 1), Rect(478, 406, 37, 47));
-	if(columnsPerPageHalf < 3)
+	if(!withBorderedStatusBar)
 		return image;
 
-	// Leave horizontal space for PLAYER_COLORED_BORDERED_STATUSBAR and rebuild the status bar on top of the book.
+	// Leave space for PLAYER_COLORED_BORDERED_STATUSBAR and rebuild the status bar below the book.
 	const int horizontalBorderMargin = 15;
+	const int bottomStatusBarMargin = 36;
 	const int statusBarOverlayHeight = 30;
-	auto result = createDialogBackground(Point(image->width() + 2 * horizontalBorderMargin, image->height()));
+	auto result = createDialogBackground(Point(image->width() + 2 * horizontalBorderMargin, image->height() + bottomStatusBarMargin));
 	Canvas resultCanvas = result->getCanvas();
 	resultCanvas.draw(image, Point(horizontalBorderMargin, 0));
 
