@@ -332,12 +332,21 @@ void CSlider::setAmount( int to )
 	if(settings["general"]["enableUiEnhancements"].Bool())
 	{
 		int track = length - 32;
-		if(to > 0)
-			barLength = (track * capacity) / to;
+		if(track < 16)
+		{
+			// Short sliders have overlapping arrow buttons and no room for a track.
+			// Keep the legacy thumb size instead of generating an image with a non-positive size.
+			barLength = 16;
+		}
 		else
-			barLength = track;
-		vstd::amax(barLength, 16);
-		vstd::amin(barLength, track);
+		{
+			if(to > 0)
+				barLength = (track * capacity) / to;
+			else
+				barLength = track;
+			vstd::amax(barLength, 16);
+			vstd::amin(barLength, track);
+		}
 	}
 	else
 		barLength = 16;
