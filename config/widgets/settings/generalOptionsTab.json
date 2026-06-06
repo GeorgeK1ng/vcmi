@@ -9,7 +9,7 @@
 		{
 			"name": "lineLabelsEnd",
 			"type": "horizontalLine",
-			"rect": { "x" : 5, "y" : 319, "w": 365, "h": 3}
+			"rect": { "x" : 5, "y" : 294, "w": 365, "h": 3}
 		},
 		{
 			"type" : "labelTitle",
@@ -23,17 +23,17 @@
 		},
 		{
 			"type" : "labelTitle",
-			"position": {"x": 10, "y": 325},
+			"position": {"x": 10, "y": 300},
 			"text": "vcmi.systemOptions.spellbookGroup"
 		},
 		{
 			"name": "lineSpellbookEnd",
 			"type": "horizontalLine",
-			"rect": { "x" : 5, "y" : 469, "w": 365, "h": 3}
+			"rect": { "x" : 5, "y" : 444, "w": 365, "h": 3}
 		},
 		{
 			"type" : "labelTitle",
-			"position": {"x": 10, "y": 475},
+			"position": {"x": 10, "y": 450},
 			"text": "vcmi.systemOptions.townsGroup"
 		},
 /////////////////////////////////////// Left section - Video Settings
@@ -169,7 +169,7 @@
 		{
 			"type" : "verticalLayout",
 			"customType" : "labelDescription",
-			"position" : {"x": 45, "y": 355},
+			"position" : {"x": 45, "y": 330},
 			"items" : [
 				{
 					"text": "core.genrltxt.577"
@@ -186,16 +186,20 @@
 			]
 		},
 		{
+			"type": "checkboxFake",
+			"position": {"x": 10, "y": 328}
+		},
+		{
 			"name": "spellbookAnimationCheckbox",
 			"type": "checkbox",
 			"help": "core.help.364",
-			"position": {"x": 10, "y": 353},
+			"position": {"x": 10, "y": 328},
 			"callback": "spellbookAnimationChanged"
 		},
 		{
 			"name": "spellbookSizePicker",
 			"type": "toggleGroup",
-			"position": {"x": 10, "y": 383},
+			"position": {"x": 10, "y": 358},
 			"items":
 			[
 				{
@@ -298,7 +302,7 @@
 		{
 			"type" : "verticalLayout",
 			"customType" : "labelDescription",
-			"position": {"x": 45, "y": 505},
+			"position": {"x": 45, "y": 480},
 			"items" : [
 				{
 					"text": "vcmi.otherOptions.creatureGrowthAsDwellingLabel.hover",
@@ -311,7 +315,7 @@
 		{
 			"name": "availableCreaturesAsDwellingPicker",
 			"type": "toggleGroup",
-			"position": {"x": 10, "y": 503},
+			"position": {"x": 10, "y": 478},
 			"items":
 			[
 				{
@@ -333,7 +337,7 @@
 			"name": "compactTownCreatureInfoLabel",
 			"type" : "verticalLayout",
 			"customType" : "labelDescription",
-			"position": {"x": 45, "y": 565},
+			"position": {"x": 45, "y": 540},
 			"items" : [
 				{
 					"text": "vcmi.otherOptions.compactTownCreatureInfo.hover",
@@ -344,7 +348,7 @@
 			"name": "compactTownCreatureInfoCheckbox",
 			"type": "checkbox",
 			"help": "vcmi.otherOptions.compactTownCreatureInfo",
-			"position": {"x": 10, "y": 563},
+			"position": {"x": 10, "y": 538},
 			"callback": "compactTownCreatureInfoChanged"
 		}
 	]
