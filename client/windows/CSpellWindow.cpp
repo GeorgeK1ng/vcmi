@@ -119,13 +119,27 @@ void CSpellWindow::InteractiveArea::hover(bool on)
 
 class SpellbookSpellSorter
 {
+	std::function<int32_t(const CSpell *)> getSpellCost;
+
 public:
+	explicit SpellbookSpellSorter(std::function<int32_t(const CSpell *)> getSpellCost = {})
+		: getSpellCost(std::move(getSpellCost))
+	{}
+
 	bool operator()(const CSpell * A, const CSpell * B)
 	{
 		if(A->getLevel() < B->getLevel())
 			return true;
 		if(A->getLevel() > B->getLevel())
 			return false;
+
+		if(getSpellCost)
+		{
+			const int32_t costA = getSpellCost(A);
+			const int32_t costB = getSpellCost(B);
+			if(costA != costB)
+				return costA < costB;
+		}
 
 		for (const auto schoolId : LIBRARY->spellSchoolHandler->getAllObjects())
 		{
@@ -370,6 +384,13 @@ void CSpellWindow::processSpells()
 	}
 
 	SpellbookSpellSorter spellsorter;
+	if(settings["general"]["enableUiEnhancements"].Bool())
+	{
+		spellsorter = SpellbookSpellSorter([this](const CSpell * spell)
+		{
+			return myInt->cb->getSpellCost(spell, myHero);
+		});
+	}
 	std::sort(mySpells.begin(), mySpells.end(), spellsorter);
 
 	for(const auto spell : mySpells)
