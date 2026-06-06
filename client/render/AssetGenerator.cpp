@@ -274,7 +274,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(int columnsPerPageH
 	canvas.draw(img, Point(0, 0), Rect(15, 38, 90, 45));
 	canvas.draw(img, Point(0, 460 + deltaY), Rect(15, 400, 90, 141));
 	canvas.draw(img, Point(targetWidth - 95, 0), Rect(509, 38, 95, 45));
-	canvas.draw(img, Point(targetWidth - 95, 460 + deltaY), Rect(509, 400, 95, 141));
+	Canvas rightBottomCorner = Canvas(Point(95, 141), CanvasScalingPolicy::IGNORE);
+	rightBottomCorner.draw(img, Point(0, 0), Rect(509, 400, 95, 141));
+	// The source right corner overlaps the original exit bookmark by a few pixels. Remove this fragment before placing the corner.
+	for(int i = 0; i < 7; ++i)
+		rightBottomCorner.draw(Canvas(rightBottomCorner, Rect(7, 6, 1, 58)), Point(i, 6));
+	canvas.draw(rightBottomCorner, Point(targetWidth - 95, 460 + deltaY));
 	// left / right
 	Canvas tmp1 = Canvas(Point(90, 355 - 45), CanvasScalingPolicy::IGNORE);
 	tmp1.draw(img, Point(0, 0), Rect(15, 38 + 45, 90, 355 - 45));
