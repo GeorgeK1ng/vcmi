@@ -109,6 +109,9 @@
 					"text": "core.genrltxt.405",
 				},
 				{
+					"text": "core.genrltxt.406",
+				},
+				{
 					"text": "vcmi.battleOptions.movementHighlightOnHover.hover",
 				},
 				{
@@ -122,9 +125,6 @@
 				},
 				{
 					"text": "vcmi.battleOptions.showQuickSpell.hover",
-				},
-				{
-					"text": "core.genrltxt.406",
 				},
 				{
 					"text": "vcmi.battleOptions.skipBattleIntroMusic.hover",
@@ -146,6 +146,11 @@
 					"name": "movementShadowCheckbox",
 					"help": "core.help.428",
 					"callback": "movementShadowChanged"
+				},
+				{
+					"name": "mouseShadowCheckbox",
+					"help": "core.help.429",
+					"callback": "mouseShadowChanged"
 				},
 				{
 					"name": "movementHighlightOnHoverCheckbox",
@@ -171,11 +176,6 @@
 					"name": "showQuickSpellCheckbox",
 					"help": "vcmi.battleOptions.showQuickSpell",
 					"callback": "showQuickSpellChanged"
-				},
-				{
-					"name": "mouseShadowCheckbox",
-					"help": "core.help.429",
-					"callback": "mouseShadowChanged"
 				},
 				{
 					"name": "skipBattleIntroMusicCheckbox",
