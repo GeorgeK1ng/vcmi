@@ -153,19 +153,16 @@ public:
 	}
 };
 
-namespace
-{
-int getConfiguredSpellbookSize()
+static int getConfiguredSpellbookSize()
 {
 	return settings["gameTweaks"]["spellbookSize"].Integer();
 }
 
-bool useBorderedSpellbook()
+static bool useBorderedSpellbook()
 {
 	const int spellbookSize = getConfiguredSpellbookSize();
 	const Point screenSize = ENGINE->screenDimensions();
 	return spellbookSize >= 2 || (spellbookSize == 1 && (screenSize.x > 800 || screenSize.y > 600));
-}
 }
 
 CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _myInt, bool openOnBattleSpells, const std::function<void(SpellID)> & onSpellSelect):
