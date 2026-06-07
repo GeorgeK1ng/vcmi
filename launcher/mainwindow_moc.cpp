@@ -96,23 +96,17 @@ MainWindow::MainWindow(QWidget * parent)
 		{
 			QScreen * targetScreen = nullptr;
 			if(forceCenterOnRemainingScreen)
-			{
-				const auto screens = QGuiApplication::screens();
 				targetScreen = QGuiApplication::primaryScreen();
-
-				if(targetScreen == nullptr || !screens.contains(targetScreen))
-					targetScreen = screens.isEmpty() ? nullptr : screens.front();
-			}
 
 			ensureWindowVisibleOnExistingScreen(forceCenterOnRemainingScreen,
 				!forceCenterOnRemainingScreen,
 				targetScreen);
 			saveWindowSettingsUnchecked();
+			updateDisplayIndex(windowHandle() ? windowHandle()->screen() : targetScreen);
 			ui->settingsView->setDisplayList();
 		};
 
 		QTimer::singleShot(0, this, relocateToRemainingScreen);
-		QTimer::singleShot(250, this, relocateToRemainingScreen);
 	};
 
 	connect(qApp, &QGuiApplication::screenRemoved, this, [this, scheduleRelocateToRemainingScreen](QScreen * removedScreen)
@@ -125,6 +119,14 @@ MainWindow::MainWindow(QWidget * parent)
 	connect(qApp, &QGuiApplication::primaryScreenChanged, this, [scheduleRelocateToRemainingScreen](QScreen *)
 	{
 		scheduleRelocateToRemainingScreen(false);
+	});
+	QTimer::singleShot(0, this, [this]()
+	{
+		if(auto * handle = windowHandle())
+		{
+			connect(handle, &QWindow::screenChanged, this, &MainWindow::updateDisplayIndex);
+			updateDisplayIndex(handle->screen());
+		}
 	});
 #endif
 
@@ -239,6 +241,20 @@ void MainWindow::ensureWindowVisibleOnExistingScreen(
 			availableGeometry.bottom() - windowSize.height() + 1));
 
 	move(windowPosition);
+#endif
+}
+
+void MainWindow::updateDisplayIndex(QScreen * screen)
+{
+#ifndef VCMI_MOBILE
+	const auto screens = QGuiApplication::screens();
+	const int screenIndex = screens.indexOf(screen);
+	if(screenIndex < 0 || screenIndex == settings["video"]["displayIndex"].Integer())
+		return;
+
+	Settings node = settings.write["video"]["displayIndex"];
+	node->Integer() = screenIndex;
+	ui->settingsView->setDisplayList();
 #endif
 }
 

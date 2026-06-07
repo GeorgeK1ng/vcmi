@@ -53,6 +53,7 @@ class MainWindow : public QMainWindow
 		bool preferCurrentGeometryScreen = true,
 		QScreen * forcedTargetScreen = nullptr);
 	void saveWindowSettingsUnchecked();
+	void updateDisplayIndex(QScreen * screen);
 
 	enum TabRows
 	{

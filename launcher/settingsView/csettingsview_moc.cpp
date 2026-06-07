@@ -90,10 +90,6 @@ void CSettingsView::setDisplayList()
 	ui->comboBoxDisplayIndex->clear();
 	ui->comboBoxDisplayIndex->addItems(list);
 
-	const bool multipleDisplays = list.count() > 1;
-	ui->comboBoxDisplayIndex->setVisible(multipleDisplays);
-	ui->labelDisplayIndex->setVisible(multipleDisplays);
-
 	if(list.isEmpty())
 		return;
 
@@ -428,20 +424,6 @@ static QVector<QSize> findAvailableResolutions(int displayIndex)
 	return result;
 }
 
-static QSize findDesktopResolution(int displayIndex)
-{
-	SDL_Init(SDL_INIT_VIDEO);
-
-	SDL_DisplayMode mode;
-	QSize result;
-	if(SDL_GetDesktopDisplayMode(displayIndex, &mode) == 0)
-		result = QSize(mode.w, mode.h);
-
-	SDL_Quit();
-
-	return result;
-}
-
 void CSettingsView::fillValidResolutionsForScreen(int screenIndex)
 {
 	QSignalBlocker guard(ui->comboBoxResolution); // avoid saving wrong resolution after adding first item from the list
@@ -462,7 +444,10 @@ void CSettingsView::fillValidResolutionsForScreen(int screenIndex)
 		// Windowed mode allows custom resolutions, but only while they still fit on
 		// the selected display. This prevents stale 4K TV resolutions from keeping
 		// oversized scaling ranges after switching to a smaller monitor.
-		QSize desktopResolution = findDesktopResolution(screenIndex);
+		const auto screens = QGuiApplication::screens();
+		QSize desktopResolution;
+		if(screenIndex >= 0 && screenIndex < screens.size())
+			desktopResolution = screens[screenIndex]->geometry().size() * screens[screenIndex]->devicePixelRatio();
 		bool currentWindowedResolutionFits = !fullscreen
 			&& desktopResolution.isValid()
 			&& currentRes.width() <= desktopResolution.width()
