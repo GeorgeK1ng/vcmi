@@ -99,7 +99,10 @@ MainWindow::MainWindow(QWidget * parent)
 	});
 	connect(qApp, &QGuiApplication::screenAdded, this, [this](QScreen *)
 	{
-		QTimer::singleShot(0, ui->settingsView, &CSettingsView::setDisplayList);
+		QTimer::singleShot(0, this, &MainWindow::handleScreenAdded);
+		// Qt may move the window after screenAdded while settling the new layout.
+		// Re-apply the saved geometry once more after that transition.
+		QTimer::singleShot(250, this, &MainWindow::handleScreenAdded);
 	});
 	QTimer::singleShot(0, this, [this]()
 	{
@@ -177,6 +180,15 @@ void MainWindow::ensureWindowVisibleOnExistingScreen()
 #endif
 }
 
+void MainWindow::handleScreenAdded()
+{
+#ifndef VCMI_MOBILE
+	restoreSavedWindowGeometry();
+	updateDisplayIndex(QGuiApplication::screenAt(frameGeometry().center()));
+	ui->settingsView->setDisplayList();
+#endif
+}
+
 void MainWindow::handleScreenRemoved()
 {
 #ifndef VCMI_MOBILE
@@ -187,16 +199,24 @@ void MainWindow::handleScreenRemoved()
 #endif
 }
 
-void MainWindow::restoreWindowSettings()
+void MainWindow::restoreSavedWindowGeometry()
 {
 #ifndef VCMI_MOBILE
 	const auto & windowGeometry = settings["launcher"]["mainWindow"]["geometry"];
 	QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
-	if(windowSize.isValid())
-	{
-		resize(windowSize);
-		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
-	}
+	if(!windowSize.isValid())
+		return;
+
+	resize(windowSize);
+	move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
+	ensureWindowVisibleOnExistingScreen();
+#endif
+}
+
+void MainWindow::restoreWindowSettings()
+{
+#ifndef VCMI_MOBILE
+	restoreSavedWindowGeometry();
 
 	QScreen * screen = QGuiApplication::screenAt(frameGeometry().center());
 	centerWindowOnScreen(screen ? screen : QGuiApplication::primaryScreen());
@@ -212,6 +232,7 @@ void MainWindow::updateDisplayIndex(QScreen * screen)
 
 	Settings node = settings.write["video"]["displayIndex"];
 	node->Integer() = screenIndex;
+	saveWindowSettings();
 	ui->settingsView->setDisplayList();
 #endif
 }
