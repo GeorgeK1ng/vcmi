@@ -49,10 +49,11 @@ class MainWindow : public QMainWindow
 #endif
 
 	void load();
-	void ensureWindowVisibleOnExistingScreen(bool centerWindow = false,
-		bool preferCurrentGeometryScreen = true,
-		QScreen * forcedTargetScreen = nullptr);
-	void saveWindowSettingsUnchecked();
+	void centerWindowOnScreen(QScreen * screen);
+	void ensureWindowVisibleOnExistingScreen();
+	void handleScreensChanged();
+	void restoreWindowSettings();
+	void saveWindowSettings();
 	void updateDisplayIndex(QScreen * screen);
 
 	enum TabRows
@@ -90,7 +91,6 @@ protected:
 	void changeEvent(QEvent * event) override;
 
 public slots:
-	void saveWindowSettings();
 	void on_startGameButton_clicked();
 	
 private slots:
