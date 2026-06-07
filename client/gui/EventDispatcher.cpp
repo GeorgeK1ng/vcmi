@@ -165,6 +165,23 @@ void EventDispatcher::dispatchMouseLeftButtonReleased(const Point & position, in
 	handleLeftButtonClick(position, tolerance, false);
 }
 
+void EventDispatcher::dispatchMouseLeftButtonCancelled(const Point & position)
+{
+	auto hlp = lclickable;
+
+	for(auto & i : hlp)
+	{
+		if(!vstd::contains(lclickable, i))
+			continue;
+
+		if(i->mouseClickedState)
+		{
+			i->mouseClickedState = false;
+			i->clickCancel(position);
+		}
+	}
+}
+
 AEventsReceiver * EventDispatcher::findElementInToleranceRange(const EventReceiversList & list, const Point & position, int eventToTest, int tolerance)
 {
 	AEventsReceiver * bestElement = nullptr;
@@ -358,6 +375,17 @@ void EventDispatcher::dispatchInputModeChanged(const InputMode & modi)
 	{
 		it->inputModeChanged(modi);
 	}
+}
+
+bool EventDispatcher::hasGestureReceiverAtPosition(const Point & position) const
+{
+	for(auto it : panningInterested)
+	{
+		if(it->receiveEvent(position, AEventsReceiver::GESTURE))
+			return true;
+	}
+
+	return false;
 }
 
 void EventDispatcher::dispatchGesturePanningStarted(const Point & initialPosition)
