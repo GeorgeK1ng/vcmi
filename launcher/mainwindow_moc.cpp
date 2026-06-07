@@ -196,8 +196,10 @@ void MainWindow::restoreWindowSettings()
 {
 #ifndef VCMI_MOBILE
 	const auto & windowGeometry = settings["launcher"]["mainWindow"]["geometry"];
-	QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
-	if(windowSize.isValid())
+	const QSize windowSize(windowGeometry["width"].Integer(), windowGeometry["height"].Integer());
+	// Missing geometry receives zero-valued schema defaults. QSize::isValid considers 0x0
+	// valid, but it does not represent a previously saved window size.
+	if(!windowSize.isEmpty())
 	{
 		resize(windowSize);
 		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
