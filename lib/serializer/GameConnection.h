@@ -36,7 +36,6 @@ class DLL_LINKAGE GameConnection final : boost::noncopyable
 	std::unique_ptr<BinaryDeserializer> deserializer;
 	std::unique_ptr<BinarySerializer> serializer;
 
-	std::mutex readMutex;
 	std::mutex writeMutex;
 
 public:

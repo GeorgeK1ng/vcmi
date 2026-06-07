@@ -15,8 +15,6 @@
 
 #include "RegisterTypes.h"
 
-#include <boost/core/demangle.hpp>
-
 #include "../GameSettings.h"
 #include "../RiverHandler.h"
 #include "../RoadHandler.h"
@@ -71,19 +69,6 @@ void CSerializationApplier::registerType(uint16_t ID)
 {
 	assert(!apps.count(ID));
 	apps[ID].reset(new SerializerReflection<Type>);
-	typeNames[ID] = boost::core::demangle(typeid(Type).name());
-}
-
-ISerializerReflection * CSerializationApplier::getApplier(uint16_t ID) const
-{
-	auto iterator = apps.find(ID);
-	return iterator != apps.end() ? iterator->second.get() : nullptr;
-}
-
-std::string CSerializationApplier::getTypeName(uint16_t ID) const
-{
-	auto iterator = typeNames.find(ID);
-	return iterator != typeNames.end() ? iterator->second : "unknown serialized type";
 }
 
 CSerializationApplier::CSerializationApplier()

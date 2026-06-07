@@ -184,13 +184,7 @@ private:
 		if(!tid)
 			save(*data); //if type is unregistered simply write all data in a standard way
 		else
-		{
-			auto & registry = CSerializationApplier::getInstance();
-			auto * app = registry.getApplier(tid);
-			if(app == nullptr)
-				throw std::runtime_error("No saver exists for serialized type '" + registry.getTypeName(tid) + "' (type ID " + std::to_string(tid) + ")");
-			app->savePtr(*this, static_cast<const Serializeable*>(data));
-		}
+			CSerializationApplier::getInstance().getApplier(tid)->savePtr(*this, static_cast<const Serializeable*>(data));  //call serializer specific for our real type
 	}
 
 	template<typename T, typename std::enable_if_t<is_serializeable<BinarySerializer, T>::value, int> = 0>

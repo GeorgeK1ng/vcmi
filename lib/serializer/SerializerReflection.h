@@ -52,12 +52,15 @@ public:
 class DLL_LINKAGE CSerializationApplier : boost::noncopyable
 {
 	std::map<int32_t, std::unique_ptr<ISerializerReflection>> apps;
-	std::map<int32_t, std::string> typeNames;
 
 	CSerializationApplier();
 public:
-	ISerializerReflection * getApplier(uint16_t ID) const;
-	std::string getTypeName(uint16_t ID) const;
+	ISerializerReflection * getApplier(uint16_t ID)
+	{
+		if(!apps.count(ID))
+			throw std::runtime_error("No applier found.");
+		return apps[ID].get();
+	}
 
 	template<typename Type>
 	void registerType(uint16_t index);

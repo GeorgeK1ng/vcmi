@@ -270,30 +270,49 @@ bool CVCMIServer::prepareToStartGame()
 	Load::Progress current(1);
 	progressTracking.include(current);
 
-	auto progressTrackingThread = std::thread([this, &progressTracking]()
+	auto newGH = std::make_shared<CGameHandler>(*this);
+
+	// Game initialization blocks the server event loop, so progress is reported from a worker.
+	// Never call announcePack() there: it traverses and mutates server-owned state that is only
+	// safe on the server thread. Keep connections alive with a snapshot and only use their
+	// thread-safe sendPack() entry point.
+	const auto progressConnections = activeConnections;
+	auto progressTrackingThread = std::jthread([&progressTracking, progressConnections](std::stop_token stopToken)
 	{
 		setThreadName("progressTrackingThread");
-		auto currentProgress = std::numeric_limits<Load::Type>::max();
 
-		while(!progressTracking.finished())
+		auto sendProgress = [&progressConnections](Load::Type progress)
 		{
-			if(progressTracking.get() != currentProgress)
+			LobbyLoadProgress loadProgress;
+			loadProgress.progress = progress;
+			for(const auto & connection : progressConnections)
 			{
-				//FIXME: UNGUARDED MULTITHREADED ACCESS!!!
-				currentProgress = progressTracking.get();
-				LobbyLoadProgress loadProgress;
-				loadProgress.progress = currentProgress;
-				announcePack(loadProgress);
+				try
+				{
+					connection->sendPack(loadProgress);
+				}
+				catch(const std::exception & e)
+				{
+					logNetwork->warn("Failed to send game loading progress to connection %d: %s", static_cast<int>(connection->connectionID), e.what());
+				}
+			}
+		};
+
+		auto currentProgress = std::numeric_limits<Load::Type>::max();
+		while(!stopToken.stop_requested() && !progressTracking.finished())
+		{
+			auto updatedProgress = progressTracking.get();
+			if(updatedProgress != currentProgress)
+			{
+				currentProgress = updatedProgress;
+				sendProgress(currentProgress);
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
-		//send final progress
-		LobbyLoadProgress loadProgress;
-		loadProgress.progress = std::numeric_limits<Load::Type>::max();
-		announcePack(loadProgress);
-	});
 
-	auto newGH = std::make_shared<CGameHandler>(*this);
+		if(!stopToken.stop_requested())
+			sendProgress(std::numeric_limits<Load::Type>::max());
+	});
 	bool started = false;
 	try
 	{

@@ -62,7 +62,7 @@ GameConnection::GameConnection(std::weak_ptr<INetworkConnection> networkConnecti
 	assert(networkConnection.lock() != nullptr);
 
 	enterLobbyConnectionMode();
-	setSerializationVersion(ESerializationVersion::CURRENT);
+	deserializer->version = ESerializationVersion::CURRENT;
 }
 
 GameConnection::~GameConnection() = default;
@@ -77,52 +77,33 @@ void GameConnection::sendPack(const CPack & pack)
 		throw std::runtime_error("Attempt to send packet on a closed connection!");
 
 	packWriter->buffer.clear();
-	try
-	{
-		*serializer & &pack;
-		logNetwork->trace("Sending a pack of type %s", typeid(pack).name());
-		connectionPtr->sendPacket(packWriter->buffer);
-	}
-	catch(const std::exception & e)
-	{
-		logNetwork->error("Failed to send network pack of type %s: %s", typeid(pack).name(), e.what());
-		packWriter->buffer.clear();
-		serializer->clear();
-		throw;
-	}
+	*serializer & &pack;
+
+	logNetwork->trace("Sending a pack of type %s", typeid(pack).name());
+
+	connectionPtr->sendPacket(packWriter->buffer);
 	packWriter->buffer.clear();
 	serializer->clear();
 }
 
 std::unique_ptr<CPack> GameConnection::retrievePack(const std::vector<std::byte> & data)
 {
-	std::scoped_lock lock(readMutex);
 	std::unique_ptr<CPack> result;
 
 	packReader->buffer = &data;
 	packReader->position = 0;
 
-	try
-	{
-		*deserializer & result;
+	*deserializer & result;
 
-		if (result == nullptr)
-			throw std::runtime_error("deserializer returned a null pack");
+	if (result == nullptr)
+		throw std::runtime_error("Failed to retrieve pack!");
 
-		if (packReader->position != data.size())
-			throw std::runtime_error("not all pack data has been read");
-	}
-	catch(const std::exception & e)
-	{
-		deserializer->clear();
-		packReader->buffer = nullptr;
-		throw std::runtime_error("Failed to retrieve network pack: " + std::string(e.what()));
-	}
+	if (packReader->position != data.size())
+		throw std::runtime_error("Failed to retrieve pack! Not all data has been read!");
 
 	auto packRawPtr = result.get();
 	logNetwork->trace("Received CPack of type %s", typeid(*packRawPtr).name());
 	deserializer->clear();
-	packReader->buffer = nullptr;
 	return result;
 }
 
@@ -138,20 +119,17 @@ std::shared_ptr<INetworkConnection> GameConnection::getConnection()
 
 void GameConnection::enterLobbyConnectionMode()
 {
-	std::scoped_lock lock(readMutex, writeMutex);
 	deserializer->clear();
 	serializer->clear();
 }
 
 void GameConnection::setCallback(IGameInfoCallback & cb)
 {
-	std::scoped_lock lock(readMutex);
 	deserializer->cb = &cb;
 }
 
 void GameConnection::setSerializationVersion(ESerializationVersion version)
 {
-	std::scoped_lock lock(readMutex, writeMutex);
 	deserializer->version = version;
 	serializer->version = version;
 }
