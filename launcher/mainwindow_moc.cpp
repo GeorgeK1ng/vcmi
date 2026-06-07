@@ -108,6 +108,7 @@ MainWindow::MainWindow(QWidget * parent)
 				!forceCenterOnRemainingScreen,
 				targetScreen);
 			saveWindowSettingsUnchecked();
+			ui->settingsView->setDisplayList();
 		};
 
 		QTimer::singleShot(0, this, relocateToRemainingScreen);
@@ -117,7 +118,8 @@ MainWindow::MainWindow(QWidget * parent)
 	connect(qApp, &QGuiApplication::screenRemoved, this, [this, scheduleRelocateToRemainingScreen](QScreen * removedScreen)
 	{
 		const bool launcherWasOnRemovedScreen = removedScreen != nullptr
-			&& removedScreen->geometry().contains(frameGeometry().center());
+			&& ((windowHandle() && windowHandle()->screen() == removedScreen)
+				|| removedScreen->geometry().contains(frameGeometry().center()));
 		scheduleRelocateToRemainingScreen(launcherWasOnRemovedScreen);
 	});
 	connect(qApp, &QGuiApplication::primaryScreenChanged, this, [scheduleRelocateToRemainingScreen](QScreen *)
@@ -237,6 +239,18 @@ void MainWindow::ensureWindowVisibleOnExistingScreen(
 			availableGeometry.bottom() - windowSize.height() + 1));
 
 	move(windowPosition);
+#endif
+}
+
+void MainWindow::moveToScreen(int screenIndex)
+{
+#ifndef VCMI_MOBILE
+	const auto screens = QGuiApplication::screens();
+	if(screenIndex < 0 || screenIndex >= screens.size())
+		return;
+
+	ensureWindowVisibleOnExistingScreen(true, false, screens[screenIndex]);
+	saveWindowSettingsUnchecked();
 #endif
 }
 

@@ -81,10 +81,21 @@ static constexpr std::array downscalingFilterTypes =
 
 void CSettingsView::setDisplayList()
 {
+	QSignalBlocker guard(ui->comboBoxDisplayIndex);
 	QStringList list;
 
-	for (const auto screen : QGuiApplication::screens())
+	for(const auto screen : QGuiApplication::screens())
 		list << QString{"%1 - %2"}.arg(screen->name(), resolutionToString(screen->size()));
+
+	ui->comboBoxDisplayIndex->clear();
+	ui->comboBoxDisplayIndex->addItems(list);
+
+	const bool multipleDisplays = list.count() > 1;
+	ui->comboBoxDisplayIndex->setVisible(multipleDisplays);
+	ui->labelDisplayIndex->setVisible(multipleDisplays);
+
+	if(list.isEmpty())
+		return;
 
 	int displayIndex = settings["video"]["displayIndex"].Integer();
 	if(displayIndex < 0 || displayIndex >= list.count())
@@ -94,18 +105,9 @@ void CSettingsView::setDisplayList()
 		node->Integer() = displayIndex;
 	}
 
-	if(list.count() < 2)
-	{
-		ui->comboBoxDisplayIndex->hide();
-		ui->labelDisplayIndex->hide();
-		fillValidResolutionsForScreen(displayIndex);
-	}
-	else
-	{
-		ui->comboBoxDisplayIndex->addItems(list);
-		// calls fillValidResolutions() in slot
-		ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
-	}
+	ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
+	fillValidResolutionsForScreen(displayIndex);
+	fillValidScalingRange();
 }
 
 void CSettingsView::setCheckbuttonState(QToolButton * button, bool checked)
@@ -587,6 +589,9 @@ void CSettingsView::on_comboBoxDisplayIndex_currentIndexChanged(int index)
 
 	fillValidResolutionsForScreen(index);
 	fillValidScalingRange();
+
+	if(auto * mainWindow = Helper::getMainWindow())
+		mainWindow->moveToScreen(index);
 }
 
 void CSettingsView::on_comboBoxFriendlyAI_currentIndexChanged(int index)

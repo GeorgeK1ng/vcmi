@@ -77,6 +77,7 @@ public:
 	void exitSetup(bool goToMods);
 	void switchToModsTab();
 	void switchToStartTab();
+	void moveToScreen(int screenIndex);
 
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	void dropEvent(QDropEvent *event) override;
