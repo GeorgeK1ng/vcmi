@@ -214,14 +214,24 @@ void MainWindow::restoreWindowSettings()
 	// minimum window would not fit with decorations, use the entire screen instead.
 	static const QSize minimumLauncherSize(800, 600);
 	QScreen * screen = QGuiApplication::primaryScreen();
-	if(screen != nullptr && (screen->availableSize().width() <= minimumLauncherSize.width()
-		|| screen->availableSize().height() <= minimumLauncherSize.height()))
+	if(screen == nullptr)
+		return;
+
+	const QSize availableSize = screen->availableSize();
+	if(availableSize.width() <= minimumLauncherSize.width() || availableSize.height() <= minimumLauncherSize.height())
 	{
 		setWindowState(windowState() | Qt::WindowFullScreen);
 		return;
 	}
 
-	resize(size().expandedTo(minimumLauncherSize));
+	// Use a common widescreen size where appropriate, but keep a margin around the
+	// window on smaller displays so the initial window does not look fullscreen.
+	static const QSize widescreenLauncherSize(1366, 768);
+	const QSize screenSize = screen->geometry().size();
+	const bool isWidescreen = screenSize.width() * 3 > screenSize.height() * 4;
+	const QSize preferredSize = isWidescreen ? widescreenLauncherSize : minimumLauncherSize;
+	const QSize maximumInitialSize(availableSize.width() * 9 / 10, availableSize.height() * 9 / 10);
+	resize(preferredSize.boundedTo(maximumInitialSize).expandedTo(minimumLauncherSize));
 	centerWindowOnScreen(screen);
 #endif
 }
