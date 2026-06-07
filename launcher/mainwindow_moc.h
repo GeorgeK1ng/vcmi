@@ -22,6 +22,7 @@ class MainWindow;
 const QString appName = "launcher";
 }
 
+class QScreen;
 class QTableWidgetItem;
 class CModList;
 class CModListView;
@@ -48,6 +49,12 @@ class MainWindow : public QMainWindow
 #endif
 
 	void load();
+	void centerWindowOnScreen(QScreen * screen);
+	void ensureWindowVisibleOnExistingScreen();
+	void handleScreenRemoved();
+	void restoreWindowSettings();
+	void saveWindowSettings();
+	void updateDisplayIndex(QScreen * screen);
 
 	enum TabRows
 	{
@@ -72,6 +79,7 @@ public:
 	void exitSetup(bool goToMods);
 	void switchToModsTab();
 	void switchToStartTab();
+	void moveToScreen(int screenIndex);
 
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	void dropEvent(QDropEvent *event) override;
