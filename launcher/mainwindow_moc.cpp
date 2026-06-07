@@ -201,11 +201,26 @@ void MainWindow::restoreWindowSettings()
 	{
 		resize(windowSize);
 		move(windowGeometry["x"].Integer(), windowGeometry["y"].Integer());
+
+		// Keep the saved monitor when it still exists, but always start centered on it.
+		QScreen * screen = QGuiApplication::screenAt(frameGeometry().center());
+		centerWindowOnScreen(screen ? screen : QGuiApplication::primaryScreen());
+		return;
 	}
 
-	// Keep the saved monitor when it still exists, but always start centered on it.
-	QScreen * screen = QGuiApplication::screenAt(frameGeometry().center());
-	centerWindowOnScreen(screen ? screen : QGuiApplication::primaryScreen());
+	// The first launch needs enough room for all controls. On screens where the
+	// minimum window would not fit with decorations, use the entire screen instead.
+	static const QSize minimumLauncherSize(800, 600);
+	QScreen * screen = QGuiApplication::primaryScreen();
+	if(screen != nullptr && (screen->availableSize().width() <= minimumLauncherSize.width()
+		|| screen->availableSize().height() <= minimumLauncherSize.height()))
+	{
+		setWindowState(windowState() | Qt::WindowFullScreen);
+		return;
+	}
+
+	resize(size().expandedTo(minimumLauncherSize));
+	centerWindowOnScreen(screen);
 #endif
 }
 
