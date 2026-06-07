@@ -81,6 +81,7 @@ static constexpr std::array downscalingFilterTypes =
 
 void CSettingsView::setDisplayList()
 {
+	// Rebuilding the list must not be interpreted as a user-selected display change.
 	QSignalBlocker guard(ui->comboBoxDisplayIndex);
 	QStringList list;
 
