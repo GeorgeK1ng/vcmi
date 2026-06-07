@@ -28,6 +28,7 @@
 #include "../../lib/json/JsonUtils.h"
 #include "../../lib/mapObjects/CGHeroInstance.h"
 #include "../../lib/spells/CSpellHandler.h"
+#include "../../lib/texts/MetaString.h"
 
 QuickSpellPanel::QuickSpellPanel(BattleInterface & owner)
 	: CIntObject(0)
@@ -107,12 +108,25 @@ void QuickSpellPanel::create()
 		bool fromSettings;
 		std::tie(id, fromSettings) = spells[i];
 
-		auto button = std::make_shared<CButton>(Point(2, 7 + 50 * i), AnimationPath::builtin("spellint"), CButton::tooltip(), [this, id, hero](){
-													if(id.hasValue() && id.toSpell()->canBeCast(owner.getBattle().get(), spells::Mode::HERO, hero))
-													{
-														owner.castThisSpell(id);
-													}
-												});
+		MetaString tooltip;
+		if(id.hasValue())
+		{
+			tooltip.appendTextID("core.genrltxt.26");
+			tooltip.replaceName(id);
+		}
+
+		auto button = std::make_shared<CButton>(
+			Point(2, 7 + 50 * i),
+			AnimationPath::builtin("spellint"),
+			CButton::tooltip(tooltip.toString()),
+			[this, id, hero]()
+			{
+				if(id.hasValue() && id.toSpell()->canBeCast(owner.getBattle().get(), spells::Mode::HERO, hero))
+				{
+					owner.castThisSpell(id);
+				}
+			}
+		);
 		button->setOverlay(std::make_shared<CAnimImage>(AnimationPath::builtin("spellint"), id != SpellID::NONE ? id.num + 1 : 0));
 		button->addPopupCallback([this, i, hero](){
 			ENGINE->input().hapticFeedback();
