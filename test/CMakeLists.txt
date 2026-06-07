@@ -40,6 +40,8 @@ set(test_SRCS
 
 		json/JsonTests.cpp
 
+		serializer/SerializerReflectionTest.cpp
+
 		map/CMapEditManagerTest.cpp
 		map/CMapFormatTest.cpp
 		map/CGArtifactRegressionTest.cpp

@@ -62,7 +62,7 @@ GameConnection::GameConnection(std::weak_ptr<INetworkConnection> networkConnecti
 	assert(networkConnection.lock() != nullptr);
 
 	enterLobbyConnectionMode();
-	deserializer->version = ESerializationVersion::CURRENT;
+	setSerializationVersion(ESerializationVersion::CURRENT);
 }
 
 GameConnection::~GameConnection() = default;
@@ -77,17 +77,26 @@ void GameConnection::sendPack(const CPack & pack)
 		throw std::runtime_error("Attempt to send packet on a closed connection!");
 
 	packWriter->buffer.clear();
-	*serializer & &pack;
-
-	logNetwork->trace("Sending a pack of type %s", typeid(pack).name());
-
-	connectionPtr->sendPacket(packWriter->buffer);
+	try
+	{
+		*serializer & &pack;
+		logNetwork->trace("Sending a pack of type %s", typeid(pack).name());
+		connectionPtr->sendPacket(packWriter->buffer);
+	}
+	catch(const std::exception & e)
+	{
+		logNetwork->error("Failed to send network pack of type %s: %s", typeid(pack).name(), e.what());
+		packWriter->buffer.clear();
+		serializer->clear();
+		throw;
+	}
 	packWriter->buffer.clear();
 	serializer->clear();
 }
 
 std::unique_ptr<CPack> GameConnection::retrievePack(const std::vector<std::byte> & data)
 {
+	std::scoped_lock lock(readMutex);
 	std::unique_ptr<CPack> result;
 
 	packReader->buffer = &data;
@@ -129,17 +138,20 @@ std::shared_ptr<INetworkConnection> GameConnection::getConnection()
 
 void GameConnection::enterLobbyConnectionMode()
 {
+	std::scoped_lock lock(readMutex, writeMutex);
 	deserializer->clear();
 	serializer->clear();
 }
 
 void GameConnection::setCallback(IGameInfoCallback & cb)
 {
+	std::scoped_lock lock(readMutex);
 	deserializer->cb = &cb;
 }
 
 void GameConnection::setSerializationVersion(ESerializationVersion version)
 {
+	std::scoped_lock lock(readMutex, writeMutex);
 	deserializer->version = version;
 	serializer->version = version;
 }

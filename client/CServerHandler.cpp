@@ -80,13 +80,6 @@ CServerHandler::~CServerHandler()
 	serverRunner.reset();
 	if (threadNetwork.joinable())
 	{
-		if (threadNetwork.get_id() == std::this_thread::get_id())
-		{
-			logGlobal->error("CServerHandler attempted to join its own network thread; detaching it instead");
-			threadNetwork.detach();
-			return;
-		}
-
 		//ENGINE->interfaceMutex must have been locked by the current thread, otherwise an unlock will cause undefined behavior
 		auto unlockInterface = vstd::makeUnlockGuard(ENGINE->interfaceMutex);
 		threadNetwork.join();
@@ -101,13 +94,6 @@ void CServerHandler::endNetwork()
 
 	if (threadNetwork.joinable())
 	{
-		if (threadNetwork.get_id() == std::this_thread::get_id())
-		{
-			logGlobal->error("CServerHandler attempted to join its own network thread; detaching it instead");
-			threadNetwork.detach();
-			return;
-		}
-
 		//ENGINE->interfaceMutex must have been locked by the current thread, otherwise an unlock will cause undefined behavior
 		auto unlockInterface = vstd::makeUnlockGuard(ENGINE->interfaceMutex);
 		threadNetwork.join();
@@ -978,6 +964,7 @@ void CServerHandler::onPacketReceived(const std::shared_ptr<INetworkConnection> 
 		// Never let malformed or unsupported packs unwind through the network event loop. In
 		// particular, doing so can destroy the client from this network thread on mobile.
 		logNetwork->error("Failed to process incoming network pack; aborting game start safely: %s", e.what());
+		showServerError(e.what());
 		setState(EClientState::DISCONNECTING);
 		if(serverRunner)
 			serverRunner->shutdown();

@@ -10,7 +10,6 @@
 #pragma once
 
 #include "CSerializer.h"
-#include "CTypeList.h"
 #include "ESerializationVersion.h"
 #include "SerializerReflection.h"
 #include "../bonuses/BonusEnum.h"
@@ -254,7 +253,7 @@ private:
 			auto * app = CSerializationApplier::getInstance().getApplier(tid);
 			if(app == nullptr)
 			{
-				auto typeName = CTypeList::getInstance().getTypeName(tid);
+				auto typeName = CSerializationApplier::getInstance().getTypeName(tid);
 				logGlobal->error("Failed to load serialized type '%s' (type ID %d, pointer ID %d): no loader exists", typeName, tid, pid);
 				throw std::runtime_error("No loader exists for serialized type '" + typeName + "' (type ID " + std::to_string(tid) + ")");
 			}

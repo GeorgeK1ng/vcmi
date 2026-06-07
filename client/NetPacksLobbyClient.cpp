@@ -182,7 +182,26 @@ void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyStartGame(LobbyStartGame & pac
 		handler.si->mode = modeBackup;
 	}
 	handler.client = std::make_unique<CClient>();
-	handler.startGameplay(pack.initializedGameState);
+	try
+	{
+		handler.startGameplay(pack.initializedGameState);
+	}
+	catch(...)
+	{
+		// Roll back partially-created game resources on the same thread that created them.
+		// Deferring this cleanup until connection teardown can destroy timers and render
+		// resources from a different thread on mobile platforms.
+		handler.client->finishGameplay();
+		handler.client->endGame();
+		handler.client.reset();
+		if(GAME->mainmenu())
+		{
+			GAME->mainmenu()->enable();
+			GAME->mainmenu()->playMusic();
+			GAME->mainmenu()->makeActiveInterface();
+		}
+		throw;
+	}
 }
 
 void ApplyOnLobbyScreenNetPackVisitor::visitLobbyStartGame(LobbyStartGame & pack)

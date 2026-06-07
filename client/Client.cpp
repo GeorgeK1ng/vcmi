@@ -166,8 +166,9 @@ void CClient::endGame()
 	battleCallbacks.clear();
 	playerEnvironments.clear();
 
-	//FIXME: gamestate->currentBattles.clear() will use gamestate. So it shoule be callded before gamestate.reset()
-	gamestate->currentBattles.clear();
+	// A failed game start may call endGame before the game state was fully installed.
+	if(gamestate)
+		gamestate->currentBattles.clear();
 	gamestate.reset();
 
 	logNetwork->info("Deleted playerInts.");
