@@ -51,7 +51,7 @@ class MainWindow : public QMainWindow
 	void load();
 	void centerWindowOnScreen(QScreen * screen);
 	void ensureWindowVisibleOnExistingScreen();
-	void handleScreensChanged();
+	void handleScreenRemoved(bool launcherWasOnRemovedScreen);
 	void restoreWindowSettings();
 	void saveWindowSettings();
 	void updateDisplayIndex(QScreen * screen);

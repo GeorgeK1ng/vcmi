@@ -90,15 +90,17 @@ MainWindow::MainWindow(QWidget * parent)
 	ui->setupUi(this);
 
 #ifndef VCMI_MOBILE
-	auto scheduleHandleScreensChanged = [this](QScreen *)
+	connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen * removedScreen)
 	{
-		QTimer::singleShot(0, this, [this]()
+		const bool launcherWasOnRemovedScreen = removedScreen != nullptr
+			&& ((windowHandle() && windowHandle()->screen() == removedScreen)
+				|| removedScreen->geometry().contains(frameGeometry().center()));
+
+		QTimer::singleShot(0, this, [this, launcherWasOnRemovedScreen]()
 		{
-			handleScreensChanged();
+			handleScreenRemoved(launcherWasOnRemovedScreen);
 		});
-	};
-	connect(qApp, &QGuiApplication::screenRemoved, this, scheduleHandleScreensChanged);
-	connect(qApp, &QGuiApplication::primaryScreenChanged, this, scheduleHandleScreensChanged);
+	});
 	QTimer::singleShot(0, this, [this]()
 	{
 		if(auto * handle = windowHandle())
@@ -175,11 +177,25 @@ void MainWindow::ensureWindowVisibleOnExistingScreen()
 #endif
 }
 
-void MainWindow::handleScreensChanged()
+void MainWindow::handleScreenRemoved(bool launcherWasOnRemovedScreen)
 {
 #ifndef VCMI_MOBILE
-	saveWindowSettings();
+	if(launcherWasOnRemovedScreen)
+	{
+		QScreen * targetScreen = QGuiApplication::primaryScreen();
+		const auto screens = QGuiApplication::screens();
+		if(targetScreen == nullptr && !screens.isEmpty())
+			targetScreen = screens.front();
+
+		centerWindowOnScreen(targetScreen);
+	}
+	else
+	{
+		ensureWindowVisibleOnExistingScreen();
+	}
+
 	updateDisplayIndex(QGuiApplication::screenAt(frameGeometry().center()));
+	saveWindowSettings();
 	ui->settingsView->setDisplayList();
 #endif
 }
