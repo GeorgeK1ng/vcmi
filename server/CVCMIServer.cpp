@@ -140,9 +140,17 @@ void CVCMIServer::onPacketReceived(const std::shared_ptr<INetworkConnection> & c
 	if (c == nullptr)
 		throw std::out_of_range("Unknown connection received in CVCMIServer::findConnection");
 
-	auto pack = c->retrievePack(message);
-	CVCMIServerPackVisitor visitor(*this, this->gh, c);
-	pack->visit(visitor);
+	try
+	{
+		auto pack = c->retrievePack(message);
+		CVCMIServerPackVisitor visitor(*this, this->gh, c);
+		pack->visit(visitor);
+	}
+	catch(const std::exception & e)
+	{
+		logNetwork->error("Failed to process incoming network pack from connection %d: %s", static_cast<int>(c->connectionID), e.what());
+		connection->close();
+	}
 }
 
 void CVCMIServer::setState(EServerState value)

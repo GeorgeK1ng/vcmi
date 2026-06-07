@@ -68,6 +68,16 @@ void ServerThreadRunner::shutdown()
 
 void ServerThreadRunner::wait()
 {
+	if (!threadRunLocalServer.joinable())
+		return;
+
+	if (threadRunLocalServer.get_id() == std::this_thread::get_id())
+	{
+		logGlobal->error("ServerThreadRunner attempted to join its own server thread; detaching it instead");
+		threadRunLocalServer.detach();
+		return;
+	}
+
 	threadRunLocalServer.join();
 }
 

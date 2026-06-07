@@ -93,17 +93,27 @@ std::unique_ptr<CPack> GameConnection::retrievePack(const std::vector<std::byte>
 	packReader->buffer = &data;
 	packReader->position = 0;
 
-	*deserializer & result;
+	try
+	{
+		*deserializer & result;
 
-	if (result == nullptr)
-		throw std::runtime_error("Failed to retrieve pack!");
+		if (result == nullptr)
+			throw std::runtime_error("deserializer returned a null pack");
 
-	if (packReader->position != data.size())
-		throw std::runtime_error("Failed to retrieve pack! Not all data has been read!");
+		if (packReader->position != data.size())
+			throw std::runtime_error("not all pack data has been read");
+	}
+	catch(const std::exception & e)
+	{
+		deserializer->clear();
+		packReader->buffer = nullptr;
+		throw std::runtime_error("Failed to retrieve network pack: " + std::string(e.what()));
+	}
 
 	auto packRawPtr = result.get();
 	logNetwork->trace("Received CPack of type %s", typeid(*packRawPtr).name());
 	deserializer->clear();
+	packReader->buffer = nullptr;
 	return result;
 }
 

@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <boost/core/demangle.hpp>
+
 VCMI_LIB_NAMESPACE_BEGIN
 
 /// Class that implements basic reflection-like mechanisms
@@ -17,6 +19,7 @@ VCMI_LIB_NAMESPACE_BEGIN
 class CTypeList
 {
 	std::map<std::string, uint16_t> typeInfos;
+	std::map<uint16_t, std::string> typeNames;
 
 	DLL_LINKAGE CTypeList();
 
@@ -45,6 +48,13 @@ public:
 			return;
 
 		typeInfos[typeInfo.name()] = index;
+		typeNames[index] = boost::core::demangle(typeInfo.name());
+	}
+
+	std::string getTypeName(uint16_t index) const
+	{
+		auto iterator = typeNames.find(index);
+		return iterator != typeNames.end() ? iterator->second : "unknown serialized type";
 	}
 
 	template<typename T>
