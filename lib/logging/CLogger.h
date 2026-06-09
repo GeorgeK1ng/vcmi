@@ -214,12 +214,14 @@ public:
 
 	const CLogFormatter & getFormatter() const;
 	void setFormatter(const CLogFormatter & formatter);
+	void excludeDomain(const CLoggerDomain & domain);
 
 	void write(const LogRecord & record) override;
 
 private:
 	std::fstream file;
 	CLogFormatter formatter;
+	std::set<std::string> excludedDomains;
 	mutable std::mutex mx;
 };
 

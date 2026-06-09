@@ -47,7 +47,7 @@ void CRmgTemplateStorage::loadObject(std::string scope, std::string name, const 
 	}
 	catch(const std::exception & e)
 	{
-		logGlobal->error("Template %s has errors. Message: %s.", name, std::string(e.what()));
+		logRmg->error("Template %s has errors. Message: %s.", name, std::string(e.what()));
 	}
 }
 

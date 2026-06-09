@@ -21,7 +21,7 @@ void ObjectPlacer::process()
 	auto * manager = zone.getModificator<ObjectManager>();
 	if(!manager)
 	{
-		logGlobal->error("ObjectManager doesn't exist for zone %d, skip modificator %s", zone.getId(), getName());
+		logRmg->error("ObjectManager doesn't exist for zone %d, skip modificator %s", zone.getId(), getName());
 		return;
 	}
 
@@ -51,7 +51,7 @@ bool ObjectPlacer::placeRequiredObjects(ObjectManager & manager)
 				auto subObjects = LIBRARY->objtypeh->knownSubObjects(objid.primaryID);
 				if(subObjects.empty())
 				{
-					logGlobal->error("No subobjects for object type %d", objid.primaryID);
+					logRmg->error("No subobjects for object type %d", objid.primaryID);
 					continue;
 				}
 				secondaryID = *RandomGeneratorUtil::nextItem(subObjects, zone.getRand());

@@ -32,7 +32,7 @@ void replaceWithCurvedPath(rmg::Path & path, Zone & zone, const int3 & src, bool
 
 	if(tiles.size() < 2)
 	{
-		logGlobal->warn("Zone too small for curved path");
+		logRmg->warn("Zone too small for curved path");
 		return;
 	}
 
@@ -53,7 +53,7 @@ void replaceWithCurvedPath(rmg::Path & path, Zone & zone, const int3 & src, bool
 	}
 	else
 	{
-		logGlobal->warn("Failed to create curved path to %s", src.toString());
+		logRmg->warn("Failed to create curved path to %s", src.toString());
 	}
 }
 

@@ -84,7 +84,7 @@ void CMapGenerator::loadConfig()
 	for(auto & i : randomMapJson["quests"]["rewardValue"].Vector())
 		config.questRewardValues.push_back(i.Integer());
 	config.seerHutValue = randomMapJson["quests"]["seerHutValue"].Integer();
-	logGlobal->info("Seer Hut value: %d", config.seerHutValue);
+	logRmg->info("Seer Hut value: %d", config.seerHutValue);
 	config.pandoraMultiplierGold = randomMapJson["pandoras"]["valueMultiplierGold"].Integer();
 	config.pandoraMultiplierExperience = randomMapJson["pandoras"]["valueMultiplierExperience"].Integer();
 	config.pandoraMultiplierSpells = randomMapJson["pandoras"]["valueMultiplierSpells"].Integer();
@@ -142,7 +142,7 @@ std::unique_ptr<CMap> CMapGenerator::generate()
 	}
 	catch (rmgException &e)
 	{
-		logGlobal->error("Random map generation received exception: %s", e.what());
+		logRmg->error("Random map generation received exception: %s", e.what());
 		throw;
 	}
 	Load::Progress::finish();
@@ -283,7 +283,7 @@ void CMapGenerator::addPlayerInfo()
 			}
 			teamOffset += teamCountNorm;
 		}
-		logGlobal->info("Current player settings size: %d",  mapGenOptions.getPlayersSettings().size());
+		logRmg->info("Current player settings size: %d",  mapGenOptions.getPlayersSettings().size());
 
 		// Team numbers are assigned randomly to every player
 		//TODO: allow to customize teams in rmg template
@@ -306,7 +306,7 @@ void CMapGenerator::addPlayerInfo()
 			{
 				if (teamNumbers[j].empty())
 				{
-					logGlobal->error("Not enough places in team for %s player", ((j == CPUONLY) ? "CPU" : "CPU or human"));
+					logRmg->error("Not enough places in team for %s player", ((j == CPUONLY) ? "CPU" : "CPU or human"));
 					assert (teamNumbers[j].size());
 				}
 				auto itTeam = RandomGeneratorUtil::nextItem(teamNumbers[j], *rand);
@@ -317,7 +317,7 @@ void CMapGenerator::addPlayerInfo()
 			map->getMap(this).players[pSettings.getColor().getNum()] = player;
 		}
 
-		logGlobal->info("Current team count: %d", teamsTotal.size());
+		logRmg->info("Current team count: %d", teamsTotal.size());
 
 	}
 	// FIXME: 0
@@ -336,7 +336,7 @@ void CMapGenerator::genZones()
 	CRoadRandomizer roadRandomizer(*map);
 	roadRandomizer.dropRandomRoads(rand.get());
 
-	logGlobal->info("Zones generated successfully");
+	logRmg->info("Zones generated successfully");
 }
 
 void CMapGenerator::addWaterTreasuresInfo()
@@ -355,7 +355,7 @@ void CMapGenerator::fillZones()
 {
 	addWaterTreasuresInfo();
 
-	logGlobal->info("Started filling zones");
+	logRmg->info("Started filling zones");
 
 	size_t numZones = map->getZones().size();
 
@@ -454,7 +454,7 @@ void CMapGenerator::fillZones()
 	map->getMap(this).grailPos = *RandomGeneratorUtil::nextItem(grailZone->freePaths()->getTiles(), *rand);
 	map->getMap(this).reindexObjects();
 
-	logGlobal->info("Zones filled successfully");
+	logRmg->info("Zones filled successfully");
 
 	Load::Progress::set(250);
 }

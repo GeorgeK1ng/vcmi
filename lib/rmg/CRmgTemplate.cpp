@@ -389,14 +389,14 @@ void ZoneOptions::setRoadOption(int connectionId, rmg::ERoadOption roadOption)
 		if(connection.getId() == connectionId)
 		{
 			connection.setRoadOption(roadOption);
-			logGlobal->info("Set road option for connection %d between zones %d and %d to %s", 
+			logRmg->info("Set road option for connection %d between zones %d and %d to %s",
 				connectionId, connection.getZoneA(), connection.getZoneB(), 
 				roadOption == rmg::ERoadOption::ROAD_TRUE ? "true" : 
 				roadOption == rmg::ERoadOption::ROAD_FALSE ? "false" : "random");
 			return;
 		}
 	}
-	logGlobal->warn("Failed to find connection with ID %d in zone %d", connectionId, id);
+	logRmg->warn("Failed to find connection with ID %d in zone %d", connectionId, id);
 }
 
 std::vector<TRmgTemplateZoneId> ZoneOptions::getConnectedZoneIds() const
@@ -976,7 +976,7 @@ T CRmgTemplate::inheritZoneProperty(std::shared_ptr<rmg::ZoneOptions> zone,
 {
 	if (iteration >= 50)
 	{
-		logGlobal->error("Infinite recursion for %s detected in template %s", propertyString, name);
+		logRmg->error("Infinite recursion for %s detected in template %s", propertyString, name);
 		return T();
 	}
 	
@@ -1057,7 +1057,7 @@ void CRmgTemplate::inheritTownProperties(std::shared_ptr<rmg::ZoneOptions> zone,
 {
 	if (iteration >= 50)
 	{
-		logGlobal->error("Infinite recursion for town properties detected in template %s", name);
+		logRmg->error("Infinite recursion for town properties detected in template %s", name);
 		return;
 	}
 

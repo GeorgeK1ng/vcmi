@@ -16,14 +16,13 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
-CBasicLogConfigurator::CBasicLogConfigurator(boost::filesystem::path filePath, CConsoleHandler * const console) :
-	filePath(std::move(filePath)), console(console), appendToLogFile(false) {}
+CBasicLogConfigurator::CBasicLogConfigurator(boost::filesystem::path filePath, CConsoleHandler * const console, boost::filesystem::path rmgFilePath) :
+	filePath(std::move(filePath)), rmgFilePath(std::move(rmgFilePath)), console(console), appendToLogFile(false) {}
 
 void CBasicLogConfigurator::configureDefault()
 {
 	CLogger::getGlobalLogger()->addTarget(std::make_unique<CLogConsoleTarget>(console));
-	CLogger::getGlobalLogger()->addTarget(std::make_unique<CLogFileTarget>(filePath, appendToLogFile));
-	appendToLogFile = true;
+	addFileTargets();
 }
 
 void CBasicLogConfigurator::configure()
@@ -80,16 +79,15 @@ void CBasicLogConfigurator::configure()
 		}
 		CLogger::getGlobalLogger()->addTarget(std::move(consoleTarget));
 
-		// Add file target
-		auto fileTarget = std::make_unique<CLogFileTarget>(filePath, appendToLogFile);
+		// Add file targets
 		const JsonNode & fileNode = loggingNode["file"];
-		if(!fileNode.isNull())
+		if(!fileNode.isNull() && !fileNode["format"].isNull())
 		{
-			const JsonNode & fileFormatNode = fileNode["format"];
-			if(!fileFormatNode.isNull()) fileTarget->setFormatter(CLogFormatter(fileFormatNode.String()));
+			CLogFormatter formatter(fileNode["format"].String());
+			addFileTargets(&formatter);
 		}
-		CLogger::getGlobalLogger()->addTarget(std::move(fileTarget));
-		appendToLogFile = true;
+		else
+			addFileTargets();
 	}
 	catch(const std::exception & e)
 	{
@@ -103,6 +101,28 @@ void CBasicLogConfigurator::configure()
 		logGlobal->info("[log level] %s => %s", domain,
                     ELogLevel::to_string(CLogger::getLogger(CLoggerDomain(domain))->getLevel()));
 	}
+}
+
+void CBasicLogConfigurator::addFileTargets(const CLogFormatter * formatter)
+{
+	auto fileTarget = std::make_unique<CLogFileTarget>(filePath, appendToLogFile);
+	if(formatter)
+		fileTarget->setFormatter(*formatter);
+
+	if(!rmgFilePath.empty())
+	{
+		const CLoggerDomain rmgDomain("rmg");
+		fileTarget->excludeDomain(rmgDomain);
+
+		auto rmgFileTarget = std::make_unique<CLogFileTarget>(rmgFilePath, appendToLogFile);
+		if(formatter)
+			rmgFileTarget->setFormatter(*formatter);
+		CLogger::getLogger(rmgDomain)->clearTargets();
+		CLogger::getLogger(rmgDomain)->addTarget(std::move(rmgFileTarget));
+	}
+
+	CLogger::getGlobalLogger()->addTarget(std::move(fileTarget));
+	appendToLogFile = true;
 }
 
 ELogLevel::ELogLevel CBasicLogConfigurator::getLogLevel(const std::string & level)
@@ -149,6 +169,8 @@ void CBasicLogConfigurator::deconfigure()
 	auto l = CLogger::getGlobalLogger();
 	if(l != nullptr)
 		l->clearTargets();
+	if(!rmgFilePath.empty())
+		CLogger::getLogger(CLoggerDomain("rmg"))->clearTargets();
 	appendToLogFile = true;
 }
 

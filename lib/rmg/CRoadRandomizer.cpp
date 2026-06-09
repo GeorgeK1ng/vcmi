@@ -51,7 +51,7 @@ Random road generation requirements:
 
 void CRoadRandomizer::dropRandomRoads(vstd::RNG * rand)
 {
-	logGlobal->info("Starting road randomization");
+	logRmg->info("Starting road randomization");
 
 	auto zones = map.getZones();
 	
@@ -84,7 +84,7 @@ void CRoadRandomizer::dropRandomRoads(vstd::RNG * rand)
 		}
 	}
 	
-	logGlobal->info("Found %d zones with towns", zonesWithTowns.size());
+	logRmg->info("Found %d zones with towns", zonesWithTowns.size());
 	
 	if(zonesWithTowns.empty())
 	{
@@ -179,7 +179,7 @@ void CRoadRandomizer::dropRandomRoads(vstd::RNG * rand)
 			// but never connect two non-town components together.
 			if(townInA || townInB)
 			{
-				logGlobal->info("Setting RANDOM road to TRUE for connection %d between zones %d and %d to connect town components.", connection.getId(), zoneA, zoneB);
+				logRmg->info("Setting RANDOM road to TRUE for connection %d between zones %d and %d to connect town components.", connection.getId(), zoneA, zoneB);
 				setRoadOptionForConnection(connection.getId(), rmg::ERoadOption::ROAD_TRUE);
 				
 				// Union the sets
@@ -227,14 +227,14 @@ void CRoadRandomizer::dropRandomRoads(vstd::RNG * rand)
 			// If exactly one road enters this zone, remove it
 			if(roadCount == 1)
 			{
-				logGlobal->info("Trimming loose end: removing road connection %d from zone %d (no town)", looseEndConnectionId, zoneId);
+				logRmg->info("Trimming loose end: removing road connection %d from zone %d (no town)", looseEndConnectionId, zoneId);
 				setRoadOptionForConnection(looseEndConnectionId, rmg::ERoadOption::ROAD_FALSE);
 				changed = true;
 			}
 		}
 	}
 
-	logGlobal->info("Finished road generation - created minimal spanning tree connecting all towns");
+	logRmg->info("Finished road generation - created minimal spanning tree connecting all towns");
 }
 
 VCMI_LIB_NAMESPACE_END
