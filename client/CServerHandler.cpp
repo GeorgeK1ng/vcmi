@@ -23,9 +23,10 @@
 
 #include "gui/WindowHandler.h"
 
-#include "lobby/CSelectionBase.h"
-#include "lobby/CLobbyScreen.h"
 #include "lobby/CBonusSelection.h"
+#include "lobby/CLobbyScreen.h"
+#include "lobby/CSavingScreen.h"
+#include "lobby/CSelectionBase.h"
 
 #include "netlag/NetworkLagCompensator.h"
 
@@ -787,51 +788,63 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 	if (!cs)
 		ourCampaign = si->campState;
 
-	param.campaignName = cs->getNameTranslated();
-	cs->highscoreParameters.push_back(param);
+	param.campaignName = ourCampaign->getNameTranslated();
+	ourCampaign->highscoreParameters.push_back(param);
 	auto campaignScoreCalculator = std::make_shared<HighScoreCalculation>();
 	campaignScoreCalculator->isCampaign = true;
-	campaignScoreCalculator->parameters = cs->highscoreParameters;
+	campaignScoreCalculator->parameters = ourCampaign->highscoreParameters;
 
-	endGameplay();
-
-	auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
-	auto finisher = [ourCampaign, campaignScoreCalculator, statistic]()
+	auto continueCampaign = [this, ourCampaign, campaignScoreCalculator, statistic]()
 	{
-		if(ourCampaign->campaignSet != "" && ourCampaign->isCampaignFinished())
-		{
-			Settings entry = persistentStorage.write["completedCampaigns"][ourCampaign->getFilename()];
-			entry->Bool() = true;
-		}
+		endGameplay();
 
-		if(!ourCampaign->isCampaignFinished())
-			GAME->mainmenu()->openCampaignLobby(ourCampaign);
+		auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
+		auto finisher = [ourCampaign, campaignScoreCalculator, statistic]()
+		{
+			if(ourCampaign->campaignSet != "" && ourCampaign->isCampaignFinished())
+			{
+				Settings entry = persistentStorage.write["completedCampaigns"][ourCampaign->getFilename()];
+				entry->Bool() = true;
+			}
+
+			if(!ourCampaign->isCampaignFinished())
+				GAME->mainmenu()->openCampaignLobby(ourCampaign);
+			else
+			{
+				GAME->mainmenu()->openCampaignScreen(ourCampaign->campaignSet);
+				if(!ourCampaign->getOutroVideo().empty() && ENGINE->video().open(ourCampaign->getOutroVideo(), 1))
+				{
+					ENGINE->music().stopMusic();
+					auto rim = ourCampaign->getVideoRim().empty() ? ImagePath::builtin("INTRORIM") : ourCampaign->getVideoRim();
+					if(ourCampaign->getVideoRim() == ImagePath::builtin("NONE"))
+						rim = ImagePath();
+					ENGINE->windows().createAndPushWindow<VideoWindow>(
+						ourCampaign->getOutroVideo(),
+						rim,
+						false,
+						1,
+						[campaignScoreCalculator, statistic](bool skipped)
+						{
+							ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
+						}
+					);
+				}
+				else
+					ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
+			}
+		};
+
+		if(epilogue.hasPrologEpilog)
+		{
+			ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, finisher);
+		}
 		else
 		{
-			GAME->mainmenu()->openCampaignScreen(ourCampaign->campaignSet);
-			if(!ourCampaign->getOutroVideo().empty() && ENGINE->video().open(ourCampaign->getOutroVideo(), 1))
-			{
-				ENGINE->music().stopMusic();
-				auto rim = ourCampaign->getVideoRim().empty() ? ImagePath::builtin("INTRORIM") : ourCampaign->getVideoRim();
-				if(ourCampaign->getVideoRim() == ImagePath::builtin("NONE"))
-					rim = ImagePath();
-				ENGINE->windows().createAndPushWindow<VideoWindow>(ourCampaign->getOutroVideo(), rim, false, 1, [campaignScoreCalculator, statistic](bool skipped){
-					ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
-				});
-			}
-			else
-				ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
+			finisher();
 		}
 	};
 
-	if(epilogue.hasPrologEpilog)
-	{
-		ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, finisher);
-	}
-	else
-	{
-		finisher();
-	}
+	ENGINE->windows().createAndPushWindow<CSavingScreen>(continueCampaign);
 }
 
 void CServerHandler::showServerError(const std::string & txt) const
