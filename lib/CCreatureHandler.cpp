@@ -449,6 +449,8 @@ void CCreatureHandler::loadCommanders()
 
 	const JsonNode & config = data; // switch to const data accessors
 
+	commanderResurrectionCost = std::max<TResource>(0, static_cast<TResource>(config["resurrectionCost"].Integer()));
+
 	for (auto bonus : config["bonusPerLevel"].Vector())
 	{
 		commanderLevelPremy.push_back(parseBonusWithCompatibility(bonus));

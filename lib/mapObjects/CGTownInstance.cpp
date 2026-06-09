@@ -18,6 +18,7 @@
 #include "../battle/IBattleInfoCallback.h"
 #include "../battle/BattleLayout.h"
 #include "../CConfigHandler.h"
+#include "../CCreatureHandler.h"
 #include "../texts/CGeneralTextHandler.h"
 #include "../gameState/CGameState.h"
 #include "../gameState/UpgradeInfo.h"
@@ -337,26 +338,43 @@ void CGTownInstance::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroIn
 	else
 	{
 		assert(h->visitablePos() == this->visitablePos());
-		bool commander_recover = h->getCommander() && !h->getCommander()->alive;
-		if (commander_recover) // rise commander from dead
-		{
-			SetCommanderProperty scp;
-			scp.heroid = h->id;
-			scp.which = SetCommanderProperty::ALIVE;
-			scp.amount = 1;
-			gameEvents.sendAndApply(scp);
-		}
 		gameEvents.heroVisitCastle(this, h);
-		// TODO(vmarkovtsev): implement payment for rising the commander
-		if (commander_recover) // info window about commander
+		if(h->getCommander() && !h->getCommander()->alive)
 		{
-			InfoWindow iw;
-			iw.player = h->tempOwner;
-			iw.text.appendRawString(h->getCommander()->getName());
-			iw.components.emplace_back(ComponentType::CREATURE, h->getCommander()->getId(), h->getCommander()->getCount());
-			gameEvents.showInfoDialog(&iw);
+			BlockingDialog dialog(true, false);
+			dialog.player = h->tempOwner;
+			dialog.text.appendTextID("vcmi.commander.resurrectionOffer");
+			dialog.text.replaceNumber(LIBRARY->creh->commanderResurrectionCost);
+			dialog.components.emplace_back(ComponentType::CREATURE, h->getCommander()->getId(), h->getCommander()->getCount());
+			dialog.components.emplace_back(ComponentType::RESOURCE, GameResID(EGameResID::GOLD), LIBRARY->creh->commanderResurrectionCost);
+			gameEvents.showBlockingDialog(this, &dialog);
 		}
 	}
+}
+
+void CGTownInstance::blockingDialogAnswered(IGameEventCallback & gameEvents, const CGHeroInstance * hero, int32_t answer) const
+{
+	if(!answer || !hero->getCommander() || hero->getCommander()->alive)
+		return;
+
+	const auto resurrectionCost = LIBRARY->creh->commanderResurrectionCost;
+	if(cb->getResource(hero->tempOwner, EGameResID::GOLD) < resurrectionCost)
+	{
+		InfoWindow dialog;
+		dialog.player = hero->tempOwner;
+		dialog.text.appendLocalString(EMetaText::GENERAL_TXT, 29); // You don't have enough gold
+		gameEvents.showInfoDialog(&dialog);
+		return;
+	}
+
+	if(resurrectionCost > 0)
+		gameEvents.giveResource(hero->tempOwner, EGameResID::GOLD, -resurrectionCost);
+
+	SetCommanderProperty property;
+	property.heroid = hero->id;
+	property.which = SetCommanderProperty::ALIVE;
+	property.amount = 1;
+	gameEvents.sendAndApply(property);
 }
 
 void CGTownInstance::onHeroLeave(IGameEventCallback & gameEvents, const CGHeroInstance * h) const
