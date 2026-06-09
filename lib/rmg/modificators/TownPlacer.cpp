@@ -38,7 +38,7 @@ void TownPlacer::process()
 	auto * manager = zone.getModificator<ObjectManager>();
 	if(!manager)
 	{
-		logGlobal->error("ObjectManager doesn't exist for zone %d, skip modificator %s", zone.getId(), getName());
+		logRmg->error("ObjectManager doesn't exist for zone %d, skip modificator %s", zone.getId(), getName());
 		return;
 	}
 	
@@ -49,23 +49,23 @@ void TownPlacer::init()
 {
 	for(auto & townHint : zone.getTownHints())
 	{
-		logGlobal->info("Town hint of zone %d: %d", zone.getId(), townHint.likeZone);
+		logRmg->info("Town hint of zone %d: %d", zone.getId(), townHint.likeZone);
 		if(townHint.likeZone != rmg::ZoneOptions::NO_ZONE)
 		{
-			logGlobal->info("Dependency on town type of zone %d", townHint.likeZone);
+			logRmg->info("Dependency on town type of zone %d", townHint.likeZone);
 			dependency(map.getZones().at(townHint.likeZone)->getModificator<TownPlacer>());
 		}
 		else if(!townHint.notLikeZone.empty())
 		{
 			for(auto zoneId : townHint.notLikeZone)
 			{
-				logGlobal->info("Dependency on town unlike type of zone %d", zoneId);
+				logRmg->info("Dependency on town unlike type of zone %d", zoneId);
 				dependency(map.getZones().at(zoneId)->getModificator<TownPlacer>());
 			}
 		}
 		else if(townHint.relatedToZoneTerrain != rmg::ZoneOptions::NO_ZONE)
 		{
-			logGlobal->info("Dependency on town related to zone terrain of zone %d", townHint.relatedToZoneTerrain);
+			logRmg->info("Dependency on town related to zone terrain of zone %d", townHint.relatedToZoneTerrain);
 			dependency(map.getZones().at(townHint.relatedToZoneTerrain)->getModificator<TownPlacer>());
 		}
 	}
@@ -81,7 +81,7 @@ void TownPlacer::placeTowns(ObjectManager & manager)
 	if(zone.getOwner() && ((zone.getType() == ETemplateZoneType::CPU_START) || (zone.getType() == ETemplateZoneType::PLAYER_START)))
 	{
 		//set zone types to player faction, generate main town
-		logGlobal->info("Preparing playing zone");
+		logRmg->info("Preparing playing zone");
 		int player_id = *zone.getOwner() - 1;
 		const auto & playerSettings = map.getMapGenOptions().getPlayersSettings();
 		PlayerColor player;
@@ -120,7 +120,7 @@ void TownPlacer::placeTowns(ObjectManager & manager)
 		
 		if(player.isValidPlayer()) //configure info for owning player
 		{
-			logGlobal->trace("Fill player info %d", player_id);
+			logRmg->trace("Fill player info %d", player_id);
 			
 			// Update player info
 			auto & playerInfo = map.getPlayer(player.getNum());

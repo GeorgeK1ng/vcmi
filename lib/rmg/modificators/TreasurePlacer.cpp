@@ -80,17 +80,17 @@ void TreasurePlacer::addObjectToRandomPool(const ObjectInfo& oi)
 {
 	if (oi.templates.empty())
 	{
-		logGlobal->error("Attempt to add ObjectInfo with no templates! Value: %d", oi.value);
+		logRmg->error("Attempt to add ObjectInfo with no templates! Value: %d", oi.value);
 		return;
 	}
 	if (!oi.generateObject)
 	{
-		logGlobal->error("Attempt to add ObjectInfo with no generateObject function! Value: %d", oi.value);
+		logRmg->error("Attempt to add ObjectInfo with no generateObject function! Value: %d", oi.value);
 		return;
 	}
 	if (!oi.maxPerZone)
 	{
-		logGlobal->warn("Attempt to add ObjectInfo with 0 maxPerZone! Value: %d", oi.value);
+		logRmg->warn("Attempt to add ObjectInfo with 0 maxPerZone! Value: %d", oi.value);
 		return;
 	}
 	RecursiveLock lock(externalAccessMutex);
@@ -778,7 +778,7 @@ rmg::Object TreasurePlacer::constructTreasurePile(const std::vector<ObjectInfo*>
 			object->rmgValue = oi->value;
 			if(oi->templates.empty())
 			{
-				logGlobal->warn("Deleting randomized object with no templates: %s", object->getObjectName());
+				logRmg->warn("Deleting randomized object with no templates: %s", object->getObjectName());
 				if (oi->destroyObject)
 					oi->destroyObject(*object);
 				continue;
@@ -786,7 +786,7 @@ rmg::Object TreasurePlacer::constructTreasurePile(const std::vector<ObjectInfo*>
 		}
 		else
 		{
-			logGlobal->error("ObjectInfo has no generateObject function! Templates: %d", oi->templates.size());
+			logRmg->error("ObjectInfo has no generateObject function! Templates: %d", oi->templates.size());
 			continue;
 		}
 		
@@ -1174,7 +1174,7 @@ void TreasurePlacer::ObjectPool::patchWithZoneConfig(const Zone & zone, Treasure
 			auto category = getObjectCategory(oi.getCompoundID());
 			if (categoriesSet.count(category))
 			{
-				logGlobal->debug("Removing object %s from possible objects", oi.templates.front()->stringID);
+				logRmg->debug("Removing object %s from possible objects", oi.templates.front()->stringID);
 				return true;
 			}
 			return false;
@@ -1191,7 +1191,7 @@ void TreasurePlacer::ObjectPool::patchWithZoneConfig(const Zone & zone, Treasure
 				if (bannedObjectsSet.count(key) || bannedObjectsSet.count(keyGroup))
 				{
 					// FIXME: Stopped working, nothing is banned
-					logGlobal->debug("Banning object %s from possible objects", templ->stringID);
+					logRmg->debug("Banning object %s from possible objects", templ->stringID);
 					return true;
 				}
 			}
@@ -1206,7 +1206,7 @@ void TreasurePlacer::ObjectPool::patchWithZoneConfig(const Zone & zone, Treasure
 	{
 		tp->setBasicProperties(object, object.getCompoundID());
 		addObject(object);
-		logGlobal->debug("Added custom object of type %d.%d", object.primaryID, object.secondaryID);
+		logRmg->debug("Added custom object of type %d.%d", object.primaryID, object.secondaryID);
 	}
 	// TODO: Overwrite or add to possibleObjects
 

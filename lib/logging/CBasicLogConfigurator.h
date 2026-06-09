@@ -14,6 +14,7 @@ VCMI_LIB_NAMESPACE_BEGIN
 
 class CConsoleHandler;
 class JsonNode;
+class CLogFormatter;
 enum class EConsoleTextColor : int8_t;
 
 /// The class CBasicLogConfigurator reads log properties from settings.json and
@@ -22,16 +23,16 @@ enum class EConsoleTextColor : int8_t;
 class DLL_LINKAGE CBasicLogConfigurator
 {
 public:
-	CBasicLogConfigurator(boost::filesystem::path filePath, CConsoleHandler * const console);
+	CBasicLogConfigurator(boost::filesystem::path filePath, CConsoleHandler * const console, boost::filesystem::path rmgFilePath = {});
 
-	/// Configures the logging system by parsing the logging settings. It adds the console target and the file target to the global logger.
+	/// Configures the logging system by parsing the logging settings. It adds the console target and configured file targets.
 	/// Doesn't throw, but logs on success or fault.
 	void configure();
 
-	/// Configures a default logging system by adding the console target and the file target to the global logger.
+	/// Configures a default logging system by adding the console target and configured file targets.
 	void configureDefault();
 
-	/// Removes all targets from the global logger.
+	/// Removes all configured targets.
 	void deconfigure();
 
 
@@ -43,7 +44,10 @@ private:
 	// Throws: std::runtime_error
 	static EConsoleTextColor getConsoleColor(const std::string & colorName);
 
+	void addFileTargets(const CLogFormatter * formatter = nullptr);
+
 	boost::filesystem::path filePath;
+	boost::filesystem::path rmgFilePath;
 	CConsoleHandler * console;
 	bool appendToLogFile;
 };

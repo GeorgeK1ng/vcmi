@@ -98,6 +98,7 @@ DLL_LINKAGE vstd::CLoggerBase * logAi = CLogger::getLogger(CLoggerDomain("ai"));
 DLL_LINKAGE vstd::CLoggerBase * logAnim = CLogger::getLogger(CLoggerDomain("animation"));
 DLL_LINKAGE vstd::CLoggerBase * logMod = CLogger::getLogger(CLoggerDomain("mod"));
 DLL_LINKAGE vstd::CLoggerBase * logRng = CLogger::getLogger(CLoggerDomain("rng"));
+DLL_LINKAGE vstd::CLoggerBase * logRmg = CLogger::getLogger(CLoggerDomain("rmg"));
 DLL_LINKAGE vstd::CLoggerBase * logScript = CLogger::getLogger(CLoggerDomain("script"));
 
 CLogger * CLogger::getLogger(const CLoggerDomain & domain)
@@ -434,6 +435,14 @@ CLogFileTarget::CLogFileTarget(const boost::filesystem::path & filePath, bool ap
 
 void CLogFileTarget::write(const LogRecord & record)
 {
+	for(CLoggerDomain domain = record.domain; ; domain = domain.getParent())
+	{
+		if(excludedDomains.contains(domain.getName()))
+			return;
+		if(domain.isGlobalDomain())
+			break;
+	}
+
 	std::string message = formatter.format(record); //formatting is slow, do it outside the lock
 	std::lock_guard _(mx);
 	file << message << std::endl;
@@ -441,6 +450,7 @@ void CLogFileTarget::write(const LogRecord & record)
 
 const CLogFormatter & CLogFileTarget::getFormatter() const { return formatter; }
 void CLogFileTarget::setFormatter(const CLogFormatter & formatter) { this->formatter = formatter; }
+void CLogFileTarget::excludeDomain(const CLoggerDomain & domain) { excludedDomains.insert(domain.getName()); }
 
 CLogFileTarget::~CLogFileTarget()
 {

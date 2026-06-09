@@ -406,13 +406,13 @@ void CZoneGridPlacer::logPlacement(
 {
 	if (!decision.foundPos)
 	{
-		logGlobal->warn("Could not find place for zone %d on level %d grid size %d", zone->getId(), level, gridSize);
+		logRmg->warn("Could not find place for zone %d on level %d grid size %d", zone->getId(), level, gridSize);
 		return;
 	}
 
 	if (decision.hasScore)
 	{
-		logGlobal->trace(
+		logRmg->trace(
 			"placeOnGrid: zone %d level %d grid %s score %.6g",
 			zone->getId(),
 			level,
@@ -421,7 +421,7 @@ void CZoneGridPlacer::logPlacement(
 	}
 	else
 	{
-		logGlobal->trace(
+		logRmg->trace(
 			"placeOnGrid: zone %d level %d grid %s",
 			zone->getId(),
 			level,
@@ -437,7 +437,7 @@ void CZoneGridPlacer::logInitialGrid(
 
 #define ZONE_PLACEMENT_LOG
 #ifdef ZONE_PLACEMENT_LOG
-	logGlobal->trace("Initial zone grid:");
+	logRmg->trace("Initial zone grid:");
 	for (int level = 0; level < mapLevels; ++level)
 	{
 		if (!grids[level])
@@ -445,7 +445,7 @@ void CZoneGridPlacer::logInitialGrid(
 
 		const auto & grid = *grids[level];
 		size_t gridSize = gridSizes[level];
-		logGlobal->trace("Level %d:", level);
+		logRmg->trace("Level %d:", level);
 
 		for (size_t x = 0; x < gridSize; ++x)
 		{
@@ -457,7 +457,7 @@ void CZoneGridPlacer::logInitialGrid(
 				else
 					s += " -- ";
 			}
-			logGlobal->trace(s);
+			logRmg->trace(s);
 		}
 	}
 #endif

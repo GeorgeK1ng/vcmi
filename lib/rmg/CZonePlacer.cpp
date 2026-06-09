@@ -127,7 +127,7 @@ float CZonePlacer::scaleForceBetweenZones(const std::shared_ptr<Zone> zoneA, con
 
 void CZonePlacer::placeZones(vstd::RNG * rand)
 {
-	logGlobal->info("Starting zone placement");
+	logRmg->info("Starting zone placement");
 
 	width = map.getMapGenOptions().getWidth();
 	height = map.getMapGenOptions().getHeight();
@@ -196,7 +196,7 @@ void CZonePlacer::placeZones(vstd::RNG * rand)
 		}
 
 #ifdef ZONE_PLACEMENT_LOG
-		logGlobal->trace("Total distance between zones after this iteration: %2.4f, Total overlap: %2.4f, Improved: %s", totalDistance, totalOverlap , improvement);
+		logRmg->trace("Total distance between zones after this iteration: %2.4f, Total overlap: %2.4f, Improved: %s", totalDistance, totalOverlap , improvement);
 #endif
 
 		return improvement;
@@ -240,12 +240,12 @@ void CZonePlacer::placeZones(vstd::RNG * rand)
 
 	}
 
-	logGlobal->trace("Best fitness reached: total distance %2.4f, total overlap %2.4f", bestTotalDistance, bestTotalOverlap);
+	logRmg->trace("Best fitness reached: total distance %2.4f, total overlap %2.4f", bestTotalDistance, bestTotalOverlap);
 	for(const auto & zone : zones) //finalize zone positions
 	{
 		zone.second->setPos (cords (bestSolution[zone.second]));
 #ifdef ZONE_PLACEMENT_LOG
-		logGlobal->trace("Placed zone %d at relative position %s and coordinates %s", zone.first, zone.second->getCenter().toString(), zone.second->getPos().toString());
+		logRmg->trace("Placed zone %d at relative position %s and coordinates %s", zone.first, zone.second->getCenter().toString(), zone.second->getPos().toString());
 #endif
 	}
 }
@@ -324,7 +324,7 @@ void CZonePlacer::prepareZones(TZoneMap &zones, TZoneVector &zonesVector, const 
 			}
 			else
 			{
-				logGlobal->trace("Player %d (starting zone %d) does not participate in game", player.getNum(), zone.first);
+				logRmg->trace("Player %d (starting zone %d) does not participate in game", player.getNum(), zone.first);
 			}
 
 			if (faction == FactionID::RANDOM) //TODO: check this after a town has already been randomized
@@ -577,7 +577,7 @@ void CZonePlacer::moveOneZone(TZoneMap& zones, TForceVector& totalForces, TDista
 	});
 
 #ifdef ZONE_PLACEMENT_LOG
-	logGlobal->trace("Worst misplacement/movement ratio: %3.2f", misplacedZones.front().first);
+	logRmg->trace("Worst misplacement/movement ratio: %3.2f", misplacedZones.front().first);
 #endif
 
 	if (misplacedZones.size() >= 2)
@@ -620,7 +620,7 @@ void CZonePlacer::moveOneZone(TZoneMap& zones, TForceVector& totalForces, TDista
 		if (secondZone)
 		{
 #ifdef ZONE_PLACEMENT_LOG
-			logGlobal->trace("Swapping two misplaced zones %d and %d", firstZone->getId(), secondZone->getId());
+			logRmg->trace("Swapping two misplaced zones %d and %d", firstZone->getId(), secondZone->getId());
 #endif
 
 			auto firstCenter = firstZone->getCenter();
@@ -665,7 +665,7 @@ void CZonePlacer::moveOneZone(TZoneMap& zones, TForceVector& totalForces, TDista
 			float3 vec = targetZone->getCenter() - ourCenter;
 			float newDistanceBetweenZones = (std::max(misplacedZone->getSize(), targetZone->getSize())) / mapSize;
 #ifdef ZONE_PLACEMENT_LOG
-			logGlobal->trace("Trying to move zone %d %s towards %d %s. Direction is %s", misplacedZone->getId(), ourCenter.toString(), targetZone->getId(), targetZone->getCenter().toString(), vec.toString());
+			logRmg->trace("Trying to move zone %d %s towards %d %s. Direction is %s", misplacedZone->getId(), ourCenter.toString(), targetZone->getId(), targetZone->getCenter().toString(), vec.toString());
 #endif
 
 			misplacedZone->setCenter(targetZone->getCenter() - vec.unitVector() * newDistanceBetweenZones); //zones should now overlap by half size
@@ -695,7 +695,7 @@ void CZonePlacer::moveOneZone(TZoneMap& zones, TForceVector& totalForces, TDista
 			float3 vec = ourCenter - targetZone->getCenter();
 			float newDistanceBetweenZones = (misplacedZone->getSize() + targetZone->getSize()) / mapSize;
 #ifdef ZONE_PLACEMENT_LOG
-			logGlobal->trace("Trying to move zone %d %s away from %d %s. Direction is %s", misplacedZone->getId(), ourCenter.toString(), targetZone->getId(), targetZone->getCenter().toString(), vec.toString());
+			logRmg->trace("Trying to move zone %d %s away from %d %s. Direction is %s", misplacedZone->getId(), ourCenter.toString(), targetZone->getId(), targetZone->getCenter().toString(), vec.toString());
 #endif
 
 			misplacedZone->setCenter(targetZone->getCenter() + vec.unitVector() * newDistanceBetweenZones); //zones should now be just separated
@@ -713,7 +713,7 @@ float CZonePlacer::metric (const int3 &A, const int3 &B) const
 
 void CZonePlacer::assignZones(vstd::RNG * rand)
 {
-	logGlobal->info("Starting zone colouring");
+	logRmg->info("Starting zone colouring");
 
 	auto width = map.getMapGenOptions().getWidth();
 	auto height = map.getMapGenOptions().getHeight();
@@ -831,10 +831,10 @@ void CZonePlacer::assignZones(vstd::RNG * rand)
 			if(zone.second->area()->empty())
 			{
 				// FIXME: Some vertices are duplicated, but it's not a source of problem
-				logGlobal->error("Zone %d at %s is empty, dumping Penrose tiling", zone.second->getId(), zone.second->getCenter().toString());
+				logRmg->error("Zone %d at %s is empty, dumping Penrose tiling", zone.second->getId(), zone.second->getCenter().toString());
 				for (const auto & vertex : vertices)
 				{
-					logGlobal->warn("Penrose Vertex: %s", vertex.toString());
+					logRmg->warn("Penrose Vertex: %s", vertex.toString());
 				}
 				throw rmgException("Empty zone after Penrose tiling");
 			}
@@ -863,7 +863,7 @@ void CZonePlacer::assignZones(vstd::RNG * rand)
 			map.getMapProxy()->drawTerrain(*rand, v, ETerrainId::SUBTERRANEAN);
 		}
 	}
-	logGlobal->info("Finished zone colouring");
+	logRmg->info("Finished zone colouring");
 }
 
 void CZonePlacer::RemoveRoadsForWideConnections()

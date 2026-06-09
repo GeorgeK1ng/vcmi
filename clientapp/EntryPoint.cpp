@@ -203,6 +203,7 @@ int main(int argc, char * argv[])
 	boost::filesystem::path logPath = VCMIDirs::get().userLogsPath() / "VCMI_Client_log.txt";
 	if(vm.count("logLocation"))
 		logPath = vm["logLocation"].as<std::string>() + "/VCMI_Client_log.txt";
+	const boost::filesystem::path rmgLogPath = logPath.parent_path() / "VCMI_RMG_log.txt";
 
 #ifndef VCMI_IOS
 
@@ -215,15 +216,16 @@ int main(int argc, char * argv[])
 	CConsoleHandler console(callbackFunction);
 	console.start();
 
-	CBasicLogConfigurator logConfigurator(logPath, &console);
+	CBasicLogConfigurator logConfigurator(logPath, &console, rmgLogPath);
 #else
-	CBasicLogConfigurator logConfigurator(logPath, nullptr);
+	CBasicLogConfigurator logConfigurator(logPath, nullptr, rmgLogPath);
 #endif
 
 	logConfigurator.configureDefault();
 	logGlobal->info("Starting client of '%s'", GameConstants::VCMI_VERSION);
 	logGlobal->info("Creating console and configuring logger: %d ms", pomtime.getDiff());
 	logGlobal->info("The log file will be saved to %s", logPath);
+	logGlobal->info("The RMG log file will be saved to %s", rmgLogPath);
 
 	// Init filesystem and settings
 	try
