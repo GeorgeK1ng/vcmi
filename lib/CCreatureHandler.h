@@ -221,7 +221,7 @@ public:
 	si8 expAfterUpgrade;//multiplier in %
 
 	//Commanders
-	TResource commanderResurrectionCost = 0; // gold paid to resurrect a commander in town
+	TResource commanderResurrectionCost = 1500; // gold paid to resurrect a commander in town
 	BonusList commanderLevelPremy; //bonus values added with each level-up
 	std::vector< std::vector <ui8> > skillLevels; //how much of a bonus will be given to commander with every level. SPELL_POWER also gives CASTS and RESISTANCE
 	std::vector <std::pair <std::vector<std::shared_ptr<Bonus> >, std::pair <ui8, ui8> > > skillRequirements; // first - Bonus, second - which two skills are needed to use it
