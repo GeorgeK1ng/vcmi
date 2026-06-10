@@ -794,57 +794,72 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 	campaignScoreCalculator->isCampaign = true;
 	campaignScoreCalculator->parameters = ourCampaign->highscoreParameters;
 
-	auto continueCampaign = [this, ourCampaign, campaignScoreCalculator, statistic]()
+	auto continueCampaign = [ourCampaign, campaignScoreCalculator, statistic]()
 	{
-		endGameplay();
-
-		auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
-		auto finisher = [ourCampaign, campaignScoreCalculator, statistic]()
+		if(ourCampaign->campaignSet != "" && ourCampaign->isCampaignFinished())
 		{
-			if(ourCampaign->campaignSet != "" && ourCampaign->isCampaignFinished())
-			{
-				Settings entry = persistentStorage.write["completedCampaigns"][ourCampaign->getFilename()];
-				entry->Bool() = true;
-			}
-
-			if(!ourCampaign->isCampaignFinished())
-				GAME->mainmenu()->openCampaignLobby(ourCampaign);
-			else
-			{
-				GAME->mainmenu()->openCampaignScreen(ourCampaign->campaignSet);
-				if(!ourCampaign->getOutroVideo().empty() && ENGINE->video().open(ourCampaign->getOutroVideo(), 1))
-				{
-					ENGINE->music().stopMusic();
-					auto rim = ourCampaign->getVideoRim().empty() ? ImagePath::builtin("INTRORIM") : ourCampaign->getVideoRim();
-					if(ourCampaign->getVideoRim() == ImagePath::builtin("NONE"))
-						rim = ImagePath();
-					ENGINE->windows().createAndPushWindow<VideoWindow>(
-						ourCampaign->getOutroVideo(),
-						rim,
-						false,
-						1,
-						[campaignScoreCalculator, statistic](bool skipped)
-						{
-							ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
-						}
-					);
-				}
-				else
-					ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
-			}
-		};
-
-		if(epilogue.hasPrologEpilog)
-		{
-			ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, finisher);
+			Settings entry = persistentStorage.write["completedCampaigns"][ourCampaign->getFilename()];
+			entry->Bool() = true;
 		}
+
+		if(!ourCampaign->isCampaignFinished())
+			GAME->mainmenu()->openCampaignLobby(ourCampaign);
 		else
 		{
-			finisher();
+			GAME->mainmenu()->openCampaignScreen(ourCampaign->campaignSet);
+			if(!ourCampaign->getOutroVideo().empty() && ENGINE->video().open(ourCampaign->getOutroVideo(), 1))
+			{
+				ENGINE->music().stopMusic();
+				auto rim = ourCampaign->getVideoRim().empty() ? ImagePath::builtin("INTRORIM") : ourCampaign->getVideoRim();
+				if(ourCampaign->getVideoRim() == ImagePath::builtin("NONE"))
+					rim = ImagePath();
+				ENGINE->windows().createAndPushWindow<VideoWindow>(
+					ourCampaign->getOutroVideo(),
+					rim,
+					false,
+					1,
+					[campaignScoreCalculator, statistic](bool skipped)
+					{
+						ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
+					}
+				);
+			}
+			else
+				ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
 		}
 	};
 
-	ENGINE->windows().createAndPushWindow<CSavingScreen>(continueCampaign);
+	auto showSaveScreen = std::make_shared<std::function<void()>>();
+	std::weak_ptr<std::function<void()>> weakShowSaveScreen = showSaveScreen;
+	*showSaveScreen = [this, continueCampaign, weakShowSaveScreen]()
+	{
+		auto retrySave = weakShowSaveScreen.lock();
+		assert(retrySave);
+		ENGINE->windows().createAndPushWindow<CSavingScreen>(
+			[this, continueCampaign, retrySave](bool success)
+			{
+				if(success)
+				{
+					endGameplay();
+					continueCampaign();
+				}
+				else
+				{
+					(*retrySave)();
+				}
+			}
+		);
+	};
+
+	auto openSaveScreen = [showSaveScreen]()
+	{
+		(*showSaveScreen)();
+	};
+	auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
+	if(epilogue.hasPrologEpilog)
+		ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, openSaveScreen);
+	else
+		openSaveScreen();
 }
 
 void CServerHandler::showServerError(const std::string & txt) const

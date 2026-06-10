@@ -29,9 +29,9 @@
 
 void ApplyGhNetPackVisitor::visitSaveGame(SaveGame & pack)
 {
-	gh.save(pack.fname, pack.notifySuccess ? pack.player : PlayerColor::CANNOT_DETERMINE);
-	logGlobal->info("Game has been saved as %s", pack.fname);
-	result = true;
+	result = gh.save(pack.fname, pack.notifySuccess ? pack.player : PlayerColor::CANNOT_DETERMINE);
+	if(result)
+		logGlobal->info("Game has been saved as %s", pack.fname);
 }
 
 void ApplyGhNetPackVisitor::visitGamePause(GamePause & pack)

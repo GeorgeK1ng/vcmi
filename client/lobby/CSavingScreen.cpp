@@ -28,8 +28,8 @@
 #include "../../lib/mapping/CMapHeader.h"
 #include "../../lib/GameLibrary.h"
 
-CSavingScreen::CSavingScreen(std::function<void()> onSaveConfirmationClosed)
-	: CSelectionBase(ESelectionScreen::saveGame), onSaveConfirmationClosed(std::move(onSaveConfirmationClosed))
+CSavingScreen::CSavingScreen(std::function<void(bool)> onSaveResultConfirmationClosed)
+	: CSelectionBase(ESelectionScreen::saveGame), onSaveResultConfirmationClosed(std::move(onSaveResultConfirmationClosed))
 {
 	OBJECT_CONSTRUCTION;
 	center(pos);
@@ -42,7 +42,7 @@ CSavingScreen::CSavingScreen(std::function<void()> onSaveConfirmationClosed)
 	curTab = tabSel;
 		
 	buttonStart = std::make_shared<CButton>(Point(411, 535), AnimationPath::builtin("SCNRSAV.DEF"), LIBRARY->generaltexth->zelp[103], std::bind(&CSavingScreen::saveGame, this), EShortcut::LOBBY_SAVE_GAME);
-	if(onSaveConfirmationClosed)
+	if(onSaveResultConfirmationClosed)
 		buttonBack->block(true);
 
 	GAME->interface()->gamePause(true);
@@ -87,8 +87,8 @@ void CSavingScreen::saveGame()
 	{
 		Settings lastSave = settings.write["general"]["lastSave"];
 		lastSave->String() = path;
-		if(onSaveConfirmationClosed)
-			GAME->interface()->saveGameWithConfirmation(path, onSaveConfirmationClosed);
+		if(onSaveResultConfirmationClosed)
+			GAME->interface()->saveGameWithConfirmation(path, onSaveResultConfirmationClosed);
 		else
 			GAME->interface()->cb->save(path, true);
 		close();

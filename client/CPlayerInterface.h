@@ -75,8 +75,8 @@ class CPlayerInterface : public CGameInterface
 	std::list<PendingDialog> dialogs; //queue of dialogs awaiting to be shown (not currently shown!)
 	std::shared_ptr<WindowBase> pendingLevelUpDialog;
 	int pendingLevelUpRequestID = -1;
-	std::function<void()> nextSaveConfirmationCallback;
-	std::map<uint32_t, std::function<void()>> saveConfirmationCallbacks;
+	std::function<void(bool)> nextSaveResultCallback;
+	std::map<uint32_t, std::function<void(bool)>> saveResultCallbacks;
 
 	std::unique_ptr<HeroMovementController> movementController;
 	std::unique_ptr<PathfinderCache> pathfinderCache;
@@ -219,7 +219,7 @@ public: // public interface for use by client via GAME->interface() access
 	bool checkQuickLoadingGame(bool verbose = false);
 	void proposeQuickLoadingGame();
 	void quickSaveGame();
-	void saveGameWithConfirmation(const std::string & path, std::function<void()> onConfirmationClosed);
+	void saveGameWithConfirmation(const std::string & path, std::function<void(bool)> onResultConfirmationClosed);
 	void performAutosave();
 	void gamePause(bool pause);
 	void endNetwork();

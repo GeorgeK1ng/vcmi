@@ -1349,10 +1349,10 @@ void CPlayerInterface::showGarrisonDialog(const CArmedInstance * up, const CGHer
 
 void CPlayerInterface::requestSent(const CPackForServer * pack, int requestID)
 {
-	if(dynamic_cast<const SaveGame *>(pack) && nextSaveConfirmationCallback)
+	if(dynamic_cast<const SaveGame *>(pack) && nextSaveResultCallback)
 	{
-		saveConfirmationCallbacks.emplace(requestID, std::move(nextSaveConfirmationCallback));
-		nextSaveConfirmationCallback = {};
+		saveResultCallbacks.emplace(requestID, std::move(nextSaveResultCallback));
+		nextSaveResultCallback = {};
 	}
 }
 
@@ -1368,13 +1368,18 @@ void CPlayerInterface::requestRealized( PackageApplied *pa )
 		movementController->onQueryReplyApplied();
 	}
 
-	auto saveCallback = saveConfirmationCallbacks.find(pa->requestID);
-	if(saveCallback != saveConfirmationCallbacks.end())
+	auto saveCallback = saveResultCallbacks.find(pa->requestID);
+	if(saveCallback != saveResultCallbacks.end())
 	{
 		auto callback = std::move(saveCallback->second);
-		saveConfirmationCallbacks.erase(saveCallback);
+		saveResultCallbacks.erase(saveCallback);
 		waitForAllDialogs();
-		ENGINE->dispatchMainThread(callback);
+		ENGINE->dispatchMainThread(
+			[callback, result = pa->result]()
+			{
+				callback(result);
+			}
+		);
 	}
 }
 
@@ -1901,10 +1906,10 @@ void CPlayerInterface::proposeLoadingGame()
 	);
 }
 
-void CPlayerInterface::saveGameWithConfirmation(const std::string & path, std::function<void()> onConfirmationClosed)
+void CPlayerInterface::saveGameWithConfirmation(const std::string & path, std::function<void(bool)> onResultConfirmationClosed)
 {
-	assert(!nextSaveConfirmationCallback);
-	nextSaveConfirmationCallback = std::move(onConfirmationClosed);
+	assert(!nextSaveResultCallback);
+	nextSaveResultCallback = std::move(onResultConfirmationClosed);
 	makingTurn = true;
 	cb->save(path, true);
 }
