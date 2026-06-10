@@ -356,7 +356,7 @@ void CComponent::setSurface(const AnimationPath & defName, int imgPos)
 
 bool CComponent::shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const
 {
-	return settings["general"]["enableUiEnhancements"].Bool() && imageSize == large && (Type == ComponentType::ARTIFACT || Type == ComponentType::CREATURE);
+	return settings["general"]["enableUiEnhancements"].Bool() && imageSize == large && (Type == ComponentType::ARTIFACT || Type == ComponentType::CREATURE || Type == ComponentType::SPELL_SCROLL || Type == ComponentType::SPELL);
 }
 
 void CComponent::setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos)
