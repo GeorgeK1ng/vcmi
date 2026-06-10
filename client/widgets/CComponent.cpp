@@ -76,7 +76,7 @@ void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optiona
 
 	const auto imagePaths = getFileName();
 	const auto imageIndex = static_cast<int>(getIndex());
-	if(shouldUseRewardArtifactBackground(Type, imageSize))
+	if((Type, imageSize))
 		setRewardArtifactBackground(imagePaths[size], imageIndex);
 	else
 		setSurface(imagePaths[size], imageIndex);
@@ -356,7 +356,7 @@ void CComponent::setSurface(const AnimationPath & defName, int imgPos)
 
 bool CComponent::shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const
 {
-	return settings["general"]["enableUiEnhancements"].Bool() && Type == ComponentType::ARTIFACT && imageSize == large;
+	return settings["general"]["enableUiEnhancements"].Bool() && imageSize == large && (Type == ComponentType::ARTIFACT || Type == ComponentType::CREATURE);
 }
 
 void CComponent::setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos)
