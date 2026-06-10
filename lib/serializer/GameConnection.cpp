@@ -12,6 +12,8 @@
 
 #include "BinaryDeserializer.h"
 #include "BinarySerializer.h"
+#include "CTypeList.h"
+#include "SerializerReflection.h"
 
 #include "../gameState/CGameState.h"
 #include "../networkPacks/NetPacksBase.h"
@@ -60,6 +62,12 @@ GameConnection::GameConnection(std::weak_ptr<INetworkConnection> networkConnecti
 	, serializer(std::make_unique<BinarySerializer>(packWriter.get()))
 {
 	assert(networkConnection.lock() != nullptr);
+
+	// Initialize both serialization registries before this connection starts processing packets.
+	// This is particularly important for single-process builds, where client and server threads
+	// may otherwise race to initialize the registries while exchanging the first lobby packet.
+	(void)CTypeList::getInstance();
+	(void)CSerializationApplier::getInstance();
 
 	enterLobbyConnectionMode();
 	deserializer->version = ESerializationVersion::CURRENT;
