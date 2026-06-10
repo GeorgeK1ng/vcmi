@@ -344,9 +344,12 @@ void CGTownInstance::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroIn
 			BlockingDialog dialog(true, false);
 			dialog.player = h->tempOwner;
 			dialog.text.appendTextID("vcmi.commander.resurrectionOffer");
-			dialog.text.replaceNumber(LIBRARY->creh->commanderResurrectionCost);
 			dialog.components.emplace_back(ComponentType::CREATURE, h->getCommander()->getId(), h->getCommander()->getCount());
-			dialog.components.emplace_back(ComponentType::RESOURCE, GameResID(EGameResID::GOLD), LIBRARY->creh->commanderResurrectionCost);
+			for(const auto & resource : LIBRARY->resourceTypeHandler->getAllObjects())
+			{
+				if(LIBRARY->creh->commanderResurrectionPrice[resource] > 0)
+					dialog.components.emplace_back(ComponentType::RESOURCE, resource, LIBRARY->creh->commanderResurrectionPrice[resource]);
+			}
 			gameEvents.showBlockingDialog(this, &dialog);
 		}
 	}
@@ -357,18 +360,18 @@ void CGTownInstance::blockingDialogAnswered(IGameEventCallback & gameEvents, con
 	if(!answer || !hero->getCommander() || hero->getCommander()->alive)
 		return;
 
-	const auto resurrectionCost = LIBRARY->creh->commanderResurrectionCost;
-	if(cb->getResource(hero->tempOwner, EGameResID::GOLD) < resurrectionCost)
+	const auto & resurrectionPrice = LIBRARY->creh->commanderResurrectionPrice;
+	if(!cb->getPlayerState(hero->tempOwner)->resources.canAfford(resurrectionPrice))
 	{
 		InfoWindow dialog;
 		dialog.player = hero->tempOwner;
-		dialog.text.appendLocalString(EMetaText::GENERAL_TXT, 29); // You don't have enough gold
+		dialog.text.appendTextID("vcmi.commander.insufficientResources");
 		gameEvents.showInfoDialog(&dialog);
 		return;
 	}
 
-	if(resurrectionCost > 0)
-		gameEvents.giveResource(hero->tempOwner, EGameResID::GOLD, -resurrectionCost);
+	if(resurrectionPrice.nonZero())
+		gameEvents.giveResources(hero->tempOwner, -resurrectionPrice);
 
 	SetCommanderProperty property;
 	property.heroid = hero->id;

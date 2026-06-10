@@ -3,13 +3,16 @@
 	"$schema" : "http://json-schema.org/draft-04/schema",
 	"title" : "VCMI commander configuration format",
 	"description" : "Configuration of commander progression, abilities and resurrection",
-	"required" : [ "resurrectionCost", "bonusPerLevel", "skillLevels", "abilityRequirements" ],
+	"required" : [ "resurrectionPrice", "bonusPerLevel", "skillLevels", "abilityRequirements" ],
 	"additionalProperties" : false,
 	"properties" : {
-		"resurrectionCost" : {
-			"type" : "integer",
-			"minimum" : 0,
-			"description" : "Gold paid to resurrect a commander in town"
+		"resurrectionPrice" : {
+			"type" : "object",
+			"additionalProperties" : {
+				"type" : "integer",
+				"minimum" : 0
+			},
+			"description" : "Resources paid to resurrect a commander in town"
 		},
 		"bonusPerLevel" : {
 			"type" : "array",
