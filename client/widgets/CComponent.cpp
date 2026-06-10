@@ -76,7 +76,7 @@ void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optiona
 
 	const auto imagePaths = getFileName();
 	const auto imageIndex = static_cast<int>(getIndex());
-	if((Type, imageSize))
+	if(shouldUseRewardArtifactBackground(Type, imageSize))
 		setRewardArtifactBackground(imagePaths[size], imageIndex);
 	else
 		setSurface(imagePaths[size], imageIndex);
