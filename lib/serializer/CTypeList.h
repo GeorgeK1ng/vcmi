@@ -32,8 +32,15 @@ class CTypeList
 public:
 	static CTypeList & getInstance()
 	{
-		static CTypeList registry;
-		return registry;
+		// Client and server threads may access the registry concurrently for the first time.
+		// Keep it alive during process teardown, when network threads may still be running.
+		static std::once_flag initFlag;
+		static CTypeList * registry = nullptr;
+		std::call_once(initFlag, []()
+		{
+			registry = new CTypeList;
+		});
+		return *registry;
 	}
 
 	template<typename T>

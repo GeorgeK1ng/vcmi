@@ -68,7 +68,8 @@ template<typename Type>
 void CSerializationApplier::registerType(uint16_t ID)
 {
 	assert(!apps.count(ID));
-	apps[ID].reset(new SerializerReflection<Type>);
+	auto reflection = std::make_unique<SerializerReflection<Type>>();
+	apps.emplace(ID, std::move(reflection));
 }
 
 CSerializationApplier::CSerializationApplier()
@@ -78,8 +79,15 @@ CSerializationApplier::CSerializationApplier()
 
 CSerializationApplier & CSerializationApplier::getInstance()
 {
-	static CSerializationApplier registry;
-	return registry;
+	// Client and server threads may access the registry concurrently for the first time.
+	// Keep it alive during process teardown, when network threads may still be running.
+	static std::once_flag initFlag;
+	static CSerializationApplier * registry = nullptr;
+	std::call_once(initFlag, []()
+	{
+		registry = new CSerializationApplier;
+	});
+	return *registry;
 }
 
 VCMI_LIB_NAMESPACE_END
