@@ -52,6 +52,21 @@ int GameConnectionPackReader::read(std::byte * data, unsigned size)
 	return size;
 }
 
+namespace
+{
+
+std::string formatPacketPrefix(const std::vector<std::byte> & data)
+{
+	constexpr size_t maxBytesToLog = 32;
+	std::ostringstream output;
+	output << std::hex << std::setfill('0');
+	for(size_t index = 0; index < std::min(data.size(), maxBytesToLog); ++index)
+		output << std::setw(2) << std::to_integer<unsigned int>(data[index]);
+	return output.str();
+}
+
+}
+
 GameConnection::GameConnection(std::weak_ptr<INetworkConnection> networkConnection)
 	: networkConnection(networkConnection)
 	, packReader(std::make_unique<GameConnectionPackReader>())
@@ -93,7 +108,15 @@ std::unique_ptr<CPack> GameConnection::retrievePack(const std::vector<std::byte>
 	packReader->buffer = &data;
 	packReader->position = 0;
 
-	*deserializer & result;
+	try
+	{
+		*deserializer & result;
+	}
+	catch(const std::exception & error)
+	{
+		logNetwork->error("Failed to deserialize packet of %d bytes (prefix: %s): %s", data.size(), formatPacketPrefix(data), error.what());
+		throw;
+	}
 
 	if (result == nullptr)
 		throw std::runtime_error("Failed to retrieve pack!");

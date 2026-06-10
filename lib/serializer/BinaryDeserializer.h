@@ -250,12 +250,15 @@ private:
 		}
 		else
 		{
-			auto * app = CSerializationApplier::getInstance().getApplier(tid);
-			if(app == nullptr)
+			ISerializerReflection * app;
+			try
 			{
-				logGlobal->error("load %d %d - no loader exists", tid, pid);
-				data = nullptr;
-				return;
+				app = CSerializationApplier::getInstance().getApplier(tid);
+			}
+			catch(const std::exception &)
+			{
+				logGlobal->error("Failed to load pointer ID %d as %s using type ID %d", pid, typeid(ncpT).name(), tid);
+				throw;
 			}
 			auto createdPtr = app->createPtr(*this, cb);
 			auto dataNonConst = dynamic_cast<ncpT *>(createdPtr);
