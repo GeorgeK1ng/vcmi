@@ -629,8 +629,9 @@ void CServerHandler::sendStartGame(bool allowOnlyAI, bool verify) const
 			ENGINE->windows().createAndPushWindow<CLoadingScreen>();
 	}
 	
-	// GameConnection clears its per-packet serialization state after every send and receive,
-	// so no separate preparation packet is needed before starting the game.
+	LobbyPrepareStartGame lpsg;
+	sendLobbyPack(lpsg);
+
 	LobbyStartGame lsg;
 	sendLobbyPack(lsg);
 }

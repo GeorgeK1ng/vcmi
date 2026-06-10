@@ -28,9 +28,10 @@ if(ANDROID)
 	set_target_properties(vcmiclient PROPERTIES
 		OUTPUT_NAME "vcmiclient_${ANDROID_ABI}" # required by Qt
 	)
-	# ffmpeg requires -Bsymbolic on 64-bit Android for assembler functions to compile
+	# FFmpeg requires local binding for assembler functions on 64-bit Android.
+	# Do not bind C++ data symbols such as RTTI and singleton registries locally.
 	if(ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "x86_64")
-		target_link_options(vcmiclient PRIVATE -Wl,-Bsymbolic)
+		target_link_options(vcmiclient PRIVATE -Wl,-Bsymbolic-functions)
 	endif()
 else()
 	add_executable(vcmiclient ${clientapp_SRCS} ${clientapp_HEADERS})
