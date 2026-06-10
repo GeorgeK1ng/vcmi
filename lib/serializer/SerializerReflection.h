@@ -57,9 +57,18 @@ class DLL_LINKAGE CSerializationApplier : boost::noncopyable
 public:
 	ISerializerReflection * getApplier(uint16_t ID)
 	{
-		if(!apps.count(ID))
-			throw std::runtime_error("No applier found.");
-		return apps[ID].get();
+		auto applier = apps.find(ID);
+		if(applier == apps.end())
+		{
+			logGlobal->error("No serialization applier for type ID %d in registry %p with %d entries", ID, static_cast<void *>(this), apps.size());
+			throw std::runtime_error("No serialization applier found for type ID " + std::to_string(ID));
+		}
+		if(!applier->second)
+		{
+			logGlobal->error("Null serialization applier for type ID %d in registry %p with %d entries", ID, static_cast<void *>(this), apps.size());
+			throw std::runtime_error("Null serialization applier found for type ID " + std::to_string(ID));
+		}
+		return applier->second.get();
 	}
 
 	template<typename Type>
