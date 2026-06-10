@@ -450,7 +450,7 @@ void CCreatureHandler::loadCommanders()
 	const JsonNode & config = data; // switch to const data accessors
 
 	if(config["resurrectionCost"].isNull())
-		logMod->warn("Commander configuration from mod '%s' is missing 'resurrectionCost'. Using default value of %d gold.", modSource, commanderResurrectionCost);
+		logMod->warn("Commander configuration from mod '%s' is missing 'resurrectionCost'. Commander resurrection will be free.", modSource);
 	else
 		commanderResurrectionCost = std::max<TResource>(0, static_cast<TResource>(config["resurrectionCost"].Integer()));
 
