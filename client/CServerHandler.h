@@ -123,6 +123,7 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 	void onTimer() override;
 
 	void applyPackOnLobbyScreen(CPackForLobby & pack);
+	void showCampaignSaveScreen(std::function<void()> continueCampaign);
 
 	std::string serverHostname;
 	ui16 serverPort;

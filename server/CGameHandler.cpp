@@ -520,13 +520,14 @@ void CGameHandler::handleReceivedPack(GameConnectionID connection, CPackForServe
 			result = false;
 		}
 
+		const bool isSaveGame = dynamic_cast<const SaveGame *>(&pack) != nullptr;
 		if(result)
 			logGlobal->trace("Message %s successfully applied!", typeid(pack).name());
-		else if(dynamic_cast<SaveGame *>(&pack) == nullptr)
+		else if(!isSaveGame)
 			complain((boost::format("Got false in applying %s... that request must have been fishy!")
 				% typeid(pack).name()).str());
 
-		sendPackageResponse(dynamic_cast<SaveGame *>(&pack) != nullptr ? result : true);
+		sendPackageResponse(isSaveGame ? result : true);
 	}
 }
 

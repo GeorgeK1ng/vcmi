@@ -829,37 +829,32 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 		}
 	};
 
-	auto showSaveScreen = std::make_shared<std::function<void()>>();
-	std::weak_ptr<std::function<void()>> weakShowSaveScreen = showSaveScreen;
-	*showSaveScreen = [this, continueCampaign, weakShowSaveScreen]()
+	auto openSaveScreen = [this, continueCampaign]()
 	{
-		auto retrySave = weakShowSaveScreen.lock();
-		assert(retrySave);
-		ENGINE->windows().createAndPushWindow<CSavingScreen>(
-			[this, continueCampaign, retrySave](bool success)
-			{
-				if(success)
-				{
-					endGameplay();
-					continueCampaign();
-				}
-				else
-				{
-					(*retrySave)();
-				}
-			}
-		);
-	};
-
-	auto openSaveScreen = [showSaveScreen]()
-	{
-		(*showSaveScreen)();
+		showCampaignSaveScreen(continueCampaign);
 	};
 	auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
 	if(epilogue.hasPrologEpilog)
 		ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, openSaveScreen);
 	else
 		openSaveScreen();
+}
+
+void CServerHandler::showCampaignSaveScreen(std::function<void()> continueCampaign)
+{
+	ENGINE->windows().createAndPushWindow<CSavingScreen>(
+		[this, continueCampaign = std::move(continueCampaign)](bool success)
+		{
+			if(!success)
+			{
+				showCampaignSaveScreen(continueCampaign);
+				return;
+			}
+
+			endGameplay();
+			continueCampaign();
+		}
+	);
 }
 
 void CServerHandler::showServerError(const std::string & txt) const
