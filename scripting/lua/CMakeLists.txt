@@ -82,17 +82,31 @@ set(lib_HDRS
 		api/StackInstance.h
 )
 
-add_library(vcmiLua SHARED ${lib_SRCS} ${lib_HDRS})
-target_link_libraries(vcmiLua Boost::boost luajit::luajit vcmi)
+if(ENABLE_STATIC_LIBS)
+	# Static platforms cannot load vcmiLua at runtime. Embed every object so API registrations are retained.
+	add_library(vcmiLua OBJECT ${lib_SRCS} ${lib_HDRS})
+	target_link_libraries(vcmiLua PRIVATE Boost::boost luajit::luajit)
+	target_compile_definitions(vcmiLua PRIVATE STATIC_LUA)
+	if(APPLE_IOS OR ANDROID)
+		target_compile_definitions(vcmiLua PRIVATE VCMI_LIB_NAMESPACE=VCMI)
+	endif()
 
-vcmi_set_output_dir(vcmiLua "scripting")
-enable_pch(vcmiLua)
-
-if(APPLE_IOS)
-	install(TARGETS vcmiLua LIBRARY DESTINATION ${SCRIPTING_LIB_DIR})
+	target_sources(vcmi PRIVATE $<TARGET_OBJECTS:vcmiLua>)
+	target_link_libraries(vcmi PUBLIC luajit::luajit)
+	target_compile_definitions(vcmi PRIVATE STATIC_LUA)
 else()
-	install(TARGETS vcmiLua DESTINATION ${SCRIPTING_LIB_DIR})
+	add_library(vcmiLua SHARED ${lib_SRCS} ${lib_HDRS})
+	target_link_libraries(vcmiLua Boost::boost luajit::luajit vcmi)
+	vcmi_set_output_dir(vcmiLua "scripting")
+
+	if(APPLE_IOS)
+		install(TARGETS vcmiLua LIBRARY DESTINATION ${SCRIPTING_LIB_DIR})
+	else()
+		install(TARGETS vcmiLua DESTINATION ${SCRIPTING_LIB_DIR})
+	endif()
 endif()
+
+enable_pch(vcmiLua)
 
 #manually copy lua dll from vcpkg folder to build directory on windows since vcpkg deps copy feature has flaws, using hardcoded paths based on vcmi windows deps package 1.1 from github
 if(MSVC)

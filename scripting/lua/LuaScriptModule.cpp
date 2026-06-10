@@ -17,9 +17,10 @@
 #define strcpy_s(a, b, c) strncpy(a, c, b)
 #endif
 
-static const char * const g_cszAiName = "Lua interpreter";
-
 VCMI_LIB_NAMESPACE_BEGIN
+
+#ifndef STATIC_LUA
+static const char * const g_cszAiName = "Lua interpreter";
 
 extern "C" DLL_EXPORT void GetAiName(char * name)
 {
@@ -30,6 +31,7 @@ extern "C" DLL_EXPORT void GetNewModule(std::shared_ptr<scripting::Module> & out
 {
 	out = std::make_shared<scripting::LuaScriptModule>();
 }
+#endif
 
 namespace scripting
 {

@@ -194,10 +194,14 @@ ScriptHandler::ScriptHandler()
 
 	filePath = VCMIDirs::get().fullLibraryPath("scripting", "vcmiLua");
 
+#ifdef STATIC_LUA
+	lua = CDynLibHandler::getNewScriptingModule(filePath);
+#else
 	if (boost::filesystem::exists(filePath))
 	{
 		lua = CDynLibHandler::getNewScriptingModule(filePath);
 	}
+#endif
 }
 
 ScriptHandler::~ScriptHandler() = default;

@@ -12,6 +12,10 @@
 
 #include "CGlobalAI.h"
 
+#ifdef STATIC_LUA
+# include "../../scripting/lua/LuaScriptModule.h"
+#endif
+
 #include "../VCMIDirs.h"
 
 #ifdef STATIC_AI
@@ -150,7 +154,11 @@ std::shared_ptr<CBattleGameInterface> CDynLibHandler::getNewBattleAI(const std::
 #if SCRIPTING_ENABLED
 std::shared_ptr<scripting::Module> CDynLibHandler::getNewScriptingModule(const boost::filesystem::path & dllname)
 {
+#ifdef STATIC_LUA
+	return std::make_shared<scripting::LuaScriptModule>();
+#else
 	return createAny<scripting::Module>(dllname, "GetNewModule");
+#endif
 }
 #endif
 
