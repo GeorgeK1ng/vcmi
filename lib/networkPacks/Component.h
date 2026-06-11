@@ -42,12 +42,15 @@ struct Component
 	ComponentType type = ComponentType::NONE;
 	ComponentSubType subType;
 	std::optional<int32_t> value; // + give; - take
+	bool newLine = false; // place the next component on a new row
 
 	template <typename Handler> void serialize(Handler &h)
 	{
 		h & type;
 		h & subType;
 		h & value;
+		if(h.hasFeature(Handler::Version::COMPONENT_NEW_LINE))
+			h & newLine;
 	}
 
 	Component() = default;

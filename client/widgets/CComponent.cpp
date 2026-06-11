@@ -55,6 +55,7 @@ CComponent::CComponent(ComponentType Type, ComponentSubType Subtype, const std::
 CComponent::CComponent(const Component & c, ESize imageSize, EFonts font)
 {
 	init(c.type, c.subType, c.value, imageSize, font, "");
+	newLine = c.newLine;
 }
 
 void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optional<int32_t> Val, ESize imageSize, EFonts fnt, const std::string & ValText)

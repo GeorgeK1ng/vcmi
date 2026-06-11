@@ -65,10 +65,11 @@ enum class ESerializationVersion : int32_t
 	CUSTOM_GARRISON_TITLE, // GarrisonDialog pack now has custom title parameter
 	LUA_SCRIPTS,
 	REWARDABLE_RESET_CALENDAR, // rewardable reset period split into days/weeks/months
+	COMPONENT_NEW_LINE, // component can force the following component onto a new row
 
 	RELEASE_170 = HOTA_MAP_STACK_COUNT,
 	RELEASE_174 = CUSTOM_GARRISON_TITLE,
-	CURRENT = REWARDABLE_RESET_CALENDAR,
+	CURRENT = COMPONENT_NEW_LINE,
 };
 
 static_assert(ESerializationVersion::MINIMAL <= ESerializationVersion::CURRENT, "Invalid serialization version definition!");
