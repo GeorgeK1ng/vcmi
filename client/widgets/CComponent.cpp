@@ -55,7 +55,6 @@ CComponent::CComponent(ComponentType Type, ComponentSubType Subtype, const std::
 CComponent::CComponent(const Component & c, ESize imageSize, EFonts font)
 {
 	init(c.type, c.subType, c.value, imageSize, font, "");
-	newLine = c.newLine;
 }
 
 void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optional<int32_t> Val, ESize imageSize, EFonts fnt, const std::string & ValText)
@@ -486,6 +485,15 @@ void CComponentBox::placeComponents(bool selectable)
 	{
 		addChild(comp.get());
 		comp->moveTo(Point(pos.x, pos.y));
+	}
+
+	// Display a creature and the resources paid for it on separate rows.
+	for(size_t i = 1; i < components.size(); ++i)
+	{
+		const auto & previous = components[i - 1]->data;
+		const auto & current = components[i]->data;
+		if(previous.type == ComponentType::CREATURE && current.type == ComponentType::RESOURCE && current.value.value_or(0) < 0)
+			components[i - 1]->newLine = true;
 	}
 
 	struct RowData
