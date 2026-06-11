@@ -86,7 +86,15 @@ void CGarrisonSlot::hover (bool on)
 					&& (!owner->lowerArmy() || owner->lowerArmy()->ID == Obj::HERO) // one hero or we are in the Heroes exchange window
 					&& !(static_cast<const CGHeroInstance*>(owner->upperArmy()))->isGarrisoned();
 
-				if(isHeroOnMap)
+				if(owner->showMoveUnitsOnHover && !owner->removableUnits && upg == EGarrisonType::UPPER)
+				{
+					temp = LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit");
+				}
+				else if(owner->showMoveUnitsOnHover)
+				{
+					temp = LIBRARY->generaltexth->tcommands[6]; //Move %s
+				}
+				else if(isHeroOnMap)
 				{
 					temp = LIBRARY->generaltexth->allTexts[481]; //Select %s
 				}
@@ -618,6 +626,13 @@ void CGarrisonInt::splitClick()
 {
 	if(!getSelection())
 		return;
+
+	if(!getSplittingMode() && !removableUnits && getSelection()->getGarrison() == EGarrisonType::UPPER)
+	{
+		GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit"));
+		return;
+	}
+
 	setSplittingMode(!getSplittingMode());
 	redraw();
 }

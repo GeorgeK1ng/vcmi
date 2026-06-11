@@ -109,6 +109,7 @@ public:
 
 	bool smallIcons;      ///< true - 32x32 imgs, false - 58x64
 	bool removableUnits;  ///< player Can remove units from up
+	bool showMoveUnitsOnHover = false; ///< show move action instead of select action when no slot is selected
 
 	ESlotsLayout layout;
 
