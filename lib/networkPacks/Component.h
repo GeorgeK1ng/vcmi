@@ -49,8 +49,7 @@ struct Component
 		h & type;
 		h & subType;
 		h & value;
-		if(h.hasFeature(Handler::Version::COMPONENT_NEW_LINE))
-			h & newLine;
+		h & newLine;
 	}
 
 	Component() = default;
