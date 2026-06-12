@@ -843,10 +843,13 @@ AssetGenerator::AnimationLayoutMap AssetGenerator::createSliderBar(bool brown, b
 
 AssetGenerator::CanvasPtr AssetGenerator::createDeadCommanderOverlay() const
 {
-	auto source = ENGINE->renderHandler().loadImage(ImageLocator(AnimationPath::builtin("C0FEAR"), 15, 0, EImageBlitMode::COLORKEY));
-	auto image = ENGINE->renderHandler().createImage(source->dimensions(), CanvasScalingPolicy::IGNORE);
+	static const Point creaturePreviewSize(100, 130);
+	auto skull = ENGINE->renderHandler().loadImage(ImageLocator(AnimationPath::builtin("C0FEAR"), 15, 0, EImageBlitMode::COLORKEY));
+	auto image = ENGINE->renderHandler().createImage(creaturePreviewSize, CanvasScalingPolicy::IGNORE);
 	auto canvas = image->getCanvas();
-	canvas.draw(source, Point(0, 0));
+	canvas.drawColor(Rect(Point(0, 0), creaturePreviewSize), Colors::TRANSPARENCY);
+	canvas.drawColorBlended(Rect(Point(0, 0), creaturePreviewSize), ColorRGBA(160, 160, 160, 80));
+	canvas.draw(skull, (creaturePreviewSize - skull->dimensions()) / 2);
 	canvas.applyGrayscale();
 	canvas.applyTransparency(true);
 	return image;
