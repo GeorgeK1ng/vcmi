@@ -85,6 +85,8 @@ public:
 /// Class which manages slots of upper and lower garrison, splitting of units
 class CGarrisonInt :public CIntObject
 {
+	friend class CGarrisonSlot;
+
 	/// Chosen slot. Should be changed only via selectSlot.
 	CGarrisonSlot * highlighted;
 	bool inSplittingMode;
@@ -92,8 +94,8 @@ class CGarrisonInt :public CIntObject
 
 	void createSlots();
 	bool checkSelected(const CGarrisonSlot * selected, TQuantity min = 0) const;
-	bool isStackTransferLocked(const CGarrisonSlot * selected) const;
-	bool showStackTransferError(const CGarrisonSlot * selected) const;
+	bool isStackTransferLocked(const CGarrisonSlot * selected, EGarrisonType destination) const;
+	bool showStackTransferError(const CGarrisonSlot * selected, EGarrisonType destination) const;
 
 	std::map<EGarrisonType, const CArmedInstance*> armedObjs;
 
