@@ -82,6 +82,7 @@ void AssetGenerator::initialize()
 	imageFiles[ImagePath::builtin("stackWindow/button-panel.png")] = [this](){ return createCreatureInfoPanelElement(BUTTON_PANEL);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-bg.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_BACKGROUND);};
 	imageFiles[ImagePath::builtin("stackWindow/commander-abilities.png")] = [this](){ return createCreatureInfoPanelElement(COMMANDER_ABILITIES);};
+	imageFiles[ImagePath::builtin("stackWindow/dead-commander-overlay.png")] = [this](){ return createDeadCommanderOverlay();};
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
@@ -838,6 +839,17 @@ AssetGenerator::AnimationLayoutMap AssetGenerator::createSliderBar(bool brown, b
 	}
 
 	return layout;
+}
+
+AssetGenerator::CanvasPtr AssetGenerator::createDeadCommanderOverlay() const
+{
+	auto source = ENGINE->renderHandler().loadImage(ImageLocator(AnimationPath::builtin("C0FEAR"), 15, 0, EImageBlitMode::COLORKEY));
+	auto image = ENGINE->renderHandler().createImage(source->dimensions(), CanvasScalingPolicy::IGNORE);
+	auto canvas = image->getCanvas();
+	canvas.draw(source, Point(0, 0));
+	canvas.applyGrayscale();
+	canvas.applyTransparency(true);
+	return image;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createCreatureInfoPanel(int boxesAmount) const
