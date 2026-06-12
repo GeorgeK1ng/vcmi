@@ -480,20 +480,26 @@ void CComponentBox::placeComponents(bool selectable)
 	if (components.empty())
 		return;
 
+	// Display a creature and the resources paid for it on separate rows, without the creature count.
+	for(size_t i = 1; i < components.size(); ++i)
+	{
+		auto & previous = components[i - 1];
+		const auto & current = components[i]->data;
+		if(previous->data.type == ComponentType::CREATURE && current.type == ComponentType::RESOURCE && current.value.value_or(0) < 0)
+		{
+			const auto subtitle = previous->getSubtitle();
+			const auto firstSpace = subtitle.find(' ');
+			if(firstSpace != std::string::npos)
+				previous = std::make_shared<CComponent>(previous->data.type, previous->data.subType, subtitle.substr(firstSpace + 1));
+			previous->newLine = true;
+		}
+	}
+
 	//prepare components
 	for(auto & comp : components)
 	{
 		addChild(comp.get());
 		comp->moveTo(Point(pos.x, pos.y));
-	}
-
-	// Display a creature and the resources paid for it on separate rows.
-	for(size_t i = 1; i < components.size(); ++i)
-	{
-		const auto & previous = components[i - 1]->data;
-		const auto & current = components[i]->data;
-		if(previous.type == ComponentType::CREATURE && current.type == ComponentType::RESOURCE && current.value.value_or(0) < 0)
-			components[i - 1]->newLine = true;
 	}
 
 	struct RowData
