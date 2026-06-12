@@ -11,9 +11,10 @@
 #include "CGarrisonInt.h"
 
 #include "Buttons.h"
+#include "GraphicalPrimitiveCanvas.h"
 #include "Images.h"
-#include "TextControls.h"
 #include "RadialMenu.h"
+#include "TextControls.h"
 
 #include "../GameEngine.h"
 #include "../GameInstance.h"
@@ -470,9 +471,17 @@ CGarrisonSlot::CGarrisonSlot(CGarrisonInt * Owner, int x, int y, SlotID IID, EGa
 	artifactImage->setScale(artifactIconSize);
 	artifactImage->disable();
 
-	selectionImage = std::make_shared<CAnimImage>(imgName, 1);
+	if(Owner->smallIcons)
+	{
+		// CPRSMALL has no selection-border frame, unlike TWCRPORT.
+		selectionImage = std::make_shared<TransparentFilledRectangle>(Rect(0, 0, 32, 32), Colors::TRANSPARENCY, Colors::YELLOW);
+	}
+	else
+	{
+		selectionImage = std::make_shared<CAnimImage>(imgName, 1);
+		selectionImage->center(creatureImage->pos.center());
+	}
 	selectionImage->disable();
-	selectionImage->center(creatureImage->pos.center());
 
 	if(Owner->smallIcons)
 	{
