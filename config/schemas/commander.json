@@ -1,0 +1,56 @@
+{
+	"type" : "object",
+	"$schema" : "http://json-schema.org/draft-04/schema",
+	"title" : "VCMI commander configuration format",
+	"description" : "Configuration of commander progression, abilities and resurrection",
+	"required" : [ "resurrectionPrice", "bonusPerLevel", "skillLevels", "abilityRequirements" ],
+	"additionalProperties" : false,
+	"properties" : {
+		"resurrectionPrice" : {
+			"type" : "object",
+			"additionalProperties" : {
+				"type" : "integer",
+				"minimum" : 0
+			},
+			"description" : "Resources paid to resurrect a commander in town"
+		},
+		"bonusPerLevel" : {
+			"type" : "array",
+			"description" : "Bonuses granted to a commander on every level-up"
+		},
+		"skillLevels" : {
+			"type" : "array",
+			"description" : "Bonus values granted by each commander skill level",
+			"items" : {
+				"type" : "object",
+				"required" : [ "name", "levels" ],
+				"additionalProperties" : false,
+				"properties" : {
+					"name" : { "type" : "string" },
+					"levels" : {
+						"type" : "array",
+						"items" : { "type" : "integer" }
+					}
+				}
+			}
+		},
+		"abilityRequirements" : {
+			"type" : "array",
+			"description" : "Commander abilities and the skill pairs required to unlock them",
+			"items" : {
+				"type" : "object",
+				"required" : [ "ability", "skills" ],
+				"additionalProperties" : false,
+				"properties" : {
+					"ability" : { "type" : "array" },
+					"skills" : {
+						"type" : "array",
+						"minItems" : 2,
+						"maxItems" : 2,
+						"items" : { "type" : "integer", "minimum" : 0 }
+					}
+				}
+			}
+		}
+	}
+}

@@ -22,6 +22,7 @@
 #include "bonuses/Updaters.h"
 #include "bonuses/BonusParameters.h"
 #include "json/JsonBonus.h"
+#include "json/JsonUtils.h"
 #include "serializer/JsonDeserializer.h"
 #include "serializer/JsonUpdater.h"
 #include "texts/CGeneralTextHandler.h"
@@ -445,9 +446,13 @@ void CCreatureHandler::loadCommanders()
 
 	std::string modSource = LIBRARY->modh->findResourceOrigin(configResource);
 	JsonNode data(configResource);
+	// Validate before assigning core scope so required fields are checked for this standalone configuration.
+	JsonUtils::validate(data, "vcmi:commander", configResource.getName() + " from mod '" + modSource + "'");
 	data.setModScope(modSource);
 
 	const JsonNode & config = data; // switch to const data accessors
+
+	commanderResurrectionPrice.resolveFromJson(config["resurrectionPrice"]);
 
 	for (auto bonus : config["bonusPerLevel"].Vector())
 	{
