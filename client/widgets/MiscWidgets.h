@@ -112,6 +112,8 @@ class CInteractableHeroTooltip : public CIntObject
 	std::shared_ptr<CGarrisonInt> garrison;
 
 	void init(const InfoAboutHero & hero);
+	void notFocusedClick() override;
+
 public:
 	CInteractableHeroTooltip(Point pos, const CGHeroInstance * hero);
 };

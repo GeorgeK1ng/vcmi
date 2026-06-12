@@ -384,12 +384,21 @@ CHeroTooltip::CHeroTooltip(Point pos, const CGHeroInstance * hero):
 	init(InfoAboutHero(hero, InfoAboutHero::EInfoLevel::DETAILED));
 }
 
-CInteractableHeroTooltip::CInteractableHeroTooltip(Point pos, const CGHeroInstance * hero)
+CInteractableHeroTooltip::CInteractableHeroTooltip(Point pos, const CGHeroInstance * hero) : CIntObject(LCLICK, pos)
 {
+	this->pos.w = 176;
+	this->pos.h = 168;
+
 	init(InfoAboutHero(hero, InfoAboutHero::EInfoLevel::DETAILED));
 
 	OBJECT_CONSTRUCTION;
-	garrison = std::make_shared<CGarrisonInt>(pos + Point(0, 73), 4, Point(0, 0), hero, nullptr, true, true, CGarrisonInt::ESlotsLayout::REVERSED_TWO_ROWS);
+	garrison = std::make_shared<CGarrisonInt>(Point(0, 73), 4, Point(0, 0), hero, nullptr, true, true, CGarrisonInt::ESlotsLayout::REVERSED_TWO_ROWS);
+}
+
+void CInteractableHeroTooltip::notFocusedClick()
+{
+	garrison->selectSlot(nullptr);
+	garrison->redraw();
 }
 
 void CInteractableHeroTooltip::init(const InfoAboutHero & hero)
