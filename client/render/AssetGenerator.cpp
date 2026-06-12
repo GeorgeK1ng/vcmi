@@ -848,8 +848,13 @@ AssetGenerator::CanvasPtr AssetGenerator::createDeadCommanderOverlay() const
 	auto image = ENGINE->renderHandler().createImage(creaturePreviewSize, CanvasScalingPolicy::IGNORE);
 	auto canvas = image->getCanvas();
 	canvas.drawColor(Rect(Point(0, 0), creaturePreviewSize), Colors::TRANSPARENCY);
-	canvas.drawColorBlended(Rect(Point(0, 0), creaturePreviewSize), ColorRGBA(160, 160, 160, 80));
-	canvas.draw(skull, (creaturePreviewSize - skull->dimensions()) / 2);
+	canvas.drawColorBlended(Rect(Point(0, 0), creaturePreviewSize), ColorRGBA(64, 64, 64, 160));
+
+	Canvas skullCanvas(skull->dimensions(), CanvasScalingPolicy::IGNORE);
+	skullCanvas.draw(skull, Point(0, 0), Rect(Point(0, 0), skull->dimensions()));
+	const Point scaledSkullSize = skull->dimensions() / 2;
+	canvas.drawScaled(skullCanvas, creaturePreviewSize - scaledSkullSize, scaledSkullSize);
+
 	canvas.applyGrayscale();
 	canvas.applyTransparency(true);
 	return image;
