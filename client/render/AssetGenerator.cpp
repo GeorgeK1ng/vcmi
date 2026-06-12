@@ -844,16 +844,19 @@ AssetGenerator::AnimationLayoutMap AssetGenerator::createSliderBar(bool brown, b
 AssetGenerator::CanvasPtr AssetGenerator::createDeadCommanderOverlay() const
 {
 	static const Point creaturePreviewSize(100, 130);
-	auto skull = ENGINE->renderHandler().loadImage(ImageLocator(AnimationPath::builtin("C0FEAR"), 15, 0, EImageBlitMode::COLORKEY));
+	auto skull = ENGINE->renderHandler().loadAnimation(AnimationPath::builtin("C0FEAR"), EImageBlitMode::COLORKEY)->getImage(15);
 	auto image = ENGINE->renderHandler().createImage(creaturePreviewSize, CanvasScalingPolicy::IGNORE);
 	auto canvas = image->getCanvas();
 	canvas.drawColor(Rect(Point(0, 0), creaturePreviewSize), Colors::TRANSPARENCY);
 	canvas.drawColorBlended(Rect(Point(0, 0), creaturePreviewSize), ColorRGBA(64, 64, 64, 160));
 
+	const Point scaledSkullSize = skull->dimensions() / 2;
+	auto scaledSkull = ENGINE->renderHandler().createImage(scaledSkullSize, CanvasScalingPolicy::IGNORE);
+	auto scaledSkullCanvas = scaledSkull->getCanvas();
 	Canvas skullCanvas(skull->dimensions(), CanvasScalingPolicy::IGNORE);
 	skullCanvas.draw(skull, Point(0, 0), Rect(Point(0, 0), skull->dimensions()));
-	const Point scaledSkullSize = skull->dimensions() / 2;
-	canvas.drawScaled(skullCanvas, creaturePreviewSize - scaledSkullSize, scaledSkullSize);
+	scaledSkullCanvas.drawScaled(skullCanvas, Point(0, 0), scaledSkullSize);
+	canvas.draw(std::static_pointer_cast<IImage>(scaledSkull), creaturePreviewSize - scaledSkullSize, Rect(Point(0, 0), scaledSkullSize));
 
 	canvas.applyGrayscale();
 	canvas.applyTransparency(true);
