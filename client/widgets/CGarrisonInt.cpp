@@ -627,11 +627,8 @@ void CGarrisonInt::splitClick()
 	if(!getSelection())
 		return;
 
-	if(!getSplittingMode() && !removableUnits && getSelection()->getGarrison() == EGarrisonType::UPPER)
-	{
-		GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit"));
+	if(!getSplittingMode() && showStackTransferError(getSelection()))
 		return;
-	}
 
 	setSplittingMode(!getSplittingMode());
 	redraw();
@@ -639,6 +636,9 @@ void CGarrisonInt::splitClick()
 
 void CGarrisonInt::splitStacks(const CGarrisonSlot * from, const CArmedInstance * armyDest, SlotID slotDest, int amount )
 {
+	if(armyDest != armedObjs[from->upg] && showStackTransferError(from))
+		return;
+
 	GAME->interface()->cb->splitStack(armedObjs[from->upg], armyDest, from->ID, slotDest, amount);
 }
 
@@ -647,9 +647,23 @@ bool CGarrisonInt::checkSelected(const CGarrisonSlot * selected, TQuantity min) 
 	return selected && selected->myStack && selected->myStack->getCount() > min && selected->creature;
 }
 
+bool CGarrisonInt::isStackTransferLocked(const CGarrisonSlot * selected) const
+{
+	return selected && !removableUnits && selected->upg == EGarrisonType::UPPER;
+}
+
+bool CGarrisonInt::showStackTransferError(const CGarrisonSlot * selected) const
+{
+	if(!isStackTransferLocked(selected))
+		return false;
+
+	GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit"));
+	return true;
+}
+
 void CGarrisonInt::moveStackToAnotherArmy(const CGarrisonSlot * selected)
 {
-	if(!checkSelected(selected))
+	if(!checkSelected(selected) || showStackTransferError(selected))
 		return;
 
 	const auto srcArmyType = selected->upg;
@@ -693,7 +707,7 @@ void CGarrisonInt::moveStackToAnotherArmy(const CGarrisonSlot * selected)
 
 void CGarrisonInt::bulkMoveArmy(const CGarrisonSlot * selected)
 {
-	if(!checkSelected(selected))
+	if(!checkSelected(selected) || showStackTransferError(selected))
 		return;
 
 	const auto srcArmyType = selected->upg;
