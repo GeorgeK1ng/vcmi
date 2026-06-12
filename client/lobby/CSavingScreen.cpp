@@ -43,7 +43,7 @@ CSavingScreen::CSavingScreen(std::function<void(bool)> onSaveResultConfirmationC
 		
 	buttonStart = std::make_shared<CButton>(Point(411, 535), AnimationPath::builtin("SCNRSAV.DEF"), LIBRARY->generaltexth->zelp[103], std::bind(&CSavingScreen::saveGame, this), EShortcut::LOBBY_SAVE_GAME);
 	if(onSaveResultConfirmationClosed)
-		buttonBack->block(true);
+		buttonBack->disable();
 
 	GAME->interface()->gamePause(true);
 }

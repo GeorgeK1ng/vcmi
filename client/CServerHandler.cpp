@@ -840,17 +840,24 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 		openSaveScreen();
 }
 
-void CServerHandler::showCampaignSaveScreen(std::function<void()> continueCampaign)
+void CServerHandler::showCampaignSaveScreen(std::function<void()> continueCampaign, std::shared_ptr<CLoadingScreen> background)
 {
+	if(!background)
+	{
+		background = std::make_shared<CLoadingScreen>();
+		ENGINE->windows().pushWindow(background);
+	}
+
 	ENGINE->windows().createAndPushWindow<CSavingScreen>(
-		[this, continueCampaign = std::move(continueCampaign)](bool success)
+		[this, continueCampaign = std::move(continueCampaign), background](bool success)
 		{
 			if(!success)
 			{
-				showCampaignSaveScreen(continueCampaign);
+				showCampaignSaveScreen(continueCampaign, background);
 				return;
 			}
 
+			ENGINE->windows().popWindow(background);
 			endGameplay();
 			continueCampaign();
 		}
