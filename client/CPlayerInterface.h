@@ -75,6 +75,8 @@ class CPlayerInterface : public CGameInterface
 	std::list<PendingDialog> dialogs; //queue of dialogs awaiting to be shown (not currently shown!)
 	std::shared_ptr<WindowBase> pendingLevelUpDialog;
 	int pendingLevelUpRequestID = -1;
+	std::function<void(bool)> nextSaveResultCallback;
+	std::map<uint32_t, std::function<void(bool)>> saveResultCallbacks;
 
 	std::unique_ptr<HeroMovementController> movementController;
 	std::unique_ptr<PathfinderCache> pathfinderCache;
@@ -148,6 +150,7 @@ protected: // Call-ins from server, should not be called directly, but only via 
 	void availableCreaturesChanged(const CGDwelling *town) override;
 	void heroBonusChanged(const CGHeroInstance *hero, const Bonus &bonus, bool gain) override;//if gain hero received bonus, else he lost it
 	void playerBonusChanged(const Bonus &bonus, bool gain) override;
+	void requestSent(const CPackForServer * pack, int requestID) override;
 	void requestRealized(PackageApplied *pa) override;
 	void heroExchangeStarted(ObjectInstanceID hero1, ObjectInstanceID hero2, QueryID query) override;
 	void centerView (int3 pos, int focusTime) override;
@@ -216,6 +219,7 @@ public: // public interface for use by client via GAME->interface() access
 	bool checkQuickLoadingGame(bool verbose = false);
 	void proposeQuickLoadingGame();
 	void quickSaveGame();
+	void saveGameWithConfirmation(const std::string & path, std::function<void(bool)> onResultConfirmationClosed);
 	void performAutosave();
 	void gamePause(bool pause);
 	void endNetwork();

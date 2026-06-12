@@ -41,6 +41,7 @@ class CBaseForLobbyApply;
 class GlobalLobbyClient;
 class GameChatHandler;
 class IServerRunner;
+class CLoadingScreen;
 
 enum class ESelectionScreen : ui8;
 enum class ELoadMode : ui8;
@@ -123,6 +124,7 @@ class CServerHandler final : public IServerAPI, public LobbyInfo, public INetwor
 	void onTimer() override;
 
 	void applyPackOnLobbyScreen(CPackForLobby & pack);
+	void showCampaignSaveScreen(std::function<void()> continueCampaign, std::shared_ptr<CLoadingScreen> background = {});
 
 	std::string serverHostname;
 	ui16 serverPort;

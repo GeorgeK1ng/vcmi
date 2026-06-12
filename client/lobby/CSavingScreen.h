@@ -22,10 +22,12 @@ class CSelectionBase;
 
 class CSavingScreen : public CSelectionBase
 {
+	std::function<void(bool)> onSaveResultConfirmationClosed;
+
 public:
 	std::shared_ptr<CMapInfo> localMi;
 
-	CSavingScreen();
+	explicit CSavingScreen(std::function<void(bool)> onSaveResultConfirmationClosed = {});
 
 	void changeSelection(std::shared_ptr<CMapInfo> to);
 	void saveGame();

@@ -23,9 +23,10 @@
 
 #include "gui/WindowHandler.h"
 
-#include "lobby/CSelectionBase.h"
-#include "lobby/CLobbyScreen.h"
 #include "lobby/CBonusSelection.h"
+#include "lobby/CLobbyScreen.h"
+#include "lobby/CSavingScreen.h"
+#include "lobby/CSelectionBase.h"
 
 #include "netlag/NetworkLagCompensator.h"
 
@@ -787,16 +788,13 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 	if (!cs)
 		ourCampaign = si->campState;
 
-	param.campaignName = cs->getNameTranslated();
-	cs->highscoreParameters.push_back(param);
+	param.campaignName = ourCampaign->getNameTranslated();
+	ourCampaign->highscoreParameters.push_back(param);
 	auto campaignScoreCalculator = std::make_shared<HighScoreCalculation>();
 	campaignScoreCalculator->isCampaign = true;
-	campaignScoreCalculator->parameters = cs->highscoreParameters;
+	campaignScoreCalculator->parameters = ourCampaign->highscoreParameters;
 
-	endGameplay();
-
-	auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
-	auto finisher = [ourCampaign, campaignScoreCalculator, statistic]()
+	auto continueCampaign = [ourCampaign, campaignScoreCalculator, statistic]()
 	{
 		if(ourCampaign->campaignSet != "" && ourCampaign->isCampaignFinished())
 		{
@@ -815,23 +813,55 @@ void CServerHandler::startCampaignScenario(HighScoreParameter param, std::shared
 				auto rim = ourCampaign->getVideoRim().empty() ? ImagePath::builtin("INTRORIM") : ourCampaign->getVideoRim();
 				if(ourCampaign->getVideoRim() == ImagePath::builtin("NONE"))
 					rim = ImagePath();
-				ENGINE->windows().createAndPushWindow<VideoWindow>(ourCampaign->getOutroVideo(), rim, false, 1, [campaignScoreCalculator, statistic](bool skipped){
-					ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
-				});
+				ENGINE->windows().createAndPushWindow<VideoWindow>(
+					ourCampaign->getOutroVideo(),
+					rim,
+					false,
+					1,
+					[campaignScoreCalculator, statistic](bool skipped)
+					{
+						ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
+					}
+				);
 			}
 			else
 				ENGINE->windows().createAndPushWindow<CHighScoreInputScreen>(true, *campaignScoreCalculator, statistic);
 		}
 	};
 
+	auto openSaveScreen = [this, continueCampaign]()
+	{
+		showCampaignSaveScreen(continueCampaign);
+	};
+	auto & epilogue = ourCampaign->scenario(*ourCampaign->lastScenario()).epilog;
 	if(epilogue.hasPrologEpilog)
-	{
-		ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, finisher);
-	}
+		ENGINE->windows().createAndPushWindow<CPrologEpilogVideo>(epilogue, openSaveScreen);
 	else
+		openSaveScreen();
+}
+
+void CServerHandler::showCampaignSaveScreen(std::function<void()> continueCampaign, std::shared_ptr<CLoadingScreen> background)
+{
+	if(!background)
 	{
-		finisher();
+		background = std::make_shared<CLoadingScreen>();
+		ENGINE->windows().pushWindow(background);
 	}
+
+	ENGINE->windows().createAndPushWindow<CSavingScreen>(
+		[this, continueCampaign = std::move(continueCampaign), background](bool success)
+		{
+			if(!success)
+			{
+				showCampaignSaveScreen(continueCampaign, background);
+				return;
+			}
+
+			ENGINE->windows().popWindow(background);
+			endGameplay();
+			continueCampaign();
+		}
+	);
 }
 
 void CServerHandler::showServerError(const std::string & txt) const

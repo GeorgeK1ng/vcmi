@@ -1347,6 +1347,15 @@ void CPlayerInterface::showGarrisonDialog(const CArmedInstance * up, const CGHer
 	ENGINE->windows().pushWindow(cgw);
 }
 
+void CPlayerInterface::requestSent(const CPackForServer * pack, int requestID)
+{
+	if(dynamic_cast<const SaveGame *>(pack) && nextSaveResultCallback)
+	{
+		saveResultCallbacks.emplace(requestID, std::move(nextSaveResultCallback));
+		nextSaveResultCallback = {};
+	}
+}
+
 void CPlayerInterface::requestRealized( PackageApplied *pa )
 {
 	if(pa->packType == CTypeList::getInstance().getTypeID<MoveHero>(nullptr))
@@ -1357,6 +1366,20 @@ void CPlayerInterface::requestRealized( PackageApplied *pa )
 		if(pendingLevelUpRequestID == static_cast<int>(pa->requestID))
 			closePendingLevelUpDialog();
 		movementController->onQueryReplyApplied();
+	}
+
+	auto saveCallback = saveResultCallbacks.find(pa->requestID);
+	if(saveCallback != saveResultCallbacks.end())
+	{
+		auto callback = std::move(saveCallback->second);
+		saveResultCallbacks.erase(saveCallback);
+		waitForAllDialogs();
+		ENGINE->dispatchMainThread(
+			[callback, result = pa->result]()
+			{
+				callback(result);
+			}
+		);
 	}
 }
 
@@ -1881,6 +1904,14 @@ void CPlayerInterface::proposeLoadingGame()
 		},
 		nullptr
 	);
+}
+
+void CPlayerInterface::saveGameWithConfirmation(const std::string & path, std::function<void(bool)> onResultConfirmationClosed)
+{
+	assert(!nextSaveResultCallback);
+	nextSaveResultCallback = std::move(onResultConfirmationClosed);
+	makingTurn = true;
+	cb->save(path, true);
 }
 
 void CPlayerInterface::quickSaveGame()
