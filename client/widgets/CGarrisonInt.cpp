@@ -310,6 +310,9 @@ void CGarrisonSlot::showPopupWindow(const Point & cursorPosition)
 
 void CGarrisonSlot::clickPressed(const Point & cursorPosition)
 {
+		if(owner->smallIcons && !pos.isInside(cursorPosition))
+			return;
+
 		bool refr = false;
 		const CGarrisonSlot * selection = owner->getSelection();
 
