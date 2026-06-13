@@ -326,8 +326,10 @@ Choose the MSYS2 environment and matching CMake preset for the target architectu
    pacboy -S --needed \
      cmake:p toolchain:p ninja:p ccache:p boost:p zlib:p minizip:p ffmpeg:p \
      SDL2:p SDL2_image:p SDL2_mixer:p SDL2_ttf:p qt5-static:p tbb:p luajit:p \
-     xz:p sqlite3:p libsquish:p fmt:p glaze:p libiconv:p onnx:p onnxruntime:p
+     xz:p sqlite3:p libsquish:p fmt:p glaze:p libiconv:p
    ```
+
+MMAI is disabled in the MINGW64 and CLANGARM64 presets because the MSYS2 base packages for ONNX and ONNX Runtime do not produce binaries for those repositories. The ONNX base package currently produces UCRT64, CLANG64, and CLANGARM64 binaries, but ONNX Runtime produces only UCRT64 and CLANG64 binaries. A base-package page describes the shared source recipe; only the entries listed under **Binary Packages** can be installed with `pacman`/`pacboy`.
 
 The active MINGW32 repository no longer indexes Boost, TBB, Qt, LuaJIT, libsquish, ONNX, or ONNX Runtime, although old binary packages and their base-package recipes remain available in MSYS2 mirrors. Therefore, the reproducible x86 and XP x86 presets build only the minimal VCMI library. Install the actively indexed dependencies:
 

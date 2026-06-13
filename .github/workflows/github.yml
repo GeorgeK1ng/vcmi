@@ -223,8 +223,6 @@ jobs:
           fmt:p
           glaze:p
           libiconv:p
-          onnx:p
-          onnxruntime:p
 
     - name: Set up MSYS2 for minimal MINGW32 build
       if: ${{ matrix.mingw32_minimal == 1 }}
