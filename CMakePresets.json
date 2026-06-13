@@ -189,6 +189,64 @@
             }
         },
         {
+            "name": "windows-mingw-minimal-release-x86",
+            "displayName": "Windows x86 MinGW minimal Release",
+            "description": "Minimal VCMI library build using MinGW x86",
+            "inherits": "windows-mingw-release",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "-D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -DNTDDI_VERSION=0x06010000",
+                "CMAKE_CXX_FLAGS": "-D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -DNTDDI_VERSION=0x06010000",
+                "ENABLE_CLIENT": "OFF",
+                "ENABLE_SERVER": "OFF",
+                "ENABLE_LAUNCHER": "OFF",
+                "ENABLE_EDITOR": "OFF",
+                "ENABLE_MINIMAL_LIB": "ON",
+                "ENABLE_VIDEO": "OFF",
+                "ENABLE_TRANSLATIONS": "OFF",
+                "ENABLE_DISCORD": "OFF",
+                "COPY_CONFIG_ON_BUILD": "OFF"
+            }
+        },
+        {
+            "name": "windows-mingw-release-arm64",
+            "displayName": "Windows ARM64 MinGW Release",
+            "description": "VCMI Windows Ninja using LLVM MinGW ARM64",
+            "inherits": "windows-mingw-release",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release",
+            "displayName": "Windows XP x64 MinGW minimal Release",
+            "description": "Minimal VCMI library build using the Windows XP x64 API baseline",
+            "inherits": "windows-mingw-release",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -DNTDDI_VERSION=0x05020200",
+                "CMAKE_CXX_FLAGS": "-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -DNTDDI_VERSION=0x05020200",
+                "ENABLE_CLIENT": "OFF",
+                "ENABLE_SERVER": "OFF",
+                "ENABLE_LAUNCHER": "OFF",
+                "ENABLE_EDITOR": "OFF",
+                "ENABLE_MINIMAL_LIB": "ON",
+                "ENABLE_VIDEO": "OFF",
+                "ENABLE_TRANSLATIONS": "OFF",
+                "ENABLE_DISCORD": "OFF",
+                "COPY_CONFIG_ON_BUILD": "OFF"
+            }
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release-x86",
+            "displayName": "Windows XP x86 MinGW minimal Release",
+            "description": "Minimal VCMI library build using the Windows XP x86 API baseline",
+            "inherits": "windows-mingw-xp-minimal-release",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "-D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DNTDDI_VERSION=0x05010300",
+                "CMAKE_CXX_FLAGS": "-D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DNTDDI_VERSION=0x05010300"
+            }
+        },
+        {
             "name": "windows-msvc-release",
             "displayName": "Windows x64 RelWithDebInfo",
             "description": "VCMI RelWithDebInfo build",
@@ -487,6 +545,26 @@
             "inherits": "default-release"
         },
         {
+            "name": "windows-mingw-minimal-release-x86",
+            "configurePreset": "windows-mingw-minimal-release-x86",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-release-arm64",
+            "configurePreset": "windows-mingw-release-arm64",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release",
+            "configurePreset": "windows-mingw-xp-minimal-release",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release-x86",
+            "configurePreset": "windows-mingw-xp-minimal-release-x86",
+            "inherits": "default-release"
+        },
+        {
             "name": "windows-msvc-release",
             "configurePreset": "windows-msvc-release",
             "inherits": "default-release"
@@ -610,6 +688,26 @@
         {
             "name": "windows-mingw-release",
             "configurePreset": "windows-mingw-release",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-minimal-release-x86",
+            "configurePreset": "windows-mingw-minimal-release-x86",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-release-arm64",
+            "configurePreset": "windows-mingw-release-arm64",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release",
+            "configurePreset": "windows-mingw-xp-minimal-release",
+            "inherits": "default-release"
+        },
+        {
+            "name": "windows-mingw-xp-minimal-release-x86",
+            "configurePreset": "windows-mingw-xp-minimal-release-x86",
             "inherits": "default-release"
         },
         {
