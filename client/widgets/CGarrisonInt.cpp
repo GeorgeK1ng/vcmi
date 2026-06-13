@@ -474,7 +474,7 @@ CGarrisonSlot::CGarrisonSlot(CGarrisonInt * Owner, int x, int y, SlotID IID, EGa
 	if(Owner->smallIcons)
 	{
 		// CPRSMALL has no selection-border frame, unlike TWCRPORT.
-		selectionImage = std::make_shared<TransparentFilledRectangle>(Rect(-1, -2, 35, 35), Colors::TRANSPARENCY, Colors::YELLOW);
+		selectionImage = std::make_shared<TransparentFilledRectangle>(Rect(-1, -1, 35, 35), Colors::TRANSPARENCY, Colors::YELLOW);
 	}
 	else
 	{
@@ -765,6 +765,18 @@ CGarrisonInt::CGarrisonInt(const Point & position, int inx, const Point & garsOf
 const CGarrisonSlot * CGarrisonInt::getSelection() const
 {
 	return highlighted;
+}
+
+bool CGarrisonInt::isSlotAt(const Point & position) const
+{
+	return std::any_of(
+		availableSlots.begin(),
+		availableSlots.end(),
+		[&position](const auto & slot)
+		{
+			return slot->pos.isInside(position);
+		}
+	);
 }
 
 void CGarrisonInt::selectSlot(CGarrisonSlot *slot)

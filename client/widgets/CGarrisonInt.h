@@ -114,6 +114,7 @@ public:
 
 	void selectSlot(CGarrisonSlot * slot); ///< @param slot null = deselect
 	const CGarrisonSlot * getSelection() const;
+	bool isSlotAt(const Point & position) const;
 
 	void setSplittingMode(bool on);
 	bool getSplittingMode();

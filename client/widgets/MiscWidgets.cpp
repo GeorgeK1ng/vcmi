@@ -397,6 +397,20 @@ CInteractableHeroTooltip::CInteractableHeroTooltip(Point pos, const CGHeroInstan
 
 void CInteractableHeroTooltip::notFocusedClick()
 {
+	clearSelection();
+}
+
+void CInteractableHeroTooltip::clickPressed(const Point & cursorPosition)
+{
+	if(!garrison->isSlotAt(cursorPosition))
+		clearSelection();
+}
+
+void CInteractableHeroTooltip::clearSelection()
+{
+	if(!garrison->getSelection())
+		return;
+
 	garrison->selectSlot(nullptr);
 	garrison->redraw();
 }
