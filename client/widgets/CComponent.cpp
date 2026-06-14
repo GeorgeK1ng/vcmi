@@ -76,8 +76,8 @@ void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optiona
 
 	const auto imagePaths = getFileName();
 	const auto imageIndex = static_cast<int>(getIndex());
-	if(shouldUseRewardArtifactBackground(Type, imageSize))
-		setRewardArtifactBackground(imagePaths[size], imageIndex);
+	if(shouldUseRewardBackground(Type, imageSize))
+		setRewardBackground(imagePaths[size], imageIndex);
 	else
 		setSurface(imagePaths[size], imageIndex);
 
@@ -354,12 +354,12 @@ void CComponent::setSurface(const AnimationPath & defName, int imgPos)
 	image = std::make_shared<CAnimImage>(defName, imgPos);
 }
 
-bool CComponent::shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const
+bool CComponent::shouldUseRewardBackground(ComponentType Type, ESize imageSize) const
 {
-	return settings["general"]["enableUiEnhancements"].Bool() && Type == ComponentType::ARTIFACT && imageSize == large;
+	return settings["general"]["enableUiEnhancements"].Bool() && imageSize == large && (Type == ComponentType::ARTIFACT || Type == ComponentType::SPELL_SCROLL || Type == ComponentType::SPELL );
 }
 
-void CComponent::setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos)
+void CComponent::setRewardBackground(const AnimationPath & artifactDefName, int artifactImgPos)
 {
 	OBJECT_CONSTRUCTION;
 
