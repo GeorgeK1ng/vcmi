@@ -45,8 +45,8 @@ private:
 	std::vector<AnimationPath> getFileName() const;
 	void setSurface(const AnimationPath & defName, int imgPos);
 
-	void setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos);
-	bool shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const;
+	void setRewardBackground(const AnimationPath & artifactDefName, int artifactImgPos);
+	bool shouldUseRewardBackground(ComponentType Type, ESize imageSize) const;
 	
 	void init(ComponentType Type, ComponentSubType Subtype, std::optional<int32_t> Val, ESize imageSize, EFonts font, const std::string & ValText);
 
