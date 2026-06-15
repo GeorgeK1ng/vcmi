@@ -46,12 +46,14 @@ private:
 	void setSurface(const AnimationPath & defName, int imgPos);
 
 	void setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos);
+	void setRewardTransparentBackground(const AnimationPath & defName, int imgPos);
 	bool shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const;
+	bool shouldUseRewardTransparentBackground(ComponentType Type, ESize imageSize) const;
 	
 	void init(ComponentType Type, ComponentSubType Subtype, std::optional<int32_t> Val, ESize imageSize, EFonts font, const std::string & ValText);
 
 public:
-	std::shared_ptr<CAnimImage> image;
+	std::shared_ptr<CIntObject> image;
 	Component data;
 	std::string customSubtitle;
 	ESize size; //component size.

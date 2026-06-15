@@ -78,6 +78,8 @@ void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optiona
 	const auto imageIndex = static_cast<int>(getIndex());
 	if(shouldUseRewardArtifactBackground(Type, imageSize))
 		setRewardArtifactBackground(imagePaths[size], imageIndex);
+	else if(shouldUseRewardTransparentBackground(Type, imageSize))
+		setRewardTransparentBackground(imagePaths[size], imageIndex);
 	else
 		setSurface(imagePaths[size], imageIndex);
 
@@ -359,12 +361,31 @@ bool CComponent::shouldUseRewardArtifactBackground(ComponentType Type, ESize ima
 	return settings["general"]["enableUiEnhancements"].Bool() && Type == ComponentType::ARTIFACT && imageSize == large;
 }
 
+bool CComponent::shouldUseRewardTransparentBackground(ComponentType Type, ESize imageSize) const
+{
+	return settings["general"]["enableUiEnhancements"].Bool()
+		&& imageSize == large
+		&& (Type == ComponentType::SPELL || Type == ComponentType::SPELL_SCROLL || Type == ComponentType::CREATURE);
+}
+
 void CComponent::setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos)
 {
 	OBJECT_CONSTRUCTION;
 
 	image = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0);
 	artifactOverlay = std::make_shared<CAnimImage>(artifactDefName, artifactImgPos);
+
+	artifactOverlay->moveTo(Point((image->pos.w - artifactOverlay->pos.w) / 2, (image->pos.h - artifactOverlay->pos.h) / 2));
+}
+
+void CComponent::setRewardTransparentBackground(const AnimationPath & defName, int imgPos)
+{
+	OBJECT_CONSTRUCTION;
+
+	image = std::make_shared<CIntObject>();
+	image->pos.w = 82;
+	image->pos.h = 93;
+	artifactOverlay = std::make_shared<CAnimImage>(defName, imgPos);
 
 	artifactOverlay->moveTo(Point((image->pos.w - artifactOverlay->pos.w) / 2, (image->pos.h - artifactOverlay->pos.h) / 2));
 }
