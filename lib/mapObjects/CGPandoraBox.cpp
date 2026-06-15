@@ -67,19 +67,21 @@ void CGPandoraBox::grantRewardWithMessage(IGameEventCallback & gameEvents, const
 		return text;
 	};
 	
-	auto sendInfoWindow = [&](const MetaString & text, const Rewardable::Reward & reward)
+	auto sendInfoWindow = [&](const MetaString & text, const Rewardable::Reward & reward, bool showWithoutComponents = false)
 	{
 		InfoWindow iw;
 		iw.player = h->tempOwner;
 		iw.text = text;
 		reward.loadComponents(iw.components, h);
 		iw.type = EInfoWindowMode::MODAL;
-		if(!iw.components.empty())
+		if(!iw.components.empty() || showWithoutComponents)
 			gameEvents.showInfoDialog(&iw);
 	};
 
 	Rewardable::Reward temp;
-	temp.spells = vi.reward.spells;
+	for(const auto & spell : vi.reward.spells)
+		if(h->canLearnSpell(spell.toEntity(LIBRARY), true))
+			temp.spells.push_back(spell);
 	temp.heroExperience = vi.reward.heroExperience;
 	temp.heroLevel = vi.reward.heroLevel;
 	temp.primary = vi.reward.primary;
@@ -89,8 +91,17 @@ void CGPandoraBox::grantRewardWithMessage(IGameEventCallback & gameEvents, const
 	temp.manaPercentage = vi.reward.manaPercentage;
 	
 	MetaString txt;
+	bool showNoSpellRewardMessage = false;
 	if(!vi.reward.spells.empty())
-		txt = setText(temp.spells.size() == 1, 184, 188, h);
+	{
+		if(!temp.spells.empty())
+			txt = setText(temp.spells.size() == 1, 184, 188, h);
+		else
+		{
+			txt.appendLocalString(EMetaText::ADVOB_TXT, 15);
+			showNoSpellRewardMessage = true;
+		}
+	}
 	
 	if(vi.reward.heroExperience || vi.reward.heroLevel || !vi.reward.secondary.empty())
 		txt = setText(true, 175, 175, h);
@@ -114,7 +125,7 @@ void CGPandoraBox::grantRewardWithMessage(IGameEventCallback & gameEvents, const
 		if(b->val && b->type == BonusType::LUCK)
 			txt = setText(b->val > 0, 181, 180, h);
 	}
-	sendInfoWindow(txt, temp);
+	sendInfoWindow(txt, temp, showNoSpellRewardMessage);
 	
 	//resource message
 	temp = Rewardable::Reward{};
