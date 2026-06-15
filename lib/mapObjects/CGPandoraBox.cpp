@@ -79,7 +79,9 @@ void CGPandoraBox::grantRewardWithMessage(IGameEventCallback & gameEvents, const
 	};
 
 	Rewardable::Reward temp;
-	temp.spells = vi.reward.spells;
+	for(const auto & spell : vi.reward.spells)
+		if(h->canLearnSpell(spell.toEntity(LIBRARY), true))
+			temp.spells.push_back(spell);
 	temp.heroExperience = vi.reward.heroExperience;
 	temp.heroLevel = vi.reward.heroLevel;
 	temp.primary = vi.reward.primary;
@@ -89,7 +91,7 @@ void CGPandoraBox::grantRewardWithMessage(IGameEventCallback & gameEvents, const
 	temp.manaPercentage = vi.reward.manaPercentage;
 	
 	MetaString txt;
-	if(!vi.reward.spells.empty())
+	if(!temp.spells.empty())
 		txt = setText(temp.spells.size() == 1, 184, 188, h);
 	
 	if(vi.reward.heroExperience || vi.reward.heroLevel || !vi.reward.secondary.empty())
