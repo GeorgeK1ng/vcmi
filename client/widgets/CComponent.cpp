@@ -76,10 +76,8 @@ void CComponent::init(ComponentType Type, ComponentSubType Subtype, std::optiona
 
 	const auto imagePaths = getFileName();
 	const auto imageIndex = static_cast<int>(getIndex());
-	if(shouldUseRewardArtifactBackground(Type, imageSize))
-		setRewardArtifactBackground(imagePaths[size], imageIndex);
-	else if(shouldUseRewardTransparentBackground(Type, imageSize))
-		setRewardTransparentBackground(imagePaths[size], imageIndex);
+	if(shouldUseRewardBackground(Type, imageSize))
+		setRewardBackground(imagePaths[size], imageIndex);
 	else
 		setSurface(imagePaths[size], imageIndex);
 
@@ -356,38 +354,28 @@ void CComponent::setSurface(const AnimationPath & defName, int imgPos)
 	image = std::make_shared<CAnimImage>(defName, imgPos);
 }
 
-bool CComponent::shouldUseRewardArtifactBackground(ComponentType Type, ESize imageSize) const
-{
-	return settings["general"]["enableUiEnhancements"].Bool() && Type == ComponentType::ARTIFACT && imageSize == large;
-}
-
-bool CComponent::shouldUseRewardTransparentBackground(ComponentType Type, ESize imageSize) const
+bool CComponent::shouldUseRewardBackground(ComponentType Type, ESize imageSize) const
 {
 	return settings["general"]["enableUiEnhancements"].Bool()
 		&& imageSize == large
-		&& (Type == ComponentType::SPELL || Type == ComponentType::SPELL_SCROLL || Type == ComponentType::CREATURE);
+		&& (Type == ComponentType::ARTIFACT || Type == ComponentType::SPELL || Type == ComponentType::SPELL_SCROLL || Type == ComponentType::CREATURE);
 }
 
-void CComponent::setRewardArtifactBackground(const AnimationPath & artifactDefName, int artifactImgPos)
+void CComponent::setRewardBackground(const AnimationPath & defName, int imgPos)
 {
 	OBJECT_CONSTRUCTION;
 
-	image = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0);
-	artifactOverlay = std::make_shared<CAnimImage>(artifactDefName, artifactImgPos);
+	if(data.type == ComponentType::ARTIFACT)
+		image = std::make_shared<CAnimImage>(AnimationPath::builtin("SECSK82"), 0);
+	else
+	{
+		image = std::make_shared<CIntObject>();
+		image->pos.w = 82;
+		image->pos.h = 93;
+	}
+	rewardOverlay = std::make_shared<CAnimImage>(defName, imgPos);
 
-	artifactOverlay->moveTo(Point((image->pos.w - artifactOverlay->pos.w) / 2, (image->pos.h - artifactOverlay->pos.h) / 2));
-}
-
-void CComponent::setRewardTransparentBackground(const AnimationPath & defName, int imgPos)
-{
-	OBJECT_CONSTRUCTION;
-
-	image = std::make_shared<CIntObject>();
-	image->pos.w = 82;
-	image->pos.h = 93;
-	artifactOverlay = std::make_shared<CAnimImage>(defName, imgPos);
-
-	artifactOverlay->moveTo(Point((image->pos.w - artifactOverlay->pos.w) / 2, (image->pos.h - artifactOverlay->pos.h) / 2));
+	rewardOverlay->moveTo(Point((image->pos.w - rewardOverlay->pos.w) / 2, (image->pos.h - rewardOverlay->pos.h) / 2));
 }
 
 void CComponent::showPopupWindow(const Point & cursorPosition)
