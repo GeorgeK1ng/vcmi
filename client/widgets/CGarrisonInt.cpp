@@ -86,7 +86,11 @@ void CGarrisonSlot::hover (bool on)
 					&& (!owner->lowerArmy() || owner->lowerArmy()->ID == Obj::HERO) // one hero or we are in the Heroes exchange window
 					&& !(static_cast<const CGHeroInstance*>(owner->upperArmy()))->isGarrisoned();
 
-				if(owner->showMoveUnitsOnHover)
+				if(owner->showMoveUnitsOnHover && owner->isStackTransferLocked(this, upg))
+				{
+					temp = LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit");
+				}
+				else if(owner->showMoveUnitsOnHover)
 				{
 					temp = LIBRARY->generaltexth->tcommands[6]; //Move %s
 				}
@@ -623,6 +627,9 @@ void CGarrisonInt::splitClick()
 	if(!getSelection())
 		return;
 
+	if(!getSplittingMode() && showStackTransferError(getSelection(), getSelection()->getGarrison()))
+		return;
+
 	setSplittingMode(!getSplittingMode());
 	redraw();
 }
@@ -643,8 +650,8 @@ bool CGarrisonInt::checkSelected(const CGarrisonSlot * selected, TQuantity min) 
 
 bool CGarrisonInt::isStackTransferLocked(const CGarrisonSlot * selected, EGarrisonType destination) const
 {
-	// Stack arrangement within a locked garrison is allowed; only taking units out is forbidden.
-	return selected && !removableUnits && selected->upg == EGarrisonType::UPPER && destination == EGarrisonType::LOWER;
+	(void)destination;
+	return selected && !removableUnits && selected->upg == EGarrisonType::UPPER;
 }
 
 bool CGarrisonInt::showStackTransferError(const CGarrisonSlot * selected, EGarrisonType destination) const
