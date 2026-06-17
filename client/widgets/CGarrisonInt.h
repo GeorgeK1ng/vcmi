@@ -94,8 +94,8 @@ class CGarrisonInt :public CIntObject
 
 	void createSlots();
 	bool checkSelected(const CGarrisonSlot * selected, TQuantity min = 0) const;
-	bool isStackTransferLocked(const CGarrisonSlot * selected, EGarrisonType destination) const;
-	bool showStackTransferError(const CGarrisonSlot * selected, EGarrisonType destination) const;
+	bool isStackTransferLocked(const CGarrisonSlot * selected) const;
+	bool showStackTransferError(const CGarrisonSlot * selected) const;
 
 	std::map<EGarrisonType, const CArmedInstance*> armedObjs;
 

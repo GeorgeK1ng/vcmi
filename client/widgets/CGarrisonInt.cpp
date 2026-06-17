@@ -86,7 +86,7 @@ void CGarrisonSlot::hover (bool on)
 					&& (!owner->lowerArmy() || owner->lowerArmy()->ID == Obj::HERO) // one hero or we are in the Heroes exchange window
 					&& !(static_cast<const CGHeroInstance*>(owner->upperArmy()))->isGarrisoned();
 
-				if(owner->showMoveUnitsOnHover && owner->isStackTransferLocked(this, upg))
+				if(owner->showMoveUnitsOnHover && owner->isStackTransferLocked(this))
 				{
 					temp = LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit");
 				}
@@ -326,7 +326,7 @@ void CGarrisonSlot::clickPressed(const Point & cursorPosition)
 			if(!handleSplittingShortcuts())
 				refr = viewInfo(); // Affects selection
 		}
-		else if(owner->showStackTransferError(selection, upg))
+		else if(owner->showStackTransferError(selection))
 		{
 			refr = true;
 		}
@@ -627,7 +627,7 @@ void CGarrisonInt::splitClick()
 	if(!getSelection())
 		return;
 
-	if(!getSplittingMode() && showStackTransferError(getSelection(), getSelection()->getGarrison()))
+	if(!getSplittingMode() && showStackTransferError(getSelection()))
 		return;
 
 	setSplittingMode(!getSplittingMode());
@@ -636,8 +636,7 @@ void CGarrisonInt::splitClick()
 
 void CGarrisonInt::splitStacks(const CGarrisonSlot * from, const CArmedInstance * armyDest, SlotID slotDest, int amount )
 {
-	const auto destination = armyDest == armedObjs[EGarrisonType::UPPER] ? EGarrisonType::UPPER : EGarrisonType::LOWER;
-	if(showStackTransferError(from, destination))
+	if(showStackTransferError(from))
 		return;
 
 	GAME->interface()->cb->splitStack(armedObjs[from->upg], armyDest, from->ID, slotDest, amount);
@@ -648,15 +647,14 @@ bool CGarrisonInt::checkSelected(const CGarrisonSlot * selected, TQuantity min) 
 	return selected && selected->myStack && selected->myStack->getCount() > min && selected->creature;
 }
 
-bool CGarrisonInt::isStackTransferLocked(const CGarrisonSlot * selected, EGarrisonType destination) const
+bool CGarrisonInt::isStackTransferLocked(const CGarrisonSlot * selected) const
 {
-	(void)destination;
 	return selected && !removableUnits && selected->upg == EGarrisonType::UPPER;
 }
 
-bool CGarrisonInt::showStackTransferError(const CGarrisonSlot * selected, EGarrisonType destination) const
+bool CGarrisonInt::showStackTransferError(const CGarrisonSlot * selected) const
 {
-	if(!isStackTransferLocked(selected, destination))
+	if(!isStackTransferLocked(selected))
 		return false;
 
 	GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.garrison.cannotMoveUnit"));
@@ -673,7 +671,7 @@ void CGarrisonInt::moveStackToAnotherArmy(const CGarrisonSlot * selected)
 		? EGarrisonType::LOWER
 		: EGarrisonType::UPPER;
 
-	if(showStackTransferError(selected, destArmyType))
+	if(showStackTransferError(selected))
 		return;
 
 	auto srcArmy = armedObjs[srcArmyType];
@@ -720,7 +718,7 @@ void CGarrisonInt::bulkMoveArmy(const CGarrisonSlot * selected)
 		? EGarrisonType::LOWER
 		: EGarrisonType::UPPER;
 
-	if(showStackTransferError(selected, destArmyType))
+	if(showStackTransferError(selected))
 		return;
 
 	auto srcArmy = armedObjs[srcArmyType];
