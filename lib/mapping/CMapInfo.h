@@ -34,6 +34,7 @@ public:
 	std::string fullFileURI; // no need to serialize
 	std::time_t lastWrite; // no need to serialize
 	std::string date;
+	int saveGameDay; // no need to serialize
 	int amountOfPlayersOnMap;
 	int amountOfHumanControllablePlayers;
 	int amountOfHumanPlayersInSave;

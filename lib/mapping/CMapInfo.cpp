@@ -22,16 +22,18 @@
 #include "../GameLibrary.h"
 #include "../rmg/CMapGenOptions.h"
 #include "../serializer/CLoadFile.h"
+#include "../serializer/ESerializationVersion.h"
 #include "../texts/CGeneralTextHandler.h"
 #include "../texts/TextOperations.h"
 #include "../CCreatureHandler.h"
 #include "../IGameSettings.h"
 #include "../CConfigHandler.h"
+#include "../modding/ModVerificationInfo.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
 CMapInfo::CMapInfo()
-	: amountOfPlayersOnMap(0), amountOfHumanControllablePlayers(0),	amountOfHumanPlayersInSave(0), isRandomMap(false)
+	: saveGameDay(0), amountOfPlayersOnMap(0), amountOfHumanControllablePlayers(0),	amountOfHumanPlayersInSave(0), isRandomMap(false)
 {
 
 }
@@ -49,6 +51,57 @@ static bool isIndexedAutosaveName(const std::string & name)
 	{
 		return std::isdigit(static_cast<unsigned char>(character));
 	});
+}
+
+struct ActiveModsInSaveListMetadataOnly
+{
+	template <typename Handler> void serialize(Handler & h)
+	{
+		std::vector<TModID> saveActiveMods;
+		h & saveActiveMods;
+
+		for(size_t index = 0; index < saveActiveMods.size(); ++index)
+		{
+			ModVerificationInfo modInfo;
+			h & modInfo;
+		}
+	}
+};
+
+struct SaveGameDateMetadata
+{
+	std::shared_ptr<StartInfo> scenarioOps;
+	std::shared_ptr<StartInfo> initialOpts;
+	std::set<PlayerColor> actingPlayers;
+	ui32 day = 0;
+
+	template <typename Handler> void serialize(Handler & h)
+	{
+		h & scenarioOps;
+		h & initialOpts;
+		h & actingPlayers;
+		h & day;
+	}
+};
+
+static int loadSaveGameDay(CLoadFile & file)
+{
+	ActiveModsInSaveListMetadataOnly activeMods;
+	file.load(activeMods);
+
+	if (!file.hasFeature(ESerializationVersion::NO_RAW_POINTERS_IN_SERIALIZER))
+	{
+		bool dummyA = false;
+		uint32_t dummyB = 0;
+		uint16_t dummyC = 0;
+		file.load(dummyA);
+		file.load(dummyB);
+		file.load(dummyC);
+	}
+
+	SaveGameDateMetadata dateMetadata;
+	file.load(dateMetadata);
+	return dateMetadata.day;
 }
 
 
@@ -83,6 +136,7 @@ void CMapInfo::saveInit(const ResourcePath & file)
 	countPlayers();
 	lastWrite = CResourceHandler::get()->getLastWriteTime(file);
 	date = TextOperations::getFormattedDateTimeLocal(lastWrite);
+	saveGameDay = loadSaveGameDay(lf);
 
 	// We absolutely not need this data for lobby and server will read it from save
 	// FIXME: actually we don't want them in CMapHeader!
@@ -143,7 +197,7 @@ std::string CMapInfo::getNameForList() const
 		const std::string filename = path[path.size()-1];
 
 		if(isIndexedAutosaveName(filename))
-			return "Autosave (" + date + ")";
+			return "Autosave (Day " + std::to_string(saveGameDay) + ")";
 
 		return filename;
 	}
