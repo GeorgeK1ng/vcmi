@@ -81,7 +81,6 @@
 #include "../lib/StartInfo.h"
 #include "../lib/TerrainHandler.h"
 #include "../lib/UnlockGuard.h"
-#include "../lib/VCMIDirs.h"
 
 #include "../lib/battle/CPlayerBattleCallback.h"
 
@@ -118,8 +117,6 @@
 
 #include "../lib/filesystem/Filesystem.h"
 
-#include <boost/lexical_cast.hpp>
-
 // The macro below is used to mark functions that are called by client when game state changes.
 // They all assume that interface mutex is locked.
 #define EVENT_HANDLER_CALLED_BY_CLIENT
@@ -127,6 +124,21 @@
 #define BATTLE_EVENT_POSSIBLE_RETURN	if (GAME->interface() != this) return; if (isAutoFightOn && !battleInt) return
 
 std::shared_ptr<BattleInterface> CPlayerInterface::battleInt;
+
+static size_t autosaveIndexWidth(int autosaveCountLimit)
+{
+	return std::max<size_t>(3, std::to_string(autosaveCountLimit).size());
+}
+
+static std::string autosaveIndex(int index, int autosaveCountLimit)
+{
+	std::string number = std::to_string(index);
+	const size_t width = autosaveIndexWidth(autosaveCountLimit);
+	if(number.size() < width)
+		number.insert(0, width - number.size(), '0');
+
+	return number;
+}
 
 CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	localState(std::make_unique<PlayerLocalState>(*this)),
@@ -143,7 +155,6 @@ CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	makingTurn = false;
 	showingDialog = new ConditionalWait();
 	cingconsole = new CInGameConsole();
-	autosaveCount = 0;
 	isAutoFightOn = false;
 	isAutoFightEndBattle = false;
 	ignoreEvents = false;
@@ -253,12 +264,13 @@ void CPlayerInterface::performAutosave()
 	if(frequency > 0 && cb->getDate() % frequency == 0)
 	{
 		bool usePrefix = settings["general"]["useSavePrefix"].Bool();
-		std::string prefix = std::string();
+		std::string autosaveDirectory = "Saves/Autosave/";
+		std::string autosavePrefix = std::string();
 
 		if(usePrefix)
 		{
-			prefix = settings["general"]["savePrefix"].String();
-			if(prefix.empty())
+			autosavePrefix = settings["general"]["savePrefix"].String();
+			if(autosavePrefix.empty())
 			{
 				std::string name = cb->getMapHeader()->name.toString();
 				int txtlen = TextOperations::getUnicodeCharactersCount(name);
@@ -274,25 +286,21 @@ void CPlayerInterface::performAutosave()
 				};
 				std::replace_if(name.begin(), name.end(), isSymbolIllegal, '_' );
 
-				prefix = vstd::getFormattedDateTime(cb->getStartInfo()->startTime, "%Y-%m-%d_%H-%M") + "_" + name + "/";
+				autosaveDirectory = "Saves/" + vstd::getFormattedDateTime(cb->getStartInfo()->startTime, "%Y-%m-%d_%H-%M") + "_" + name + "/";
+				autosavePrefix = "Autosave ";
 			}
 		}
 
-		autosaveCount++;
-
 		int autosaveCountLimit = settings["general"]["autosaveCountLimit"].Integer();
 		if(autosaveCountLimit > 0)
-		{
-			cb->save("Saves/Autosave/" + prefix + std::to_string(autosaveCount), false);
-			autosaveCount %= autosaveCountLimit;
-		}
+			cb->save(autosaveDirectory + autosavePrefix + autosaveIndex(1, autosaveCountLimit), false, autosaveCountLimit);
 		else
 		{
 			std::string stringifiedDate = std::to_string(cb->getDate(Date::MONTH))
 					+ std::to_string(cb->getDate(Date::WEEK))
 					+ std::to_string(cb->getDate(Date::DAY_OF_WEEK));
 
-			cb->save("Saves/Autosave/" + prefix + stringifiedDate, false);
+			cb->save(autosaveDirectory + autosavePrefix + stringifiedDate, false);
 		}
 	}
 }
@@ -1518,37 +1526,6 @@ void CPlayerInterface::update()
 void CPlayerInterface::endNetwork()
 {
 	showingDialog->requestTermination();
-}
-
-int CPlayerInterface::getLastIndex( std::string namePrefix)
-{
-	using namespace boost::filesystem;
-	using namespace boost::algorithm;
-
-	path gamesDir = VCMIDirs::get().userSavePath();
-	std::map<std::time_t, int> dates; //save number => datestamp
-
-	const directory_iterator enddir;
-	if (!exists(gamesDir))
-		create_directory(gamesDir);
-	else
-	for (directory_iterator dir(gamesDir); dir != enddir; ++dir)
-	{
-		if (is_regular_file(dir->status()))
-		{
-			std::string name = dir->path().filename().string();
-			if (starts_with(name, namePrefix) && ends_with(name, ".vcgm1"))
-			{
-				char nr = name[namePrefix.size()];
-				if (std::isdigit(nr))
-					dates[last_write_time(dir->path())] = boost::lexical_cast<int>(nr);
-			}
-		}
-	}
-
-	if (!dates.empty())
-		return (--dates.end())->second; //return latest file number
-	return 0;
 }
 
 void CPlayerInterface::gameOver(PlayerColor player, const EVictoryLossCheckResult & victoryLossCheckResult )
