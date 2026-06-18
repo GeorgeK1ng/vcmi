@@ -264,12 +264,13 @@ void CPlayerInterface::performAutosave()
 	if(frequency > 0 && cb->getDate() % frequency == 0)
 	{
 		bool usePrefix = settings["general"]["useSavePrefix"].Bool();
-		std::string prefix = std::string();
+		std::string autosaveDirectory = "Saves/Autosave/";
+		std::string autosavePrefix = std::string();
 
 		if(usePrefix)
 		{
-			prefix = settings["general"]["savePrefix"].String();
-			if(prefix.empty())
+			autosavePrefix = settings["general"]["savePrefix"].String();
+			if(autosavePrefix.empty())
 			{
 				std::string name = cb->getMapHeader()->name.toString();
 				int txtlen = TextOperations::getUnicodeCharactersCount(name);
@@ -285,20 +286,21 @@ void CPlayerInterface::performAutosave()
 				};
 				std::replace_if(name.begin(), name.end(), isSymbolIllegal, '_' );
 
-				prefix = vstd::getFormattedDateTime(cb->getStartInfo()->startTime, "%Y-%m-%d_%H-%M") + "_" + name + "/";
+				autosaveDirectory = "Saves/" + vstd::getFormattedDateTime(cb->getStartInfo()->startTime, "%Y-%m-%d_%H-%M") + "_" + name + "/";
+				autosavePrefix = "Autosave ";
 			}
 		}
 
 		int autosaveCountLimit = settings["general"]["autosaveCountLimit"].Integer();
 		if(autosaveCountLimit > 0)
-			cb->save("Saves/Autosave/" + prefix + autosaveIndex(1, autosaveCountLimit), false, autosaveCountLimit);
+			cb->save(autosaveDirectory + autosavePrefix + autosaveIndex(1, autosaveCountLimit), false, autosaveCountLimit);
 		else
 		{
 			std::string stringifiedDate = std::to_string(cb->getDate(Date::MONTH))
 					+ std::to_string(cb->getDate(Date::WEEK))
 					+ std::to_string(cb->getDate(Date::DAY_OF_WEEK));
 
-			cb->save("Saves/Autosave/" + prefix + stringifiedDate, false);
+			cb->save(autosaveDirectory + autosavePrefix + stringifiedDate, false);
 		}
 	}
 }
