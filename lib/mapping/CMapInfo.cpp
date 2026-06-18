@@ -38,6 +38,19 @@ CMapInfo::CMapInfo()
 
 CMapInfo::~CMapInfo() = default;
 
+static bool isIndexedAutosaveName(const std::string & name)
+{
+	static const std::string prefix = "Autosave ";
+	if(!boost::starts_with(name, prefix))
+		return false;
+
+	const auto index = name.substr(prefix.size());
+	return !index.empty() && std::all_of(index.begin(), index.end(), [](const char character)
+	{
+		return std::isdigit(static_cast<unsigned char>(character));
+	});
+}
+
 
 void CMapInfo::mapInit(const std::string & fname)
 {
@@ -127,7 +140,12 @@ std::string CMapInfo::getNameForList() const
 		// TODO: this could be handled differently
 		std::vector<std::string> path;
 		boost::split(path, originalFileURI, boost::is_any_of("\\/"));
-		return path[path.size()-1];
+		const std::string filename = path[path.size()-1];
+
+		if(isIndexedAutosaveName(filename))
+			return "Autosave (" + date + ")";
+
+		return filename;
 	}
 	else
 	{
