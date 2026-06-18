@@ -830,6 +830,10 @@
 					"type" : "HERO_SPELL_CASTS_PER_COMBAT_TURN", //1 spell can be cast by hero per turn during combat
 					"val" : 1,
 					"valueType" : "BASE_NUMBER"
+				},
+				"marketSurrender" :
+				{
+					"type" : "SURRENDER_MARKETPLACE_ACCESS"
 				}
 			},
 			"perHero":

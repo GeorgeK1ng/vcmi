@@ -205,6 +205,7 @@ class JsonNode;
 	BONUS_NAME(ON_COMBAT_EVENT) /* Allows triggering various effects on combat events */ \
 	BONUS_NAME(LONG_WEAPON) /* melee attack from one hex away (attacker-empty-victim), without retaliation */ \
 	BONUS_NAME(SPELL_CAST_COUNTER)  /*used to keep count how many times a particular spells has been cast*/ \
+	BONUS_NAME(SURRENDER_MARKETPLACE_ACCESS) /*Allows hero to open marketplace when unable to pay surrender cost*/ \
 	/* end of list */
 
 #define BONUS_SOURCE_LIST \
