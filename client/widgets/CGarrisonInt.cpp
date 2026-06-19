@@ -11,9 +11,10 @@
 #include "CGarrisonInt.h"
 
 #include "Buttons.h"
+#include "GraphicalPrimitiveCanvas.h"
 #include "Images.h"
-#include "TextControls.h"
 #include "RadialMenu.h"
+#include "TextControls.h"
 
 #include "../GameEngine.h"
 #include "../GameInstance.h"
@@ -309,6 +310,9 @@ void CGarrisonSlot::showPopupWindow(const Point & cursorPosition)
 
 void CGarrisonSlot::clickPressed(const Point & cursorPosition)
 {
+		if(owner->smallIcons && !pos.isInside(cursorPosition))
+			return;
+
 		bool refr = false;
 		const CGarrisonSlot * selection = owner->getSelection();
 
@@ -470,9 +474,17 @@ CGarrisonSlot::CGarrisonSlot(CGarrisonInt * Owner, int x, int y, SlotID IID, EGa
 	artifactImage->setScale(artifactIconSize);
 	artifactImage->disable();
 
-	selectionImage = std::make_shared<CAnimImage>(imgName, 1);
+	if(Owner->smallIcons)
+	{
+		// CPRSMALL has no selection-border frame, unlike TWCRPORT.
+		selectionImage = std::make_shared<TransparentFilledRectangle>(Rect(-1, -1, 35, 35), Colors::TRANSPARENCY, Colors::YELLOW);
+	}
+	else
+	{
+		selectionImage = std::make_shared<CAnimImage>(imgName, 1);
+		selectionImage->center(creatureImage->pos.center());
+	}
 	selectionImage->disable();
-	selectionImage->center(creatureImage->pos.center());
 
 	if(Owner->smallIcons)
 	{
@@ -756,6 +768,18 @@ CGarrisonInt::CGarrisonInt(const Point & position, int inx, const Point & garsOf
 const CGarrisonSlot * CGarrisonInt::getSelection() const
 {
 	return highlighted;
+}
+
+bool CGarrisonInt::isSlotAt(const Point & position) const
+{
+	return std::any_of(
+		availableSlots.begin(),
+		availableSlots.end(),
+		[&position](const auto & slot)
+		{
+			return slot->pos.isInside(position);
+		}
+	);
 }
 
 void CGarrisonInt::selectSlot(CGarrisonSlot *slot)
