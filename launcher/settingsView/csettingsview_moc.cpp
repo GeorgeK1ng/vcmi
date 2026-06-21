@@ -621,15 +621,13 @@ void CSettingsView::on_comboBoxLanguage_currentIndexChanged(int index)
 {
 	auto * mainWindow = Helper::getMainWindow();
 	QString previousLanguage = QString::fromStdString(settings["general"]["language"].String());
-	QString installedLanguage = QString::fromStdString(settings["session"]["language"].String());
 	QString selectedLanguage = ui->comboBoxLanguage->itemData(index).toString();
 
 	if(selectedLanguage == previousLanguage)
 		return;
 
 	QString translationModName = mainWindow->getModView()->getTranslationModName(selectedLanguage);
-	bool needInstallTranslation = selectedLanguage != installedLanguage
-		&& !translationModName.isEmpty()
+	bool needInstallTranslation = !translationModName.isEmpty()
 		&& !mainWindow->getModView()->isModInstalled(translationModName);
 
 	if(needInstallTranslation)
