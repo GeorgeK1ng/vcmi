@@ -619,42 +619,38 @@ void CSettingsView::on_buttonAutoSave_toggled(bool value)
 
 void CSettingsView::on_comboBoxLanguage_currentIndexChanged(int index)
 {
-	if(index < 0)
-		return;
-
 	auto * mainWindow = Helper::getMainWindow();
-	assert(mainWindow);
-	if (!mainWindow)
-		return;
-
 	QString previousLanguage = QString::fromStdString(settings["general"]["language"].String());
+	QString installedLanguage = QString::fromStdString(settings["session"]["language"].String());
 	QString selectedLanguage = ui->comboBoxLanguage->itemData(index).toString();
 
 	if(selectedLanguage == previousLanguage)
 		return;
 
-	Settings node = settings.write["general"]["language"];
-	node->String() = selectedLanguage.toStdString();
-
 	QString translationModName = mainWindow->getModView()->getTranslationModName(selectedLanguage);
-	ETranslationStatus translationStatus = mainWindow->getTranslationStatus();
+	bool needInstallTranslation = selectedLanguage != installedLanguage
+		&& !translationModName.isEmpty()
+		&& !mainWindow->getModView()->isModInstalled(translationModName);
 
-	if(translationStatus == ETranslationStatus::NOT_INSTALLLED)
+	if(needInstallTranslation)
 	{
-		QString message = tr("Language %1 is not installed. Download and install the language pack?").arg(selectedLanguage);
+		QString message = tr("Language %1 is not installed. Download and install the language pack?").arg(ui->comboBoxLanguage->itemText(index));
 		int result = QMessageBox::question(this, tr("Install language pack?"), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
 		if(result != QMessageBox::Yes)
 		{
-			node->String() = previousLanguage.toStdString();
 			QSignalBlocker blocker(ui->comboBoxLanguage);
-			Languages::fillLanguages(ui->comboBoxLanguage, false);
+			ui->comboBoxLanguage->setCurrentIndex(ui->comboBoxLanguage->findData(previousLanguage));
 			return;
 		}
 	}
 
+	Settings node = settings.write["general"]["language"];
+	node->String() = selectedLanguage.toStdString();
+
 	mainWindow->updateTranslation();
 
+	ETranslationStatus translationStatus = mainWindow->getTranslationStatus();
 	if(translationStatus == ETranslationStatus::NOT_INSTALLLED || translationStatus == ETranslationStatus::DISABLED)
 		enableMod(translationModName);
 }
