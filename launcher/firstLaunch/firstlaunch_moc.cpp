@@ -815,7 +815,7 @@ bool FirstLaunchView::checkCanInstallTranslation()
 	if(modName.isEmpty())
 		return false;
 
-	return checkCanInstallMod(modName);
+	return getModView() && (getModView()->isModAvailable(modName) || getModView()->isModInstalled(modName));
 }
 
 bool FirstLaunchView::checkCanInstallExtras()

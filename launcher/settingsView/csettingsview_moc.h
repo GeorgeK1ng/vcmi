@@ -28,10 +28,8 @@ public:
 
 	void loadSettings();
 	void loadToggleButtonSettings();
-	void loadTranslation();
 	void setDisplayList();
 	void changeEvent(QEvent *event) override;
-	void showEvent(QShowEvent * event) override;
 
 	void setCheckbuttonState(QToolButton * button, bool checked);
 	void updateCheckbuttonText(QToolButton * button);

@@ -659,16 +659,9 @@ void CSettingsView::changeEvent(QEvent *event)
 	{
 		ui->retranslateUi(this);
 		Languages::fillLanguages(ui->comboBoxLanguage, false);
-		loadTranslation();
 		loadToggleButtonSettings();
 	}
 	QWidget::changeEvent(event);
-}
-
-void CSettingsView::showEvent(QShowEvent * event)
-{
-	loadTranslation();
-	QWidget::showEvent(event);
 }
 
 void CSettingsView::on_buttonCursorType_toggled(bool value)
@@ -678,37 +671,6 @@ void CSettingsView::on_buttonCursorType_toggled(bool value)
 	updateCheckbuttonText(ui->buttonCursorType);
 	ui->sliderScalingCursor->setDisabled(value == 1); // Not supported
 	ui->labelScalingCursorValue->setDisabled(value == 1); // Not supported
-}
-
-void CSettingsView::loadTranslation()
-{
-	QString baseLanguage = Languages::getHeroesDataLanguage();
-
-	auto * mainWindow = Helper::getMainWindow();
-
-	if (!mainWindow)
-		return;
-
-	auto translationStatus = mainWindow->getTranslationStatus();
-	bool showTranslation = translationStatus == ETranslationStatus::DISABLED || translationStatus == ETranslationStatus::NOT_INSTALLLED;
-
-	ui->labelTranslation->setVisible(showTranslation);
-	ui->labelTranslationStatus->setVisible(showTranslation);
-
-	if (translationStatus == ETranslationStatus::ACTIVE)
-	{
-		ui->labelTranslationStatus->setText(tr("Active"));
-	}
-
-	if (translationStatus == ETranslationStatus::DISABLED)
-	{
-		ui->labelTranslationStatus->setText(tr("Disabled"));
-	}
-
-	if (translationStatus == ETranslationStatus::NOT_INSTALLLED)
-	{
-		ui->labelTranslationStatus->setText(tr("Not Installed"));
-	}
 }
 
 void CSettingsView::on_pushButtonResetTutorialTouchscreen_clicked()
