@@ -21,6 +21,8 @@
 
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QMessageBox>
+#include <QSignalBlocker>
 
 #include "../../lib/CConfigHandler.h"
 
@@ -46,15 +48,12 @@ static void enableMod(const QString & name)
 	if (view->isModEnabled(name))
 		return;
 
+	mainWindow->switchToModsTab();
+
 	if (view->isModAvailable(name))
-	{
-		mainWindow->switchToModsTab();
 		view->doInstallMod(name);
-	}
 	else
-	{
 		view->enableModByName(name);
-	}
 }
 
 static constexpr std::array cursorTypesList =
@@ -620,11 +619,44 @@ void CSettingsView::on_buttonAutoSave_toggled(bool value)
 
 void CSettingsView::on_comboBoxLanguage_currentIndexChanged(int index)
 {
-	Settings node = settings.write["general"]["language"];
+	if(index < 0)
+		return;
+
+	auto * mainWindow = Helper::getMainWindow();
+	assert(mainWindow);
+	if (!mainWindow)
+		return;
+
+	QString previousLanguage = QString::fromStdString(settings["general"]["language"].String());
 	QString selectedLanguage = ui->comboBoxLanguage->itemData(index).toString();
+
+	if(selectedLanguage == previousLanguage)
+		return;
+
+	Settings node = settings.write["general"]["language"];
 	node->String() = selectedLanguage.toStdString();
 
-	Helper::getMainWindow()->updateTranslation();
+	QString translationModName = mainWindow->getModView()->getTranslationModName(selectedLanguage);
+	ETranslationStatus translationStatus = mainWindow->getTranslationStatus();
+
+	if(translationStatus == ETranslationStatus::NOT_INSTALLLED)
+	{
+		QString message = tr("Language %1 is not installed. Download and install the language pack?").arg(selectedLanguage);
+		int result = QMessageBox::question(this, tr("Install language pack?"), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+		if(result != QMessageBox::Yes)
+		{
+			node->String() = previousLanguage.toStdString();
+			QSignalBlocker blocker(ui->comboBoxLanguage);
+			Languages::fillLanguages(ui->comboBoxLanguage, false);
+			return;
+		}
+	}
+
+	mainWindow->updateTranslation();
+
+	if(translationStatus == ETranslationStatus::NOT_INSTALLLED || translationStatus == ETranslationStatus::DISABLED)
+		enableMod(translationModName);
 }
 
 void CSettingsView::changeEvent(QEvent *event)
@@ -668,8 +700,6 @@ void CSettingsView::loadTranslation()
 
 	ui->labelTranslation->setVisible(showTranslation);
 	ui->labelTranslationStatus->setVisible(showTranslation);
-	ui->pushButtonTranslation->setVisible(showTranslation);
-	ui->pushButtonTranslation->setVisible(translationStatus != ETranslationStatus::ACTIVE);
 
 	if (translationStatus == ETranslationStatus::ACTIVE)
 	{
@@ -679,28 +709,12 @@ void CSettingsView::loadTranslation()
 	if (translationStatus == ETranslationStatus::DISABLED)
 	{
 		ui->labelTranslationStatus->setText(tr("Disabled"));
-		ui->pushButtonTranslation->setText(tr("Enable"));
 	}
 
 	if (translationStatus == ETranslationStatus::NOT_INSTALLLED)
 	{
 		ui->labelTranslationStatus->setText(tr("Not Installed"));
-		ui->pushButtonTranslation->setText(tr("Install"));
 	}
-}
-
-void CSettingsView::on_pushButtonTranslation_clicked()
-{
-	auto * mainWindow = Helper::getMainWindow();
-
-	assert(mainWindow);
-	if (!mainWindow)
-		return;
-
-	QString languageName = QString::fromStdString(settings["general"]["language"].String());
-	QString modName = mainWindow->getModView()->getTranslationModName(languageName);
-
-	enableMod(modName);
 }
 
 void CSettingsView::on_pushButtonResetTutorialTouchscreen_clicked()

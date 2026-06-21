@@ -199,8 +199,8 @@ void StartGameTab::refreshTranslation(ETranslationStatus status)
 	ui->buttonInstallTranslation->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
 	ui->buttonInstallTranslationHelp->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
 
-	ui->buttonActivateTranslation->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
-	ui->buttonActivateTranslationHelp->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
+	ui->buttonActivateTranslation->setVisible(status == ETranslationStatus::DISABLED);
+	ui->buttonActivateTranslationHelp->setVisible(status == ETranslationStatus::DISABLED);
 }
 
 void StartGameTab::refreshMods()
