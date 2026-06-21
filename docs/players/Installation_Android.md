@@ -67,7 +67,3 @@ If you already have Heroes III installed on a PC:
 Follow the instructions in the Launcher to finish installation and optionally download recommended mods.
 
 VCMI is now ready to play.
-
-## Changing VCMI data directory
-
-Android builds store VCMI data in an app-private directory managed by the launcher. Relocating this directory is not supported; see [User data directories](User_Data_Directories.md) for details.

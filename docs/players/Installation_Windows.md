@@ -71,4 +71,18 @@ VCMI is now ready to play.
 
 ## Changing VCMI data directory
 
-By default, VCMI stores imported Heroes III files, mods, saves, settings and logs in `%USERPROFILE%\Documents\My Games\vcmi`. Advanced users can change these locations with `config\dirs.json`; see [User data directories](User_Data_Directories.md) for details.
+By default, VCMI stores imported Heroes III files, mods, saves, settings and logs in `%USERPROFILE%\Documents\My Games\vcmi`. Advanced users can change these locations by creating `<VCMI installation directory>\config\dirs.json` next to the installed executables.
+
+Example:
+
+```json
+{
+  "userDataPath": "D:\\Games\\VCMI-data",
+  "userCachePath": "D:\\Games\\VCMI-data\\cache",
+  "userConfigPath": "D:\\Games\\VCMI-data\\config",
+  "userLogsPath": "D:\\Games\\VCMI-data\\logs",
+  "userSavePath": "D:\\Games\\VCMI-data\\Saves"
+}
+```
+
+All keys are optional. Environment variables in paths are expanded, so values like `%LOCALAPPDATA%\\VCMI\\cache` can be used. Restart VCMI after changing this file and move existing data to the new location if needed.
