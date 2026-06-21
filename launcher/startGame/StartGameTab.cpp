@@ -13,6 +13,7 @@
 
 #include "../helper.h"
 #include "../mainwindow_moc.h"
+#include "../languages.h"
 #include "../main.h"
 #include "../updatedialog_moc.h"
 #ifdef VCMI_IOS
@@ -25,6 +26,7 @@
 #include "../../lib/filesystem/Filesystem.h"
 #include "../../lib/GameConstants.h"
 #include "../../lib/VCMIDirs.h"
+#include "../../lib/texts/Languages.h"
 #include "../../vcmiqt/MessageBox.h"
 #include "../../vcmiqt/convpathqstring.h"
 
@@ -396,12 +398,26 @@ void StartGameTab::on_buttonImportFiles_clicked()
 
 void StartGameTab::on_buttonInstallTranslation_clicked()
 {
-	if (Helper::getMainWindow()->getTranslationStatus() == ETranslationStatus::NOT_INSTALLLED)
+	if (Helper::getMainWindow()->getTranslationStatus() != ETranslationStatus::NOT_INSTALLLED)
+		return;
+
+	auto installTranslation = [this]()
 	{
-		QString preferredlanguage = QString::fromStdString(settings["general"]["language"].String());
-		QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredlanguage);
+		QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+		QString languageName = Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString()));
+		QString message = tr("You are using %1, but the %2 language pack is not installed. Do you want to install it?")
+			.arg(languageName, languageName);
+		int result = QMessageBox::question(this, ui->buttonInstallTranslation->text(), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+		if(result != QMessageBox::Yes)
+			return;
+
+		QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredLanguage);
+		Helper::getMainWindow()->switchToModsTab();
 		Helper::getMainWindow()->getModView()->doInstallMod(modName);
-	}
+	};
+
+	MessageBoxCustom::showDialog(this, installTranslation);
 }
 
 void StartGameTab::on_buttonActivateTranslation_clicked()
