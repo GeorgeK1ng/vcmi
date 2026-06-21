@@ -68,3 +68,7 @@ If detection fails:
 Follow the instructions shown in the Launcher to complete installation and optionally download recommended mods.
 
 VCMI is now ready to play.
+
+## Changing VCMI data directory
+
+By default, VCMI stores imported Heroes III files, mods, saves, settings and logs in `%USERPROFILE%\Documents\My Games\vcmi`. Advanced users can change these locations with `config\dirs.json`; see [User data directories](User_Data_Directories.md) for details.

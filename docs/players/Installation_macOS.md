@@ -34,3 +34,7 @@ gog.com download page:
 
 1. Find a way to unpack Windows Heroes III or GOG installer. For example, use `vcmibuilder` script inside app bundle or install the game with [CrossOver](https://www.codeweavers.com/crossover) or [Kegworks](https://github.com/Kegworks-App/Kegworks).
 2. Place or symlink **Data**, **Maps** and **Mp3** directories from Heroes III to:`~/Library/Application\ Support/vcmi/`
+
+## Changing VCMI data directory
+
+macOS builds use `~/Library/Application Support/vcmi` for VCMI data and do not currently support `dirs.json` or another dedicated override for this location. See [User data directories](User_Data_Directories.md) for details.

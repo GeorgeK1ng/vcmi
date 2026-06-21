@@ -70,7 +70,7 @@ Once you have flatpak, you can install VCMI package which can be found here: <ht
 
 Stable and [nightly](https://builds.vcmi.download/branch/) VCMI is also available as AppImage. It's currently built with Ubuntu 24.04 (should be compatible with distributions with glibc>=2.38).
 
-If you also want to use local files (e.g. to have different configurations on system) you can override paths manually if you launch VCMI over a small shell script:
+If you also want to use local files (e.g. to have different configurations on system) you can override paths manually if you launch VCMI over a small shell script. See also [User data directories](User_Data_Directories.md) for a full overview of data, cache and config locations:
 
 ```sh
 #!/bin/sh

@@ -57,6 +57,7 @@ See also installation guide for [Heroes Chronicles](players/Heroes_Chronicles.md
 - [Bug reporting guidelines](players/Bug_Reporting_Guidelines.md)
 - [Cheat codes](players/Cheat_Codes.md)
 - [Privacy Policy](players/Privacy_Policy.md)
+- [User data directories](players/User_Data_Directories.md)
 
 ## Documentation and guidelines for translators
 
