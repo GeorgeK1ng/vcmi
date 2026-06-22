@@ -257,6 +257,7 @@
                 "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
                 "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
                 "ENABLE_MULTI_PROCESS_BUILDS": "OFF",
+                "ENABLE_PCH": "ON",
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "CMAKE_C_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7",
                 "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7",
