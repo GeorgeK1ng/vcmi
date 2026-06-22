@@ -35,6 +35,7 @@
 #include <SDL_timer.h>
 #include <SDL_clipboard.h>
 #include <SDL_power.h>
+#include <SDL_version.h>
 
 InputHandler::InputHandler()
 	: enableMouse(settings["input"]["enableMouse"].Bool())
@@ -279,6 +280,9 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 	{
 		switch (ev.window.event) {
 			case SDL_WINDOWEVENT_RESTORED:
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+			case SDL_WINDOWEVENT_DISPLAY_CHANGED:
+#endif
 #ifndef VCMI_IOS
 			{
 				std::scoped_lock interfaceLock(ENGINE->interfaceMutex);
@@ -317,6 +321,16 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 		}
 		return;
 	}
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+	else if(ev.type == SDL_DISPLAYEVENT)
+	{
+#ifndef VCMI_IOS
+		std::scoped_lock interfaceLock(ENGINE->interfaceMutex);
+		ENGINE->onScreenResize(false, false);
+#endif
+		return;
+	}
+#endif
 	else if(ev.type == SDL_SYSWMEVENT)
 	{
 		std::scoped_lock interfaceLock(ENGINE->interfaceMutex);

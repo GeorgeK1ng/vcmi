@@ -48,6 +48,12 @@ class MainWindow : public QMainWindow
 #endif
 
 	void load();
+#ifndef VCMI_MOBILE
+	static QScreen * findBestScreenForGeometry(const QRect & windowGeometry);
+	static QRect makeWindowGeometryVisible(QRect windowGeometry);
+	void connectScreenChangeHandlers();
+	void ensureWindowIsVisible();
+#endif
 
 	enum TabRows
 	{

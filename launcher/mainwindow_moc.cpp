@@ -27,6 +27,80 @@
 #include "main.h"
 #include "helper.h"
 
+#ifndef VCMI_MOBILE
+QScreen * MainWindow::findBestScreenForGeometry(const QRect & windowGeometry)
+{
+	QScreen * bestScreen = nullptr;
+	int bestIntersectionArea = 0;
+
+	for(auto * screen : QGuiApplication::screens())
+	{
+		const QRect availableGeometry = screen->availableGeometry();
+		const QRect intersection = availableGeometry.intersected(windowGeometry);
+		const int intersectionArea = intersection.isEmpty() ? 0 : intersection.width() * intersection.height();
+
+		if(intersectionArea > bestIntersectionArea)
+		{
+			bestScreen = screen;
+			bestIntersectionArea = intersectionArea;
+		}
+	}
+
+	return bestScreen != nullptr ? bestScreen : QGuiApplication::primaryScreen();
+}
+
+QRect MainWindow::makeWindowGeometryVisible(QRect windowGeometry)
+{
+	QScreen * targetScreen = findBestScreenForGeometry(windowGeometry);
+	if(targetScreen == nullptr)
+		return windowGeometry;
+
+	const QRect targetScreenGeometry = targetScreen->availableGeometry();
+	if(targetScreenGeometry.isEmpty())
+		return windowGeometry;
+
+	windowGeometry.setSize(windowGeometry.size().boundedTo(targetScreenGeometry.size()));
+
+	if(windowGeometry.left() < targetScreenGeometry.left())
+		windowGeometry.moveLeft(targetScreenGeometry.left());
+	if(windowGeometry.top() < targetScreenGeometry.top())
+		windowGeometry.moveTop(targetScreenGeometry.top());
+	if(windowGeometry.right() > targetScreenGeometry.right())
+		windowGeometry.moveRight(targetScreenGeometry.right());
+	if(windowGeometry.bottom() > targetScreenGeometry.bottom())
+		windowGeometry.moveBottom(targetScreenGeometry.bottom());
+
+	return windowGeometry;
+}
+
+void MainWindow::connectScreenChangeHandlers()
+{
+	auto queueVisibilityUpdate = [this]()
+	{
+		QTimer::singleShot(0, this, &MainWindow::ensureWindowIsVisible);
+	};
+
+	for(auto * screen : QGuiApplication::screens())
+	{
+		connect(screen, &QScreen::geometryChanged, this, queueVisibilityUpdate);
+		connect(screen, &QScreen::availableGeometryChanged, this, queueVisibilityUpdate);
+	}
+
+	connect(qApp, &QGuiApplication::screenAdded, this, [this, queueVisibilityUpdate](QScreen * screen)
+	{
+		connect(screen, &QScreen::geometryChanged, this, queueVisibilityUpdate);
+		connect(screen, &QScreen::availableGeometryChanged, this, queueVisibilityUpdate);
+		queueVisibilityUpdate();
+	});
+	connect(qApp, &QGuiApplication::screenRemoved, this, queueVisibilityUpdate);
+}
+
+void MainWindow::ensureWindowIsVisible()
+{
+	setGeometry(makeWindowGeometryVisible(geometry()));
+}
+#endif
+
 void MainWindow::load()
 {
 	// Set current working dir to executable folder.
@@ -103,16 +177,21 @@ MainWindow::MainWindow(QWidget * parent)
 	//load window settings
 	QSettings s = CLauncherDirs::getSettings(Ui::appName);
 
-	auto size = s.value("MainWindow/WindowSize").toSize();
-	if(size.isValid())
+	QSize windowSize = size();
+	if(s.contains("MainWindow/WindowSize"))
 	{
-		resize(size);
+		auto savedSize = s.value("MainWindow/WindowSize").toSize();
+		if(savedSize.isValid())
+			windowSize = savedSize;
 	}
-	auto position = s.value("MainWindow/WindowPosition").toPoint();
-	if(!position.isNull())
-	{
-		move(position);
-	}
+
+	QPoint windowPosition = pos();
+	if(s.contains("MainWindow/WindowPosition"))
+		windowPosition = s.value("MainWindow/WindowPosition").toPoint();
+
+	QRect windowGeometry(windowPosition, windowSize);
+	setGeometry(makeWindowGeometryVisible(windowGeometry));
+	connectScreenChangeHandlers();
 #endif
 
 	computeSidePanelSizes();
