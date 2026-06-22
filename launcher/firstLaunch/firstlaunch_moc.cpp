@@ -791,8 +791,7 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetTowDescr->setVisible(canTow);
 	ui->labelPresetFodDescr->setVisible(canFod);
 
-	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if(demoDataActive || (!canTrans && !canExtras && !canHota && !canWog && !canTow && !canFod))
+	if(demoDataActive)
 		exitSetup(false);
 }
 
