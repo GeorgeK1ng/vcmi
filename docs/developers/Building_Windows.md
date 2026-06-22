@@ -306,50 +306,62 @@ For additional Conan options and platform details, see [Conan dependencies](Cona
 
 Use this setup only if you specifically need a MinGW build. It does not use Conan. Do not mix commands or packages between MSYS2 environments.
 
+Choose the MSYS2 environment and matching CMake preset for the target architecture:
+
+| Target | MSYS2 environment | CMake preset | Minimum target Windows version |
+| --- | --- | --- | --- |
+| x86 minimal | MINGW32 | `windows-mingw-minimal-release-x86` | Windows 7 API baseline |
+| x64 | MINGW64 | `windows-mingw-release` | Windows 7 |
+| ARM64 | CLANGARM64 | `windows-mingw-release-arm64` | Windows 10 ARM64 |
+| XP x86 minimal | MINGW32 | `windows-mingw-xp-minimal-release-x86` | Windows XP SP3 API baseline |
+| XP x64 minimal | MINGW64 | `windows-mingw-xp-minimal-release` | Windows XP x64 / Server 2003 SP2 API baseline |
+
 1. Install [MSYS2](https://www.msys2.org/).
-2. Open **MSYS2 UCRT64** and confirm that `echo $MSYSTEM` prints `UCRT64`.
-3. Update MSYS2 with `pacman -Syu`. If requested, close the terminal, reopen **MSYS2 UCRT64**, and run it again.
-4. Install the compiler, build tools, and dependencies:
+2. Open the shell for the selected environment and confirm that `echo $MSYSTEM` prints `MINGW32`, `MINGW64`, or `CLANGARM64` as expected.
+3. Update MSYS2 with `pacman -Syu`. If requested, close the terminal, reopen the same environment, and run it again.
+4. Install the compiler, build tools, and dependencies for the active environment using `pacboy`. The full dependency set is available for MINGW64 and CLANGARM64:
 
    ```sh
-   pacman -S --needed \
-     git \
-     mingw-w64-ucrt-x86_64-cmake \
-     mingw-w64-ucrt-x86_64-gcc \
-     mingw-w64-ucrt-x86_64-ninja \
-     mingw-w64-ucrt-x86_64-ccache \
-     mingw-w64-ucrt-x86_64-boost \
-     mingw-w64-ucrt-x86_64-zlib \
-     mingw-w64-ucrt-x86_64-minizip \
-     mingw-w64-ucrt-x86_64-ffmpeg \
-     mingw-w64-ucrt-x86_64-SDL2 \
-     mingw-w64-ucrt-x86_64-SDL2_image \
-     mingw-w64-ucrt-x86_64-SDL2_mixer \
-     mingw-w64-ucrt-x86_64-SDL2_ttf \
-     mingw-w64-ucrt-x86_64-qt5-static \
-     mingw-w64-ucrt-x86_64-tbb \
-     mingw-w64-ucrt-x86_64-luajit \
-     mingw-w64-ucrt-x86_64-xz \
-     mingw-w64-ucrt-x86_64-sqlite3 \
-     mingw-w64-ucrt-x86_64-libsquish \
-     mingw-w64-ucrt-x86_64-fmt \
-     mingw-w64-ucrt-x86_64-libiconv \
-     mingw-w64-ucrt-x86_64-onnx \
-     mingw-w64-ucrt-x86_64-onnxruntime
+   pacman -S --needed git pactoys
+   pacboy -S --needed \
+     cmake:p toolchain:p ninja:p ccache:p boost:p zlib:p minizip:p ffmpeg:p \
+     SDL2:p SDL2_image:p SDL2_mixer:p SDL2_ttf:p qt5-static:p tbb:p luajit:p \
+     xz:p sqlite3:p libsquish:p fmt:p glaze:p libiconv:p
    ```
 
-5. Clone and build VCMI from the UCRT64 shell:
+MMAI is disabled in the MINGW64 and CLANGARM64 presets because the MSYS2 base packages for ONNX and ONNX Runtime do not produce binaries for those repositories. The ONNX base package currently produces UCRT64, CLANG64, and CLANGARM64 binaries, but ONNX Runtime produces only UCRT64 and CLANG64 binaries. A base-package page describes the shared source recipe; only the entries listed under **Binary Packages** can be installed with `pacman`/`pacboy`.
+
+The active MINGW32 repository no longer indexes Boost, TBB, Qt, LuaJIT, libsquish, ONNX, or ONNX Runtime, although old binary packages and their base-package recipes remain available in MSYS2 mirrors. Therefore, the reproducible x86 and XP x86 presets build only the minimal VCMI library. Install the actively indexed dependencies:
+
+   ```sh
+   pacman -S --needed git pactoys
+   pacboy -S --needed cmake:p gcc:p ninja:p ccache:p zlib:p minizip:p libiconv:p
+   ```
+
+For the experimental XP x64 minimal preset, install the minimal MINGW64 dependencies instead:
+
+   ```sh
+   pacman -S --needed git pactoys
+   pacboy -S --needed cmake:p toolchain:p ninja:p ccache:p boost:p zlib:p minizip:p libiconv:p
+   ```
+
+5. Clone VCMI from the selected MSYS2 shell. For either MINGW32 x86 preset, run `CI/install_mingw32_archived_packages.sh` before configuring. It installs the pinned, signed Boost 1.85 binary retained by the Huawei MSYS2 mirror. Then build, replacing `PRESET` with the preset from the table:
 
    ```sh
    cd /c
    git clone --recursive https://github.com/vcmi/vcmi.git VCMI
    cd VCMI
-   cmake --preset windows-mingw-release
-   cmake --build --preset windows-mingw-release
+   # MINGW32 only:
+   CI/install_mingw32_archived_packages.sh
+   cmake --preset PRESET
+   cmake --build --preset PRESET
    ```
 
 > [!TIP]
 > The installed MSYS2 ccache package can be enabled by adding `-D ENABLE_CCACHE=ON` to the configure command.
+
+> [!NOTE]
+> Current MSYS2 itself must run on a modern Windows host. The `akosela/msys2-xp` project is an archive of an older MSYS2 release with a carefully selected package set that runs on XP; its link to the Huawei mirror is a source for additional archived packages, not a guarantee that every binary retained by that mirror runs on XP. MINGW32 and MINGW64 use MSVCRT, which is available on Windows XP, so CI compiles the minimal VCMI library with the Windows XP API baselines. The MINGW32 builds remain minimal because the complete full-build dependency set is not actively indexed or verified for XP. These experimental compile-only jobs deliberately exclude the client, server application, launcher, editor, multimedia, AI, and other optional components. Passing them verifies that this limited source configuration compiles and links against XP-visible Windows headers; it does not certify that current MSYS2 dependency DLLs run on a real XP installation. The full MINGW64 build targets Windows 7 or newer, and CLANGARM64 requires Windows 10 ARM64 or newer.
 
 ## Legacy vcpkg builds
 

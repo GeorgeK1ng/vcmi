@@ -98,6 +98,40 @@ jobs:
             conan_options: -s "&:build_type=RelWithDebInfo" -o "&:lua_lib=lua"
             artifact_platform: arm64
 
+          - platform: mingw_x64
+            os: windows-2025
+            msystem: MINGW64
+            preset: windows-mingw-release
+            artifact_platform: x64
+
+          - platform: mingw_x86
+            os: windows-2025
+            msystem: MINGW32
+            preset: windows-mingw-minimal-release-x86
+            artifact_platform: x86
+            mingw32_minimal: 1
+
+          - platform: mingw_arm64
+            os: windows-11-arm
+            msystem: CLANGARM64
+            preset: windows-mingw-release-arm64
+            artifact_platform: arm64
+
+          - platform: mingw_xp_x64
+            os: windows-2025
+            msystem: MINGW64
+            preset: windows-mingw-xp-minimal-release
+            artifact_platform: x64
+            xp_minimal: 1
+
+          - platform: mingw_xp_x86
+            os: windows-2025
+            msystem: MINGW32
+            preset: windows-mingw-xp-minimal-release-x86
+            artifact_platform: x86
+            xp_minimal: 1
+            mingw32_minimal: 1
+
           - platform: android-32
             os: ubuntu-24.04
             upload: 1
@@ -152,13 +186,80 @@ jobs:
 
     defaults:
       run:
-        shell: bash
+        shell: ${{ startsWith(matrix.platform, 'mingw_') && 'msys2 {0}' || 'bash' }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
       with:
         submodules: recursive
+
+    - name: Set up MSYS2
+      if: ${{ startsWith(matrix.platform, 'mingw_') && matrix.xp_minimal != 1 && matrix.mingw32_minimal != 1 }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git
+        pacboy: >-
+          cmake:p
+          toolchain:p
+          ninja:p
+          ccache:p
+          boost:p
+          zlib:p
+          minizip:p
+          ffmpeg:p
+          SDL2:p
+          SDL2_image:p
+          SDL2_mixer:p
+          SDL2_ttf:p
+          qt5-static:p
+          tbb:p
+          luajit:p
+          xz:p
+          sqlite3:p
+          libsquish:p
+          fmt:p
+          glaze:p
+          libiconv:p
+
+    - name: Set up MSYS2 for minimal MINGW32 build
+      if: ${{ matrix.mingw32_minimal == 1 }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git
+        pacboy: >-
+          cmake:p
+          gcc:p
+          ninja:p
+          ccache:p
+          zlib:p
+          minizip:p
+          libiconv:p
+
+    - name: Install archived MINGW32 packages
+      if: ${{ matrix.mingw32_minimal == 1 }}
+      run: CI/install_mingw32_archived_packages.sh
+
+    - name: Set up MSYS2 for minimal Windows XP x64 build
+      if: ${{ matrix.xp_minimal == 1 && matrix.mingw32_minimal != 1 }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git
+        pacboy: >-
+          cmake:p
+          toolchain:p
+          ninja:p
+          ccache:p
+          boost:p
+          zlib:p
+          minizip:p
+          libiconv:p
 
     - name: Prepare APT staging dir
       if: contains(matrix.os, 'ubuntu')
@@ -430,6 +531,7 @@ jobs:
 
     - name: Upload Artifact
       id: upload_artifact
+      if: ${{ matrix.extension != '' }}
       uses: actions/upload-artifact@v7
       with:
         archive: false
