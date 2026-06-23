@@ -839,6 +839,8 @@ void CModListView::downloadMod(const ModState & mod)
 		return;
 
 	enqueuedModDownloads.push_back(mod.getID());
+	if(ui->allModsView->currentIndex().data(ModRoles::ModNameRole).toString() == mod.getID())
+		selectMod(ui->allModsView->currentIndex());
 	hideAbortForCurrentDownload |= mod.isTranslation();
 	downloadFile(mod.getID() + ".zip", mod.getDownloadUrl(), mod.getName(), mod.getDownloadSizeBytes());
 }
