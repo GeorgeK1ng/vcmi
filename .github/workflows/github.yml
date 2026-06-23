@@ -627,6 +627,7 @@ jobs:
           ${{ matrix.platform }}-
         max-size: '5G'
         verbose: 2
+        job-summary: ""
 
     - name: Setup compiler cache for branch builds
       uses: hendrikmuhs/ccache-action@v1.2
@@ -638,6 +639,7 @@ jobs:
           ${{ matrix.platform }}-
         max-size: '5G'
         verbose: 2
+        job-summary: ""
 
     - name: Prepare Heroes 3 data
       run: |
@@ -669,6 +671,20 @@ jobs:
             echo "Validation failed!"
             exit 1
         fi
+
+    - name: Prepare partial JSON with test cache information
+      if: always()
+      env:
+        PLATFORM: ${{ matrix.platform }}
+      run: |
+        python3 CI/emit_test_partial.py
+
+    - name: Upload partial JSON with test cache information
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: partial-json-test-${{ matrix.platform }}
+        path: .summary/test-${{ matrix.platform }}.json
 
   lobby:
     name: Build VCMI Lobby
