@@ -773,10 +773,10 @@ void FirstLaunchView::modPresetUpdate()
 
 	bool canTrans  = checkCanInstallTranslation();
 	bool canExtras = checkCanInstallExtras();
-	bool canHota   = checkCanInstallHota();
-	bool canWog	= checkCanInstallWog();
-	bool canTow	= checkCanInstallTow();
-	bool canFod	= checkCanInstallFod();
+	bool canHota   = !demoDataActive && checkCanInstallHota();
+	bool canWog	= !demoDataActive && checkCanInstallWog();
+	bool canTow	= !demoDataActive && checkCanInstallTow();
+	bool canFod	= !demoDataActive && checkCanInstallFod();
 
 	ui->buttonPresetLanguage->setVisible(canTrans);
 	ui->buttonPresetExtras->setVisible(canExtras);
