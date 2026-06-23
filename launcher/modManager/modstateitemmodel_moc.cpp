@@ -330,7 +330,9 @@ bool CModFilterModel::filterAcceptsRow(int source_row, const QModelIndex & sourc
 		return false;
 
 	bool isDemo = CModListView::isDemoDataPresent();
-	if (isDemo && !mod.isTranslation() && modID != "vcmi-extras")
+	if (isDemo && !mod.isTranslation()
+		&& modID != "vcmi-extras"
+		&& mod.getTopParentID() != "vcmi-extras")
 		return false;
 	if (mod.isDemoSupport())
 		return false;
