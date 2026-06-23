@@ -108,11 +108,10 @@ void StartGameTab::refreshState()
 	refreshGameData();
 	refreshUpdateStatus(EGameUpdateStatus::NOT_CHECKED);//TODO - follow automatic check on startup setting
 
+	refreshTranslation(Helper::getMainWindow()->getTranslationStatus());
+
 	if (!demoActive)
-	{
-		refreshTranslation(Helper::getMainWindow()->getTranslationStatus());
 		refreshMods();
-	}
 
 	refreshPresets();
 
@@ -265,8 +264,9 @@ void StartGameTab::on_buttonGameStart_clicked()
 			if(result == QMessageBox::Yes)
 			{
 				QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredLanguage);
-				Helper::getMainWindow()->switchToModsTab();
 				Helper::getMainWindow()->getModView()->enableModByName(modName);
+				Helper::getMainWindow()->hide();
+				startGame({});
 			}
 		};
 
