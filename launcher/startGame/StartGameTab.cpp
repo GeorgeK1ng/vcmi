@@ -245,6 +245,35 @@ void StartGameTab::refreshUpdateStatus(EGameUpdateStatus status)
 
 void StartGameTab::on_buttonGameStart_clicked()
 {
+	ETranslationStatus translationStatus = Helper::getMainWindow()->getTranslationStatus();
+	if(translationStatus == ETranslationStatus::NOT_INSTALLLED)
+	{
+		on_buttonInstallTranslation_clicked();
+		return;
+	}
+
+	if(translationStatus == ETranslationStatus::DISABLED)
+	{
+		auto enableTranslation = [this]()
+		{
+			QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+			QString languageName = Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString()));
+			QString message = tr("You are using %1, but the %2 language pack is not enabled. Do you want to enable it?")
+				.arg(languageName, languageName);
+			int result = QMessageBox::question(this, ui->buttonGameStart->text(), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+			if(result == QMessageBox::Yes)
+			{
+				QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredLanguage);
+				Helper::getMainWindow()->switchToModsTab();
+				Helper::getMainWindow()->getModView()->enableModByName(modName);
+			}
+		};
+
+		MessageBoxCustom::showDialog(this, enableTranslation);
+		return;
+	}
+
 	Helper::getMainWindow()->hide();
 	startGame({});
 }
