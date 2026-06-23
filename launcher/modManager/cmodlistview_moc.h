@@ -43,6 +43,7 @@ class CModListView : public QWidget
 	QStringList enqueuedDownloadFiles;
 	QHash<QString, QString> enqueuedDownloadDescriptions;
 	QString activeDownloadFile;
+	bool hideAbortForCurrentDownload = false;
 	void setupModModel();
 	void setupFilterModel();
 	void setupModsView();

@@ -839,6 +839,7 @@ void CModListView::downloadMod(const ModState & mod)
 		return;
 
 	enqueuedModDownloads.push_back(mod.getID());
+	hideAbortForCurrentDownload |= mod.isTranslation();
 	downloadFile(mod.getID() + ".zip", mod.getDownloadUrl(), mod.getName(), mod.getDownloadSizeBytes());
 }
 
@@ -848,6 +849,7 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 	{
 		dlManager = new CDownloadManager();
 		ui->progressWidget->setVisible(true);
+		ui->abortButton->setVisible(!hideAbortForCurrentDownload);
 		connect(dlManager, SIGNAL(downloadProgress(QString,qint64,qint64)),
 			this, SLOT(downloadProgress(QString,qint64,qint64)));
 		connect(dlManager, SIGNAL(downloadFileFinished(QString)),
@@ -859,6 +861,7 @@ void CModListView::downloadFile(QString file, QUrl url, QString description, qin
 		connect(modModel, &ModStateItemModel::dataChanged, filterModel, &QAbstractItemModel::dataChanged);
 	}
 
+	ui->abortButton->setVisible(!hideAbortForCurrentDownload);
 	enqueuedDownloadDescriptions[file] = description;
 	enqueuedDownloadFiles.push_back(file);
 	if(activeDownloadFile.isEmpty())
@@ -942,6 +945,7 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	enqueuedDownloadFiles.clear();
 	enqueuedDownloadDescriptions.clear();
 	activeDownloadFile.clear();
+	hideAbortForCurrentDownload = false;
 	dlManager->deleteLater();
 	dlManager = nullptr;
 
@@ -968,6 +972,7 @@ void CModListView::hideExternalProgress()
 	if(dlManager == nullptr)
 	{
 		ui->progressWidget->setVisible(false);
+		ui->abortButton->setVisible(true);
 		ui->progressBar->setMaximum(0);
 		ui->progressBar->setValue(0);
 	}
@@ -978,6 +983,7 @@ void CModListView::hideProgressBar()
 	if(dlManager == nullptr) // it was not recreated meanwhile
 	{
 		ui->progressWidget->setVisible(false);
+		ui->abortButton->setVisible(true);
 		ui->progressBar->setMaximum(0);
 		ui->progressBar->setValue(0);
 	}
@@ -1621,6 +1627,8 @@ void CModListView::on_abortButton_clicked()
 	enqueuedDownloadFiles.clear();
 	enqueuedDownloadDescriptions.clear();
 	activeDownloadFile.clear();
+	hideAbortForCurrentDownload = false;
+	ui->abortButton->setVisible(true);
 	Helper::keepScreenOn(false);
 	hideProgressBar();
 }
