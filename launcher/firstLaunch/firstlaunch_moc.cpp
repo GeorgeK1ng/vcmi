@@ -158,7 +158,8 @@ void FirstLaunchView::onInstallFinished()
 {
 	demoOverlay->deleteLater();
 	demoOverlay = nullptr;
-	heroesDataUpdate(true);
+	if(heroesDataUpdate(true))
+		activateTabModPreset();
 }
 
 void FirstLaunchView::onInstallError()
@@ -790,9 +791,6 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetWogDescr->setVisible(canWog);
 	ui->labelPresetTowDescr->setVisible(canTow);
 	ui->labelPresetFodDescr->setVisible(canFod);
-
-	if(demoDataActive)
-		exitSetup(false);
 }
 
 QString FirstLaunchView::findTranslationModName()
