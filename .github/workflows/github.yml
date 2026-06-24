@@ -435,7 +435,6 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         archive: false
-        if-no-files-found: ${{ matrix.extension == 'AppImage' && 'ignore' || 'warn' }}
         path: |
           ${{github.workspace}}/out/build/${{matrix.preset}}/${{ env.VCMI_PACKAGE_FILE_NAME }}.${{ matrix.extension }}
 
