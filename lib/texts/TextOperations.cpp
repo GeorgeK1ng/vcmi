@@ -21,8 +21,18 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+enum class EEncodingConversionErrorHandling
+{
+	Log,
+	Ignore
+};
+
 template<typename FromString, typename DestString>
-FromString convertTextEncoding(const DestString & fromString, const std::string & fromEncoding, const std::string & destEncoding, bool logFailure = true)
+FromString convertTextEncoding(
+	const DestString & fromString,
+	const std::string & fromEncoding,
+	const std::string & destEncoding,
+	EEncodingConversionErrorHandling errorHandling = EEncodingConversionErrorHandling::Log)
 {
 	constexpr auto fromCharSize = sizeof(typename DestString::value_type);
 	constexpr auto destCharSize = sizeof(typename FromString::value_type);
@@ -30,7 +40,7 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 	iconv_t cd = iconv_open(destEncoding.c_str(), fromEncoding.c_str());
 	if(cd == reinterpret_cast<iconv_t>(-1))
 	{
-		if(logFailure)
+		if(errorHandling == EEncodingConversionErrorHandling::Log)
 			logGlobal->error("Encoding conversion failure. Invalid encoding %s -> %s", fromEncoding, destEncoding);
 		return {};
 	}
@@ -51,7 +61,7 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 
 	if(ret == static_cast<size_t>(-1))
 	{
-		if(logFailure)
+		if(errorHandling == EEncodingConversionErrorHandling::Log)
 		{
 			if constexpr (fromCharSize == 1)
 				logGlobal->error("Encoding conversion failure. Failed to convert text: %s", fromString);
@@ -196,7 +206,11 @@ uint32_t TextOperations::getUnicodeCodepoint(const char * data, size_t maxSize)
 uint32_t TextOperations::getUnicodeCodepoint(char data, const std::string & encoding )
 {
 	std::string stringNative(1, data);
-	std::string stringUnicode = convertTextEncoding<std::string>(stringNative, encoding, "UTF-8", false);
+	std::string stringUnicode = convertTextEncoding<std::string>(
+		stringNative,
+		encoding,
+		"UTF-8",
+		EEncodingConversionErrorHandling::Ignore);
 
 	if (stringUnicode.empty())
 		return 0;
