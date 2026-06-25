@@ -129,7 +129,8 @@ void CBitmapFont::loadFont(const ResourcePath & resource, std::unordered_map<Cod
 		std::copy_n(pixelData, pixelsCount, symbol.pixels.data() );
 
 		CodePoint codepoint = TextOperations::getUnicodeCodepoint(static_cast<char>(charIndex), modEncoding);
-		loadedChars[codepoint] = symbol;
+		if(codepoint != 0 || charIndex == 0)
+			loadedChars[codepoint] = symbol;
 	}
 
 	// Try to use symbol 'L' to detect font 'ascent' - number of pixels above text baseline

@@ -22,7 +22,7 @@
 VCMI_LIB_NAMESPACE_BEGIN
 
 template<typename FromString, typename DestString>
-FromString convertTextEncoding(const DestString & fromString, const std::string & fromEncoding, const std::string & destEncoding)
+FromString convertTextEncoding(const DestString & fromString, const std::string & fromEncoding, const std::string & destEncoding, bool logFailure = true)
 {
 	constexpr auto fromCharSize = sizeof(typename DestString::value_type);
 	constexpr auto destCharSize = sizeof(typename FromString::value_type);
@@ -30,7 +30,8 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 	iconv_t cd = iconv_open(destEncoding.c_str(), fromEncoding.c_str());
 	if(cd == reinterpret_cast<iconv_t>(-1))
 	{
-		logGlobal->error("Encoding coversion failure. Invalid encoding %s -> %s", fromEncoding, destEncoding);
+		if(logFailure)
+			logGlobal->error("Encoding conversion failure. Invalid encoding %s -> %s", fromEncoding, destEncoding);
 		return {};
 	}
 
@@ -50,10 +51,13 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 
 	if(ret == static_cast<size_t>(-1))
 	{
-		if constexpr (fromCharSize == 1)
-			logGlobal->error("Encoding coversion failure. Failed to convert text: %s", fromString);
-		else
-			logGlobal->error("Encoding coversion failure. Failed to convert text.");
+		if(logFailure)
+		{
+			if constexpr (fromCharSize == 1)
+				logGlobal->error("Encoding conversion failure. Failed to convert text: %s", fromString);
+			else
+				logGlobal->error("Encoding conversion failure. Failed to convert text.");
+		}
 		return {};
 	}
 
@@ -192,7 +196,7 @@ uint32_t TextOperations::getUnicodeCodepoint(const char * data, size_t maxSize)
 uint32_t TextOperations::getUnicodeCodepoint(char data, const std::string & encoding )
 {
 	std::string stringNative(1, data);
-	std::string stringUnicode = toUnicode(stringNative, encoding);
+	std::string stringUnicode = convertTextEncoding<std::string>(stringNative, encoding, "UTF-8", false);
 
 	if (stringUnicode.empty())
 		return 0;
