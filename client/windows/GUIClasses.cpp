@@ -1000,18 +1000,15 @@ CTransformerWindow::CItem::CItem(CTransformerWindow * parent_, int size_, int id
 
 void CTransformerWindow::makeDeal()
 {
-	bool transformedCreatures = false;
 	for(auto & elem : items)
 	{
 		if(!elem->left)
 		{
 			GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::CREATURE_UNDEAD, SlotID(elem->id), {}, {}, hero);
-			transformedCreatures = true;
+			const auto & sound = army->getCreature(SlotID(elem->id))->sounds.killed;
+			ENGINE->sound().playSound(sound.empty() ? AudioPath::builtin("DEFAULT") : sound);
 		}
 	}
-
-	if(transformedCreatures)
-		ENGINE->sound().playSound(soundBase::DEFAULT);
 }
 
 void CTransformerWindow::addAll()
