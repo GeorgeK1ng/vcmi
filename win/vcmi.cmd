@@ -372,6 +372,7 @@ if exist "%VCMI_DIR%\.git" (
     echo 1^) Clone VCMI develop branch
     echo 2^) Update VCMI develop branch ^(disabled - no repository^)
 )
+echo 3^) Remove VCMI folder and clone again
 echo 0^) Back
 echo.
 
@@ -387,6 +388,7 @@ if "%SCHOICE%"=="2" (
     pause
     goto SOURCE_MENU
 )
+if "%SCHOICE%"=="3" goto REMOVE_AND_CLONE_VCMI
 if "%SCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
@@ -1386,6 +1388,21 @@ if errorlevel 1 goto FAILED
 pause
 goto MENU
 
+:REMOVE_AND_CLONE_VCMI
+cls
+echo =============================
+echo Remove and clone VCMI develop branch
+echo =============================
+echo.
+echo This will delete:
+echo %VCMI_DIR%
+echo.
+set "CONFIRM_REMOVE="
+set /p "CONFIRM_REMOVE=Type YES to continue: "
+if /I not "%CONFIRM_REMOVE%"=="YES" goto SOURCE_MENU
+if exist "%VCMI_DIR%" rd /q /s "%VCMI_DIR%"
+goto CLONE_VCMI
+
 :NO_VCMI
 echo ERROR: VCMI folder does not exist:
 echo %VCMI_DIR%
@@ -1662,6 +1679,31 @@ if not exist "%OUT%" (
 
 exit /b 0
 
+:MAKE_BUILD_LIST
+set "LIST_COUNT=0"
+set "LIST1="
+set "LIST2="
+set "LIST3="
+call :SELECT_BUILD_DIR x64 build-x64
+if exist "%VCMI_DIR%\%SELECTED_BUILD_DIR%\VCMI.sln" (
+    set /a LIST_COUNT+=1
+    set "LIST!LIST_COUNT!=%SELECTED_BUILD_DIR%"
+    echo !LIST_COUNT!^) %SELECTED_BUILD_DIR%
+)
+call :SELECT_BUILD_DIR x86 build-x86
+if exist "%VCMI_DIR%\%SELECTED_BUILD_DIR%\VCMI.sln" (
+    set /a LIST_COUNT+=1
+    set "LIST!LIST_COUNT!=%SELECTED_BUILD_DIR%"
+    echo !LIST_COUNT!^) %SELECTED_BUILD_DIR%
+)
+call :SELECT_BUILD_DIR arm64 build-arm64
+if exist "%VCMI_DIR%\%SELECTED_BUILD_DIR%\VCMI.sln" (
+    set /a LIST_COUNT+=1
+    set "LIST!LIST_COUNT!=%SELECTED_BUILD_DIR%"
+    echo !LIST_COUNT!^) %SELECTED_BUILD_DIR%
+)
+exit /b 0
+
 :CMD_BUILD_MENU
 cls
 echo =============================
@@ -1671,17 +1713,36 @@ echo.
 echo Build type: %BUILD_TYPE%
 echo Target:     %TARGET_NAME%
 echo.
-echo 1^) build-x64
-echo 2^) build-x86
-echo 3^) build-arm64
+call :MAKE_BUILD_LIST
+if "%LIST_COUNT%"=="0" (
+    echo No generated solutions found for this target.
+    echo Generate a solution first.
+    pause
+    goto MENU
+)
 echo 0^) Back
 echo.
 set "BCOICE="
 set /p "BCOICE=Choose build dir [1]: "
 if "%BCOICE%"=="" set "BCOICE=1"
-if "%BCOICE%"=="1" call :SELECT_BUILD_DIR x64 build-x64 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
-if "%BCOICE%"=="2" call :SELECT_BUILD_DIR x86 build-x86 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
-if "%BCOICE%"=="3" call :SELECT_BUILD_DIR arm64 build-arm64 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
+if "%BCOICE%"=="1" (
+    if defined LIST1 (
+        call :BUILD_FROM_CMD "%LIST1%"
+        goto MENU
+    )
+)
+if "%BCOICE%"=="2" (
+    if defined LIST2 (
+        call :BUILD_FROM_CMD "%LIST2%"
+        goto MENU
+    )
+)
+if "%BCOICE%"=="3" (
+    if defined LIST3 (
+        call :BUILD_FROM_CMD "%LIST3%"
+        goto MENU
+    )
+)
 if "%BCOICE%"=="0" goto MENU
 echo Invalid choice.
 pause
@@ -1727,21 +1788,37 @@ echo =============================
 echo.
 echo Target: %TARGET_NAME%
 echo.
-echo 1^) build-x64
-echo 2^) build-x86
-echo 3^) build-arm64
+call :MAKE_BUILD_LIST
+if "%LIST_COUNT%"=="0" (
+    echo No generated solutions found for this target.
+    echo Generate a solution first.
+    pause
+    goto MENU
+)
 echo 0^) Back
 echo.
-
 set "OPEN_CHOICE="
 set /p "OPEN_CHOICE=Choose SLN [1]: "
 if "%OPEN_CHOICE%"=="" set "OPEN_CHOICE=1"
-
-if "%OPEN_CHOICE%"=="1" call :SELECT_BUILD_DIR x64 build-x64 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
-if "%OPEN_CHOICE%"=="2" call :SELECT_BUILD_DIR x86 build-x86 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
-if "%OPEN_CHOICE%"=="3" call :SELECT_BUILD_DIR arm64 build-arm64 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
+if "%OPEN_CHOICE%"=="1" (
+    if defined LIST1 (
+        call :OPEN_SOLUTION "%LIST1%"
+        goto MENU
+    )
+)
+if "%OPEN_CHOICE%"=="2" (
+    if defined LIST2 (
+        call :OPEN_SOLUTION "%LIST2%"
+        goto MENU
+    )
+)
+if "%OPEN_CHOICE%"=="3" (
+    if defined LIST3 (
+        call :OPEN_SOLUTION "%LIST3%"
+        goto MENU
+    )
+)
 if "%OPEN_CHOICE%"=="0" goto MENU
-
 echo Invalid choice.
 pause
 goto OPEN_MENU
