@@ -1,0 +1,1207 @@
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: VCMI Windows build helper
+:: Windows 7 compatible batch syntax
+::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+set "ROOT=%~dp0"
+set "VCMI_DIR=%ROOT%VCMI"
+set "DOWNLOADS_DIR=%ROOT%downloads"
+set "TOOLS_DIR=%ROOT%tools"
+set "PORTABLE_GIT_DIR=%TOOLS_DIR%\git"
+
+set "VCMI_REPO=https://github.com/vcmi/vcmi.git"
+set "VCMI_BRANCH=develop"
+
+set "BUILD_TYPE=Debug"
+
+set "VS_GENERATOR="
+set "DEVENV="
+set "VS_SELECTED=0"
+set "VS_NAME="
+
+set "CONAN_EXE="
+set "PYTHON_EXE="
+set "GIT_EXE="
+
+set "WIN_MAJOR="
+set "WIN_MINOR="
+set "WINDOWS7=0"
+set "OS_ARCH=x86"
+set "IS_ADMIN=0"
+
+set "PYTHON_URL="
+set "PYTHON_INSTALLER="
+set "GIT_URL="
+set "GIT_INSTALLER="
+set "GIT_PORTABLE_URL="
+set "GIT_PORTABLE_INSTALLER="
+
+set "DEPENDENCIES_TAG="
+set "DEPS_BASE_URL="
+set "DEP_FILE="
+
+if not exist "%DOWNLOADS_DIR%" md "%DOWNLOADS_DIR%"
+if not exist "%TOOLS_DIR%" md "%TOOLS_DIR%"
+
+call :DETECT_SYSTEM
+
+:MENU
+cls
+echo =============================
+echo VCMI build helper
+echo =============================
+echo.
+echo Windows: %WIN_MAJOR%.%WIN_MINOR%
+echo OS arch: %OS_ARCH%
+echo Admin: %IS_ADMIN%
+echo Downloads cache:
+echo %DOWNLOADS_DIR%
+echo.
+echo VCMI folder:
+echo %VCMI_DIR%
+echo.
+echo Visual Studio:
+if "%VS_SELECTED%"=="1" (
+    echo %VS_NAME%
+    echo %VS_GENERATOR%
+) else (
+    echo Not selected
+)
+echo.
+echo 1^) Generate x64 SLN  ^(default^)
+echo 2^) Generate x86 SLN
+echo 3^) Generate ARM64 SLN
+echo 4^) Generate all SLNs
+echo 5^) Open existing SLN
+echo 6^) Clone VCMI develop branch
+echo 7^) Update VCMI develop branch
+echo 8^) Prerequisites check/install
+echo 9^) Select Visual Studio
+echo 0^) Exit
+echo.
+
+set "CHOICE="
+set /p "CHOICE=Choose option [1]: "
+if "%CHOICE%"=="" set "CHOICE=1"
+
+if "%CHOICE%"=="1" goto BUILD_X64
+if "%CHOICE%"=="2" goto BUILD_X86
+if "%CHOICE%"=="3" goto BUILD_ARM64
+if "%CHOICE%"=="4" goto BUILD_ALL
+if "%CHOICE%"=="5" goto OPEN_MENU
+if "%CHOICE%"=="6" goto CLONE_VCMI
+if "%CHOICE%"=="7" goto UPDATE_VCMI
+if "%CHOICE%"=="8" goto PREREQ_MENU
+if "%CHOICE%"=="9" goto VS_MENU
+if "%CHOICE%"=="0" exit /b 0
+
+echo Invalid choice.
+pause
+goto MENU
+
+::::::::::::::::::::::::::::
+:: SYSTEM DETECTION
+::::::::::::::::::::::::::::
+
+:DETECT_SYSTEM
+set "WINDOWS7=0"
+set "OS_ARCH=x86"
+
+for /f "tokens=4-5 delims=.[] " %%a in ('ver') do (
+    set "WIN_MAJOR=%%a"
+    set "WIN_MINOR=%%b"
+)
+
+if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" set "WINDOWS7=1"
+
+if exist "%WINDIR%\SysWOW64" (
+    set "OS_ARCH=x64"
+) else (
+    set "OS_ARCH=x86"
+)
+
+call :CHECK_ADMIN_RIGHTS
+call :SELECT_PYTHON_URL
+call :SELECT_GIT_URL
+call :SELECT_PORTABLE_GIT_URL
+
+exit /b 0
+
+:CHECK_ADMIN_RIGHTS
+set "IS_ADMIN=0"
+net session >nul 2>nul
+if "%errorlevel%"=="0" set "IS_ADMIN=1"
+exit /b 0
+
+:SELECT_PYTHON_URL
+if "%WINDOWS7%"=="1" (
+    if "%OS_ARCH%"=="x64" (
+        set "PYTHON_URL=https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe"
+        set "PYTHON_INSTALLER=%DOWNLOADS_DIR%\python-3.8.10-amd64.exe"
+    ) else (
+        set "PYTHON_URL=https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
+        set "PYTHON_INSTALLER=%DOWNLOADS_DIR%\python-3.8.10.exe"
+    )
+) else (
+    if "%OS_ARCH%"=="x64" (
+        set "PYTHON_URL=https://www.python.org/ftp/python/3.14.0/python-3.14.0-amd64.exe"
+        set "PYTHON_INSTALLER=%DOWNLOADS_DIR%\python-3.14.0-amd64.exe"
+    ) else (
+        set "PYTHON_URL=https://www.python.org/ftp/python/3.14.0/python-3.14.0.exe"
+        set "PYTHON_INSTALLER=%DOWNLOADS_DIR%\python-3.14.0.exe"
+    )
+)
+exit /b 0
+
+:SELECT_GIT_URL
+if "%OS_ARCH%"=="x64" (
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" (
+        set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe"
+        set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.46.0-64-bit.exe"
+        exit /b 0
+    )
+
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.2" (
+        set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe"
+        set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.46.0-64-bit.exe"
+        exit /b 0
+    )
+
+    set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.54.0.windows.1/Git-2.54.0-64-bit.exe"
+    set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.54.0-64-bit.exe"
+    exit /b 0
+) else (
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" (
+        set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-32-bit.exe"
+        set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.46.0-32-bit.exe"
+        exit /b 0
+    )
+
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.2" (
+        set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-32-bit.exe"
+        set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.46.0-32-bit.exe"
+        exit /b 0
+    )
+
+    set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-32-bit.exe"
+    set "GIT_INSTALLER=%DOWNLOADS_DIR%\Git-2.48.1-32-bit.exe"
+    exit /b 0
+)
+
+:SELECT_PORTABLE_GIT_URL
+if "%OS_ARCH%"=="x64" (
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" (
+        set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/PortableGit-2.46.0-64-bit.7z.exe"
+        set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.46.0-64-bit.7z.exe"
+        exit /b 0
+    )
+
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.2" (
+        set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/PortableGit-2.46.0-64-bit.7z.exe"
+        set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.46.0-64-bit.7z.exe"
+        exit /b 0
+    )
+
+    set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.54.0.windows.1/PortableGit-2.54.0-64-bit.7z.exe"
+    set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.54.0-64-bit.7z.exe"
+    exit /b 0
+) else (
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" (
+        set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/PortableGit-2.46.0-32-bit.7z.exe"
+        set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.46.0-32-bit.7z.exe"
+        exit /b 0
+    )
+
+    if "%WIN_MAJOR%.%WIN_MINOR%"=="6.2" (
+        set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/PortableGit-2.46.0-32-bit.7z.exe"
+        set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.46.0-32-bit.7z.exe"
+        exit /b 0
+    )
+
+    set "GIT_PORTABLE_URL=https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/PortableGit-2.48.1-32-bit.7z.exe"
+    set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.48.1-32-bit.7z.exe"
+    exit /b 0
+)
+
+::::::::::::::::::::::::::::
+:: PREREQUISITES
+::::::::::::::::::::::::::::
+
+:PREREQ_MENU
+cls
+echo =============================
+echo Prerequisites
+echo =============================
+echo.
+echo Windows: %WIN_MAJOR%.%WIN_MINOR%
+echo OS arch: %OS_ARCH%
+echo Admin: %IS_ADMIN%
+echo.
+echo Python installer:
+echo %PYTHON_URL%
+echo.
+echo Git installer:
+echo %GIT_URL%
+echo.
+echo Portable Git:
+echo %GIT_PORTABLE_URL%
+echo.
+echo 1^) Check Python
+echo 2^) Check Conan
+echo 3^) Install Conan via Python pip
+echo 4^) Download and install Python
+echo 5^) Check all
+echo 6^) Download and install Git / Portable Git
+echo 0^) Back
+echo.
+
+set "PCHOICE="
+set /p "PCHOICE=Choose option [5]: "
+if "%PCHOICE%"=="" set "PCHOICE=5"
+
+if "%PCHOICE%"=="1" call :FIND_PYTHON & pause & goto PREREQ_MENU
+if "%PCHOICE%"=="2" call :FIND_CONAN & pause & goto PREREQ_MENU
+if "%PCHOICE%"=="3" goto INSTALL_CONAN
+if "%PCHOICE%"=="4" goto INSTALL_PYTHON
+if "%PCHOICE%"=="5" goto CHECK_ALL_PREREQ
+if "%PCHOICE%"=="6" goto INSTALL_GIT
+if "%PCHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto PREREQ_MENU
+
+:CHECK_ALL_PREREQ
+cls
+echo =============================
+echo Prerequisites check
+echo =============================
+echo.
+
+call :DETECT_SYSTEM
+
+echo Windows: %WIN_MAJOR%.%WIN_MINOR%
+echo OS arch: %OS_ARCH%
+echo Admin: %IS_ADMIN%
+echo Downloads cache:
+echo %DOWNLOADS_DIR%
+echo Tools:
+echo %TOOLS_DIR%
+echo.
+
+call :FIND_GIT
+echo.
+
+call :FIND_CMAKE
+echo.
+
+call :FIND_PYTHON
+echo.
+
+call :FIND_CONAN
+echo.
+
+call :CHECK_VISUAL_STUDIOS
+echo.
+
+if exist "%VCMI_DIR%\CI\install_conan_dependencies.sh" (
+    call :READ_DEPENDENCIES_TAG
+    echo.
+)
+
+echo =============================
+echo Check finished.
+echo =============================
+pause
+goto PREREQ_MENU
+
+:INSTALL_PYTHON
+cls
+echo =============================
+echo Install Python
+echo =============================
+echo.
+echo Downloading to cache:
+echo %PYTHON_INSTALLER%
+echo.
+
+if not exist "%PYTHON_INSTALLER%" (
+    call :DOWNLOAD_FILE "%PYTHON_URL%" "%PYTHON_INSTALLER%"
+    if errorlevel 1 (
+        echo ERROR: Python download failed.
+        pause
+        goto PREREQ_MENU
+    )
+) else (
+    echo Python installer already exists:
+    echo %PYTHON_INSTALLER%
+)
+
+echo.
+echo Installing Python silently for current user...
+echo.
+
+"%PYTHON_INSTALLER%" /quiet InstallAllUsers=0 PrependPath=1 Include_pip=1 Include_launcher=1 Include_test=0
+
+if errorlevel 1 (
+    echo ERROR: Python installation failed.
+    pause
+    goto PREREQ_MENU
+)
+
+echo.
+call :FIND_PYTHON
+pause
+goto PREREQ_MENU
+
+:INSTALL_CONAN
+cls
+echo =============================
+echo Install Conan
+echo =============================
+echo.
+
+call :FIND_PYTHON
+if errorlevel 1 (
+    echo ERROR: Python was not found. Install Python first.
+    pause
+    goto PREREQ_MENU
+)
+
+echo.
+echo Installing Conan using pip...
+echo.
+
+"%PYTHON_EXE%" -m pip install --user conan
+
+if errorlevel 1 (
+    echo ERROR: Conan installation failed.
+    pause
+    goto PREREQ_MENU
+)
+
+echo.
+call :FIND_CONAN
+pause
+goto PREREQ_MENU
+
+:INSTALL_GIT
+call :FIND_GIT
+if not errorlevel 1 (
+    echo.
+    echo Git is already available.
+    pause
+    goto PREREQ_MENU
+)
+
+call :CHECK_ADMIN_RIGHTS
+
+if "%IS_ADMIN%"=="0" (
+    echo.
+    echo No admin rights detected.
+    echo Installing Portable Git instead.
+    pause
+    goto INSTALL_PORTABLE_GIT
+)
+
+cls
+echo =============================
+echo Install Git for Windows
+echo =============================
+echo.
+echo Downloading to cache:
+echo %GIT_INSTALLER%
+echo.
+
+if not exist "%GIT_INSTALLER%" (
+    call :DOWNLOAD_FILE "%GIT_URL%" "%GIT_INSTALLER%"
+    if errorlevel 1 (
+        echo ERROR: Git download failed.
+        pause
+        goto PREREQ_MENU
+    )
+) else (
+    echo Git installer already exists:
+    echo %GIT_INSTALLER%
+)
+
+echo.
+echo Installing Git silently...
+echo.
+
+"%GIT_INSTALLER%" /VERYSILENT /NORESTART /SP-
+
+if errorlevel 1 (
+    echo ERROR: Git installation failed.
+    pause
+    goto PREREQ_MENU
+)
+
+echo.
+call :FIND_GIT
+pause
+goto PREREQ_MENU
+
+:INSTALL_PORTABLE_GIT
+cls
+echo =============================
+echo Install Portable Git
+echo =============================
+echo.
+echo Downloading to cache:
+echo %GIT_PORTABLE_INSTALLER%
+echo.
+
+if not exist "%GIT_PORTABLE_INSTALLER%" (
+    call :DOWNLOAD_FILE "%GIT_PORTABLE_URL%" "%GIT_PORTABLE_INSTALLER%"
+    if errorlevel 1 (
+        echo ERROR: Portable Git download failed.
+        pause
+        goto PREREQ_MENU
+    )
+) else (
+    echo Portable Git archive already exists:
+    echo %GIT_PORTABLE_INSTALLER%
+)
+
+if exist "%PORTABLE_GIT_DIR%" rd /q /s "%PORTABLE_GIT_DIR%"
+md "%PORTABLE_GIT_DIR%"
+
+echo.
+echo Extracting Portable Git...
+echo.
+
+"%GIT_PORTABLE_INSTALLER%" -y -o"%PORTABLE_GIT_DIR%"
+
+if errorlevel 1 (
+    echo ERROR: Portable Git extraction failed.
+    pause
+    goto PREREQ_MENU
+)
+
+echo.
+call :FIND_GIT
+pause
+goto PREREQ_MENU
+
+::::::::::::::::::::::::::::
+:: TOOL DETECTION
+::::::::::::::::::::::::::::
+
+:CHECK_REQUIRED_TOOLS
+call :FIND_GIT
+if errorlevel 1 exit /b 1
+
+call :FIND_CMAKE
+if errorlevel 1 exit /b 1
+
+call :FIND_CONAN
+if errorlevel 1 exit /b 1
+
+call :ENSURE_VISUAL_STUDIO_SELECTED
+if errorlevel 1 exit /b 1
+
+exit /b 0
+
+:FIND_GIT
+set "GIT_EXE="
+
+where git.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where git.exe 2^>nul') do (
+        set "GIT_EXE=%%I"
+        goto GIT_FOUND
+    )
+)
+
+if exist "%PORTABLE_GIT_DIR%\cmd\git.exe" (
+    set "GIT_EXE=%PORTABLE_GIT_DIR%\cmd\git.exe"
+    goto GIT_FOUND
+)
+
+if exist "%PORTABLE_GIT_DIR%\bin\git.exe" (
+    set "GIT_EXE=%PORTABLE_GIT_DIR%\bin\git.exe"
+    goto GIT_FOUND
+)
+
+echo Git: NOT FOUND
+exit /b 1
+
+:GIT_FOUND
+echo Git: %GIT_EXE%
+"%GIT_EXE%" --version
+exit /b 0
+
+:FIND_CMAKE
+where cmake.exe >nul 2>nul
+if errorlevel 1 (
+    echo CMake: NOT FOUND
+    exit /b 1
+)
+
+for /f "delims=" %%I in ('where cmake.exe 2^>nul') do (
+    echo CMake: %%I
+    cmake --version
+    exit /b 0
+)
+exit /b 1
+
+:FIND_PYTHON
+set "PYTHON_EXE="
+
+where python.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where python.exe 2^>nul') do (
+        set "PYTHON_EXE=%%I"
+        goto PYTHON_FOUND
+    )
+)
+
+for /d %%D in ("%LOCALAPPDATA%\Python\pythoncore-*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        goto PYTHON_FOUND
+    )
+)
+
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        goto PYTHON_FOUND
+    )
+)
+
+for /d %%D in ("C:\Python*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        goto PYTHON_FOUND
+    )
+)
+
+echo Python: NOT FOUND
+exit /b 1
+
+:PYTHON_FOUND
+echo Python: %PYTHON_EXE%
+"%PYTHON_EXE%" --version
+exit /b 0
+
+:FIND_CONAN
+set "CONAN_EXE="
+
+where conan.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where conan.exe 2^>nul') do (
+        set "CONAN_EXE=%%I"
+        goto CONAN_FOUND
+    )
+)
+
+for /d %%D in ("%LOCALAPPDATA%\Python\pythoncore-*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        goto CONAN_FOUND
+    )
+)
+
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        goto CONAN_FOUND
+    )
+)
+
+for /d %%D in ("%APPDATA%\Python\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        goto CONAN_FOUND
+    )
+)
+
+for /d %%D in ("C:\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        goto CONAN_FOUND
+    )
+)
+
+echo Conan: NOT FOUND
+exit /b 1
+
+:CONAN_FOUND
+echo Conan: %CONAN_EXE%
+"%CONAN_EXE%" --version
+exit /b 0
+
+::::::::::::::::::::::::::::
+:: VISUAL STUDIO
+::::::::::::::::::::::::::::
+
+:CHECK_VISUAL_STUDIOS
+echo Visual Studio detection:
+
+call :VS_EXISTS_2022
+if not errorlevel 1 echo VS 2022: FOUND
+
+call :VS_EXISTS_2019
+if not errorlevel 1 echo VS 2019: FOUND
+
+call :VS_EXISTS_2017
+if not errorlevel 1 echo VS 2017: FOUND
+
+call :VS_EXISTS_2015
+if not errorlevel 1 echo VS 2015/2016 era: FOUND
+
+call :VS_ANY_EXISTS
+if errorlevel 1 echo Visual Studio: NOT FOUND
+
+exit /b 0
+
+:VS_ANY_EXISTS
+call :VS_EXISTS_2022
+if not errorlevel 1 exit /b 0
+call :VS_EXISTS_2019
+if not errorlevel 1 exit /b 0
+call :VS_EXISTS_2017
+if not errorlevel 1 exit /b 0
+call :VS_EXISTS_2015
+if not errorlevel 1 exit /b 0
+exit /b 1
+
+:VS_EXISTS_2022
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+exit /b 1
+
+:VS_EXISTS_2019
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+exit /b 1
+
+:VS_EXISTS_2017
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+exit /b 1
+
+:VS_EXISTS_2015
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe" exit /b 0
+exit /b 1
+
+:ENSURE_VISUAL_STUDIO_SELECTED
+if "%VS_SELECTED%"=="1" exit /b 0
+
+call :VS_ANY_EXISTS
+if errorlevel 1 (
+    echo ERROR: Visual Studio was not found.
+    echo Supported: 2022, 2019, 2017, 2015.
+    pause
+    exit /b 1
+)
+
+goto VS_MENU
+
+:VS_MENU
+cls
+echo =============================
+echo Select Visual Studio
+echo =============================
+echo.
+echo 1^) Visual Studio 2022
+call :VS_EXISTS_2022
+if errorlevel 1 (echo    Not found) else (echo    Found)
+echo.
+echo 2^) Visual Studio 2019
+call :VS_EXISTS_2019
+if errorlevel 1 (echo    Not found) else (echo    Found)
+echo.
+echo 3^) Visual Studio 2017
+call :VS_EXISTS_2017
+if errorlevel 1 (echo    Not found) else (echo    Found)
+echo.
+echo 4^) Visual Studio 2015 / 2016 era
+call :VS_EXISTS_2015
+if errorlevel 1 (echo    Not found) else (echo    Found)
+echo.
+echo 0^) Back
+echo.
+
+set "VSCHOICE="
+set /p "VSCHOICE=Choose Visual Studio: "
+
+if "%VSCHOICE%"=="1" call :SELECT_VS_2022 & goto MENU
+if "%VSCHOICE%"=="2" call :SELECT_VS_2019 & goto MENU
+if "%VSCHOICE%"=="3" call :SELECT_VS_2017 & goto MENU
+if "%VSCHOICE%"=="4" call :SELECT_VS_2015 & goto MENU
+if "%VSCHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto VS_MENU
+
+:SELECT_VS_2022
+call :VS_EXISTS_2022
+if errorlevel 1 (
+    echo VS 2022 not found.
+    pause
+    exit /b 1
+)
+
+set "VS_NAME=Visual Studio 2022"
+set "VS_GENERATOR=Visual Studio 17 2022"
+set "VS_SELECTED=1"
+
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
+
+echo Selected: %VS_NAME%
+exit /b 0
+
+:SELECT_VS_2019
+call :VS_EXISTS_2019
+if errorlevel 1 (
+    echo VS 2019 not found.
+    pause
+    exit /b 1
+)
+
+set "VS_NAME=Visual Studio 2019"
+set "VS_GENERATOR=Visual Studio 16 2019"
+set "VS_SELECTED=1"
+
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"
+
+echo Selected: %VS_NAME%
+exit /b 0
+
+:SELECT_VS_2017
+call :VS_EXISTS_2017
+if errorlevel 1 (
+    echo VS 2017 not found.
+    pause
+    exit /b 1
+)
+
+set "VS_NAME=Visual Studio 2017"
+set "VS_GENERATOR=Visual Studio 15 2017"
+set "VS_SELECTED=1"
+
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"
+
+echo Selected: %VS_NAME%
+exit /b 0
+
+:SELECT_VS_2015
+call :VS_EXISTS_2015
+if errorlevel 1 (
+    echo VS 2015 not found.
+    pause
+    exit /b 1
+)
+
+set "VS_NAME=Visual Studio 2015"
+set "VS_GENERATOR=Visual Studio 14 2015"
+set "VS_SELECTED=1"
+set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe"
+
+echo Selected: %VS_NAME%
+exit /b 0
+
+::::::::::::::::::::::::::::
+:: GIT
+::::::::::::::::::::::::::::
+
+:CLONE_VCMI
+cls
+echo =============================
+echo Clone VCMI develop branch
+echo =============================
+echo.
+
+call :FIND_GIT
+if errorlevel 1 (
+    echo ERROR: git.exe was not found.
+    echo Use Prerequisites menu to install Git or Portable Git.
+    pause
+    goto MENU
+)
+
+if exist "%VCMI_DIR%\.git" (
+    echo VCMI repository already exists:
+    echo %VCMI_DIR%
+    pause
+    goto MENU
+)
+
+if exist "%VCMI_DIR%" (
+    echo Folder already exists but is not a Git repository:
+    echo %VCMI_DIR%
+    pause
+    goto MENU
+)
+
+cd /d "%ROOT%"
+
+"%GIT_EXE%" clone --branch %VCMI_BRANCH% --single-branch --recursive %VCMI_REPO% "%VCMI_DIR%"
+if errorlevel 1 goto FAILED
+
+pause
+goto MENU
+
+:UPDATE_VCMI
+cls
+echo =============================
+echo Update VCMI develop branch
+echo =============================
+echo.
+
+call :FIND_GIT
+if errorlevel 1 (
+    echo ERROR: git.exe was not found.
+    pause
+    goto MENU
+)
+
+cd /d "%VCMI_DIR%" || goto NO_VCMI
+
+"%GIT_EXE%" checkout %VCMI_BRANCH%
+if errorlevel 1 goto FAILED
+
+"%GIT_EXE%" pull
+if errorlevel 1 goto FAILED
+
+"%GIT_EXE%" submodule sync --recursive
+if errorlevel 1 goto FAILED
+
+"%GIT_EXE%" submodule update --init --recursive
+if errorlevel 1 goto FAILED
+
+pause
+goto MENU
+
+:NO_VCMI
+echo ERROR: VCMI folder does not exist:
+echo %VCMI_DIR%
+pause
+goto MENU
+
+::::::::::::::::::::::::::::
+:: BUILD TARGETS
+::::::::::::::::::::::::::::
+
+:BUILD_X64
+call :GENERATE_ONE x64 build-x64 dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
+goto OPEN_AFTER_BUILD
+
+:BUILD_X86
+call :GENERATE_ONE Win32 build-x86 dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
+goto OPEN_AFTER_BUILD
+
+:BUILD_ARM64
+call :GENERATE_ONE ARM64 build-arm64 dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
+goto OPEN_AFTER_BUILD
+
+:BUILD_ALL
+call :GENERATE_ONE x64 build-x64 dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
+if errorlevel 1 goto FAILED
+
+call :GENERATE_ONE Win32 build-x86 dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
+if errorlevel 1 goto FAILED
+
+call :GENERATE_ONE ARM64 build-arm64 dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
+if errorlevel 1 goto FAILED
+
+goto OPEN_MENU
+
+::::::::::::::::::::::::::::
+:: CONAN / CMAKE
+::::::::::::::::::::::::::::
+
+:PREPARE_CONAN
+echo.
+echo Cleaning Conan cache/profiles...
+echo.
+
+"%CONAN_EXE%" remove "*" -c
+"%CONAN_EXE%" cache clean
+"%CONAN_EXE%" cache clean -s -b -d -t
+
+if exist "%USERPROFILE%\.conan2\profiles" rd /q /s "%USERPROFILE%\.conan2\profiles"
+
+"%CONAN_EXE%" profile detect
+if errorlevel 1 exit /b 1
+
+exit /b 0
+
+:GENERATE_ONE
+set "ARCH=%~1"
+set "BUILD_DIR=%~2"
+set "CONAN_PROFILE=%~3"
+set "DEP_NAME=%~4"
+
+set "CONAN_OUTPUT=conan-%BUILD_DIR%"
+set "DEP_FILE="
+
+cls
+echo =============================
+echo Generate %BUILD_DIR%
+echo =============================
+echo.
+echo Platform:      %ARCH%
+echo Build folder:  %BUILD_DIR%
+echo Conan profile: %CONAN_PROFILE%
+echo Dependency:    %DEP_NAME%
+echo.
+
+cd /d "%VCMI_DIR%" || exit /b 1
+
+call :CHECK_REQUIRED_TOOLS
+if errorlevel 1 exit /b 1
+
+call :READ_DEPENDENCIES_TAG
+if errorlevel 1 exit /b 1
+
+call :PREPARE_CONAN
+if errorlevel 1 exit /b 1
+
+call :ENSURE_DEPENDENCIES "%DEP_NAME%"
+if errorlevel 1 exit /b 1
+
+echo.
+echo Restoring Conan cache:
+echo %DEP_FILE%
+echo.
+
+"%CONAN_EXE%" cache restore "%DEP_FILE%"
+if errorlevel 1 exit /b 1
+
+if exist "%BUILD_DIR%" rd /q /s "%BUILD_DIR%"
+if exist "%CONAN_OUTPUT%" rd /q /s "%CONAN_OUTPUT%"
+
+echo.
+echo Running Conan install...
+echo.
+
+"%CONAN_EXE%" install . ^
+    --output-folder="%CONAN_OUTPUT%" ^
+    --build=never ^
+    --profile="%CONAN_PROFILE%" ^
+    -s "&:build_type=%BUILD_TYPE%" ^
+    -o "&:target_pre_windows10=True"
+
+if errorlevel 1 exit /b 1
+
+echo.
+echo Running CMake configure...
+echo.
+
+cmake -S . -B "%BUILD_DIR%" ^
+    -G "%VS_GENERATOR%" ^
+    -A %ARCH% ^
+    --toolchain "%CONAN_OUTPUT%\conan_toolchain.cmake"
+
+if errorlevel 1 exit /b 1
+
+echo.
+echo Done:
+echo %VCMI_DIR%\%BUILD_DIR%\VCMI.sln
+echo.
+
+exit /b 0
+
+::::::::::::::::::::::::::::
+:: DEPENDENCIES RELEASE TAG
+::::::::::::::::::::::::::::
+
+:READ_DEPENDENCIES_TAG
+set "DEPENDENCIES_TAG="
+set "DEPS_BASE_URL="
+
+if not exist "%VCMI_DIR%\CI\install_conan_dependencies.sh" (
+    echo ERROR: Missing file:
+    echo %VCMI_DIR%\CI\install_conan_dependencies.sh
+    exit /b 1
+)
+
+for /f "tokens=2 delims==" %%A in ('findstr /B "RELEASE_TAG=" "%VCMI_DIR%\CI\install_conan_dependencies.sh"') do (
+    set "DEPENDENCIES_TAG=%%~A"
+)
+
+set "DEPENDENCIES_TAG=%DEPENDENCIES_TAG:"=%"
+
+if not defined DEPENDENCIES_TAG (
+    echo ERROR: Unable to read RELEASE_TAG from:
+    echo %VCMI_DIR%\CI\install_conan_dependencies.sh
+    exit /b 1
+)
+
+set "DEPS_BASE_URL=https://github.com/vcmi/vcmi-dependencies/releases/download/%DEPENDENCIES_TAG%"
+
+echo Dependencies release tag: %DEPENDENCIES_TAG%
+echo Dependencies base URL:   %DEPS_BASE_URL%
+
+exit /b 0
+
+::::::::::::::::::::::::::::
+:: DEPENDENCIES DOWNLOAD
+::::::::::::::::::::::::::::
+
+:ENSURE_DEPENDENCIES
+set "DEP_NAME=%~1"
+set "DEP_FILE=%DOWNLOADS_DIR%\%DEP_NAME%"
+set "DEP_TAG_FILE=%DOWNLOADS_DIR%\%DEP_NAME%.tag"
+set "DEP_URL=%DEPS_BASE_URL%/%DEP_NAME%"
+set "CACHED_TAG="
+
+if exist "%DEP_FILE%" (
+    if exist "%DEP_TAG_FILE%" (
+        set /p CACHED_TAG=<"%DEP_TAG_FILE%"
+    )
+
+    if "%CACHED_TAG%"=="%DEPENDENCIES_TAG%" (
+        echo Dependencies already exist for tag %DEPENDENCIES_TAG%:
+        echo %DEP_FILE%
+        exit /b 0
+    )
+
+    echo Existing dependency archive has different or unknown tag.
+    echo It will be replaced:
+    echo %DEP_FILE%
+)
+
+echo.
+echo Downloading dependency archive:
+echo %DEP_URL%
+echo.
+
+call :DOWNLOAD_FILE "%DEP_URL%" "%DEP_FILE%"
+if errorlevel 1 (
+    echo.
+    echo ERROR: Failed to download dependencies.
+    echo URL:
+    echo %DEP_URL%
+    echo.
+    exit /b 1
+)
+
+echo %DEPENDENCIES_TAG%>"%DEP_TAG_FILE%"
+
+exit /b 0
+
+:DOWNLOAD_FILE
+set "URL=%~1"
+set "OUT=%~2"
+
+echo.
+echo Downloading:
+echo %URL%
+echo.
+echo To:
+echo %OUT%
+echo.
+
+if exist "%OUT%" del /q "%OUT%"
+
+bitsadmin /reset /allusers >nul 2>nul
+bitsadmin /transfer VCMIDeps /download /priority normal "%URL%" "%OUT%"
+
+if errorlevel 1 (
+    if exist "%OUT%" del /q "%OUT%"
+    echo Download failed.
+    exit /b 1
+)
+
+if not exist "%OUT%" (
+    echo Download finished but output file does not exist:
+    echo %OUT%
+    exit /b 1
+)
+
+exit /b 0
+
+::::::::::::::::::::::::::::
+:: OPEN SLN
+::::::::::::::::::::::::::::
+
+:OPEN_AFTER_BUILD
+if errorlevel 1 goto FAILED
+
+echo.
+set "OPENSLN="
+set /p "OPENSLN=Open generated SLN now? [Y/n]: "
+
+if /I "%OPENSLN%"=="n" goto MENU
+
+call :OPEN_SOLUTION "%BUILD_DIR%"
+goto MENU
+
+:OPEN_MENU
+cls
+echo =============================
+echo Open existing SLN
+echo =============================
+echo.
+echo 1^) build-x64
+echo 2^) build-x86
+echo 3^) build-arm64
+echo 0^) Back
+echo.
+
+set "OPEN_CHOICE="
+set /p "OPEN_CHOICE=Choose SLN [1]: "
+if "%OPEN_CHOICE%"=="" set "OPEN_CHOICE=1"
+
+if "%OPEN_CHOICE%"=="1" call :OPEN_SOLUTION build-x64 & goto MENU
+if "%OPEN_CHOICE%"=="2" call :OPEN_SOLUTION build-x86 & goto MENU
+if "%OPEN_CHOICE%"=="3" call :OPEN_SOLUTION build-arm64 & goto MENU
+if "%OPEN_CHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto OPEN_MENU
+
+:OPEN_SOLUTION
+set "SLN_DIR=%~1"
+set "SLN_PATH=%VCMI_DIR%\%SLN_DIR%\VCMI.sln"
+
+if "%VS_SELECTED%"=="0" (
+    call :ENSURE_VISUAL_STUDIO_SELECTED
+)
+
+if not exist "%SLN_PATH%" (
+    echo.
+    echo ERROR: Solution does not exist:
+    echo %SLN_PATH%
+    pause
+    exit /b 1
+)
+
+if not exist "%DEVENV%" (
+    echo.
+    echo ERROR: Visual Studio devenv.exe not found:
+    echo %DEVENV%
+    pause
+    exit /b 1
+)
+
+echo Opening:
+echo %SLN_PATH%
+
+call "%DEVENV%" "%SLN_PATH%"
+exit /b 0
+
+:FAILED
+echo.
+echo ERROR: Operation failed.
+pause
+goto MENU
