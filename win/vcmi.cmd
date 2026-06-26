@@ -17,6 +17,8 @@ set "VCMI_REPO=https://github.com/vcmi/vcmi.git"
 set "VCMI_BRANCH=develop"
 
 set "BUILD_TYPE=Debug"
+set "TARGET_PRE_WINDOWS10=1"
+set "TARGET_NAME=Windows 7/8/8.1 compatible"
 set "RETURN_MENU=PREREQ_MENU"
 
 set "VS_GENERATOR="
@@ -34,6 +36,9 @@ set "CMAKE_STATUS=NOT CHECKED"
 set "PYTHON_STATUS=NOT CHECKED"
 set "CONAN_STATUS=NOT CHECKED"
 set "VS_STATUS=NOT CHECKED"
+set "TOOLSET_STATUS=NOT CHECKED"
+set "TOOLS_MISSING=1"
+set "ADMIN_LABEL=No"
 
 set "WIN_MAJOR="
 set "WIN_MINOR="
@@ -69,7 +74,7 @@ echo =============================
 echo VCMI build helper
 echo =============================
 echo.
-echo System: Windows %WIN_MAJOR%.%WIN_MINOR%  Arch: %OS_ARCH%  Admin: %IS_ADMIN%
+echo System: Windows %WIN_MAJOR%.%WIN_MINOR%  Arch: %OS_ARCH%  Admin: %ADMIN_LABEL%
 if "%WINDOWS7%"=="1" echo Mode: Windows 7 compatible downloads selected
 echo.
 echo Folders:
@@ -77,41 +82,93 @@ echo   Source:    %VCMI_DIR%
 echo   Downloads: %DOWNLOADS_DIR%
 echo   Tools:     %TOOLS_DIR%
 echo.
+echo Build settings:
+echo   Build type: %BUILD_TYPE%
+echo   Target:     %TARGET_NAME%
+echo.
 echo Tool status:
 echo   Git:           %GIT_STATUS%
 echo   CMake:         %CMAKE_STATUS%
 echo   Python:        %PYTHON_STATUS%
 echo   Conan:         %CONAN_STATUS%
 echo   Visual Studio: %VS_STATUS%
+echo   Toolset:       %TOOLSET_STATUS%
 echo.
-echo Recommended flow:
-echo   1. Check/install tools, 2. Clone/update source, 3. Select VS,
-echo   4. Generate solution, 5. Open solution.
-echo.
-echo 1^) Check tools again
-echo 2^) Install missing tools
-echo 3^) Clone or update VCMI source
-echo 4^) Select Visual Studio
-echo 5^) Generate Visual Studio solution
-echo 6^) Open existing solution
-echo 7^) Advanced tools menu
-echo 0^) Exit
+if "%TOOLS_MISSING%"=="1" (
+    echo 1^) Check tools again
+    echo 2^) Install missing tools
+    echo 3^) Clone or update VCMI source
+    echo 4^) Select Visual Studio
+    echo 5^) Select build type
+    echo 6^) Select target compatibility
+    echo 7^) Generate Visual Studio solution
+    echo 8^) Build from command line
+    echo 9^) Open existing solution
+    echo H^) Help / recommended flow
+    echo A^) Advanced tools menu
+    echo 0^) Exit
+) else (
+    echo 1^) Check tools again
+    echo 2^) Clone or update VCMI source
+    echo 3^) Select Visual Studio
+    echo 4^) Select build type
+    echo 5^) Select target compatibility
+    echo 6^) Generate Visual Studio solution
+    echo 7^) Build from command line
+    echo 8^) Open existing solution
+    echo H^) Help / recommended flow
+    echo A^) Advanced tools menu
+    echo 0^) Exit
+)
 echo.
 
 set "CHOICE="
 set /p "CHOICE=Choose option [1]: "
 if "%CHOICE%"=="" set "CHOICE=1"
 
+if /I "%CHOICE%"=="H" goto HELP_MENU
+if /I "%CHOICE%"=="A" goto PREREQ_MENU
 if "%CHOICE%"=="1" call :CHECK_ALL_PREREQ & call :REFRESH_TOOL_STATUS & goto MENU
-if "%CHOICE%"=="2" goto INSTALL_MISSING_TOOLS
-if "%CHOICE%"=="3" goto SOURCE_MENU
-if "%CHOICE%"=="4" goto VS_MENU
-if "%CHOICE%"=="5" goto GENERATE_MENU
-if "%CHOICE%"=="6" goto OPEN_MENU
-if "%CHOICE%"=="7" goto PREREQ_MENU
+if "%TOOLS_MISSING%"=="1" (
+    if "%CHOICE%"=="2" goto INSTALL_MISSING_TOOLS
+    if "%CHOICE%"=="3" goto SOURCE_MENU
+    if "%CHOICE%"=="4" goto VS_MENU
+    if "%CHOICE%"=="5" goto BUILD_TYPE_MENU
+    if "%CHOICE%"=="6" goto TARGET_MENU
+    if "%CHOICE%"=="7" goto GENERATE_MENU
+    if "%CHOICE%"=="8" goto CMD_BUILD_MENU
+    if "%CHOICE%"=="9" goto OPEN_MENU
+) else (
+    if "%CHOICE%"=="2" goto SOURCE_MENU
+    if "%CHOICE%"=="3" goto VS_MENU
+    if "%CHOICE%"=="4" goto BUILD_TYPE_MENU
+    if "%CHOICE%"=="5" goto TARGET_MENU
+    if "%CHOICE%"=="6" goto GENERATE_MENU
+    if "%CHOICE%"=="7" goto CMD_BUILD_MENU
+    if "%CHOICE%"=="8" goto OPEN_MENU
+)
 if "%CHOICE%"=="0" exit /b 0
 
 echo Invalid choice.
+pause
+goto MENU
+
+:HELP_MENU
+cls
+echo =============================
+echo Help / recommended flow
+echo =============================
+echo.
+echo 1. Check tools and install only those that are missing.
+echo 2. Clone or update VCMI source.
+echo 3. Select Visual Studio 2019, 2022, or 2026.
+echo 4. Keep Debug unless you need Release or RelWithDebInfo.
+echo 5. Use Windows 7/8/8.1 compatible target for v142 builds.
+echo 6. Generate the solution, then open it or build from command line.
+echo.
+echo Windows 7 compatible x86/x64 builds require MSVC v142.
+echo Modern Windows 10+ builds use the default installed toolset.
+echo.
 pause
 goto MENU
 
@@ -256,6 +313,8 @@ exit /b 0
 
 :REFRESH_TOOL_STATUS
 call :DETECT_SYSTEM
+set "ADMIN_LABEL=No"
+if "%IS_ADMIN%"=="1" set "ADMIN_LABEL=Yes"
 
 set "GIT_STATUS=NOT FOUND"
 call :FIND_GIT_QUIET
@@ -279,6 +338,18 @@ if "%VS_SELECTED%"=="0" (
     call :VS_ANY_EXISTS
     if errorlevel 1 (set "VS_STATUS=NOT FOUND") else (set "VS_STATUS=FOUND - select before generating")
 )
+set "TOOLSET_STATUS=NOT REQUIRED"
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    call :HAS_TOOLSET_V142
+    if errorlevel 1 (set "TOOLSET_STATUS=v142 NOT FOUND") else (set "TOOLSET_STATUS=v142 FOUND")
+)
+set "TOOLS_MISSING=0"
+if "%GIT_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
+if "%CMAKE_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
+if "%PYTHON_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
+if "%CONAN_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
+if "%VS_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
+if "%TOOLSET_STATUS%"=="v142 NOT FOUND" set "TOOLS_MISSING=1"
 exit /b 0
 
 :SOURCE_MENU
@@ -322,6 +393,52 @@ echo Invalid choice.
 pause
 goto SOURCE_MENU
 
+:BUILD_TYPE_MENU
+cls
+echo =============================
+echo Select build type
+echo =============================
+echo.
+echo Current: %BUILD_TYPE%
+echo.
+echo 1^) Debug ^(default^)
+echo 2^) Release
+echo 3^) RelWithDebInfo
+echo 0^) Back
+echo.
+set "BTCHOICE="
+set /p "BTCHOICE=Choose build type [1]: "
+if "%BTCHOICE%"=="" set "BTCHOICE=1"
+if "%BTCHOICE%"=="1" set "BUILD_TYPE=Debug" & goto MENU
+if "%BTCHOICE%"=="2" set "BUILD_TYPE=Release" & goto MENU
+if "%BTCHOICE%"=="3" set "BUILD_TYPE=RelWithDebInfo" & goto MENU
+if "%BTCHOICE%"=="0" goto MENU
+echo Invalid choice.
+pause
+goto BUILD_TYPE_MENU
+
+:TARGET_MENU
+cls
+echo =============================
+echo Select target compatibility
+echo =============================
+echo.
+echo Current: %TARGET_NAME%
+echo.
+echo 1^) Windows 7 / 8 / 8.1 compatible ^(v142, default^)
+echo 2^) Windows 10 / 11 only ^(default Visual Studio toolset^)
+echo 0^) Back
+echo.
+set "TCHOICE="
+set /p "TCHOICE=Choose target [1]: "
+if "%TCHOICE%"=="" set "TCHOICE=1"
+if "%TCHOICE%"=="1" set "TARGET_PRE_WINDOWS10=1" & set "TARGET_NAME=Windows 7/8/8.1 compatible" & goto MENU
+if "%TCHOICE%"=="2" set "TARGET_PRE_WINDOWS10=0" & set "TARGET_NAME=Windows 10/11 only" & goto MENU
+if "%TCHOICE%"=="0" goto MENU
+echo Invalid choice.
+pause
+goto TARGET_MENU
+
 :GENERATE_MENU
 call :REFRESH_TOOL_STATUS
 cls
@@ -330,6 +447,7 @@ echo Generate Visual Studio solution
 echo =============================
 echo.
 echo Build type: %BUILD_TYPE%
+echo Target:     %TARGET_NAME%
 echo Visual Studio: %VS_STATUS%
 echo.
 echo 1^) x64   ^(recommended^)
@@ -403,7 +521,7 @@ echo =============================
 echo.
 echo Windows: %WIN_MAJOR%.%WIN_MINOR%
 echo OS arch: %OS_ARCH%
-echo Admin: %IS_ADMIN%
+echo Admin: %ADMIN_LABEL%
 echo.
 echo Python installer:
 echo %PYTHON_URL%
@@ -455,10 +573,12 @@ echo =============================
 echo.
 
 call :DETECT_SYSTEM
+set "ADMIN_LABEL=No"
+if "%IS_ADMIN%"=="1" set "ADMIN_LABEL=Yes"
 
 echo Windows: %WIN_MAJOR%.%WIN_MINOR%
 echo OS arch: %OS_ARCH%
-echo Admin: %IS_ADMIN%
+echo Admin: %ADMIN_LABEL%
 echo Downloads cache:
 echo %DOWNLOADS_DIR%
 echo Tools:
@@ -895,6 +1015,7 @@ if errorlevel 1 exit /b 1
 call :ENSURE_VISUAL_STUDIO_SELECTED
 if errorlevel 1 exit /b 1
 
+
 exit /b 0
 
 :FIND_GIT
@@ -1025,6 +1146,17 @@ echo Conan: %CONAN_EXE%
 "%CONAN_EXE%" --version
 exit /b 0
 
+:HAS_TOOLSET_V142
+for %%Y in (2019 2022 2026) do (
+    for %%E in (Community Professional Enterprise BuildTools) do (
+        for %%M in (v160 v170 v180) do (
+            if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\%%Y\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
+            if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\%%Y\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
+        )
+    )
+)
+exit /b 1
+
 ::::::::::::::::::::::::::::
 :: VISUAL STUDIO
 ::::::::::::::::::::::::::::
@@ -1032,17 +1164,17 @@ exit /b 0
 :CHECK_VISUAL_STUDIOS
 echo Visual Studio detection:
 
-call :VS_EXISTS_2022
-if not errorlevel 1 echo VS 2022: FOUND
-
 call :VS_EXISTS_2019
 if not errorlevel 1 echo VS 2019: FOUND
 
-call :VS_EXISTS_2017
-if not errorlevel 1 echo VS 2017: FOUND
+call :VS_EXISTS_2022
+if not errorlevel 1 echo VS 2022: FOUND
 
-call :VS_EXISTS_2015
-if not errorlevel 1 echo VS 2015/2016 era: FOUND
+call :VS_EXISTS_2026
+if not errorlevel 1 echo VS 2026: FOUND
+
+call :HAS_TOOLSET_V142
+if errorlevel 1 (echo MSVC v142 toolset: NOT FOUND) else (echo MSVC v142 toolset: FOUND)
 
 call :VS_ANY_EXISTS
 if errorlevel 1 echo Visual Studio: NOT FOUND
@@ -1050,36 +1182,33 @@ if errorlevel 1 echo Visual Studio: NOT FOUND
 exit /b 0
 
 :VS_ANY_EXISTS
-call :VS_EXISTS_2022
-if not errorlevel 1 exit /b 0
 call :VS_EXISTS_2019
 if not errorlevel 1 exit /b 0
-call :VS_EXISTS_2017
+call :VS_EXISTS_2022
 if not errorlevel 1 exit /b 0
-call :VS_EXISTS_2015
+call :VS_EXISTS_2026
 if not errorlevel 1 exit /b 0
-exit /b 1
-
-:VS_EXISTS_2022
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" exit /b 0
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" exit /b 0
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" exit /b 0
 exit /b 1
 
 :VS_EXISTS_2019
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" exit /b 0
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" exit /b 0
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\devenv.exe" exit /b 0
 exit /b 1
 
-:VS_EXISTS_2017
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" exit /b 0
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" exit /b 0
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+:VS_EXISTS_2022
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\devenv.exe" exit /b 0
 exit /b 1
 
-:VS_EXISTS_2015
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe" exit /b 0
+:VS_EXISTS_2026
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise\Common7\IDE\devenv.exe" exit /b 0
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\BuildTools\Common7\IDE\devenv.exe" exit /b 0
 exit /b 1
 
 :ENSURE_VISUAL_STUDIO_SELECTED
@@ -1088,7 +1217,7 @@ if "%VS_SELECTED%"=="1" exit /b 0
 call :VS_ANY_EXISTS
 if errorlevel 1 (
     echo ERROR: Visual Studio was not found.
-    echo Supported: 2022, 2019, 2017, 2015.
+    echo Supported: 2019, 2022, 2026.
     pause
     exit /b 1
 )
@@ -1101,20 +1230,16 @@ echo =============================
 echo Select Visual Studio
 echo =============================
 echo.
-echo 1^) Visual Studio 2022
-call :VS_EXISTS_2022
-if errorlevel 1 (echo    Not found) else (echo    Found)
-echo.
-echo 2^) Visual Studio 2019
+echo 1^) Visual Studio 2019
 call :VS_EXISTS_2019
 if errorlevel 1 (echo    Not found) else (echo    Found)
 echo.
-echo 3^) Visual Studio 2017
-call :VS_EXISTS_2017
+echo 2^) Visual Studio 2022
+call :VS_EXISTS_2022
 if errorlevel 1 (echo    Not found) else (echo    Found)
 echo.
-echo 4^) Visual Studio 2015 / 2016 era
-call :VS_EXISTS_2015
+echo 3^) Visual Studio 2026
+call :VS_EXISTS_2026
 if errorlevel 1 (echo    Not found) else (echo    Found)
 echo.
 echo 0^) Back
@@ -1123,34 +1248,14 @@ echo.
 set "VSCHOICE="
 set /p "VSCHOICE=Choose Visual Studio: "
 
-if "%VSCHOICE%"=="1" call :SELECT_VS_2022 & goto MENU
-if "%VSCHOICE%"=="2" call :SELECT_VS_2019 & goto MENU
-if "%VSCHOICE%"=="3" call :SELECT_VS_2017 & goto MENU
-if "%VSCHOICE%"=="4" call :SELECT_VS_2015 & goto MENU
+if "%VSCHOICE%"=="1" call :SELECT_VS_2019 & goto MENU
+if "%VSCHOICE%"=="2" call :SELECT_VS_2022 & goto MENU
+if "%VSCHOICE%"=="3" call :SELECT_VS_2026 & goto MENU
 if "%VSCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
 pause
 goto VS_MENU
-
-:SELECT_VS_2022
-call :VS_EXISTS_2022
-if errorlevel 1 (
-    echo VS 2022 not found.
-    pause
-    exit /b 1
-)
-
-set "VS_NAME=Visual Studio 2022"
-set "VS_GENERATOR=Visual Studio 17 2022"
-set "VS_SELECTED=1"
-
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"
-if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
-
-echo Selected: %VS_NAME%
-exit /b 0
 
 :SELECT_VS_2019
 call :VS_EXISTS_2019
@@ -1171,37 +1276,40 @@ if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7
 echo Selected: %VS_NAME%
 exit /b 0
 
-:SELECT_VS_2017
-call :VS_EXISTS_2017
+:SELECT_VS_2022
+call :VS_EXISTS_2022
 if errorlevel 1 (
-    echo VS 2017 not found.
+    echo VS 2022 not found.
     pause
     exit /b 1
 )
 
-set "VS_NAME=Visual Studio 2017"
-set "VS_GENERATOR=Visual Studio 15 2017"
+set "VS_NAME=Visual Studio 2022"
+set "VS_GENERATOR=Visual Studio 17 2022"
 set "VS_SELECTED=1"
 
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe"
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe"
-if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
 
 echo Selected: %VS_NAME%
 exit /b 0
 
-:SELECT_VS_2015
-call :VS_EXISTS_2015
+:SELECT_VS_2026
+call :VS_EXISTS_2026
 if errorlevel 1 (
-    echo VS 2015 not found.
+    echo VS 2026 not found.
     pause
     exit /b 1
 )
 
-set "VS_NAME=Visual Studio 2015"
-set "VS_GENERATOR=Visual Studio 14 2015"
+set "VS_NAME=Visual Studio 2026"
+set "VS_GENERATOR=Visual Studio 18 2026"
 set "VS_SELECTED=1"
-set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe"
+
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise\Common7\IDE\devenv.exe"
 
 echo Selected: %VS_NAME%
 exit /b 0
@@ -1284,30 +1392,41 @@ echo %VCMI_DIR%
 pause
 goto MENU
 
+:SELECT_BUILD_DIR
+set "SELECTED_BUILD_DIR=%~2"
+if "%TARGET_PRE_WINDOWS10%"=="0" set "SELECTED_BUILD_DIR=%~2-win10"
+exit /b 0
+
 ::::::::::::::::::::::::::::
 :: BUILD TARGETS
 ::::::::::::::::::::::::::::
 
 :BUILD_X64
-call :GENERATE_ONE x64 build-x64 dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
+call :SELECT_BUILD_DIR x64 build-x64
+call :GENERATE_ONE x64 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
 goto OPEN_AFTER_BUILD
 
 :BUILD_X86
-call :GENERATE_ONE Win32 build-x86 dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
+call :SELECT_BUILD_DIR x86 build-x86
+call :GENERATE_ONE Win32 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
 goto OPEN_AFTER_BUILD
 
 :BUILD_ARM64
-call :GENERATE_ONE ARM64 build-arm64 dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
+call :SELECT_BUILD_DIR arm64 build-arm64
+call :GENERATE_ONE ARM64 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
 goto OPEN_AFTER_BUILD
 
 :BUILD_ALL
-call :GENERATE_ONE x64 build-x64 dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
+call :SELECT_BUILD_DIR x64 build-x64
+call :GENERATE_ONE x64 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-x64 dependencies-windows-x64.txz
 if errorlevel 1 goto FAILED
 
-call :GENERATE_ONE Win32 build-x86 dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
+call :SELECT_BUILD_DIR x86 build-x86
+call :GENERATE_ONE Win32 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-x86 dependencies-windows-x86.txz
 if errorlevel 1 goto FAILED
 
-call :GENERATE_ONE ARM64 build-arm64 dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
+call :SELECT_BUILD_DIR arm64 build-arm64
+call :GENERATE_ONE ARM64 "%SELECTED_BUILD_DIR%" dependencies\conan_profiles\msvc-arm64 dependencies-windows-arm64.txz
 if errorlevel 1 goto FAILED
 
 goto OPEN_MENU
@@ -1340,6 +1459,10 @@ set "DEP_NAME=%~4"
 
 set "CONAN_OUTPUT=conan-%BUILD_DIR%"
 set "DEP_FILE="
+set "CMAKE_TOOLSET_ARG="
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    if /I not "%ARCH%"=="ARM64" set "CMAKE_TOOLSET_ARG=-T v142"
+)
 
 cls
 echo =============================
@@ -1356,6 +1479,18 @@ cd /d "%VCMI_DIR%" || exit /b 1
 
 call :CHECK_REQUIRED_TOOLS
 if errorlevel 1 exit /b 1
+
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    if /I not "%ARCH%"=="ARM64" (
+        call :HAS_TOOLSET_V142
+        if errorlevel 1 (
+            echo ERROR: MSVC v142 toolset was not found.
+            echo Install "MSVC v142 - VS 2019 C++ x64/x86 build tools" in Visual Studio Installer.
+            pause
+            exit /b 1
+        )
+    )
+)
 
 call :READ_DEPENDENCIES_TAG
 if errorlevel 1 exit /b 1
@@ -1381,12 +1516,20 @@ echo.
 echo Running Conan install...
 echo.
 
-"%CONAN_EXE%" install . ^
-    --output-folder="%CONAN_OUTPUT%" ^
-    --build=never ^
-    --profile="%CONAN_PROFILE%" ^
-    -s "&:build_type=%BUILD_TYPE%" ^
-    -o "&:target_pre_windows10=True"
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    "%CONAN_EXE%" install . ^
+        --output-folder="%CONAN_OUTPUT%" ^
+        --build=never ^
+        --profile="%CONAN_PROFILE%" ^
+        -s "&:build_type=%BUILD_TYPE%" ^
+        -o "&:target_pre_windows10=True"
+) else (
+    "%CONAN_EXE%" install . ^
+        --output-folder="%CONAN_OUTPUT%" ^
+        --build=never ^
+        --profile="%CONAN_PROFILE%" ^
+        -s "&:build_type=%BUILD_TYPE%"
+)
 
 if errorlevel 1 exit /b 1
 
@@ -1397,6 +1540,7 @@ echo.
 cmake -S . -B "%BUILD_DIR%" ^
     -G "%VS_GENERATOR%" ^
     -A %ARCH% ^
+    %CMAKE_TOOLSET_ARG% ^
     --toolchain "%CONAN_OUTPUT%\conan_toolchain.cmake"
 
 if errorlevel 1 exit /b 1
@@ -1518,6 +1662,47 @@ if not exist "%OUT%" (
 
 exit /b 0
 
+:CMD_BUILD_MENU
+cls
+echo =============================
+echo Build from command line
+echo =============================
+echo.
+echo Build type: %BUILD_TYPE%
+echo Target:     %TARGET_NAME%
+echo.
+echo 1^) build-x64
+echo 2^) build-x86
+echo 3^) build-arm64
+echo 0^) Back
+echo.
+set "BCOICE="
+set /p "BCOICE=Choose build dir [1]: "
+if "%BCOICE%"=="" set "BCOICE=1"
+if "%BCOICE%"=="1" call :SELECT_BUILD_DIR x64 build-x64 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
+if "%BCOICE%"=="2" call :SELECT_BUILD_DIR x86 build-x86 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
+if "%BCOICE%"=="3" call :SELECT_BUILD_DIR arm64 build-arm64 & call :BUILD_FROM_CMD "%SELECTED_BUILD_DIR%" & goto MENU
+if "%BCOICE%"=="0" goto MENU
+echo Invalid choice.
+pause
+goto CMD_BUILD_MENU
+
+:BUILD_FROM_CMD
+set "CMD_BUILD_DIR=%~1"
+cd /d "%VCMI_DIR%" || exit /b 1
+call :FIND_CMAKE
+if errorlevel 1 exit /b 1
+if not exist "%CMD_BUILD_DIR%\VCMI.sln" (
+    echo ERROR: Solution does not exist:
+    echo %VCMI_DIR%\%CMD_BUILD_DIR%\VCMI.sln
+    pause
+    exit /b 1
+)
+"%CMAKE_EXE%" --build "%CMD_BUILD_DIR%" --config %BUILD_TYPE%
+if errorlevel 1 goto FAILED
+pause
+exit /b 0
+
 ::::::::::::::::::::::::::::
 :: OPEN SLN
 ::::::::::::::::::::::::::::
@@ -1540,6 +1725,8 @@ echo =============================
 echo Open existing SLN
 echo =============================
 echo.
+echo Target: %TARGET_NAME%
+echo.
 echo 1^) build-x64
 echo 2^) build-x86
 echo 3^) build-arm64
@@ -1550,9 +1737,9 @@ set "OPEN_CHOICE="
 set /p "OPEN_CHOICE=Choose SLN [1]: "
 if "%OPEN_CHOICE%"=="" set "OPEN_CHOICE=1"
 
-if "%OPEN_CHOICE%"=="1" call :OPEN_SOLUTION build-x64 & goto MENU
-if "%OPEN_CHOICE%"=="2" call :OPEN_SOLUTION build-x86 & goto MENU
-if "%OPEN_CHOICE%"=="3" call :OPEN_SOLUTION build-arm64 & goto MENU
+if "%OPEN_CHOICE%"=="1" call :SELECT_BUILD_DIR x64 build-x64 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
+if "%OPEN_CHOICE%"=="2" call :SELECT_BUILD_DIR x86 build-x86 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
+if "%OPEN_CHOICE%"=="3" call :SELECT_BUILD_DIR arm64 build-arm64 & call :OPEN_SOLUTION "%SELECTED_BUILD_DIR%" & goto MENU
 if "%OPEN_CHOICE%"=="0" goto MENU
 
 echo Invalid choice.
