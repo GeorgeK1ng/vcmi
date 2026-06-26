@@ -10,6 +10,7 @@ set "ROOT=%~dp0"
 set "VCMI_DIR=%ROOT%VCMI"
 set "DOWNLOADS_DIR=%ROOT%downloads"
 set "TOOLS_DIR=%ROOT%tools"
+set "LOG_FILE=%ROOT%vcmi-build-helper.log"
 set "PORTABLE_GIT_DIR=%TOOLS_DIR%\git"
 set "PORTABLE_CMAKE_DIR=%TOOLS_DIR%\cmake"
 
@@ -42,6 +43,8 @@ set "ADMIN_LABEL=No"
 
 set "WIN_MAJOR="
 set "WIN_MINOR="
+set "WIN_BUILD="
+set "WINDOWS_NAME="
 set "WINDOWS7=0"
 set "OS_ARCH=x86"
 set "IS_ADMIN=0"
@@ -63,6 +66,7 @@ set "DEP_FILE="
 
 if not exist "%DOWNLOADS_DIR%" md "%DOWNLOADS_DIR%"
 if not exist "%TOOLS_DIR%" md "%TOOLS_DIR%"
+>"%LOG_FILE%" echo [%DATE% %TIME%] VCMI build helper started
 
 call :DETECT_SYSTEM
 call :REFRESH_TOOL_STATUS
@@ -74,13 +78,14 @@ echo =============================
 echo VCMI build helper
 echo =============================
 echo.
-echo System: Windows %WIN_MAJOR%.%WIN_MINOR%  Arch: %OS_ARCH%  Admin: %ADMIN_LABEL%
+echo System: %WINDOWS_NAME%  Arch: %OS_ARCH%  Admin: %ADMIN_LABEL%
 if "%WINDOWS7%"=="1" echo Mode: Windows 7 compatible downloads selected
 echo.
 echo Folders:
 echo   Source:    %VCMI_DIR%
 echo   Downloads: %DOWNLOADS_DIR%
 echo   Tools:     %TOOLS_DIR%
+echo   Log:       %LOG_FILE%
 echo.
 echo Build settings:
 echo   Build type: %BUILD_TYPE%
@@ -173,6 +178,14 @@ pause
 goto MENU
 
 ::::::::::::::::::::::::::::
+:: LOGGING
+::::::::::::::::::::::::::::
+
+:LOG
+>>"%LOG_FILE%" echo [%DATE% %TIME%] %~1
+exit /b 0
+
+::::::::::::::::::::::::::::
 :: SYSTEM DETECTION
 ::::::::::::::::::::::::::::
 
@@ -180,11 +193,19 @@ goto MENU
 set "WINDOWS7=0"
 set "OS_ARCH=x86"
 
-for /f "tokens=4-5 delims=.[] " %%a in ('ver') do (
+for /f "tokens=4-6 delims=.[] " %%a in ('ver') do (
     set "WIN_MAJOR=%%a"
     set "WIN_MINOR=%%b"
+    set "WIN_BUILD=%%c"
 )
 
+set "WINDOWS_NAME=Windows %WIN_MAJOR%.%WIN_MINOR%"
+if "%WIN_MAJOR%.%WIN_MINOR%"=="10.0" (
+    set "WINDOWS_NAME=Windows 10"
+    if defined WIN_BUILD (
+        if !WIN_BUILD! GEQ 22000 set "WINDOWS_NAME=Windows 11"
+    )
+)
 if "%WIN_MAJOR%.%WIN_MINOR%"=="6.1" set "WINDOWS7=1"
 
 if exist "%WINDIR%\SysWOW64" (
@@ -521,7 +542,7 @@ echo =============================
 echo Prerequisites
 echo =============================
 echo.
-echo Windows: %WIN_MAJOR%.%WIN_MINOR%
+echo Windows: %WINDOWS_NAME%
 echo OS arch: %OS_ARCH%
 echo Admin: %ADMIN_LABEL%
 echo.
@@ -578,7 +599,7 @@ call :DETECT_SYSTEM
 set "ADMIN_LABEL=No"
 if "%IS_ADMIN%"=="1" set "ADMIN_LABEL=Yes"
 
-echo Windows: %WIN_MAJOR%.%WIN_MINOR%
+echo Windows: %WINDOWS_NAME%
 echo OS arch: %OS_ARCH%
 echo Admin: %ADMIN_LABEL%
 echo Downloads cache:
@@ -670,7 +691,8 @@ echo.
 echo Installing Conan using pip...
 echo.
 
-"%PYTHON_EXE%" -m pip install --user conan
+call :LOG "Installing Conan via pip"
+"%PYTHON_EXE%" -m pip install --user conan >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 (
     echo ERROR: Conan installation failed.
@@ -727,7 +749,8 @@ echo.
 echo Installing Git silently...
 echo.
 
-"%GIT_INSTALLER%" /VERYSILENT /NORESTART /SP-
+call :LOG "Installing Git for Windows"
+"%GIT_INSTALLER%" /VERYSILENT /NORESTART /SP- >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 (
     echo ERROR: Git installation failed.
@@ -769,7 +792,8 @@ echo.
 echo Extracting Portable Git...
 echo.
 
-"%GIT_PORTABLE_INSTALLER%" -y -o"%PORTABLE_GIT_DIR%"
+call :LOG "Extracting Portable Git"
+"%GIT_PORTABLE_INSTALLER%" -y -o"%PORTABLE_GIT_DIR%" >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 (
     echo ERROR: Portable Git extraction failed.
@@ -829,7 +853,8 @@ echo.
 echo Installing CMake silently...
 echo.
 
-msiexec /i "%CMAKE_INSTALLER%" /qn /norestart ADD_CMAKE_TO_PATH=System
+call :LOG "Installing CMake"
+msiexec /i "%CMAKE_INSTALLER%" /qn /norestart ADD_CMAKE_TO_PATH=System >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 (
     echo ERROR: CMake installation failed.
@@ -882,7 +907,8 @@ set "CMAKE_UNZIP_PS1=%TEMP%\vcmi-unzip-cmake.ps1"
 >>"%CMAKE_UNZIP_PS1%" echo $dst.CopyHere($zip.Items(), 16)
 >>"%CMAKE_UNZIP_PS1%" echo Start-Sleep -Seconds 5
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%CMAKE_UNZIP_PS1%"
+call :LOG "Extracting Portable CMake"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%CMAKE_UNZIP_PS1%" >>"%LOG_FILE%" 2>&1
 if exist "%CMAKE_UNZIP_PS1%" del /q "%CMAKE_UNZIP_PS1%"
 
 if errorlevel 1 (
@@ -1351,7 +1377,8 @@ if exist "%VCMI_DIR%" (
 
 cd /d "%ROOT%"
 
-"%GIT_EXE%" clone --branch %VCMI_BRANCH% --single-branch --recursive %VCMI_REPO% "%VCMI_DIR%"
+call :LOG "Cloning VCMI"
+"%GIT_EXE%" clone --branch %VCMI_BRANCH% --single-branch --recursive %VCMI_REPO% "%VCMI_DIR%" >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 
 pause
@@ -1373,16 +1400,17 @@ if errorlevel 1 (
 
 cd /d "%VCMI_DIR%" || goto NO_VCMI
 
-"%GIT_EXE%" checkout %VCMI_BRANCH%
+call :LOG "Updating VCMI checkout"
+"%GIT_EXE%" checkout %VCMI_BRANCH% >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 
-"%GIT_EXE%" pull
+"%GIT_EXE%" pull >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 
-"%GIT_EXE%" submodule sync --recursive
+"%GIT_EXE%" submodule sync --recursive >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 
-"%GIT_EXE%" submodule update --init --recursive
+"%GIT_EXE%" submodule update --init --recursive >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 
 pause
@@ -1457,13 +1485,13 @@ echo.
 echo Cleaning Conan cache/profiles...
 echo.
 
-"%CONAN_EXE%" remove "*" -c
-"%CONAN_EXE%" cache clean
-"%CONAN_EXE%" cache clean -s -b -d -t
+"%CONAN_EXE%" remove "*" -c >>"%LOG_FILE%" 2>&1
+"%CONAN_EXE%" cache clean >>"%LOG_FILE%" 2>&1
+"%CONAN_EXE%" cache clean -s -b -d -t >>"%LOG_FILE%" 2>&1
 
 if exist "%USERPROFILE%\.conan2\profiles" rd /q /s "%USERPROFILE%\.conan2\profiles"
 
-"%CONAN_EXE%" profile detect
+"%CONAN_EXE%" profile detect >>"%LOG_FILE%" 2>&1
 if errorlevel 1 exit /b 1
 
 exit /b 0
@@ -1523,7 +1551,8 @@ echo Restoring Conan cache:
 echo %DEP_FILE%
 echo.
 
-"%CONAN_EXE%" cache restore "%DEP_FILE%"
+call :LOG "Restoring Conan cache %DEP_FILE%"
+"%CONAN_EXE%" cache restore "%DEP_FILE%" >>"%LOG_FILE%" 2>&1
 if errorlevel 1 exit /b 1
 
 if exist "%BUILD_DIR%" rd /q /s "%BUILD_DIR%"
@@ -1534,18 +1563,20 @@ echo Running Conan install...
 echo.
 
 if "%TARGET_PRE_WINDOWS10%"=="1" (
+    call :LOG "Running Conan install %BUILD_DIR% pre-Windows10"
     "%CONAN_EXE%" install . ^
         --output-folder="%CONAN_OUTPUT%" ^
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
         -s "&:build_type=%BUILD_TYPE%" ^
-        -o "&:target_pre_windows10=True"
+        -o "&:target_pre_windows10=True" >>"%LOG_FILE%" 2>&1
 ) else (
+    call :LOG "Running Conan install %BUILD_DIR%"
     "%CONAN_EXE%" install . ^
         --output-folder="%CONAN_OUTPUT%" ^
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
-        -s "&:build_type=%BUILD_TYPE%"
+        -s "&:build_type=%BUILD_TYPE%" >>"%LOG_FILE%" 2>&1
 )
 
 if errorlevel 1 exit /b 1
@@ -1554,11 +1585,12 @@ echo.
 echo Running CMake configure...
 echo.
 
+call :LOG "Configuring CMake %BUILD_DIR%"
 cmake -S . -B "%BUILD_DIR%" ^
     -G "%VS_GENERATOR%" ^
     -A %ARCH% ^
     %CMAKE_TOOLSET_ARG% ^
-    --toolchain "%CONAN_OUTPUT%\conan_toolchain.cmake"
+    --toolchain "%CONAN_OUTPUT%\conan_toolchain.cmake" >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 exit /b 1
 
@@ -1608,25 +1640,13 @@ exit /b 0
 
 :ENSURE_DEPENDENCIES
 set "DEP_NAME=%~1"
-set "DEP_FILE=%DOWNLOADS_DIR%\%DEP_NAME%"
-set "DEP_TAG_FILE=%DOWNLOADS_DIR%\%DEP_NAME%.tag"
+set "DEP_FILE=%DOWNLOADS_DIR%\%DEPENDENCIES_TAG%-%DEP_NAME%"
 set "DEP_URL=%DEPS_BASE_URL%/%DEP_NAME%"
-set "CACHED_TAG="
 
 if exist "%DEP_FILE%" (
-    if exist "%DEP_TAG_FILE%" (
-        set /p CACHED_TAG=<"%DEP_TAG_FILE%"
-    )
-
-    if "%CACHED_TAG%"=="%DEPENDENCIES_TAG%" (
-        echo Dependencies already exist for tag %DEPENDENCIES_TAG%:
-        echo %DEP_FILE%
-        exit /b 0
-    )
-
-    echo Existing dependency archive has different or unknown tag.
-    echo It will be replaced:
+    echo Dependencies already exist for tag %DEPENDENCIES_TAG%:
     echo %DEP_FILE%
+    exit /b 0
 )
 
 echo.
@@ -1643,8 +1663,6 @@ if errorlevel 1 (
     echo.
     exit /b 1
 )
-
-echo %DEPENDENCIES_TAG%>"%DEP_TAG_FILE%"
 
 exit /b 0
 
@@ -1663,7 +1681,8 @@ echo.
 if exist "%OUT%" del /q "%OUT%"
 
 bitsadmin /reset /allusers >nul 2>nul
-bitsadmin /transfer VCMIDeps /download /priority normal "%URL%" "%OUT%"
+call :LOG "Downloading %URL% to %OUT%"
+bitsadmin /transfer VCMIDeps /download /priority normal "%URL%" "%OUT%" >>"%LOG_FILE%" 2>&1
 
 if errorlevel 1 (
     if exist "%OUT%" del /q "%OUT%"
@@ -1759,7 +1778,8 @@ if not exist "%CMD_BUILD_DIR%\VCMI.sln" (
     pause
     exit /b 1
 )
-"%CMAKE_EXE%" --build "%CMD_BUILD_DIR%" --config %BUILD_TYPE%
+call :LOG "Building %CMD_BUILD_DIR% %BUILD_TYPE%"
+"%CMAKE_EXE%" --build "%CMD_BUILD_DIR%" --config %BUILD_TYPE% >>"%LOG_FILE%" 2>&1
 if errorlevel 1 goto FAILED
 pause
 exit /b 0
