@@ -11,6 +11,7 @@ set "VCMI_DIR=%ROOT%VCMI"
 set "DOWNLOADS_DIR=%ROOT%downloads"
 set "TOOLS_DIR=%ROOT%tools"
 set "PORTABLE_GIT_DIR=%TOOLS_DIR%\git"
+set "PORTABLE_CMAKE_DIR=%TOOLS_DIR%\cmake"
 
 set "VCMI_REPO=https://github.com/vcmi/vcmi.git"
 set "VCMI_BRANCH=develop"
@@ -46,6 +47,10 @@ set "GIT_URL="
 set "GIT_INSTALLER="
 set "GIT_PORTABLE_URL="
 set "GIT_PORTABLE_INSTALLER="
+set "CMAKE_URL="
+set "CMAKE_INSTALLER="
+set "CMAKE_ZIP_URL="
+set "CMAKE_ZIP="
 
 set "DEPENDENCIES_TAG="
 set "DEPS_BASE_URL="
@@ -135,6 +140,7 @@ call :CHECK_ADMIN_RIGHTS
 call :SELECT_PYTHON_URL
 call :SELECT_GIT_URL
 call :SELECT_PORTABLE_GIT_URL
+call :SELECT_CMAKE_URL
 
 exit /b 0
 
@@ -233,6 +239,20 @@ if "%OS_ARCH%"=="x64" (
     set "GIT_PORTABLE_INSTALLER=%DOWNLOADS_DIR%\PortableGit-2.48.1-32-bit.7z.exe"
     exit /b 0
 )
+
+:SELECT_CMAKE_URL
+if "%OS_ARCH%"=="x64" (
+    set "CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v3.29.9/cmake-3.29.9-windows-x86_64.msi"
+    set "CMAKE_INSTALLER=%DOWNLOADS_DIR%\cmake-3.29.9-windows-x86_64.msi"
+    set "CMAKE_ZIP_URL=https://github.com/Kitware/CMake/releases/download/v3.29.9/cmake-3.29.9-windows-x86_64.zip"
+    set "CMAKE_ZIP=%DOWNLOADS_DIR%\cmake-3.29.9-windows-x86_64.zip"
+) else (
+    set "CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v3.29.9/cmake-3.29.9-windows-i386.msi"
+    set "CMAKE_INSTALLER=%DOWNLOADS_DIR%\cmake-3.29.9-windows-i386.msi"
+    set "CMAKE_ZIP_URL=https://github.com/Kitware/CMake/releases/download/v3.29.9/cmake-3.29.9-windows-i386.zip"
+    set "CMAKE_ZIP=%DOWNLOADS_DIR%\cmake-3.29.9-windows-i386.zip"
+)
+exit /b 0
 
 :REFRESH_TOOL_STATUS
 call :DETECT_SYSTEM
@@ -350,18 +370,20 @@ echo.
 echo 1^) Install Git / Portable Git
 echo 2^) Install Python
 echo 3^) Install Conan via Python pip
-echo 4^) Check tools again
+echo 4^) Install CMake
+echo 5^) Check tools again
 echo 0^) Back
 echo.
 
 set "MICHOICE="
-set /p "MICHOICE=Choose option [4]: "
-if "%MICHOICE%"=="" set "MICHOICE=4"
+set /p "MICHOICE=Choose option [5]: "
+if "%MICHOICE%"=="" set "MICHOICE=5"
 
 if "%MICHOICE%"=="1" goto INSTALL_GIT
 if "%MICHOICE%"=="2" goto INSTALL_PYTHON
 if "%MICHOICE%"=="3" goto INSTALL_CONAN
-if "%MICHOICE%"=="4" call :CHECK_ALL_PREREQ & goto INSTALL_MISSING_TOOLS
+if "%MICHOICE%"=="4" goto INSTALL_CMAKE
+if "%MICHOICE%"=="5" call :CHECK_ALL_PREREQ & goto INSTALL_MISSING_TOOLS
 if "%MICHOICE%"=="0" goto MENU
 
 echo Invalid choice.
@@ -392,12 +414,19 @@ echo.
 echo Portable Git:
 echo %GIT_PORTABLE_URL%
 echo.
+echo CMake installer:
+echo %CMAKE_URL%
+echo.
+echo CMake portable zip:
+echo %CMAKE_ZIP_URL%
+echo.
 echo 1^) Check Python
 echo 2^) Check Conan
 echo 3^) Install Conan via Python pip
 echo 4^) Download and install Python
 echo 5^) Check all
 echo 6^) Download and install Git / Portable Git
+echo 7^) Download and install CMake
 echo 0^) Back
 echo.
 
@@ -411,6 +440,7 @@ if "%PCHOICE%"=="3" goto INSTALL_CONAN
 if "%PCHOICE%"=="4" goto INSTALL_PYTHON
 if "%PCHOICE%"=="5" call :CHECK_ALL_PREREQ & goto PREREQ_MENU
 if "%PCHOICE%"=="6" goto INSTALL_GIT
+if "%PCHOICE%"=="7" goto INSTALL_CMAKE
 if "%PCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
@@ -630,6 +660,120 @@ call :FIND_GIT
 pause
 goto %RETURN_MENU%
 
+:INSTALL_CMAKE
+call :FIND_CMAKE
+if not errorlevel 1 (
+    echo.
+    echo CMake is already available.
+    pause
+    goto %RETURN_MENU%
+)
+
+call :CHECK_ADMIN_RIGHTS
+
+if "%IS_ADMIN%"=="0" (
+    echo.
+    echo No admin rights detected.
+    echo Installing Portable CMake instead.
+    pause
+    goto INSTALL_PORTABLE_CMAKE
+)
+
+cls
+echo =============================
+echo Install CMake
+echo =============================
+echo.
+echo Windows 7 compatible CMake 3.29.9 installer:
+echo %CMAKE_URL%
+echo.
+echo Downloading to cache:
+echo %CMAKE_INSTALLER%
+echo.
+
+if not exist "%CMAKE_INSTALLER%" (
+    call :DOWNLOAD_FILE "%CMAKE_URL%" "%CMAKE_INSTALLER%"
+    if errorlevel 1 (
+        echo ERROR: CMake download failed.
+        pause
+        goto %RETURN_MENU%
+    )
+) else (
+    echo CMake installer already exists:
+    echo %CMAKE_INSTALLER%
+)
+
+echo.
+echo Installing CMake silently...
+echo.
+
+msiexec /i "%CMAKE_INSTALLER%" /qn /norestart ADD_CMAKE_TO_PATH=System
+
+if errorlevel 1 (
+    echo ERROR: CMake installation failed.
+    pause
+    goto %RETURN_MENU%
+)
+
+echo.
+call :FIND_CMAKE
+pause
+goto %RETURN_MENU%
+
+:INSTALL_PORTABLE_CMAKE
+cls
+echo =============================
+echo Install Portable CMake
+echo =============================
+echo.
+echo Windows 7 compatible CMake 3.29.9 zip:
+echo %CMAKE_ZIP_URL%
+echo.
+echo Downloading to cache:
+echo %CMAKE_ZIP%
+echo.
+
+if not exist "%CMAKE_ZIP%" (
+    call :DOWNLOAD_FILE "%CMAKE_ZIP_URL%" "%CMAKE_ZIP%"
+    if errorlevel 1 (
+        echo ERROR: Portable CMake download failed.
+        pause
+        goto %RETURN_MENU%
+    )
+) else (
+    echo Portable CMake archive already exists:
+    echo %CMAKE_ZIP%
+)
+
+if exist "%PORTABLE_CMAKE_DIR%" rd /q /s "%PORTABLE_CMAKE_DIR%"
+md "%PORTABLE_CMAKE_DIR%"
+
+echo.
+echo Extracting Portable CMake...
+echo.
+
+set "CMAKE_UNZIP_PS1=%TEMP%\vcmi-unzip-cmake.ps1"
+>"%CMAKE_UNZIP_PS1%" echo $shell = New-Object -ComObject Shell.Application
+>>"%CMAKE_UNZIP_PS1%" echo $zip = $shell.NameSpace('%CMAKE_ZIP%')
+>>"%CMAKE_UNZIP_PS1%" echo $dst = $shell.NameSpace('%PORTABLE_CMAKE_DIR%')
+>>"%CMAKE_UNZIP_PS1%" echo if ($zip -eq $null -or $dst -eq $null) { exit 1 }
+>>"%CMAKE_UNZIP_PS1%" echo $dst.CopyHere($zip.Items(), 16)
+>>"%CMAKE_UNZIP_PS1%" echo Start-Sleep -Seconds 5
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%CMAKE_UNZIP_PS1%"
+if exist "%CMAKE_UNZIP_PS1%" del /q "%CMAKE_UNZIP_PS1%"
+
+if errorlevel 1 (
+    echo ERROR: Portable CMake extraction failed.
+    pause
+    goto %RETURN_MENU%
+)
+
+echo.
+call :FIND_CMAKE
+pause
+goto %RETURN_MENU%
+
 :FIND_GIT_QUIET
 set "GIT_EXE="
 where git.exe >nul 2>nul
@@ -652,9 +796,20 @@ exit /b 1
 :FIND_CMAKE_QUIET
 set "CMAKE_EXE="
 where cmake.exe >nul 2>nul
-if errorlevel 1 exit /b 1
-for /f "delims=" %%I in ('where cmake.exe 2^>nul') do (
-    set "CMAKE_EXE=%%I"
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where cmake.exe 2^>nul') do (
+        set "CMAKE_EXE=%%I"
+        exit /b 0
+    )
+)
+for /d %%D in ("%PORTABLE_CMAKE_DIR%\cmake-*") do (
+    if exist "%%D\bin\cmake.exe" (
+        set "CMAKE_EXE=%%D\bin\cmake.exe"
+        exit /b 0
+    )
+)
+if exist "%PORTABLE_CMAKE_DIR%\bin\cmake.exe" (
+    set "CMAKE_EXE=%PORTABLE_CMAKE_DIR%\bin\cmake.exe"
     exit /b 0
 )
 exit /b 1
@@ -772,18 +927,16 @@ echo Git: %GIT_EXE%
 exit /b 0
 
 :FIND_CMAKE
-where cmake.exe >nul 2>nul
+set "CMAKE_EXE="
+call :FIND_CMAKE_QUIET
 if errorlevel 1 (
     echo CMake: NOT FOUND
     exit /b 1
 )
 
-for /f "delims=" %%I in ('where cmake.exe 2^>nul') do (
-    echo CMake: %%I
-    cmake --version
-    exit /b 0
-)
-exit /b 1
+echo CMake: %CMAKE_EXE%
+"%CMAKE_EXE%" --version
+exit /b 0
 
 :FIND_PYTHON
 set "PYTHON_EXE="
