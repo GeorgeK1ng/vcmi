@@ -30,6 +30,7 @@ set "VS_YEAR="
 set "VS_ROOT="
 set "MSVC_CL_EXE="
 set "MSVC_FULL_VERSION="
+set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
 
 set "CONAN_EXE="
@@ -1214,14 +1215,21 @@ exit /b 0
 
 :FIND_MSVC_CL_FOR_SELECTED_VS
 set "MSVC_CL_EXE="
+set "MSVC_TOOLS_VERSION="
 if not defined VS_ROOT exit /b 1
 if "%TARGET_PRE_WINDOWS10%"=="1" (
     for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\14.2*") do (
-        if exist "%%D\bin\Hostx64\x64\cl.exe" set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+        if exist "%%D\bin\Hostx64\x64\cl.exe" (
+            set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+            set "MSVC_TOOLS_VERSION=%%~nxD"
+        )
     )
 ) else (
     for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\*") do (
-        if exist "%%D\bin\Hostx64\x64\cl.exe" set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+        if exist "%%D\bin\Hostx64\x64\cl.exe" (
+            set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+            set "MSVC_TOOLS_VERSION=%%~nxD"
+        )
     )
 )
 if not defined MSVC_CL_EXE exit /b 1
@@ -1229,6 +1237,7 @@ exit /b 0
 
 :DETECT_CONAN_COMPILER_VERSION
 set "MSVC_FULL_VERSION="
+set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
 call :FIND_MSVC_CL_FOR_SELECTED_VS
 if errorlevel 1 exit /b 1
@@ -1241,7 +1250,7 @@ for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
 if not defined MSVC_FULL_VERSION exit /b 1
 for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do set "CONAN_COMPILER_VERSION=%%a%%b"
 set "CONAN_COMPILER_VERSION=!CONAN_COMPILER_VERSION:~0,3!"
-call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; Conan compiler.version=%CONAN_COMPILER_VERSION%"
+call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%"
 exit /b 0
 
 ::::::::::::::::::::::::::::
@@ -1585,9 +1594,6 @@ set "DEP_NAME=%~4"
 set "CONAN_OUTPUT=conan-%BUILD_DIR%"
 set "DEP_FILE="
 set "CMAKE_TOOLSET_ARG="
-if "%TARGET_PRE_WINDOWS10%"=="1" (
-    if /I not "%ARCH%"=="ARM64" set "CMAKE_TOOLSET_ARG=-T v142"
-)
 
 cls
 echo =============================
@@ -1623,10 +1629,13 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
     if /I not "%ARCH%"=="ARM64" (
         call :DETECT_CONAN_COMPILER_VERSION
         if errorlevel 1 (
-            echo WARNING: Unable to detect compiler.version from cl.exe, using 192 for v142 compatibility.
-            call :LOG "Unable to detect compiler.version from cl.exe; using 192"
-            set "CONAN_COMPILER_VERSION=192"
+            echo ERROR: Unable to detect compiler.version from selected cl.exe.
+            echo Select a Visual Studio installation with the required v142 compiler installed.
+            call :LOG "Unable to detect compiler.version from selected cl.exe"
+            pause
+            exit /b 1
         )
+        set "CMAKE_TOOLSET_ARG=-T v142,version=%MSVC_TOOLS_VERSION%"
     )
 )
 
