@@ -1715,7 +1715,7 @@ if exist "%OUT%" del /q "%OUT%"
 
 bitsadmin /reset /allusers >nul 2>nul
 call :LOG "Downloading %URL% to %OUT%"
-bitsadmin /transfer VCMIDeps /download /priority normal "%URL%" "%OUT%" >>"%LOG_FILE%" 2>&1
+bitsadmin /transfer VCMIDeps /download /priority normal "%URL%" "%OUT%"
 
 if errorlevel 1 (
     if exist "%OUT%" del /q "%OUT%"
