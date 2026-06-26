@@ -27,6 +27,10 @@ set "DEVENV="
 set "VS_SELECTED=0"
 set "VS_NAME="
 set "VS_YEAR="
+set "VS_ROOT="
+set "MSVC_CL_EXE="
+set "MSVC_FULL_VERSION="
+set "CONAN_COMPILER_VERSION="
 
 set "CONAN_EXE="
 set "PYTHON_EXE="
@@ -1208,6 +1212,38 @@ if errorlevel 1 (
 )
 exit /b 0
 
+:FIND_MSVC_CL_FOR_SELECTED_VS
+set "MSVC_CL_EXE="
+if not defined VS_ROOT exit /b 1
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\14.2*") do (
+        if exist "%%D\bin\Hostx64\x64\cl.exe" set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+    )
+) else (
+    for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\*") do (
+        if exist "%%D\bin\Hostx64\x64\cl.exe" set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+    )
+)
+if not defined MSVC_CL_EXE exit /b 1
+exit /b 0
+
+:DETECT_CONAN_COMPILER_VERSION
+set "MSVC_FULL_VERSION="
+set "CONAN_COMPILER_VERSION="
+call :FIND_MSVC_CL_FOR_SELECTED_VS
+if errorlevel 1 exit /b 1
+for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
+    for %%T in (%%a %%b %%c %%d %%e %%f %%g %%h %%i %%j %%k %%l) do (
+        echo %%T | findstr /R "^19\.[0-9][0-9]" >nul 2>nul
+        if not errorlevel 1 set "MSVC_FULL_VERSION=%%T"
+    )
+)
+if not defined MSVC_FULL_VERSION exit /b 1
+for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do set "CONAN_COMPILER_VERSION=%%a%%b"
+set "CONAN_COMPILER_VERSION=!CONAN_COMPILER_VERSION:~0,3!"
+call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; Conan compiler.version=%CONAN_COMPILER_VERSION%"
+exit /b 0
+
 ::::::::::::::::::::::::::::
 :: VISUAL STUDIO
 ::::::::::::::::::::::::::::
@@ -1327,6 +1363,10 @@ set "VS_YEAR=2019"
 set "VS_GENERATOR=Visual Studio 16 2019"
 set "VS_SELECTED=1"
 
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community" set "VS_ROOT=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional" set "VS_ROOT=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional"
+if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise" set "VS_ROOT=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise"
+
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"
@@ -1347,6 +1387,10 @@ set "VS_YEAR=2022"
 set "VS_GENERATOR=Visual Studio 17 2022"
 set "VS_SELECTED=1"
 
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise"
+
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
@@ -1366,6 +1410,10 @@ set "VS_NAME=Visual Studio 2026"
 set "VS_YEAR=2026"
 set "VS_GENERATOR=Visual Studio 18 2026"
 set "VS_SELECTED=1"
+
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional"
+if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise" set "VS_ROOT=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise"
 
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe"
@@ -1570,6 +1618,18 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
     )
 )
 
+set "CONAN_COMPILER_VERSION="
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    if /I not "%ARCH%"=="ARM64" (
+        call :DETECT_CONAN_COMPILER_VERSION
+        if errorlevel 1 (
+            echo WARNING: Unable to detect compiler.version from cl.exe, using 192 for v142 compatibility.
+            call :LOG "Unable to detect compiler.version from cl.exe; using 192"
+            set "CONAN_COMPILER_VERSION=192"
+        )
+    )
+)
+
 call :READ_DEPENDENCIES_TAG
 if errorlevel 1 exit /b 1
 
@@ -1601,7 +1661,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --output-folder="%CONAN_OUTPUT%" ^
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
-        -s "&:compiler.version=192" ^
+        -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
         -s "&:build_type=%BUILD_TYPE%" ^
         -o "&:target_pre_windows10=True" >>"%LOG_FILE%" 2>&1
 ) else (
