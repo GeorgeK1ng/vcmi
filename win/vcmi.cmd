@@ -26,6 +26,7 @@ set "VS_GENERATOR="
 set "DEVENV="
 set "VS_SELECTED=0"
 set "VS_NAME="
+set "VS_YEAR="
 
 set "CONAN_EXE="
 set "PYTHON_EXE="
@@ -361,8 +362,12 @@ if "%VS_SELECTED%"=="0" (
 )
 set "TOOLSET_STATUS=NOT REQUIRED"
 if "%TARGET_PRE_WINDOWS10%"=="1" (
-    call :HAS_TOOLSET_V142
-    if errorlevel 1 (set "TOOLSET_STATUS=v142 NOT FOUND") else (set "TOOLSET_STATUS=v142 FOUND")
+    if "%VS_SELECTED%"=="1" (
+        call :HAS_TOOLSET_V142_FOR_VS %VS_YEAR%
+        if errorlevel 1 (set "TOOLSET_STATUS=v142 NOT FOUND for VS %VS_YEAR%") else (set "TOOLSET_STATUS=v142 FOUND for VS %VS_YEAR%")
+    ) else (
+        set "TOOLSET_STATUS=v142 check needs VS selection"
+    )
 )
 set "TOOLS_MISSING=0"
 if "%GIT_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
@@ -370,7 +375,7 @@ if "%CMAKE_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%PYTHON_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%CONAN_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%VS_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
-if "%TOOLSET_STATUS%"=="v142 NOT FOUND" set "TOOLS_MISSING=1"
+if "%TOOLSET_STATUS%"=="v142 NOT FOUND for VS %VS_YEAR%" set "TOOLS_MISSING=1"
 exit /b 0
 
 :SOURCE_MENU
@@ -1174,16 +1179,34 @@ echo Conan: %CONAN_EXE%
 "%CONAN_EXE%" --version
 exit /b 0
 
-:HAS_TOOLSET_V142
-for %%Y in (2019 2022 2026) do (
-    for %%E in (Community Professional Enterprise BuildTools) do (
-        for %%M in (v160 v170 v180) do (
-            if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\%%Y\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
-            if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\%%Y\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
-        )
+:HAS_TOOLSET_V142_FOR_VS
+set "TOOLSET_VS_YEAR=%~1"
+if not defined TOOLSET_VS_YEAR exit /b 1
+for %%E in (Community Professional Enterprise BuildTools) do (
+    for %%M in (v160 v170 v180) do (
+        if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\%TOOLSET_VS_YEAR%\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
+        if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\%TOOLSET_VS_YEAR%\%%E\MSBuild\Microsoft\VC\%%M\Platforms\x64\PlatformToolsets\v142" exit /b 0
     )
 )
 exit /b 1
+
+:HAS_TOOLSET_V142
+call :HAS_TOOLSET_V142_FOR_VS 2019
+if not errorlevel 1 exit /b 0
+call :HAS_TOOLSET_V142_FOR_VS 2022
+if not errorlevel 1 exit /b 0
+call :HAS_TOOLSET_V142_FOR_VS 2026
+if not errorlevel 1 exit /b 0
+exit /b 1
+
+:PRINT_V142_FOR_VS
+call :HAS_TOOLSET_V142_FOR_VS %~1
+if errorlevel 1 (
+    echo    v142 toolset: Not found ^(install via Visual Studio Installer; admin rights required^)
+) else (
+    echo    v142 toolset: Found
+)
+exit /b 0
 
 ::::::::::::::::::::::::::::
 :: VISUAL STUDIO
@@ -1193,16 +1216,22 @@ exit /b 1
 echo Visual Studio detection:
 
 call :VS_EXISTS_2019
-if not errorlevel 1 echo VS 2019: FOUND
+if not errorlevel 1 (
+    echo VS 2019: FOUND
+    call :PRINT_V142_FOR_VS 2019
+)
 
 call :VS_EXISTS_2022
-if not errorlevel 1 echo VS 2022: FOUND
+if not errorlevel 1 (
+    echo VS 2022: FOUND
+    call :PRINT_V142_FOR_VS 2022
+)
 
 call :VS_EXISTS_2026
-if not errorlevel 1 echo VS 2026: FOUND
-
-call :HAS_TOOLSET_V142
-if errorlevel 1 (echo MSVC v142 toolset: NOT FOUND) else (echo MSVC v142 toolset: FOUND)
+if not errorlevel 1 (
+    echo VS 2026: FOUND
+    call :PRINT_V142_FOR_VS 2026
+)
 
 call :VS_ANY_EXISTS
 if errorlevel 1 echo Visual Studio: NOT FOUND
@@ -1260,15 +1289,15 @@ echo =============================
 echo.
 echo 1^) Visual Studio 2019
 call :VS_EXISTS_2019
-if errorlevel 1 (echo    Not found) else (echo    Found)
+if errorlevel 1 (echo    Not found) else (echo    Found & call :PRINT_V142_FOR_VS 2019)
 echo.
 echo 2^) Visual Studio 2022
 call :VS_EXISTS_2022
-if errorlevel 1 (echo    Not found) else (echo    Found)
+if errorlevel 1 (echo    Not found) else (echo    Found & call :PRINT_V142_FOR_VS 2022)
 echo.
 echo 3^) Visual Studio 2026
 call :VS_EXISTS_2026
-if errorlevel 1 (echo    Not found) else (echo    Found)
+if errorlevel 1 (echo    Not found) else (echo    Found & call :PRINT_V142_FOR_VS 2026)
 echo.
 echo 0^) Back
 echo.
@@ -1294,6 +1323,7 @@ if errorlevel 1 (
 )
 
 set "VS_NAME=Visual Studio 2019"
+set "VS_YEAR=2019"
 set "VS_GENERATOR=Visual Studio 16 2019"
 set "VS_SELECTED=1"
 
@@ -1313,6 +1343,7 @@ if errorlevel 1 (
 )
 
 set "VS_NAME=Visual Studio 2022"
+set "VS_YEAR=2022"
 set "VS_GENERATOR=Visual Studio 17 2022"
 set "VS_SELECTED=1"
 
@@ -1332,6 +1363,7 @@ if errorlevel 1 (
 )
 
 set "VS_NAME=Visual Studio 2026"
+set "VS_YEAR=2026"
 set "VS_GENERATOR=Visual Studio 18 2026"
 set "VS_SELECTED=1"
 
@@ -1527,10 +1559,11 @@ if errorlevel 1 exit /b 1
 
 if "%TARGET_PRE_WINDOWS10%"=="1" (
     if /I not "%ARCH%"=="ARM64" (
-        call :HAS_TOOLSET_V142
+        call :HAS_TOOLSET_V142_FOR_VS %VS_YEAR%
         if errorlevel 1 (
-            echo ERROR: MSVC v142 toolset was not found.
-            echo Install "MSVC v142 - VS 2019 C++ x64/x86 build tools" in Visual Studio Installer.
+            echo ERROR: MSVC v142 toolset was not found for %VS_NAME%.
+            echo Install "MSVC v142 - VS 2019 C++ x64/x86 build tools" for this Visual Studio in Visual Studio Installer.
+            echo Admin rights are required to modify Visual Studio components.
             pause
             exit /b 1
         )
