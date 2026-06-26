@@ -1601,6 +1601,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --output-folder="%CONAN_OUTPUT%" ^
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
+        -s "&:compiler.version=192" ^
         -s "&:build_type=%BUILD_TYPE%" ^
         -o "&:target_pre_windows10=True" >>"%LOG_FILE%" 2>&1
 ) else (
