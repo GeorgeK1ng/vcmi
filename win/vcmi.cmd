@@ -16,6 +16,7 @@ set "VCMI_REPO=https://github.com/vcmi/vcmi.git"
 set "VCMI_BRANCH=develop"
 
 set "BUILD_TYPE=Debug"
+set "RETURN_MENU=PREREQ_MENU"
 
 set "VS_GENERATOR="
 set "DEVENV="
@@ -25,6 +26,13 @@ set "VS_NAME="
 set "CONAN_EXE="
 set "PYTHON_EXE="
 set "GIT_EXE="
+set "CMAKE_EXE="
+
+set "GIT_STATUS=NOT CHECKED"
+set "CMAKE_STATUS=NOT CHECKED"
+set "PYTHON_STATUS=NOT CHECKED"
+set "CONAN_STATUS=NOT CHECKED"
+set "VS_STATUS=NOT CHECKED"
 
 set "WIN_MAJOR="
 set "WIN_MINOR="
@@ -47,39 +55,41 @@ if not exist "%DOWNLOADS_DIR%" md "%DOWNLOADS_DIR%"
 if not exist "%TOOLS_DIR%" md "%TOOLS_DIR%"
 
 call :DETECT_SYSTEM
+call :REFRESH_TOOL_STATUS
 
 :MENU
+call :REFRESH_TOOL_STATUS
 cls
 echo =============================
 echo VCMI build helper
 echo =============================
 echo.
-echo Windows: %WIN_MAJOR%.%WIN_MINOR%
-echo OS arch: %OS_ARCH%
-echo Admin: %IS_ADMIN%
-echo Downloads cache:
-echo %DOWNLOADS_DIR%
+echo System: Windows %WIN_MAJOR%.%WIN_MINOR%  Arch: %OS_ARCH%  Admin: %IS_ADMIN%
+if "%WINDOWS7%"=="1" echo Mode: Windows 7 compatible downloads selected
 echo.
-echo VCMI folder:
-echo %VCMI_DIR%
+echo Folders:
+echo   Source:    %VCMI_DIR%
+echo   Downloads: %DOWNLOADS_DIR%
+echo   Tools:     %TOOLS_DIR%
 echo.
-echo Visual Studio:
-if "%VS_SELECTED%"=="1" (
-    echo %VS_NAME%
-    echo %VS_GENERATOR%
-) else (
-    echo Not selected
-)
+echo Tool status:
+echo   Git:           %GIT_STATUS%
+echo   CMake:         %CMAKE_STATUS%
+echo   Python:        %PYTHON_STATUS%
+echo   Conan:         %CONAN_STATUS%
+echo   Visual Studio: %VS_STATUS%
 echo.
-echo 1^) Generate x64 SLN  ^(default^)
-echo 2^) Generate x86 SLN
-echo 3^) Generate ARM64 SLN
-echo 4^) Generate all SLNs
-echo 5^) Open existing SLN
-echo 6^) Clone VCMI develop branch
-echo 7^) Update VCMI develop branch
-echo 8^) Prerequisites check/install
-echo 9^) Select Visual Studio
+echo Recommended flow:
+echo   1. Check/install tools, 2. Clone/update source, 3. Select VS,
+echo   4. Generate solution, 5. Open solution.
+echo.
+echo 1^) Check tools again
+echo 2^) Install missing tools
+echo 3^) Clone or update VCMI source
+echo 4^) Select Visual Studio
+echo 5^) Generate Visual Studio solution
+echo 6^) Open existing solution
+echo 7^) Advanced tools menu
 echo 0^) Exit
 echo.
 
@@ -87,15 +97,13 @@ set "CHOICE="
 set /p "CHOICE=Choose option [1]: "
 if "%CHOICE%"=="" set "CHOICE=1"
 
-if "%CHOICE%"=="1" goto BUILD_X64
-if "%CHOICE%"=="2" goto BUILD_X86
-if "%CHOICE%"=="3" goto BUILD_ARM64
-if "%CHOICE%"=="4" goto BUILD_ALL
-if "%CHOICE%"=="5" goto OPEN_MENU
-if "%CHOICE%"=="6" goto CLONE_VCMI
-if "%CHOICE%"=="7" goto UPDATE_VCMI
-if "%CHOICE%"=="8" goto PREREQ_MENU
-if "%CHOICE%"=="9" goto VS_MENU
+if "%CHOICE%"=="1" call :CHECK_ALL_PREREQ & call :REFRESH_TOOL_STATUS & goto MENU
+if "%CHOICE%"=="2" goto INSTALL_MISSING_TOOLS
+if "%CHOICE%"=="3" goto SOURCE_MENU
+if "%CHOICE%"=="4" goto VS_MENU
+if "%CHOICE%"=="5" goto GENERATE_MENU
+if "%CHOICE%"=="6" goto OPEN_MENU
+if "%CHOICE%"=="7" goto PREREQ_MENU
 if "%CHOICE%"=="0" exit /b 0
 
 echo Invalid choice.
@@ -226,11 +234,146 @@ if "%OS_ARCH%"=="x64" (
     exit /b 0
 )
 
+:REFRESH_TOOL_STATUS
+call :DETECT_SYSTEM
+
+set "GIT_STATUS=NOT FOUND"
+call :FIND_GIT_QUIET
+if not errorlevel 1 set "GIT_STATUS=OK - %GIT_EXE%"
+
+set "CMAKE_STATUS=NOT FOUND"
+call :FIND_CMAKE_QUIET
+if not errorlevel 1 set "CMAKE_STATUS=OK - %CMAKE_EXE%"
+
+set "PYTHON_STATUS=NOT FOUND"
+call :FIND_PYTHON_QUIET
+if not errorlevel 1 set "PYTHON_STATUS=OK - %PYTHON_EXE%"
+
+set "CONAN_STATUS=NOT FOUND"
+call :FIND_CONAN_QUIET
+if not errorlevel 1 set "CONAN_STATUS=OK - %CONAN_EXE%"
+
+set "VS_STATUS=NOT SELECTED"
+if "%VS_SELECTED%"=="1" set "VS_STATUS=%VS_NAME%"
+if "%VS_SELECTED%"=="0" (
+    call :VS_ANY_EXISTS
+    if errorlevel 1 (set "VS_STATUS=NOT FOUND") else (set "VS_STATUS=FOUND - select before generating")
+)
+exit /b 0
+
+:SOURCE_MENU
+cls
+echo =============================
+echo VCMI source
+echo =============================
+echo.
+echo Source folder:
+echo %VCMI_DIR%
+echo.
+if exist "%VCMI_DIR%\.git" (
+    echo Status: repository exists
+    echo.
+    echo 1^) Update VCMI develop branch
+    echo 2^) Clone VCMI develop branch ^(disabled - repository exists^)
+) else (
+    echo Status: repository not cloned
+    echo.
+    echo 1^) Clone VCMI develop branch
+    echo 2^) Update VCMI develop branch ^(disabled - no repository^)
+)
+echo 0^) Back
+echo.
+
+set "SCHOICE="
+set /p "SCHOICE=Choose option [1]: "
+if "%SCHOICE%"=="" set "SCHOICE=1"
+
+if "%SCHOICE%"=="1" (
+    if exist "%VCMI_DIR%\.git" (goto UPDATE_VCMI) else (goto CLONE_VCMI)
+)
+if "%SCHOICE%"=="2" (
+    echo This action is not available for the current source folder state.
+    pause
+    goto SOURCE_MENU
+)
+if "%SCHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto SOURCE_MENU
+
+:GENERATE_MENU
+call :REFRESH_TOOL_STATUS
+cls
+echo =============================
+echo Generate Visual Studio solution
+echo =============================
+echo.
+echo Build type: %BUILD_TYPE%
+echo Visual Studio: %VS_STATUS%
+echo.
+echo 1^) x64   ^(recommended^)
+echo 2^) x86
+echo 3^) ARM64
+echo 4^) All platforms
+echo 0^) Back
+echo.
+
+set "GCHOICE="
+set /p "GCHOICE=Choose platform [1]: "
+if "%GCHOICE%"=="" set "GCHOICE=1"
+
+if "%GCHOICE%"=="1" goto BUILD_X64
+if "%GCHOICE%"=="2" goto BUILD_X86
+if "%GCHOICE%"=="3" goto BUILD_ARM64
+if "%GCHOICE%"=="4" goto BUILD_ALL
+if "%GCHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto GENERATE_MENU
+
+:INSTALL_MISSING_TOOLS
+set "RETURN_MENU=INSTALL_MISSING_TOOLS"
+call :REFRESH_TOOL_STATUS
+cls
+echo =============================
+echo Install missing tools
+echo =============================
+echo.
+echo Current status:
+echo   Git:    %GIT_STATUS%
+echo   Python: %PYTHON_STATUS%
+echo   Conan:  %CONAN_STATUS%
+echo   CMake:  %CMAKE_STATUS%
+echo.
+echo 1^) Install Git / Portable Git
+echo 2^) Install Python
+echo 3^) Install Conan via Python pip
+echo 4^) Check tools again
+echo 0^) Back
+echo.
+
+set "MICHOICE="
+set /p "MICHOICE=Choose option [4]: "
+if "%MICHOICE%"=="" set "MICHOICE=4"
+
+if "%MICHOICE%"=="1" goto INSTALL_GIT
+if "%MICHOICE%"=="2" goto INSTALL_PYTHON
+if "%MICHOICE%"=="3" goto INSTALL_CONAN
+if "%MICHOICE%"=="4" call :CHECK_ALL_PREREQ & goto INSTALL_MISSING_TOOLS
+if "%MICHOICE%"=="0" goto MENU
+
+echo Invalid choice.
+pause
+goto INSTALL_MISSING_TOOLS
+
 ::::::::::::::::::::::::::::
 :: PREREQUISITES
 ::::::::::::::::::::::::::::
 
 :PREREQ_MENU
+set "RETURN_MENU=PREREQ_MENU"
 cls
 echo =============================
 echo Prerequisites
@@ -262,17 +405,17 @@ set "PCHOICE="
 set /p "PCHOICE=Choose option [5]: "
 if "%PCHOICE%"=="" set "PCHOICE=5"
 
-if "%PCHOICE%"=="1" call :FIND_PYTHON & pause & goto PREREQ_MENU
-if "%PCHOICE%"=="2" call :FIND_CONAN & pause & goto PREREQ_MENU
+if "%PCHOICE%"=="1" call :FIND_PYTHON & pause & goto %RETURN_MENU%
+if "%PCHOICE%"=="2" call :FIND_CONAN & pause & goto %RETURN_MENU%
 if "%PCHOICE%"=="3" goto INSTALL_CONAN
 if "%PCHOICE%"=="4" goto INSTALL_PYTHON
-if "%PCHOICE%"=="5" goto CHECK_ALL_PREREQ
+if "%PCHOICE%"=="5" call :CHECK_ALL_PREREQ & goto PREREQ_MENU
 if "%PCHOICE%"=="6" goto INSTALL_GIT
 if "%PCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
 pause
-goto PREREQ_MENU
+goto %RETURN_MENU%
 
 :CHECK_ALL_PREREQ
 cls
@@ -316,7 +459,7 @@ echo =============================
 echo Check finished.
 echo =============================
 pause
-goto PREREQ_MENU
+exit /b 0
 
 :INSTALL_PYTHON
 cls
@@ -333,7 +476,7 @@ if not exist "%PYTHON_INSTALLER%" (
     if errorlevel 1 (
         echo ERROR: Python download failed.
         pause
-        goto PREREQ_MENU
+        goto %RETURN_MENU%
     )
 ) else (
     echo Python installer already exists:
@@ -349,13 +492,13 @@ echo.
 if errorlevel 1 (
     echo ERROR: Python installation failed.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 echo.
 call :FIND_PYTHON
 pause
-goto PREREQ_MENU
+goto %RETURN_MENU%
 
 :INSTALL_CONAN
 cls
@@ -368,7 +511,7 @@ call :FIND_PYTHON
 if errorlevel 1 (
     echo ERROR: Python was not found. Install Python first.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 echo.
@@ -380,13 +523,13 @@ echo.
 if errorlevel 1 (
     echo ERROR: Conan installation failed.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 echo.
 call :FIND_CONAN
 pause
-goto PREREQ_MENU
+goto %RETURN_MENU%
 
 :INSTALL_GIT
 call :FIND_GIT
@@ -394,7 +537,7 @@ if not errorlevel 1 (
     echo.
     echo Git is already available.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 call :CHECK_ADMIN_RIGHTS
@@ -421,7 +564,7 @@ if not exist "%GIT_INSTALLER%" (
     if errorlevel 1 (
         echo ERROR: Git download failed.
         pause
-        goto PREREQ_MENU
+        goto %RETURN_MENU%
     )
 ) else (
     echo Git installer already exists:
@@ -437,13 +580,13 @@ echo.
 if errorlevel 1 (
     echo ERROR: Git installation failed.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 echo.
 call :FIND_GIT
 pause
-goto PREREQ_MENU
+goto %RETURN_MENU%
 
 :INSTALL_PORTABLE_GIT
 cls
@@ -460,7 +603,7 @@ if not exist "%GIT_PORTABLE_INSTALLER%" (
     if errorlevel 1 (
         echo ERROR: Portable Git download failed.
         pause
-        goto PREREQ_MENU
+        goto %RETURN_MENU%
     )
 ) else (
     echo Portable Git archive already exists:
@@ -479,13 +622,106 @@ echo.
 if errorlevel 1 (
     echo ERROR: Portable Git extraction failed.
     pause
-    goto PREREQ_MENU
+    goto %RETURN_MENU%
 )
 
 echo.
 call :FIND_GIT
 pause
-goto PREREQ_MENU
+goto %RETURN_MENU%
+
+:FIND_GIT_QUIET
+set "GIT_EXE="
+where git.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where git.exe 2^>nul') do (
+        set "GIT_EXE=%%I"
+        exit /b 0
+    )
+)
+if exist "%PORTABLE_GIT_DIR%\cmd\git.exe" (
+    set "GIT_EXE=%PORTABLE_GIT_DIR%\cmd\git.exe"
+    exit /b 0
+)
+if exist "%PORTABLE_GIT_DIR%\bin\git.exe" (
+    set "GIT_EXE=%PORTABLE_GIT_DIR%\bin\git.exe"
+    exit /b 0
+)
+exit /b 1
+
+:FIND_CMAKE_QUIET
+set "CMAKE_EXE="
+where cmake.exe >nul 2>nul
+if errorlevel 1 exit /b 1
+for /f "delims=" %%I in ('where cmake.exe 2^>nul') do (
+    set "CMAKE_EXE=%%I"
+    exit /b 0
+)
+exit /b 1
+
+:FIND_PYTHON_QUIET
+set "PYTHON_EXE="
+where python.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where python.exe 2^>nul') do (
+        set "PYTHON_EXE=%%I"
+        exit /b 0
+    )
+)
+for /d %%D in ("%LOCALAPPDATA%\Python\pythoncore-*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        exit /b 0
+    )
+)
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        exit /b 0
+    )
+)
+for /d %%D in ("C:\Python*") do (
+    if exist "%%D\python.exe" (
+        set "PYTHON_EXE=%%D\python.exe"
+        exit /b 0
+    )
+)
+exit /b 1
+
+:FIND_CONAN_QUIET
+set "CONAN_EXE="
+where conan.exe >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where conan.exe 2^>nul') do (
+        set "CONAN_EXE=%%I"
+        exit /b 0
+    )
+)
+for /d %%D in ("%LOCALAPPDATA%\Python\pythoncore-*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        exit /b 0
+    )
+)
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        exit /b 0
+    )
+)
+for /d %%D in ("%APPDATA%\Python\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        exit /b 0
+    )
+)
+for /d %%D in ("C:\Python*") do (
+    if exist "%%D\Scripts\conan.exe" (
+        set "CONAN_EXE=%%D\Scripts\conan.exe"
+        exit /b 0
+    )
+)
+exit /b 1
 
 ::::::::::::::::::::::::::::
 :: TOOL DETECTION
