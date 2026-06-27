@@ -620,9 +620,12 @@ if "%IS_ADMIN%"=="0" (
 )
 call :DOWNLOAD_FILE "%VS_INSTALL_URL%" "%VS_INSTALLER%"
 if errorlevel 1 exit /b 1
-set "LOG_COMMAND=%VS_INSTALLER% --passive --wait --norestart --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+set "VS_INSTALL_COMPONENTS=--add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+if not "%VS_INSTALL_YEAR%"=="2019" set "VS_INSTALL_COMPONENTS=%VS_INSTALL_COMPONENTS% --add Microsoft.VisualStudio.Component.VC.v142.x86.x64"
+if not "%VS_INSTALL_YEAR%"=="2019" echo Adding MSVC v142 x86/x64 toolset for Windows 7/8 compatibility builds.
+set "LOG_COMMAND=%VS_INSTALLER% --passive --wait --norestart %VS_INSTALL_COMPONENTS%"
 call :LOG "Installing Visual Studio %VS_INSTALL_YEAR% Community"
-"%VS_INSTALLER%" --passive --wait --norestart --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended >>"%LOG_FILE%" 2>&1
+"%VS_INSTALLER%" --passive --wait --norestart %VS_INSTALL_COMPONENTS% >>"%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo ERROR: Visual Studio installer failed. Check log:
     echo %LOG_FILE%
