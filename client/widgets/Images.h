@@ -143,6 +143,7 @@ public:
 	void setAnimationPath(const AnimationPath & name, size_t frame);
 
 	void setScale(Point scale);
+	void horizontalFlip();
 };
 
 /// Base class for displaying animation, used as superclass for different animations

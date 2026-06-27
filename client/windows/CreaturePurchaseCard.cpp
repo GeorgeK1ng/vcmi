@@ -34,12 +34,13 @@ void CreaturePurchaseCard::initButtons()
 
 void CreaturePurchaseCard::initMaxButton()
 {
-	maxButton = std::make_shared<CButton>(Point(pos.x + 52, pos.y + 180), AnimationPath::builtin("QuickRecruitmentWindow/QuickRecruitmentAllButton.def"), CButton::tooltip(), std::bind(&CSlider::scrollToMax,slider), EShortcut::RECRUITMENT_MAX);
+	maxButton = std::make_shared<CButton>(Point(pos.x + 52, pos.y + 180), AnimationPath::builtin("iViewCr"), CButton::tooltip(), std::bind(&CSlider::scrollToMax, slider), EShortcut::RECRUITMENT_MAX);
 }
 
 void CreaturePurchaseCard::initMinButton()
 {
-	minButton = std::make_shared<CButton>(Point(pos.x, pos.y + 180), AnimationPath::builtin("QuickRecruitmentWindow/QuickRecruitmentNoneButton.def"), CButton::tooltip(), std::bind(&CSlider::scrollToMin,slider), EShortcut::RECRUITMENT_MIN);
+	minButton = std::make_shared<CButton>(Point(pos.x, pos.y + 180), AnimationPath::builtin("iViewCr"), CButton::tooltip(), std::bind(&CSlider::scrollToMin, slider), EShortcut::RECRUITMENT_MIN);
+	minButton->horizontalFlip();
 }
 
 void CreaturePurchaseCard::initCreatureSwitcherButton()

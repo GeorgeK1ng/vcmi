@@ -306,6 +306,12 @@ void CAnimImage::setScale(Point scale)
 	scaledSize = scale;
 }
 
+void CAnimImage::horizontalFlip()
+{
+	anim->horizontalFlip();
+	init();
+}
+
 void CAnimImage::setFrame(size_t Frame, size_t Group)
 {
 	if (frame == Frame && group==Group)
