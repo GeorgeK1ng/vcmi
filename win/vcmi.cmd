@@ -1508,6 +1508,12 @@ echo 3^) Visual Studio 2026
 call :VS_EXISTS_2026
 if errorlevel 1 (echo    Not found) else (echo    Found & call :PRINT_V142_FOR_VS 2026)
 echo.
+if "%VS_SELECTED%"=="1" (
+    if not "%VS_YEAR%"=="2019" (
+        call :HAS_TOOLSET_V142_FOR_VS %VS_YEAR%
+        if errorlevel 1 echo T^) Install MSVC v142 toolset for selected VS %VS_YEAR%
+    )
+)
 echo I^) Install Visual Studio Community
 echo 0^) Back
 echo.
@@ -1518,10 +1524,66 @@ set /p "VSCHOICE=Choose Visual Studio: "
 if "%VSCHOICE%"=="1" call :SELECT_VS_2019 & goto MENU
 if "%VSCHOICE%"=="2" call :SELECT_VS_2022 & goto MENU
 if "%VSCHOICE%"=="3" call :SELECT_VS_2026 & goto MENU
+if /I "%VSCHOICE%"=="T" goto INSTALL_V142_TOOLSET_FOR_SELECTED_VS
 if /I "%VSCHOICE%"=="I" set "RETURN_MENU=VS_MENU" & goto INSTALL_VISUAL_STUDIO_MENU
 if "%VSCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
+pause
+goto VS_MENU
+
+:INSTALL_V142_TOOLSET_FOR_SELECTED_VS
+if not "%VS_SELECTED%"=="1" (
+    echo Select Visual Studio 2022 or 2026 first.
+    pause
+    goto VS_MENU
+)
+if "%VS_YEAR%"=="2019" (
+    echo VS 2019 already uses the v142 generation.
+    pause
+    goto VS_MENU
+)
+call :HAS_TOOLSET_V142_FOR_VS %VS_YEAR%
+if not errorlevel 1 (
+    echo MSVC v142 toolset is already installed for VS %VS_YEAR%.
+    pause
+    goto VS_MENU
+)
+if not defined VS_ROOT (
+    echo ERROR: Selected Visual Studio root was not detected.
+    pause
+    goto VS_MENU
+)
+set "VS_TOOLSET_INSTALLER="
+set "VS_TOOLSET_URL="
+if "%VS_YEAR%"=="2022" set "VS_TOOLSET_URL=%VS2022_URL%" & set "VS_TOOLSET_INSTALLER=%VS2022_INSTALLER%"
+if "%VS_YEAR%"=="2026" set "VS_TOOLSET_URL=%VS2026_URL%" & set "VS_TOOLSET_INSTALLER=%VS2026_INSTALLER%"
+if not defined VS_TOOLSET_INSTALLER (
+    echo ERROR: v142 toolset installation is supported only for VS 2022 / 2026 here.
+    pause
+    goto VS_MENU
+)
+echo.
+echo Installing MSVC v142 x86/x64 toolset into VS %VS_YEAR%:
+echo %VS_ROOT%
+echo.
+echo This operation requires admin rights.
+if "%IS_ADMIN%"=="0" echo WARNING: Current shell is not elevated. The installer may prompt for admin credentials or fail.
+echo.
+call :DOWNLOAD_FILE "%VS_TOOLSET_URL%" "%VS_TOOLSET_INSTALLER%"
+if errorlevel 1 goto VS_MENU
+set "LOG_COMMAND=%VS_TOOLSET_INSTALLER% modify --installPath %VS_ROOT% --passive --wait --norestart --add Microsoft.VisualStudio.Component.VC.v142.x86.x64"
+call :LOG "Installing MSVC v142 toolset for VS %VS_YEAR%"
+"%VS_TOOLSET_INSTALLER%" modify --installPath "%VS_ROOT%" --passive --wait --norestart --add Microsoft.VisualStudio.Component.VC.v142.x86.x64 >>"%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo ERROR: v142 toolset installation failed. Check log:
+    echo %LOG_FILE%
+    pause
+    goto VS_MENU
+)
+call :REFRESH_TOOL_STATUS
+echo v142 toolset installation finished.
+echo Toolset: %TOOLSET_STATUS%
 pause
 goto VS_MENU
 
