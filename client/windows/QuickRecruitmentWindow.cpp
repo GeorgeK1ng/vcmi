@@ -58,7 +58,8 @@ void QuickRecruitmentWindow::setMaxButton()
 
 int QuickRecruitmentWindow::getDialogWidthForCards(int cardsCount) const
 {
-	return 44 + std::max(cardsCount, 4) * 110;
+	const int visibleCards = std::max(cardsCount, 4);
+	return 44 + visibleCards * 100 + std::max(0, visibleCards - 1) * 8;
 }
 
 int QuickRecruitmentWindow::getVisibleCards(int creaturesAmount) const
@@ -101,13 +102,14 @@ void QuickRecruitmentWindow::setCreaturePurchaseCards()
 			}
 		}
 	}
-	cardsViewport->setContentSize(Point(std::max(viewportWidth, contentWidth), 340));
+	cardsViewport->fitContentSize();
 }
 
 void QuickRecruitmentWindow::updateTotalCostBox(const TResources & resources)
 {
 	const int totalCostBoxWidth = getTotalCostBoxWidth(resources);
 	const Rect totalCostRect(pos.w / 2 - totalCostBoxWidth / 2, 380, totalCostBoxWidth, 74);
+	const Rect totalCostContentRect(totalCostRect.x, totalCostRect.y - 10, totalCostRect.w, totalCostRect.h);
 
 	if(totalCost && totalCost->pos.w == totalCostBoxWidth)
 	{
@@ -121,7 +123,7 @@ void QuickRecruitmentWindow::updateTotalCostBox(const TResources & resources)
 
 	OBJECT_CONSTRUCTION_TARGETED(this);
 	totalCostBackground = std::make_shared<TransparentFilledRectangle>(totalCostRect, ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
-	totalCost = std::make_shared<CreatureCostBox>(totalCostRect, "");
+	totalCost = std::make_shared<CreatureCostBox>(totalCostContentRect, "");
 	totalCost->createItems(resources);
 	totalCost->set(resources);
 }
