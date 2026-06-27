@@ -39,6 +39,13 @@ set "PYTHON_EXE="
 set "GIT_EXE="
 set "CMAKE_EXE="
 
+set "VS2019_URL=https://aka.ms/vs/16/release/vs_community.exe"
+set "VS2022_URL=https://aka.ms/vs/17/release/vs_community.exe"
+set "VS2026_URL=https://aka.ms/vs/18/Stable/vs_community.exe"
+set "VS2019_INSTALLER=%DOWNLOADS_DIR%\vs_community_2019.exe"
+set "VS2022_INSTALLER=%DOWNLOADS_DIR%\vs_community_2022.exe"
+set "VS2026_INSTALLER=%DOWNLOADS_DIR%\vs_community_2026.exe"
+
 set "GIT_STATUS=NOT CHECKED"
 set "CMAKE_STATUS=NOT CHECKED"
 set "PYTHON_STATUS=NOT CHECKED"
@@ -368,7 +375,7 @@ call :FIND_CONAN_QUIET
 if not errorlevel 1 set "CONAN_STATUS=OK - %CONAN_EXE%"
 
 set "VS_STATUS=NOT SELECTED"
-if "%VS_SELECTED%"=="1" set "VS_STATUS=%VS_NAME%"
+if "%VS_SELECTED%"=="1" set "VS_STATUS=%VS_YEAR%"
 if "%VS_SELECTED%"=="0" (
     call :VS_ANY_EXISTS
     if errorlevel 1 (set "VS_STATUS=NOT FOUND") else (set "VS_STATUS=FOUND - select before generating")
@@ -547,29 +554,85 @@ echo   Git:    %GIT_STATUS%
 echo   Python: %PYTHON_STATUS%
 echo   Conan:  %CONAN_STATUS%
 echo   CMake:  %CMAKE_STATUS%
+echo   Visual Studio: %VS_STATUS%
 echo.
 echo 1^) Install Git / Portable Git
 echo 2^) Install Python
 echo 3^) Install Conan via Python pip
 echo 4^) Install CMake
-echo 5^) Check tools again
+echo 5^) Install Visual Studio Community
+echo 6^) Check tools again
 echo 0^) Back
 echo.
 
 set "MICHOICE="
-set /p "MICHOICE=Choose option [5]: "
-if "%MICHOICE%"=="" set "MICHOICE=5"
+set /p "MICHOICE=Choose option [6]: "
+if "%MICHOICE%"=="" set "MICHOICE=6"
 
 if "%MICHOICE%"=="1" goto INSTALL_GIT
 if "%MICHOICE%"=="2" goto INSTALL_PYTHON
 if "%MICHOICE%"=="3" goto INSTALL_CONAN
 if "%MICHOICE%"=="4" goto INSTALL_CMAKE
-if "%MICHOICE%"=="5" call :CHECK_ALL_PREREQ & goto INSTALL_MISSING_TOOLS
+if "%MICHOICE%"=="5" set "RETURN_MENU=INSTALL_MISSING_TOOLS" & goto INSTALL_VISUAL_STUDIO_MENU
+if "%MICHOICE%"=="6" call :CHECK_ALL_PREREQ & goto INSTALL_MISSING_TOOLS
 if "%MICHOICE%"=="0" goto MENU
 
 echo Invalid choice.
 pause
 goto INSTALL_MISSING_TOOLS
+
+:INSTALL_VISUAL_STUDIO_MENU
+cls
+echo =============================
+echo Install Visual Studio Community
+echo =============================
+echo.
+echo This installer requires admin rights.
+echo Portable Visual Studio / Build Tools installation is not supported here; use the Microsoft installer.
+echo.
+echo 1^) Visual Studio 2019 Community ^(Windows 7 / 8 / 8.1 compatible host^)
+echo 2^) Visual Studio 2022 Community ^(Windows 10 / 11^)
+echo 3^) Visual Studio 2026 Community ^(Windows 10 / 11^)
+echo 0^) Back
+echo.
+set "VSINSTALLCHOICE="
+set /p "VSINSTALLCHOICE=Choose Visual Studio installer: "
+if "%VSINSTALLCHOICE%"=="1" call :INSTALL_VISUAL_STUDIO 2019 "%VS2019_URL%" "%VS2019_INSTALLER%" & goto %RETURN_MENU%
+if "%VSINSTALLCHOICE%"=="2" call :INSTALL_VISUAL_STUDIO 2022 "%VS2022_URL%" "%VS2022_INSTALLER%" & goto %RETURN_MENU%
+if "%VSINSTALLCHOICE%"=="3" call :INSTALL_VISUAL_STUDIO 2026 "%VS2026_URL%" "%VS2026_INSTALLER%" & goto %RETURN_MENU%
+if "%VSINSTALLCHOICE%"=="0" goto %RETURN_MENU%
+echo Invalid choice.
+pause
+goto INSTALL_VISUAL_STUDIO_MENU
+
+:INSTALL_VISUAL_STUDIO
+set "VS_INSTALL_YEAR=%~1"
+set "VS_INSTALL_URL=%~2"
+set "VS_INSTALLER=%~3"
+echo.
+echo Visual Studio %VS_INSTALL_YEAR% Community installer requires admin rights.
+echo Downloading bootstrapper:
+echo %VS_INSTALL_URL%
+echo.
+if "%IS_ADMIN%"=="0" (
+    echo WARNING: Current shell is not elevated. The installer may prompt for admin credentials or fail.
+    echo.
+)
+call :DOWNLOAD_FILE "%VS_INSTALL_URL%" "%VS_INSTALLER%"
+if errorlevel 1 exit /b 1
+set "LOG_COMMAND=%VS_INSTALLER% --passive --wait --norestart --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+call :LOG "Installing Visual Studio %VS_INSTALL_YEAR% Community"
+"%VS_INSTALLER%" --passive --wait --norestart --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended >>"%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo ERROR: Visual Studio installer failed. Check log:
+    echo %LOG_FILE%
+    pause
+    exit /b 1
+)
+echo Visual Studio installer finished.
+call :CHECK_VISUAL_STUDIOS
+pause
+exit /b 0
 
 ::::::::::::::::::::::::::::
 :: PREREQUISITES
@@ -1442,6 +1505,7 @@ echo 3^) Visual Studio 2026
 call :VS_EXISTS_2026
 if errorlevel 1 (echo    Not found) else (echo    Found & call :PRINT_V142_FOR_VS 2026)
 echo.
+echo I^) Install Visual Studio Community
 echo 0^) Back
 echo.
 
@@ -1451,6 +1515,7 @@ set /p "VSCHOICE=Choose Visual Studio: "
 if "%VSCHOICE%"=="1" call :SELECT_VS_2019 & goto MENU
 if "%VSCHOICE%"=="2" call :SELECT_VS_2022 & goto MENU
 if "%VSCHOICE%"=="3" call :SELECT_VS_2026 & goto MENU
+if /I "%VSCHOICE%"=="I" set "RETURN_MENU=VS_MENU" & goto INSTALL_VISUAL_STUDIO_MENU
 if "%VSCHOICE%"=="0" goto MENU
 
 echo Invalid choice.
@@ -1478,7 +1543,9 @@ if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Community\Common7\
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~2\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"
 
+call :REFRESH_TOOL_STATUS
 echo Selected: %VS_NAME%
+echo Toolset: %TOOLSET_STATUS%
 exit /b 0
 
 :SELECT_VS_2022
@@ -1502,7 +1569,9 @@ if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Community\Common7\
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
 
+call :REFRESH_TOOL_STATUS
 echo Selected: %VS_NAME%
+echo Toolset: %TOOLSET_STATUS%
 exit /b 0
 
 :SELECT_VS_2026
@@ -1526,7 +1595,9 @@ if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Community\Common7\
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Professional\Common7\IDE\devenv.exe"
 if exist "%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise\Common7\IDE\devenv.exe" set "DEVENV=%SystemDrive%\Progra~1\Microsoft Visual Studio\2026\Enterprise\Common7\IDE\devenv.exe"
 
+call :REFRESH_TOOL_STATUS
 echo Selected: %VS_NAME%
+echo Toolset: %TOOLSET_STATUS%
 exit /b 0
 
 ::::::::::::::::::::::::::::
