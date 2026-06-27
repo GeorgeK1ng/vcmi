@@ -1287,6 +1287,8 @@ exit /b 0
 
 :DETECT_CONAN_COMPILER_VERSION
 set "MSVC_FULL_VERSION="
+set "MSVC_MAJOR_VERSION="
+set "MSVC_MINOR_VERSION="
 set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
 set "CONAN_COMPILER_UPDATE="
@@ -1300,12 +1302,23 @@ for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
 )
 if not defined MSVC_FULL_VERSION exit /b 1
 for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do (
+    set "MSVC_MAJOR_VERSION=%%a"
+    set "MSVC_MINOR_VERSION=%%b"
     set "CONAN_COMPILER_VERSION=%%a%%b"
     set "CONAN_COMPILER_UPDATE=%%b"
 )
 set "CONAN_COMPILER_VERSION=!CONAN_COMPILER_VERSION:~0,3!"
+if "%TARGET_PRE_WINDOWS10%"=="0" (
+    :: VS 2022 17.10 and newer use MSVC 19.4x, which maps to Conan compiler.version 194.
+    if "%VS_YEAR%"=="2019" set "CONAN_COMPILER_VERSION=192"
+    if "%VS_YEAR%"=="2022" (
+        set "CONAN_COMPILER_VERSION=193"
+        if !MSVC_MINOR_VERSION! GEQ 40 set "CONAN_COMPILER_VERSION=194"
+    )
+    if "%VS_YEAR%"=="2026" set "CONAN_COMPILER_VERSION=195"
+)
 if not defined CONAN_COMPILER_UPDATE exit /b 1
-call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%; compiler.update=%CONAN_COMPILER_UPDATE%"
+call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VS=%VS_YEAR%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%; compiler.update=%CONAN_COMPILER_UPDATE%"
 exit /b 0
 
 ::::::::::::::::::::::::::::
