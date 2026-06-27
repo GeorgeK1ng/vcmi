@@ -21,6 +21,7 @@
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
 #include "../../lib/callback/CCallback.h"
+#include "../../lib/GameLibrary.h"
 #include "../../lib/CCreatureHandler.h"
 #include "CreaturePurchaseCard.h"
 
