@@ -34,6 +34,7 @@ private:
 	void initMaxButton();
 	void initMinButton();
 	void initCreatureSwitcherButton();
+	void updateCreatureSwitcherHoverText();
 	void switchCreatureLevel();
 
 	void initAmountInfo();

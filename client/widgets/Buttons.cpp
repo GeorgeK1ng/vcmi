@@ -377,6 +377,18 @@ void ButtonBase::setPlayerColor(PlayerColor player)
 		image->setPlayerColor(player);
 }
 
+void ButtonBase::horizontalFlip()
+{
+	if(image)
+		image->horizontalFlip();
+}
+
+void ButtonBase::verticalFlip()
+{
+	if(image)
+		image->verticalFlip();
+}
+
 void CButton::showAll(Canvas & to)
 {
 	CIntObject::showAll(to);

@@ -34,17 +34,27 @@ void CreaturePurchaseCard::initButtons()
 
 void CreaturePurchaseCard::initMaxButton()
 {
-	maxButton = std::make_shared<CButton>(Point(pos.x + 52, pos.y + 180), AnimationPath::builtin("QuickRecruitmentWindow/QuickRecruitmentAllButton.def"), CButton::tooltip(), std::bind(&CSlider::scrollToMax,slider), EShortcut::RECRUITMENT_MAX);
+	maxButton = std::make_shared<CButton>(Point(pos.x + 52, pos.y + 180), AnimationPath::builtin("iViewCr"), CButton::tooltip(), std::bind(&CSlider::scrollToMax, slider), EShortcut::RECRUITMENT_MAX);
 }
 
 void CreaturePurchaseCard::initMinButton()
 {
-	minButton = std::make_shared<CButton>(Point(pos.x, pos.y + 180), AnimationPath::builtin("QuickRecruitmentWindow/QuickRecruitmentNoneButton.def"), CButton::tooltip(), std::bind(&CSlider::scrollToMin,slider), EShortcut::RECRUITMENT_MIN);
+	minButton = std::make_shared<CButton>(Point(pos.x, pos.y + 180), AnimationPath::builtin("iViewCr"), CButton::tooltip(), std::bind(&CSlider::scrollToMin, slider), EShortcut::RECRUITMENT_MIN);
+	minButton->horizontalFlip();
+	minButton->verticalFlip();
 }
 
 void CreaturePurchaseCard::initCreatureSwitcherButton()
 {
 	creatureSwitcher = std::make_shared<CButton>(Point(pos.x + 18, pos.y-37), AnimationPath::builtin("iDv6432.def"), CButton::tooltip(), [&](){ switchCreatureLevel(); }, EShortcut::RECRUITMENT_SWITCH_LEVEL);
+	updateCreatureSwitcherHoverText();
+}
+
+void CreaturePurchaseCard::updateCreatureSwitcherHoverText()
+{
+	auto index = vstd::find_pos(upgradesID, creatureOnTheCard->getId());
+	const auto nextCreatureId = vstd::circularAt(upgradesID, ++index);
+	creatureSwitcher->addHoverText(EButtonState::NORMAL, "Change to " + nextCreatureId.toCreature()->getNamePluralTranslated());
 }
 
 void CreaturePurchaseCard::switchCreatureLevel()
@@ -55,6 +65,7 @@ void CreaturePurchaseCard::switchCreatureLevel()
 	creatureOnTheCard = nextCreatureId.toCreature();
 	picture = std::make_shared<CCreaturePic>(picture->pos.x - pos.x, picture->pos.y - pos.y, creatureOnTheCard);
 	creatureClickArea = std::make_shared<CCreatureClickArea>(Point(picture->pos.x - pos.x, picture->pos.y - pos.y), picture, creatureOnTheCard);
+	updateCreatureSwitcherHoverText();
 	parent->updateAllSliders();
 	cost->set(creatureOnTheCard->getFullRecruitCost() * slider->getValue());
 }

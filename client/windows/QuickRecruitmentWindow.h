@@ -10,6 +10,7 @@
 #pragma once
 
 #include "CWindowObject.h"
+#include "../../lib/ResourceSet.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 class CGTownInstance;
@@ -18,9 +19,10 @@ VCMI_LIB_NAMESPACE_END
 class CButton;
 class CreatureCostBox;
 class CreaturePurchaseCard;
-class CFilledTexture;
+class CViewport;
+class TransparentFilledRectangle;
 
-class QuickRecruitmentWindow : public CWindowObject
+class QuickRecruitmentWindow : public CStatusbarWindow
 {
 public:
 	int getAvailableCreatures();
@@ -35,7 +37,13 @@ private:
 	void setBuyButton();
 	void setMaxButton();
 
+	int getDialogWidthForCards(int cardsCount) const;
+	int getVisibleCards(int creaturesAmount) const;
+	int getTotalCostBoxWidth(const TResources & resources) const;
+
 	void setCreaturePurchaseCards();
+	void updateTotalCostBox(const TResources & resources);
+	void createBackground();
 
 	void maxAllCards(std::vector<std::shared_ptr<CreaturePurchaseCard>> cards);
 	void maxAllSlidersAmount(std::vector<std::shared_ptr<CreaturePurchaseCard>> cards);
@@ -46,7 +54,8 @@ private:
 	std::shared_ptr<CButton> buyButton;
 	std::shared_ptr<CButton> cancelButton;
 	std::shared_ptr<CreatureCostBox> totalCost;
+	std::shared_ptr<CViewport> cardsViewport;
+	int visibleCards;
 	std::vector<std::shared_ptr<CreaturePurchaseCard>> cards;
-	std::shared_ptr<CFilledTexture> backgroundTexture;
-	std::shared_ptr<CPicture> costBackground;
+	std::shared_ptr<TransparentFilledRectangle> totalCostBackground;
 };
