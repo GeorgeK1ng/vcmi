@@ -20,7 +20,10 @@ class CreatureCostBox;
 class CreaturePurchaseCard;
 class CFilledTexture;
 
-class QuickRecruitmentWindow : public CWindowObject
+class CSlider;
+class CGStatusBar;
+
+class QuickRecruitmentWindow : public CStatusbarWindow
 {
 public:
 	int getAvailableCreatures();
@@ -34,6 +37,11 @@ private:
 	void setCancelButton();
 	void setBuyButton();
 	void setMaxButton();
+	void setScrollBar();
+	void scrollCards(int to);
+	int getDialogWidthForCards(int cardsCount) const;
+	int getVisibleCards(int creaturesAmount) const;
+	std::string getBackgroundName(int visibleCards) const;
 
 	void setCreaturePurchaseCards();
 
@@ -46,6 +54,9 @@ private:
 	std::shared_ptr<CButton> buyButton;
 	std::shared_ptr<CButton> cancelButton;
 	std::shared_ptr<CreatureCostBox> totalCost;
+	std::shared_ptr<CSlider> cardsSlider;
+	int visibleCards;
+	int cardsOffsetX;
 	std::vector<std::shared_ptr<CreaturePurchaseCard>> cards;
 	std::shared_ptr<CFilledTexture> backgroundTexture;
 	std::shared_ptr<CPicture> costBackground;
