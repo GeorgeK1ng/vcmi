@@ -59,6 +59,7 @@ public:
 	void setConfigurable(const JsonPath & jsonName, bool playerColoredButton = false);
 	void setImageOrder(int state1, int state2, int state3, int state4);
 	void horizontalFlip();
+	void verticalFlip();
 
 	/// adds overlay on top of button image. Only one overlay can be active at once
 	void setOverlay(const std::shared_ptr<CIntObject>& newOverlay);

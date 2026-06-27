@@ -312,6 +312,12 @@ void CAnimImage::horizontalFlip()
 	init();
 }
 
+void CAnimImage::verticalFlip()
+{
+	anim->verticalFlip();
+	init();
+}
+
 void CAnimImage::setFrame(size_t Frame, size_t Group)
 {
 	if (frame == Frame && group==Group)

@@ -16,6 +16,10 @@
 #include "../widgets/CViewport.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../widgets/Images.h"
+#include "../render/Canvas.h"
+#include "../render/CanvasImage.h"
+#include "../render/IImage.h"
+#include "../render/IRenderHandler.h"
 #include "../widgets/TextControls.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
@@ -36,19 +40,19 @@ void QuickRecruitmentWindow::setButtons()
 
 void QuickRecruitmentWindow::setCancelButton()
 {
-	cancelButton = std::make_shared<CButton>(Point((pos.w / 2) + 48, pos.h - 88), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], [&](){ close(); }, EShortcut::GLOBAL_CANCEL);
+	cancelButton = std::make_shared<CButton>(Point((pos.w / 2) + 48, pos.h - 62), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], [&](){ close(); }, EShortcut::GLOBAL_CANCEL);
 	cancelButton->setImageOrder(0, 1, 2, 3);
 }
 
 void QuickRecruitmentWindow::setBuyButton()
 {
-	buyButton = std::make_shared<CButton>(Point((pos.w / 2) - 32, pos.h - 88), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], [&](){ purchaseUnits(); }, EShortcut::GLOBAL_ACCEPT);
+	buyButton = std::make_shared<CButton>(Point((pos.w / 2) - 32, pos.h - 62), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], [&](){ purchaseUnits(); }, EShortcut::GLOBAL_ACCEPT);
 	buyButton->setImageOrder(0, 1, 2, 3);
 }
 
 void QuickRecruitmentWindow::setMaxButton()
 {
-	maxButton = std::make_shared<CButton>(Point((pos.w/2)-112, pos.h - 88), AnimationPath::builtin("IRCBTNS.DEF"), LIBRARY->generaltexth->zelp[553], [&](){ maxAllCards(cards); }, EShortcut::RECRUITMENT_MAX);
+	maxButton = std::make_shared<CButton>(Point((pos.w/2)-112, pos.h - 62), AnimationPath::builtin("IRCBTNS.DEF"), LIBRARY->generaltexth->zelp[553], [&](){ maxAllCards(cards); }, EShortcut::RECRUITMENT_MAX);
 	maxButton->setImageOrder(0, 1, 2, 3);
 }
 
@@ -122,17 +126,34 @@ void QuickRecruitmentWindow::updateTotalCostBox(const TResources & resources)
 	totalCost->set(resources);
 }
 
+void QuickRecruitmentWindow::createBackground()
+{
+	auto image = ENGINE->renderHandler().createImage(pos.dimensions(), CanvasScalingPolicy::AUTO);
+	Canvas canvas = image->getCanvas();
+	auto texture = ENGINE->renderHandler().loadImage(ImagePath::builtin("DIBOXBCK"), EImageBlitMode::OPAQUE);
+
+	for(int y = 0; y < pos.h; y += texture->height())
+	{
+		for(int x = 0; x < pos.w; x += texture->width())
+		{
+			canvas.draw(texture, Point(x, y));
+		}
+	}
+
+	background = createPlayerColoredBorderedStatusbar(std::make_shared<CPicture>(image, Point(0, 0)), GAME->interface()->playerID);
+	pos = background->center();
+	updateShadow();
+}
+
 void QuickRecruitmentWindow::initWindow(Rect /*startupPosition*/)
 {
 	const int creaturesAmount = getAvailableCreatures();
 	visibleCards = getVisibleCards(creaturesAmount);
 	pos.w = getDialogWidthForCards(visibleCards);
 	pos.h = 540;
-	center();
+	createBackground();
 
-	backgroundTexture = std::make_shared<CFilledTexture>(ImagePath::builtin("DIBOXBCK"), Rect(0, 0, pos.w, pos.h));
-	statusbarBackground = std::make_shared<TransparentFilledRectangle>(Rect(8, pos.h - 26, pos.w - 16, 19), ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
-	statusbar = CGStatusBar::create(statusbarBackground);
+	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
 }
 
 void QuickRecruitmentWindow::maxAllCards(std::vector<std::shared_ptr<CreaturePurchaseCard> > cards)
@@ -222,7 +243,7 @@ void QuickRecruitmentWindow::updateAllSliders()
 }
 
 QuickRecruitmentWindow::QuickRecruitmentWindow(const CGTownInstance * townd, Rect startupPosition)
-	: CWindowObject(PLAYER_COLORED | BORDERED),
+	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR),
 	town(townd),
 	visibleCards(4)
 {

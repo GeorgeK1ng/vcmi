@@ -383,6 +383,12 @@ void ButtonBase::horizontalFlip()
 		image->horizontalFlip();
 }
 
+void ButtonBase::verticalFlip()
+{
+	if(image)
+		image->verticalFlip();
+}
+
 void CButton::showAll(Canvas & to)
 {
 	CIntObject::showAll(to);

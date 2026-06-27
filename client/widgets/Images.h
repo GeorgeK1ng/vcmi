@@ -144,6 +144,7 @@ public:
 
 	void setScale(Point scale);
 	void horizontalFlip();
+	void verticalFlip();
 };
 
 /// Base class for displaying animation, used as superclass for different animations

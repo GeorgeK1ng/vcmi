@@ -19,7 +19,6 @@ VCMI_LIB_NAMESPACE_END
 class CButton;
 class CreatureCostBox;
 class CreaturePurchaseCard;
-class CFilledTexture;
 class CViewport;
 class TransparentFilledRectangle;
 
@@ -44,6 +43,7 @@ private:
 
 	void setCreaturePurchaseCards();
 	void updateTotalCostBox(const TResources & resources);
+	void createBackground();
 
 	void maxAllCards(std::vector<std::shared_ptr<CreaturePurchaseCard>> cards);
 	void maxAllSlidersAmount(std::vector<std::shared_ptr<CreaturePurchaseCard>> cards);
@@ -57,7 +57,5 @@ private:
 	std::shared_ptr<CViewport> cardsViewport;
 	int visibleCards;
 	std::vector<std::shared_ptr<CreaturePurchaseCard>> cards;
-	std::shared_ptr<CFilledTexture> backgroundTexture;
-	std::shared_ptr<TransparentFilledRectangle> statusbarBackground;
 	std::shared_ptr<TransparentFilledRectangle> totalCostBackground;
 };
