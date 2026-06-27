@@ -32,7 +32,7 @@ set "MSVC_CL_EXE="
 set "MSVC_FULL_VERSION="
 set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
-set "CONAN_COMPILER_UPDATE="
+set "CMAKE_TOOLSET_SPEC="
 
 set "CONAN_EXE="
 set "PYTHON_EXE="
@@ -1291,7 +1291,7 @@ set "MSVC_MAJOR_VERSION="
 set "MSVC_MINOR_VERSION="
 set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
-set "CONAN_COMPILER_UPDATE="
+set "CMAKE_TOOLSET_SPEC="
 call :FIND_MSVC_CL_FOR_SELECTED_VS
 if errorlevel 1 exit /b 1
 for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
@@ -1305,7 +1305,6 @@ for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do (
     set "MSVC_MAJOR_VERSION=%%a"
     set "MSVC_MINOR_VERSION=%%b"
     set "CONAN_COMPILER_VERSION=%%a%%b"
-    set "CONAN_COMPILER_UPDATE=%%b"
 )
 set "CONAN_COMPILER_VERSION=!CONAN_COMPILER_VERSION:~0,3!"
 if "%TARGET_PRE_WINDOWS10%"=="0" (
@@ -1317,8 +1316,26 @@ if "%TARGET_PRE_WINDOWS10%"=="0" (
     )
     if "%VS_YEAR%"=="2026" set "CONAN_COMPILER_VERSION=195"
 )
-if not defined CONAN_COMPILER_UPDATE exit /b 1
-call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VS=%VS_YEAR%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%; compiler.update=%CONAN_COMPILER_UPDATE%"
+call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VS=%VS_YEAR%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%"
+exit /b 0
+
+:SET_CMAKE_TOOLSET_SPEC
+set "CMAKE_TOOLSET_SPEC="
+if not defined MSVC_TOOLS_VERSION exit /b 1
+if "%TARGET_PRE_WINDOWS10%"=="1" set "CMAKE_TOOLSET_SPEC=v142,version=%MSVC_TOOLS_VERSION%"
+if "%TARGET_PRE_WINDOWS10%"=="0" (
+    if "%VS_YEAR%"=="2019" set "CMAKE_TOOLSET_SPEC=v142,version=%MSVC_TOOLS_VERSION%"
+    if "%VS_YEAR%"=="2022" set "CMAKE_TOOLSET_SPEC=v143,version=%MSVC_TOOLS_VERSION%"
+    if "%VS_YEAR%"=="2026" set "CMAKE_TOOLSET_SPEC=v145,version=%MSVC_TOOLS_VERSION%"
+)
+if not defined CMAKE_TOOLSET_SPEC exit /b 1
+exit /b 0
+
+:FIX_CONAN_TOOLCHAIN_TOOLSET
+if not defined CMAKE_TOOLSET_SPEC exit /b 0
+if not exist "%CONAN_OUTPUT%\conan_toolchain.cmake" exit /b 0
+call :LOG "Patching Conan toolchain generator toolset to %CMAKE_TOOLSET_SPEC%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p='%CONAN_OUTPUT%\conan_toolchain.cmake'; $s='%CMAKE_TOOLSET_SPEC%'; $c=Get-Content -Raw $p; $c=$c -replace 'v14[0-9],version=14(\.[0-9]+)+',$s; Set-Content -Path $p -Value $c -NoNewline" >>"%LOG_FILE%" 2>&1
 exit /b 0
 
 ::::::::::::::::::::::::::::
@@ -1693,7 +1710,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
 )
 
 set "CONAN_COMPILER_VERSION="
-set "CONAN_COMPILER_UPDATE="
+set "CMAKE_TOOLSET_SPEC="
 call :DETECT_CONAN_COMPILER_VERSION
 if errorlevel 1 (
     echo ERROR: Unable to detect compiler.version from selected cl.exe.
@@ -1702,7 +1719,9 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-if "%TARGET_PRE_WINDOWS10%"=="1" set "CMAKE_TOOLSET_ARG=-T v142,version=%MSVC_TOOLS_VERSION%"
+call :SET_CMAKE_TOOLSET_SPEC
+if errorlevel 1 exit /b 1
+set "CMAKE_TOOLSET_ARG=-T %CMAKE_TOOLSET_SPEC%"
 
 call :READ_DEPENDENCIES_TAG
 if errorlevel 1 exit /b 1
@@ -1736,7 +1755,6 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
         -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
-        -s "&:compiler.update=%CONAN_COMPILER_UPDATE%" ^
         -s "&:build_type=%BUILD_TYPE%" ^
         -o "&:target_pre_windows10=True" >>"%LOG_FILE%" 2>&1
 ) else (
@@ -1746,10 +1764,12 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
         -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
-        -s "&:compiler.update=%CONAN_COMPILER_UPDATE%" ^
         -s "&:build_type=%BUILD_TYPE%" >>"%LOG_FILE%" 2>&1
 )
 
+if errorlevel 1 exit /b 1
+
+call :FIX_CONAN_TOOLCHAIN_TOOLSET
 if errorlevel 1 exit /b 1
 
 echo.
