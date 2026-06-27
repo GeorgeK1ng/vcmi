@@ -1230,7 +1230,11 @@ exit /b 1
 set "DEFAULT_MSVC_TOOLS_VERSION="
 if not defined VS_ROOT exit /b 1
 for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\*") do (
-    if exist "%%D\bin\Hostx64\x64\cl.exe" set "DEFAULT_MSVC_TOOLS_VERSION=%%~nxD"
+    if /I "%ARCH%"=="ARM64" (
+        if exist "%%D\bin\Hostx64\ARM64\cl.exe" set "DEFAULT_MSVC_TOOLS_VERSION=%%~nxD"
+    ) else (
+        if exist "%%D\bin\Hostx64\x64\cl.exe" set "DEFAULT_MSVC_TOOLS_VERSION=%%~nxD"
+    )
 )
 if not defined DEFAULT_MSVC_TOOLS_VERSION exit /b 1
 exit /b 0
@@ -1250,16 +1254,30 @@ set "MSVC_TOOLS_VERSION="
 if not defined VS_ROOT exit /b 1
 if "%TARGET_PRE_WINDOWS10%"=="1" (
     for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\14.2*") do (
-        if exist "%%D\bin\Hostx64\x64\cl.exe" (
-            set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
-            set "MSVC_TOOLS_VERSION=%%~nxD"
+        if /I "%ARCH%"=="ARM64" (
+            if exist "%%D\bin\Hostx64\ARM64\cl.exe" (
+                set "MSVC_CL_EXE=%%D\bin\Hostx64\ARM64\cl.exe"
+                set "MSVC_TOOLS_VERSION=%%~nxD"
+            )
+        ) else (
+            if exist "%%D\bin\Hostx64\x64\cl.exe" (
+                set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+                set "MSVC_TOOLS_VERSION=%%~nxD"
+            )
         )
     )
 ) else (
     for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\*") do (
-        if exist "%%D\bin\Hostx64\x64\cl.exe" (
-            set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
-            set "MSVC_TOOLS_VERSION=%%~nxD"
+        if /I "%ARCH%"=="ARM64" (
+            if exist "%%D\bin\Hostx64\ARM64\cl.exe" (
+                set "MSVC_CL_EXE=%%D\bin\Hostx64\ARM64\cl.exe"
+                set "MSVC_TOOLS_VERSION=%%~nxD"
+            )
+        ) else (
+            if exist "%%D\bin\Hostx64\x64\cl.exe" (
+                set "MSVC_CL_EXE=%%D\bin\Hostx64\x64\cl.exe"
+                set "MSVC_TOOLS_VERSION=%%~nxD"
+            )
         )
     )
 )
@@ -1656,19 +1674,15 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
 )
 
 set "CONAN_COMPILER_VERSION="
-if "%TARGET_PRE_WINDOWS10%"=="1" (
-    if /I not "%ARCH%"=="ARM64" (
-        call :DETECT_CONAN_COMPILER_VERSION
-        if errorlevel 1 (
-            echo ERROR: Unable to detect compiler.version from selected cl.exe.
-            echo Select a Visual Studio installation with the required v142 compiler installed.
-            call :LOG "Unable to detect compiler.version from selected cl.exe"
-            pause
-            exit /b 1
-        )
-        set "CMAKE_TOOLSET_ARG=-T v142,version=%MSVC_TOOLS_VERSION%"
-    )
+call :DETECT_CONAN_COMPILER_VERSION
+if errorlevel 1 (
+    echo ERROR: Unable to detect compiler.version from selected cl.exe.
+    echo Select a Visual Studio installation with a usable C++ compiler installed.
+    call :LOG "Unable to detect compiler.version from selected cl.exe"
+    pause
+    exit /b 1
 )
+if "%TARGET_PRE_WINDOWS10%"=="1" set "CMAKE_TOOLSET_ARG=-T v142,version=%MSVC_TOOLS_VERSION%"
 
 call :READ_DEPENDENCIES_TAG
 if errorlevel 1 exit /b 1
@@ -1710,6 +1724,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --output-folder="%CONAN_OUTPUT%" ^
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
+        -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
         -s "&:build_type=%BUILD_TYPE%" >>"%LOG_FILE%" 2>&1
 )
 
