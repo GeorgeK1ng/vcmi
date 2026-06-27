@@ -13,109 +13,139 @@
 #include "../CPlayerInterface.h"
 #include "../widgets/Buttons.h"
 #include "../widgets/CreatureCostBox.h"
+#include "../widgets/CViewport.h"
 #include "../widgets/GraphicalPrimitiveCanvas.h"
-#include "../widgets/Slider.h"
+#include "../widgets/Images.h"
 #include "../widgets/TextControls.h"
 #include "../GameEngine.h"
 #include "../GameInstance.h"
 #include "../gui/Shortcut.h"
 #include "../../lib/callback/CCallback.h"
-#include "../../lib/ResourceSet.h"
 #include "../../lib/CCreatureHandler.h"
 #include "CreaturePurchaseCard.h"
 
+namespace
+{
+constexpr int CARD_WIDTH = 100;
+constexpr int CARD_STEP = 108;
+constexpr int CARD_BACKGROUND_OFFSET_Y = 50;
+constexpr int CARD_AREA_MARGIN_X = 22;
+constexpr int CARD_AREA_Y = 22;
+constexpr int CARD_AREA_HEIGHT = 340;
+constexpr int COST_BOX_Y = 380;
+constexpr int COST_BOX_HEIGHT = 74;
+constexpr int BUTTONS_Y_OFFSET = 88;
+constexpr int WINDOW_HEIGHT = 540;
+constexpr int MIN_VISIBLE_CARDS = 4;
+constexpr int MAX_VISIBLE_CARDS = 8;
+}
 
 void QuickRecruitmentWindow::setButtons()
 {
 	setCancelButton();
 	setBuyButton();
 	setMaxButton();
-	setScrollBar();
 }
 
 void QuickRecruitmentWindow::setCancelButton()
 {
-	cancelButton = std::make_shared<CButton>(Point((pos.w / 2) + 48, pos.h - 63), AnimationPath::builtin("ICN6432.DEF"), CButton::tooltip(), [&](){ close(); }, EShortcut::GLOBAL_CANCEL);
+	cancelButton = std::make_shared<CButton>(Point((pos.w / 2) + 48, pos.h - BUTTONS_Y_OFFSET), AnimationPath::builtin("ICN6432.DEF"), LIBRARY->generaltexth->zelp[555], [&](){ close(); }, EShortcut::GLOBAL_CANCEL);
 	cancelButton->setImageOrder(0, 1, 2, 3);
 }
 
 void QuickRecruitmentWindow::setBuyButton()
 {
-	buyButton = std::make_shared<CButton>(Point((pos.w / 2) - 32, pos.h - 63), AnimationPath::builtin("IBY6432.DEF"), CButton::tooltip(), [&](){ purchaseUnits(); }, EShortcut::GLOBAL_ACCEPT);
+	buyButton = std::make_shared<CButton>(Point((pos.w / 2) - 32, pos.h - BUTTONS_Y_OFFSET), AnimationPath::builtin("IBY6432.DEF"), LIBRARY->generaltexth->zelp[554], [&](){ purchaseUnits(); }, EShortcut::GLOBAL_ACCEPT);
 	buyButton->setImageOrder(0, 1, 2, 3);
 }
 
 void QuickRecruitmentWindow::setMaxButton()
 {
-	maxButton = std::make_shared<CButton>(Point((pos.w/2)-112, pos.h - 63), AnimationPath::builtin("IRCBTNS.DEF"), CButton::tooltip(), [&](){ maxAllCards(cards); }, EShortcut::RECRUITMENT_MAX);
+	maxButton = std::make_shared<CButton>(Point((pos.w/2)-112, pos.h - BUTTONS_Y_OFFSET), AnimationPath::builtin("IRCBTNS.DEF"), LIBRARY->generaltexth->zelp[553], [&](){ maxAllCards(cards); }, EShortcut::RECRUITMENT_MAX);
 	maxButton->setImageOrder(0, 1, 2, 3);
-}
-
-void QuickRecruitmentWindow::setScrollBar()
-{
-	if(getAvailableCreatures() <= visibleCards)
-		return;
-
-	cardsSlider = std::make_shared<CSlider>(Point(22, 338), pos.w - 44, std::bind(&QuickRecruitmentWindow::scrollCards, this, _1), visibleCards, getAvailableCreatures(), 0, Orientation::HORIZONTAL);
-	cardsSlider->setScrollBounds(Rect(0, -276, pos.w - 44, 307));
-}
-
-void QuickRecruitmentWindow::scrollCards(int to)
-{
-	const int newOffset = -to * 108;
-	const int delta = newOffset - cardsOffsetX;
-	cardsOffsetX = newOffset;
-	for(const auto & card : cards)
-		card->moveBy(Point(delta, 0));
 }
 
 int QuickRecruitmentWindow::getDialogWidthForCards(int cardsCount) const
 {
-	return 44 + std::max(cardsCount, 4) * 110;
+	return 44 + std::max(cardsCount, MIN_VISIBLE_CARDS) * 110;
 }
 
 int QuickRecruitmentWindow::getVisibleCards(int creaturesAmount) const
 {
-	int result = std::clamp(creaturesAmount, 1, 8);
-	while(result > 4 && getDialogWidthForCards(result) > ENGINE->screenDimensions().x)
+	int result = std::clamp(creaturesAmount, 1, MAX_VISIBLE_CARDS);
+	while(result > MIN_VISIBLE_CARDS && getDialogWidthForCards(result) > ENGINE->screenDimensions().x)
 		--result;
 	return result;
 }
 
-std::string QuickRecruitmentWindow::getBackgroundName(int visibleCards) const
+int QuickRecruitmentWindow::getTotalCostBoxWidth(const TResources & resources) const
 {
-	return "TPRCRTQ" + std::to_string(std::clamp(visibleCards, 1, 8));
-}
+	int resourcesCount = 0;
+	TResources::nziterator iter(resources);
+	while(iter.valid())
+	{
+		++resourcesCount;
+		iter++;
+	}
 
-int QuickRecruitmentWindow::getTotalCostBoxWidth() const
-{
-	return 226;
+	return resourcesCount <= 2 ? 97 : 226;
 }
 
 void QuickRecruitmentWindow::setCreaturePurchaseCards()
 {
-	Point position = Point((pos.w - 100*visibleCards - 8*(visibleCards-1))/2,64);
-	for (int i = 0; i < town->getTown()->creatures.size(); i++)
+	const int availableAmount = getAvailableCreatures();
+	const int viewportWidth = pos.w - 2 * CARD_AREA_MARGIN_X;
+	const int contentWidth = availableAmount * CARD_WIDTH + std::max(0, availableAmount - 1) * (CARD_STEP - CARD_WIDTH);
+	cardsViewport = std::make_shared<CViewport>(Rect(CARD_AREA_MARGIN_X, CARD_AREA_Y, viewportWidth, CARD_AREA_HEIGHT), Point(contentWidth, CARD_AREA_HEIGHT));
+
+	Point position(0, CARD_BACKGROUND_OFFSET_Y);
 	{
-		if(!town->getTown()->creatures.at(i).empty() && !town->creatures.at(i).second.empty() && town->creatures[i].first)
+		OBJECT_CONSTRUCTION_TARGETED(cardsViewport->content());
+		for(int i = 0; i < town->getTown()->creatures.size(); i++)
 		{
-			cards.push_back(std::make_shared<CreaturePurchaseCard>(town->creatures[i].second, position, town->creatures[i].first, this));
-			position.x += 108;
+			if(!town->getTown()->creatures.at(i).empty() && !town->creatures.at(i).second.empty() && town->creatures[i].first)
+			{
+				cards.push_back(std::make_shared<CreaturePurchaseCard>(town->creatures[i].second, position, town->creatures[i].first, this));
+				position.x += CARD_STEP;
+			}
 		}
 	}
-	const int totalCostBoxWidth = getTotalCostBoxWidth();
-	totalCostBackground = std::make_shared<TransparentFilledRectangle>(Rect(pos.w / 2 - totalCostBoxWidth / 2, position.y + 280, totalCostBoxWidth, 74), ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
-	totalCost = std::make_shared<CreatureCostBox>(Rect(pos.w / 2 - totalCostBoxWidth / 2, position.y + 280, totalCostBoxWidth, 74), "");
+	cardsViewport->setContentSize(Point(std::max(viewportWidth, contentWidth), CARD_AREA_HEIGHT));
+}
+
+void QuickRecruitmentWindow::updateTotalCostBox(const TResources & resources)
+{
+	const int totalCostBoxWidth = getTotalCostBoxWidth(resources);
+	const Rect totalCostRect(pos.w / 2 - totalCostBoxWidth / 2, COST_BOX_Y, totalCostBoxWidth, COST_BOX_HEIGHT);
+
+	if(totalCost && totalCost->pos.w == totalCostBoxWidth)
+	{
+		totalCost->createItems(resources);
+		totalCost->set(resources);
+		return;
+	}
+
+	totalCost.reset();
+	totalCostBackground.reset();
+
+	OBJECT_CONSTRUCTION_TARGETED(this);
+	totalCostBackground = std::make_shared<TransparentFilledRectangle>(totalCostRect, ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
+	totalCost = std::make_shared<CreatureCostBox>(totalCostRect, "");
+	totalCost->createItems(resources);
+	totalCost->set(resources);
 }
 
 void QuickRecruitmentWindow::initWindow(Rect /*startupPosition*/)
 {
 	const int creaturesAmount = getAvailableCreatures();
 	visibleCards = getVisibleCards(creaturesAmount);
-	cardsOffsetX = 0;
-	setBackground(ImagePath::builtin(getBackgroundName(visibleCards)));
+	pos.w = getDialogWidthForCards(visibleCards);
+	pos.h = WINDOW_HEIGHT;
 	center();
-	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
+
+	backgroundTexture = std::make_shared<CFilledTexture>(ImagePath::builtin("DIBOXBCK"), Rect(0, 0, pos.w, pos.h));
+	statusbarBackground = std::make_shared<TransparentFilledRectangle>(Rect(8, pos.h - 26, pos.w - 16, 19), ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
+	statusbar = CGStatusBar::create(statusbarBackground);
 }
 
 void QuickRecruitmentWindow::maxAllCards(std::vector<std::shared_ptr<CreaturePurchaseCard> > cards)
@@ -138,7 +168,6 @@ void QuickRecruitmentWindow::maxAllCards(std::vector<std::shared_ptr<CreaturePur
 	}
 	maxButton->block(allAvailableResources == GAME->interface()->cb->getResourceAmount());
 }
-
 
 void QuickRecruitmentWindow::purchaseUnits()
 {
@@ -178,7 +207,7 @@ void QuickRecruitmentWindow::purchaseUnits()
 int QuickRecruitmentWindow::getAvailableCreatures()
 {
 	int creaturesAmount = 0;
-	for (int i=0; i< town->getTown()->creatures.size(); i++)
+	for(int i=0; i< town->getTown()->creatures.size(); i++)
 		if(!town->getTown()->creatures.at(i).empty() && !town->creatures.at(i).second.empty() && town->creatures[i].first)
 			creaturesAmount++;
 	return creaturesAmount;
@@ -201,15 +230,14 @@ void QuickRecruitmentWindow::updateAllSliders()
 			i->slider->setAmount(i->maxAmount);
 		i->slider->scrollTo(i->slider->getValue());
 	}
-	totalCost->createItems(GAME->interface()->cb->getResourceAmount() - allAvailableResources);
-	totalCost->set(GAME->interface()->cb->getResourceAmount() - allAvailableResources);
+	const auto totalResources = GAME->interface()->cb->getResourceAmount() - allAvailableResources;
+	updateTotalCostBox(totalResources);
 }
 
 QuickRecruitmentWindow::QuickRecruitmentWindow(const CGTownInstance * townd, Rect startupPosition)
-	: CWindowObject(PLAYER_COLORED_BORDERED_STATUSBAR),
+	: CWindowObject(PLAYER_COLORED | BORDERED),
 	town(townd),
-	visibleCards(4),
-	cardsOffsetX(0)
+	visibleCards(MIN_VISIBLE_CARDS)
 {
 	OBJECT_CONSTRUCTION;
 
@@ -217,5 +245,4 @@ QuickRecruitmentWindow::QuickRecruitmentWindow(const CGTownInstance * townd, Rec
 	setButtons();
 	setCreaturePurchaseCards();
 	maxAllCards(cards);
-
 }

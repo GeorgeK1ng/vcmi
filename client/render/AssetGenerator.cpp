@@ -85,11 +85,6 @@ void AssetGenerator::initialize()
 	addRecruitmentBackground("TPRCRT4", Point(484, 394));
 	addRecruitmentBackground("TPRCRT5", Point(594, 394));
 	addRecruitmentBackground("TPRCRT6", Point(704, 394));
-	for(int amount = 1; amount <= 8; ++amount)
-	{
-		const int visibleCards = std::max(amount, 4);
-		addRecruitmentBackground("TPRCRTQ" + std::to_string(amount), Point(44 + visibleCards * 110, 481));
-	}
 	addUniversityBackground("UNIVRS1", Point(466, 388), 1);
 	addUniversityBackground("UNIVRS2", Point(466, 388), 2);
 	addUniversityBackground("UNIVRS3", Point(466, 388), 3);
