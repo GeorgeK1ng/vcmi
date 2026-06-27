@@ -69,6 +69,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	bool checkCanInstallWog();
 	bool checkCanInstallTow();
 	bool checkCanInstallFod();
+	bool checkCanInstallToa();
 	bool checkCanInstallMod(const QString & modID);
 
 public:

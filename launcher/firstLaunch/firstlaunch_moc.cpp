@@ -60,6 +60,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->lineEditDataUser->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().userDataPath())));
 
 	Helper::enableScrollBySwiping(ui->listWidgetLanguage);
+	Helper::enableScrollBySwiping(ui->scrollAreaPresetMods);
 
 #ifdef VCMI_MOBILE
 	// This directory is not accessible to players without rooting of their device
@@ -774,8 +775,9 @@ void FirstLaunchView::modPresetUpdate()
 	bool canExtras = checkCanInstallExtras();
 	bool canHota   = checkCanInstallHota();
 	bool canWog	= checkCanInstallWog();
-	bool canTow	= checkCanInstallTow();
-	bool canFod	= checkCanInstallFod();
+	bool canTow    = checkCanInstallTow();
+	bool canFod    = checkCanInstallFod();
+	bool canToa    = checkCanInstallToa();
 
 	ui->buttonPresetLanguage->setVisible(canTrans);
 	ui->buttonPresetExtras->setVisible(canExtras);
@@ -783,6 +785,7 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetWog->setVisible(canWog);
 	ui->buttonPresetTow->setVisible(canTow);
 	ui->buttonPresetFod->setVisible(canFod);
+	ui->buttonPresetToa->setVisible(canToa);
 
 	ui->labelPresetLanguageDescr->setVisible(canTrans);
 	ui->labelPresetExtrasDescr->setVisible(canExtras);
@@ -790,9 +793,10 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetWogDescr->setVisible(canWog);
 	ui->labelPresetTowDescr->setVisible(canTow);
 	ui->labelPresetFodDescr->setVisible(canFod);
+	ui->labelPresetToaDescr->setVisible(canToa);
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if(demoDataActive || (!canTrans && !canExtras && !canHota && !canWog && !canTow && !canFod))
+	if(demoDataActive || (!canTrans && !canExtras && !canHota && !canWog && !canTow && !canFod && !canToa))
 		exitSetup(false);
 }
 
@@ -843,6 +847,11 @@ bool FirstLaunchView::checkCanInstallFod()
 	return checkCanInstallMod("fallen-of-the-depth");
 }
 
+bool FirstLaunchView::checkCanInstallToa()
+{
+	return checkCanInstallMod("tears-of-ashan");
+}
+
 CModListView * FirstLaunchView::getModView()
 {
 	auto * mainWindow = dynamic_cast<MainWindow *>(QApplication::activeWindow());
@@ -885,6 +894,9 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 
 	if(ui->buttonPresetFod->isChecked() && checkCanInstallFod())
 		modsToInstall.push_back("fallen-of-the-depth");
+
+	if(ui->buttonPresetToa->isChecked() && checkCanInstallToa())
+		modsToInstall.push_back("tears-of-ashan");
 
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);
