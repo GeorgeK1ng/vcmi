@@ -22,6 +22,7 @@
 #include "../gui/Shortcut.h"
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/GameLibrary.h"
+#include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/CCreatureHandler.h"
 #include "CreaturePurchaseCard.h"
 
