@@ -366,10 +366,29 @@ if "%VS_SELECTED%"=="0" (
     if errorlevel 1 (set "VS_STATUS=NOT FOUND") else (set "VS_STATUS=FOUND - select before generating")
 )
 set "TOOLSET_STATUS=NOT REQUIRED"
+if "%VS_SELECTED%"=="1" (
+    call :DETECT_DEFAULT_MSVC_TOOLSET_FOR_SELECTED_VS
+    if errorlevel 1 (
+        set "TOOLSET_STATUS=MSVC toolset NOT FOUND for VS %VS_YEAR%"
+    ) else (
+        set "TOOLSET_STATUS=Default MSVC %DEFAULT_MSVC_TOOLS_VERSION%"
+    )
+)
 if "%TARGET_PRE_WINDOWS10%"=="1" (
     if "%VS_SELECTED%"=="1" (
         call :HAS_TOOLSET_V142_FOR_VS %VS_YEAR%
-        if errorlevel 1 (set "TOOLSET_STATUS=v142 NOT FOUND for VS %VS_YEAR%") else (set "TOOLSET_STATUS=v142 FOUND for VS %VS_YEAR%")
+        if errorlevel 1 (
+            if not "%VS_YEAR%"=="2019" (
+                set "TARGET_PRE_WINDOWS10=0"
+                set "TARGET_NAME=Windows 10/11 only"
+                set "TOOLSET_STATUS=!TOOLSET_STATUS!; v142 unavailable for VS %VS_YEAR% - target switched to Windows 10/11"
+                call :LOG "v142 not found for %VS_NAME%; switched target to Windows 10/11"
+            ) else (
+                set "TOOLSET_STATUS=!TOOLSET_STATUS!; v142 NOT FOUND for VS %VS_YEAR%"
+            )
+        ) else (
+            set "TOOLSET_STATUS=!TOOLSET_STATUS!; v142 FOUND for VS %VS_YEAR%"
+        )
     ) else (
         set "TOOLSET_STATUS=v142 check needs VS selection"
     )
@@ -380,7 +399,10 @@ if "%CMAKE_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%PYTHON_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%CONAN_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
 if "%VS_STATUS%"=="NOT FOUND" set "TOOLS_MISSING=1"
-if "%TOOLSET_STATUS%"=="v142 NOT FOUND for VS %VS_YEAR%" set "TOOLS_MISSING=1"
+if "%TARGET_PRE_WINDOWS10%"=="1" (
+    echo(!TOOLSET_STATUS! | findstr /C:"v142 NOT FOUND" >nul 2>nul
+    if not errorlevel 1 set "TOOLS_MISSING=1"
+)
 exit /b 0
 
 :SOURCE_MENU
@@ -1203,6 +1225,15 @@ if not errorlevel 1 exit /b 0
 call :HAS_TOOLSET_V142_FOR_VS 2026
 if not errorlevel 1 exit /b 0
 exit /b 1
+
+:DETECT_DEFAULT_MSVC_TOOLSET_FOR_SELECTED_VS
+set "DEFAULT_MSVC_TOOLS_VERSION="
+if not defined VS_ROOT exit /b 1
+for /d %%D in ("%VS_ROOT%\VC\Tools\MSVC\*") do (
+    if exist "%%D\bin\Hostx64\x64\cl.exe" set "DEFAULT_MSVC_TOOLS_VERSION=%%~nxD"
+)
+if not defined DEFAULT_MSVC_TOOLS_VERSION exit /b 1
+exit /b 0
 
 :PRINT_V142_FOR_VS
 call :HAS_TOOLSET_V142_FOR_VS %~1
