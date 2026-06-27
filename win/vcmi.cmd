@@ -32,6 +32,7 @@ set "MSVC_CL_EXE="
 set "MSVC_FULL_VERSION="
 set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
+set "CONAN_COMPILER_UPDATE="
 
 set "CONAN_EXE="
 set "PYTHON_EXE="
@@ -1288,6 +1289,7 @@ exit /b 0
 set "MSVC_FULL_VERSION="
 set "MSVC_TOOLS_VERSION="
 set "CONAN_COMPILER_VERSION="
+set "CONAN_COMPILER_UPDATE="
 call :FIND_MSVC_CL_FOR_SELECTED_VS
 if errorlevel 1 exit /b 1
 for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
@@ -1297,9 +1299,13 @@ for /f "tokens=1-12" %%a in ('"%MSVC_CL_EXE%" 2^>^&1') do (
     )
 )
 if not defined MSVC_FULL_VERSION exit /b 1
-for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do set "CONAN_COMPILER_VERSION=%%a%%b"
+for /f "tokens=1,2 delims=." %%a in ("%MSVC_FULL_VERSION%") do (
+    set "CONAN_COMPILER_VERSION=%%a%%b"
+    set "CONAN_COMPILER_UPDATE=%%b"
+)
 set "CONAN_COMPILER_VERSION=!CONAN_COMPILER_VERSION:~0,3!"
-call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%"
+if not defined CONAN_COMPILER_UPDATE exit /b 1
+call :LOG "Detected MSVC %MSVC_FULL_VERSION% from %MSVC_CL_EXE%; VCTools=%MSVC_TOOLS_VERSION%; Conan compiler.version=%CONAN_COMPILER_VERSION%; compiler.update=%CONAN_COMPILER_UPDATE%"
 exit /b 0
 
 ::::::::::::::::::::::::::::
@@ -1674,6 +1680,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
 )
 
 set "CONAN_COMPILER_VERSION="
+set "CONAN_COMPILER_UPDATE="
 call :DETECT_CONAN_COMPILER_VERSION
 if errorlevel 1 (
     echo ERROR: Unable to detect compiler.version from selected cl.exe.
@@ -1716,6 +1723,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
         -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
+        -s "&:compiler.update=%CONAN_COMPILER_UPDATE%" ^
         -s "&:build_type=%BUILD_TYPE%" ^
         -o "&:target_pre_windows10=True" >>"%LOG_FILE%" 2>&1
 ) else (
@@ -1725,6 +1733,7 @@ if "%TARGET_PRE_WINDOWS10%"=="1" (
         --build=never ^
         --profile="%CONAN_PROFILE%" ^
         -s "&:compiler.version=%CONAN_COMPILER_VERSION%" ^
+        -s "&:compiler.update=%CONAN_COMPILER_UPDATE%" ^
         -s "&:build_type=%BUILD_TYPE%" >>"%LOG_FILE%" 2>&1
 )
 
