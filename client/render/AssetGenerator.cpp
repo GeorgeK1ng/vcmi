@@ -1659,9 +1659,6 @@ AssetGenerator::CanvasPtr AssetGenerator::createRecruitmentDialogBackground(cons
 	// Central black input bar - 142x20
 	drawPlate(centered(Rect(171, 278, 142, 20)), true);
 
-	if(size.y > 420)
-		drawPlate(Rect(size.x / 2 - 113, 355, 226, 74));
-
 	return image;
 }
 

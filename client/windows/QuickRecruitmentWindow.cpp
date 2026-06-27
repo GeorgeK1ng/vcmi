@@ -13,6 +13,7 @@
 #include "../CPlayerInterface.h"
 #include "../widgets/Buttons.h"
 #include "../widgets/CreatureCostBox.h"
+#include "../widgets/GraphicalPrimitiveCanvas.h"
 #include "../widgets/Slider.h"
 #include "../widgets/TextControls.h"
 #include "../GameEngine.h"
@@ -86,6 +87,11 @@ std::string QuickRecruitmentWindow::getBackgroundName(int visibleCards) const
 	return "TPRCRTQ" + std::to_string(std::clamp(visibleCards, 1, 8));
 }
 
+int QuickRecruitmentWindow::getTotalCostBoxWidth() const
+{
+	return 226;
+}
+
 void QuickRecruitmentWindow::setCreaturePurchaseCards()
 {
 	Point position = Point((pos.w - 100*visibleCards - 8*(visibleCards-1))/2,64);
@@ -97,7 +103,9 @@ void QuickRecruitmentWindow::setCreaturePurchaseCards()
 			position.x += 108;
 		}
 	}
-	totalCost = std::make_shared<CreatureCostBox>(Rect((this->pos.w/2)-45, position.y+280, 97, 74), "");
+	const int totalCostBoxWidth = getTotalCostBoxWidth();
+	totalCostBackground = std::make_shared<TransparentFilledRectangle>(Rect(pos.w / 2 - totalCostBoxWidth / 2, position.y + 280, totalCostBoxWidth, 74), ColorRGBA(0, 0, 0, 75), ColorRGBA(128, 100, 75));
+	totalCost = std::make_shared<CreatureCostBox>(Rect(pos.w / 2 - totalCostBoxWidth / 2, position.y + 280, totalCostBoxWidth, 74), "");
 }
 
 void QuickRecruitmentWindow::initWindow(Rect /*startupPosition*/)
@@ -108,7 +116,6 @@ void QuickRecruitmentWindow::initWindow(Rect /*startupPosition*/)
 	setBackground(ImagePath::builtin(getBackgroundName(visibleCards)));
 	center();
 	statusbar = CGStatusBar::create(std::make_shared<CPicture>(background->getSurface(), Rect(8, pos.h - 26, pos.w - 16, 19), 8, pos.h - 26));
-	costBackground = std::make_shared<CPicture>(background->getSurface(), Rect(pos.w / 2 - 113, 355, 226, 74), pos.w / 2 - 113, 355);
 }
 
 void QuickRecruitmentWindow::maxAllCards(std::vector<std::shared_ptr<CreaturePurchaseCard> > cards)

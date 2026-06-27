@@ -18,7 +18,7 @@ VCMI_LIB_NAMESPACE_END
 class CButton;
 class CreatureCostBox;
 class CreaturePurchaseCard;
-class CFilledTexture;
+class TransparentFilledRectangle;
 
 class CSlider;
 class CGStatusBar;
@@ -42,6 +42,7 @@ private:
 	int getDialogWidthForCards(int cardsCount) const;
 	int getVisibleCards(int creaturesAmount) const;
 	std::string getBackgroundName(int visibleCards) const;
+	int getTotalCostBoxWidth() const;
 
 	void setCreaturePurchaseCards();
 
@@ -58,6 +59,5 @@ private:
 	int visibleCards;
 	int cardsOffsetX;
 	std::vector<std::shared_ptr<CreaturePurchaseCard>> cards;
-	std::shared_ptr<CFilledTexture> backgroundTexture;
-	std::shared_ptr<CPicture> costBackground;
+	std::shared_ptr<TransparentFilledRectangle> totalCostBackground;
 };
