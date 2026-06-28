@@ -844,7 +844,7 @@ bool FirstLaunchView::checkCanInstallTow()
 
 bool FirstLaunchView::checkCanInstallFod()
 {
-	return checkCanInstallMod("fallen-of-the-depth");
+	return checkCanInstallMod("tears-of-ashan");
 }
 
 bool FirstLaunchView::checkCanInstallToa()
@@ -893,10 +893,12 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 		modsToInstall.push_back("tides-of-war");
 
 	if(ui->buttonPresetFod->isChecked() && checkCanInstallFod())
-		modsToInstall.push_back("fallen-of-the-depth");
+		modsToInstall.push_back("tears-of-ashan");
 
 	if(ui->buttonPresetToa->isChecked() && checkCanInstallToa())
 		modsToInstall.push_back("tears-of-ashan");
+
+	modsToInstall.removeDuplicates();
 
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);
