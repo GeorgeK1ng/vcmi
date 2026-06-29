@@ -1060,7 +1060,5 @@
 	"vcmi.tutorialWindow.title": "Màn Hình Cảm Ứng",
 	"vcmi.mod.preset.extras.description": "Cài đặt mod cung cấp thêm nhiều cải tiến về giao diện đồ họa cho bản đồ ngẫu nhiên và có thể lựa chọn thêm các hành động trong trận chiến",
 	"vcmi.mod.preset.hota.name": "Horn of the Abyss",
-	"vcmi.mod.preset.hota.description": "Cài đặt phiên bản tương thích Horn of the Abyss, bản mở rộng Heroes III do các FAN hâm mộ tự làm, được nhóm VCMI chuyển qua",
-	"vcmi.mod.preset.wog.name": "In The Wake of Gods",
-	"vcmi.mod.preset.wog.description": "Cài đặt phiên bản tương thích In The Wake of Gods, bản mở rộng Heroes III do các FAN hâm mộ tự làm"
+	"vcmi.mod.preset.wog.name": "In The Wake of Gods"
 }

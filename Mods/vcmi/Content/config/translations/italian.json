@@ -633,7 +633,5 @@
 	"vcmi.tutorialWindow.title": "Introduzione touchscreen",
 	"vcmi.mod.preset.extras.description": "Installa il mod che fornisce vari miglioramenti all'interfaccia, come un'interfaccia migliore per le mappe casuali e azioni selezionabili nelle battaglie",
 	"vcmi.mod.preset.hota.name": "Horn of the Abyss",
-	"vcmi.mod.preset.hota.description": "Installa una versione compatibile di \"Horn of the Abyss\", un'espansione fan-made di Heroes III portata dal team di VCMI",
-	"vcmi.mod.preset.wog.name": "In The Wake of Gods",
-	"vcmi.mod.preset.wog.description": "Installa una versione compatibile di \"In The Wake of Gods\", un'espansione fan-made di Heroes III"
+	"vcmi.mod.preset.wog.name": "In The Wake of Gods"
 }

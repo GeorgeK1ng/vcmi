@@ -683,7 +683,5 @@
 	"vcmi.tutorialWindow.title": "Introdução à Tela Sensível ao Toque",
 	"vcmi.mod.preset.extras.description": "Instale um mod que forneça várias melhorias na interface, como uma interface melhor para mapas aleatórios e ações selecionáveis em batalhas",
 	"vcmi.mod.preset.hota.name": "Chifre do Abismo",
-	"vcmi.mod.preset.hota.description": "Instale uma versão compatível de \"Chifre do Abismo\", uma expansão do Heroes III feita por fãs, portada pela equipe do VCMI",
-	"vcmi.mod.preset.wog.name": "No Rastro dos Deuses",
-	"vcmi.mod.preset.wog.description": "Instalar uma versão compatível de \"No Rastro dos Deuses\", uma expansão feita por fãs do Heroes III"
+	"vcmi.mod.preset.wog.name": "No Rastro dos Deuses"
 }
