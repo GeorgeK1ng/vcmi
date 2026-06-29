@@ -847,7 +847,7 @@ void FirstLaunchView::loadModPresetTranslations()
 {
 	auto loadTranslations = [this](const std::string & language)
 	{
-		const JsonNode translations = JsonUtils::assembleFromFiles("config/translations/" + language + ".json");
+		const JsonNode translations = JsonUtils::assembleFromFiles("Mods/vcmi/Content/config/translations/" + language + ".json");
 		if(!translations.isNull())
 			modPresetTexts.loadTranslationOverrides("vcmi", language, translations);
 	};
