@@ -75,6 +75,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	void modPresetUpdate();
 	void loadModPresets();
 	void createModPresetWidgets();
+	void loadModPresetTranslations();
 	void updateModPresetTexts();
 	QString translateModPresetText(const QString & textID) const;
 

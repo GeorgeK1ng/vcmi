@@ -57,6 +57,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->setupUi(this);
 
 	loadModPresets();
+	loadModPresetTranslations();
 	createModPresetWidgets();
 
 	enterSetup();
@@ -108,6 +109,7 @@ void FirstLaunchView::changeEvent(QEvent * event)
 	{
 		ui->retranslateUi(this);
 		Languages::fillLanguages(ui->listWidgetLanguage, false);
+		loadModPresetTranslations();
 		updateModPresetTexts();
 	}
 	QWidget::changeEvent(event);
@@ -842,39 +844,28 @@ void FirstLaunchView::createModPresetWidgets()
 	updateModPresetTexts();
 }
 
+void FirstLaunchView::loadModPresetTranslations()
+{
+	if(!LIBRARY || !LIBRARY->generaltexth)
+		return;
+
+	auto loadTranslations = [](const std::string & language)
+	{
+		const JsonNode translations = JsonUtils::assembleFromFiles("config/translations/" + language + ".json");
+		if(!translations.isNull())
+			LIBRARY->generaltexth->loadTranslationOverrides("vcmi", language, translations);
+	};
+
+	const std::string preferredLanguage = CGeneralTextHandler::getPreferredLanguage();
+	loadTranslations("english");
+	if(preferredLanguage != "english")
+		loadTranslations(preferredLanguage);
+}
+
 QString FirstLaunchView::translateModPresetText(const QString & textID) const
 {
 	if(LIBRARY && LIBRARY->generaltexth)
-	{
-		QString translatedText = QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
-		if(translatedText != textID)
-			return translatedText;
-	}
-
-	auto translateFromFile = [textID](const std::string & language) -> QString
-	{
-		for(const auto & dataPath : VCMIDirs::get().dataPaths())
-		{
-			QString filePath = pathToQString(dataPath / "Mods" / "vcmi" / "Content" / "config" / "translations" / (language + ".json"));
-			if(!QFile::exists(filePath))
-				continue;
-
-			JsonNode translation = JsonUtils::jsonFromFile(filePath);
-			const auto & node = translation[textID.toStdString()];
-			if(node.getType() == JsonNode::JsonType::DATA_STRING)
-				return QString::fromStdString(node.String());
-		}
-
-		return {};
-	};
-
-	QString translatedText = translateFromFile(CGeneralTextHandler::getPreferredLanguage());
-	if(!translatedText.isEmpty())
-		return translatedText;
-
-	translatedText = translateFromFile("english");
-	if(!translatedText.isEmpty())
-		return translatedText;
+		return QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
 
 	return textID;
 }
