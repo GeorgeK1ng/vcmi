@@ -1,6 +1,8 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
+mode con: cols=130 lines=40 >nul 2>nul
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: VCMI Windows build helper
 :: Windows 7 compatible batch syntax
