@@ -17,6 +17,7 @@
 #include "../../lib/CConfigHandler.h"
 #include "../../lib/GameLibrary.h"
 #include "../../lib/json/JsonNode.h"
+#include "../../lib/json/JsonUtils.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/texts/Languages.h"
 #include "../../lib/VCMIDirs.h"
@@ -778,13 +779,11 @@ void FirstLaunchView::loadModPresets()
 	{
 		const auto & nameNode = presetNode["name"];
 		const auto & descriptionNode = presetNode["description"];
-		const auto & modNode = presetNode["mod"];
 		const auto & checkedNode = presetNode["checked"];
 		const auto & orderNode = presetNode["order"];
 
 		if(nameNode.getType() != JsonNode::JsonType::DATA_STRING ||
 		   descriptionNode.getType() != JsonNode::JsonType::DATA_STRING ||
-		   (!modNode.isNull() && modNode.getType() != JsonNode::JsonType::DATA_STRING) ||
 		   (!checkedNode.isNull() && checkedNode.getType() != JsonNode::JsonType::DATA_BOOL) ||
 		   (!orderNode.isNull() && orderNode.getType() != JsonNode::JsonType::DATA_INTEGER))
 		{
@@ -793,7 +792,7 @@ void FirstLaunchView::loadModPresets()
 		}
 
 		ModPreset preset;
-		preset.modID = QString::fromStdString(modNode.isNull() ? modID : modNode.String());
+		preset.modID = QString::fromStdString(modID);
 		preset.nameTextID = QString::fromStdString(nameNode.String());
 		preset.descriptionTextID = QString::fromStdString(descriptionNode.String());
 		preset.order = orderNode.isNull() ? modPresets.size() : static_cast<int>(orderNode.Integer());
@@ -846,7 +845,36 @@ void FirstLaunchView::createModPresetWidgets()
 QString FirstLaunchView::translateModPresetText(const QString & textID) const
 {
 	if(LIBRARY && LIBRARY->generaltexth)
-		return QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
+	{
+		QString translatedText = QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
+		if(translatedText != textID)
+			return translatedText;
+	}
+
+	auto translateFromFile = [textID](const std::string & language) -> QString
+	{
+		for(const auto & dataPath : VCMIDirs::get().dataPaths())
+		{
+			QString filePath = pathToQString(dataPath / "Mods" / "vcmi" / "Content" / "config" / "translations" / (language + ".json"));
+			if(!QFile::exists(filePath))
+				continue;
+
+			JsonNode translation = JsonUtils::jsonFromFile(filePath);
+			const auto & node = translation[textID.toStdString()];
+			if(node.getType() == JsonNode::JsonType::DATA_STRING)
+				return QString::fromStdString(node.String());
+		}
+
+		return {};
+	};
+
+	QString translatedText = translateFromFile(CGeneralTextHandler::getPreferredLanguage());
+	if(!translatedText.isEmpty())
+		return translatedText;
+
+	translatedText = translateFromFile("english");
+	if(!translatedText.isEmpty())
+		return translatedText;
 
 	return textID;
 }

@@ -22,7 +22,6 @@
 	},
 	"fallen-of-the-depth" : {
 		"order" : 4,
-		"mod" : "tears-of-ashan",
 		"name" : "vcmi.mod.preset.fod.name",
 		"description" : "vcmi.mod.preset.fod.description"
 	},
