@@ -15,7 +15,6 @@
 #include "modManager/cmodlistview_moc.h"
 
 #include "../../lib/CConfigHandler.h"
-#include "../../lib/GameLibrary.h"
 #include "../../lib/json/JsonNode.h"
 #include "../../lib/json/JsonUtils.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
@@ -846,14 +845,11 @@ void FirstLaunchView::createModPresetWidgets()
 
 void FirstLaunchView::loadModPresetTranslations()
 {
-	if(!LIBRARY || !LIBRARY->generaltexth)
-		return;
-
-	auto loadTranslations = [](const std::string & language)
+	auto loadTranslations = [this](const std::string & language)
 	{
 		const JsonNode translations = JsonUtils::assembleFromFiles("config/translations/" + language + ".json");
 		if(!translations.isNull())
-			LIBRARY->generaltexth->loadTranslationOverrides("vcmi", language, translations);
+			modPresetTexts.loadTranslationOverrides("vcmi", language, translations);
 	};
 
 	const std::string preferredLanguage = CGeneralTextHandler::getPreferredLanguage();
@@ -864,10 +860,7 @@ void FirstLaunchView::loadModPresetTranslations()
 
 QString FirstLaunchView::translateModPresetText(const QString & textID) const
 {
-	if(LIBRARY && LIBRARY->generaltexth)
-		return QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
-
-	return textID;
+	return QString::fromStdString(modPresetTexts.translate(textID.toStdString()));
 }
 
 void FirstLaunchView::updateModPresetTexts()

@@ -12,6 +12,8 @@
 
 #include "../demo.h"
 
+#include "../../lib/texts/TextLocalizationContainer.h"
+
 namespace Ui
 {
 class FirstLaunchView;
@@ -71,6 +73,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	};
 
 	QVector<ModPreset> modPresets;
+	TextLocalizationContainer modPresetTexts;
 
 	void modPresetUpdate();
 	void loadModPresets();
