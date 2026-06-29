@@ -1220,5 +1220,7 @@
 	"vcmi.mod.preset.tow.name": "Tides of War",
 	"vcmi.mod.preset.tow.description": "Rozsáhlé rozšíření, které obohacuje hratelnost o alternativní jednotku pro každé z 9 základních měst, a navíc přidává nové neutrální jednotky, obydlí, dovednosti a kouzla",
 	"vcmi.mod.preset.fod.name": "Fallen of the Depth",
-	"vcmi.mod.preset.fod.description": "Sestupte do podzemní říše a objevte Casemate — novou frakci vytvořenou pro VCMI, kde ve tmě vzkvétají houby, kámen a runová magie"
+	"vcmi.mod.preset.fod.description": "Sestupte do podzemní říše a objevte Casemate — novou frakci vytvořenou pro VCMI, kde ve tmě vzkvétají houby, kámen a runová magie",
+	"vcmi.mod.preset.toa.name": "Tears of Ashan",
+	"vcmi.mod.preset.toa.description": "Fanouškovské rozšíření inspirované Heroes V, které do Heroes III přidává alternativní vylepšení jednotek, Magii světla a temnoty, Bránu, vyšší limit sekundárních dovedností a přepracovaný Conflux"
 }
