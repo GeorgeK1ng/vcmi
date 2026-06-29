@@ -1212,15 +1212,13 @@
 	"vcmi.wiki.town.creatures": "Jednotky",
 	"vcmi.wiki.town.heroes": "Hrdinové",
 	"vcmi.mod.preset.extras.name": "VCMI Extras",
-	"vcmi.mod.preset.extras.description": "Nainstaluje mod s různými vylepšeními rozhraní, například lepším rozhraním pro náhodné mapy a volitelnými akcemi v bitvách",
+	"vcmi.mod.preset.extras.description": "Nainstalujte modifikaci, která přináší různá vylepšení, jako je lepší rozhraní pro náhodné mapy a možnost výběru akcí v bitvách",
 	"vcmi.mod.preset.hota.name": "Horn of the Abyss",
-	"vcmi.mod.preset.hota.description": "Nainstaluje kompatibilní verzi \"Horn of the Abyss\", fanouškovského rozšíření Heroes III portovaného týmem VCMI",
+	"vcmi.mod.preset.hota.description": "Fanouškovské rozšíření přidávající nová města Zátoku, Továrnu a Bulwark spolu s novými terény, objekty, schopnostmi a herními mechanikami",
 	"vcmi.mod.preset.wog.name": "In The Wake of Gods",
-	"vcmi.mod.preset.wog.description": "Nainstaluje kompatibilní verzi \"In The Wake of Gods\", fanouškovského rozšíření Heroes III",
+	"vcmi.mod.preset.wog.description": "Modifikace rozšiřující hru o velitele armády, nové artefakty, objekty, dekorace a další herní prvky",
 	"vcmi.mod.preset.tow.name": "Tides of War",
-	"vcmi.mod.preset.tow.description": "Rozsáhlé rozšíření hratelnosti s jednou alternativní jednotkou pro každé z 9 standardních měst, novými neutrálními bytostmi, bankami bytostí, schopnostmi a kouzly",
+	"vcmi.mod.preset.tow.description": "Rozsáhlé rozšíření, které obohacuje hratelnost o alternativní jednotku pro každé z 9 základních měst, a navíc přidává nové neutrální jednotky, obydlí, dovednosti a kouzla",
 	"vcmi.mod.preset.fod.name": "Fallen of the Depth",
-	"vcmi.mod.preset.fod.description": "Sestupte do podzemní říše a objevte Casemate — novou frakci vytvořenou pro VCMI, kde se v temnotě daří houbám, kameni a runové magii",
-	"vcmi.mod.preset.toa.name": "Tears of Ashan",
-	"vcmi.mod.preset.toa.description": "Nainstaluje \"Tears of Ashan\", fanouškovské rozšíření Heroes III inspirované Heroes V s alternativními vylepšeními, magií Světla a Temnoty, Gatingem a novou hratelností frakcí"
+	"vcmi.mod.preset.fod.description": "Sestupte do podzemní říše a objevte Casemate — novou frakci vytvořenou pro VCMI, kde ve tmě vzkvétají houby, kámen a runová magie"
 }

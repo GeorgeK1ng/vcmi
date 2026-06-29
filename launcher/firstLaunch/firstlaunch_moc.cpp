@@ -952,8 +952,6 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 		if(preset.button->isChecked() && checkCanInstallMod(preset.modID))
 			modsToInstall.push_back(preset.modID);
 
-	modsToInstall.removeDuplicates();
-
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);
 

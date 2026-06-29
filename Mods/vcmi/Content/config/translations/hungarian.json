@@ -628,5 +628,10 @@
 	"vcmi.tutorialWindow.decription.MapZooming": "Csípje össze két ujjal a térkép nagyításának megváltoztatásához.",
 	"vcmi.tutorialWindow.decription.RadialWheel": "Húzás különféle műveletekhez, például lény/hős kezeléshez és város rendeléshez nyit meg egy radiális kereket.",
 	"vcmi.tutorialWindow.decription.RightClick": "Érintse meg és tartsa lenyomva azt az elemet, amelyre jobb gombbal szeretne kattintani. Érintse meg a szabad területet a bezáráshoz.",
-	"vcmi.tutorialWindow.title": "Érintőképernyő bemutató"
+	"vcmi.tutorialWindow.title": "Érintőképernyő bemutató",
+	"vcmi.mod.preset.extras.description": "Telepítse a modot, amely különféle felületi fejlesztéseket biztosít, például jobb felületet véletlen térképekhez és választható akciókat csatákban",
+	"vcmi.mod.preset.hota.name": "Horn of the Abyss",
+	"vcmi.mod.preset.hota.description": "Telepítsen egy kompatibilis változatot a \"Horn of the Abyss\" nevű Heroes III kiegészítésből, amelyet a VCMI csapat portolt",
+	"vcmi.mod.preset.wog.name": "In The Wake of Gods",
+	"vcmi.mod.preset.wog.description": "Telepítsen egy kompatibilis változatot az \"In The Wake of Gods\" nevű Heroes III kiegészítésből"
 }
