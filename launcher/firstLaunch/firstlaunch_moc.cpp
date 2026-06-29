@@ -15,6 +15,8 @@
 #include "modManager/cmodlistview_moc.h"
 
 #include "../../lib/CConfigHandler.h"
+#include "../../lib/GameLibrary.h"
+#include "../../lib/json/JsonNode.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/texts/Languages.h"
 #include "../../lib/VCMIDirs.h"
@@ -52,6 +54,9 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	, ui(std::make_unique<Ui::FirstLaunchView>())
 {
 	ui->setupUi(this);
+
+	loadModPresets();
+	createModPresetWidgets();
 
 	enterSetup();
 	activateTabLanguage();
@@ -102,6 +107,7 @@ void FirstLaunchView::changeEvent(QEvent * event)
 	{
 		ui->retranslateUi(this);
 		Languages::fillLanguages(ui->listWidgetLanguage, false);
+		updateModPresetTexts();
 	}
 	QWidget::changeEvent(event);
 }
@@ -764,6 +770,96 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 }
 
 // Tab Mod Preset
+void FirstLaunchView::loadModPresets()
+{
+	JsonNode presetConfig(JsonPath::builtin("config/firstLaunchMods.json"));
+
+	for(const auto & [modID, presetNode] : presetConfig.Struct())
+	{
+		const auto & nameNode = presetNode["name"];
+		const auto & descriptionNode = presetNode["description"];
+		const auto & modNode = presetNode["mod"];
+		const auto & checkedNode = presetNode["checked"];
+		const auto & orderNode = presetNode["order"];
+
+		if(nameNode.getType() != JsonNode::JsonType::DATA_STRING ||
+		   descriptionNode.getType() != JsonNode::JsonType::DATA_STRING ||
+		   (!modNode.isNull() && modNode.getType() != JsonNode::JsonType::DATA_STRING) ||
+		   (!checkedNode.isNull() && checkedNode.getType() != JsonNode::JsonType::DATA_BOOL) ||
+		   (!orderNode.isNull() && orderNode.getType() != JsonNode::JsonType::DATA_INTEGER))
+		{
+			logGlobal->warn("Skipping invalid first launch mod preset '%s'", modID.c_str());
+			continue;
+		}
+
+		ModPreset preset;
+		preset.modID = QString::fromStdString(modNode.isNull() ? modID : modNode.String());
+		preset.nameTextID = QString::fromStdString(nameNode.String());
+		preset.descriptionTextID = QString::fromStdString(descriptionNode.String());
+		preset.order = orderNode.isNull() ? modPresets.size() : static_cast<int>(orderNode.Integer());
+		preset.checkedByDefault = !checkedNode.isNull() && checkedNode.Bool();
+		modPresets.push_back(preset);
+	}
+
+	std::sort(modPresets.begin(), modPresets.end(), [](const ModPreset & left, const ModPreset & right)
+	{
+		return left.order < right.order;
+	});
+}
+
+void FirstLaunchView::createModPresetWidgets()
+{
+	int row = 2;
+	for(auto & preset : modPresets)
+	{
+		auto * button = new QToolButton(ui->scrollAreaPresetModsContents);
+		button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+		button->setMinimumHeight(32);
+		QFont buttonFont = button->font();
+		buttonFont.setBold(true);
+		button->setFont(buttonFont);
+		QIcon icon;
+		icon.addFile(":/icons/mod-disabled.png", QSize(), QIcon::Normal, QIcon::Off);
+		icon.addFile(":/icons/mod-enabled.png", QSize(), QIcon::Normal, QIcon::On);
+		button->setIcon(icon);
+		button->setCheckable(true);
+		button->setChecked(preset.checkedByDefault);
+		button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+		button->setAutoRaise(false);
+
+		auto * description = new QLabel(ui->scrollAreaPresetModsContents);
+		description->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+		description->setWordWrap(true);
+
+		ui->gridLayout_4->addWidget(button, row, 0);
+		ui->gridLayout_4->addWidget(description, row, 1);
+
+		preset.button = button;
+		preset.description = description;
+
+		++row;
+	}
+
+	updateModPresetTexts();
+}
+
+QString FirstLaunchView::translateModPresetText(const QString & textID) const
+{
+	if(LIBRARY && LIBRARY->generaltexth)
+		return QString::fromStdString(LIBRARY->generaltexth->translate(textID.toStdString()));
+
+	return textID;
+}
+
+void FirstLaunchView::updateModPresetTexts()
+{
+	for(const auto & preset : modPresets)
+	{
+		preset.button->setText(translateModPresetText(preset.nameTextID));
+		preset.description->setText(translateModPresetText(preset.descriptionTextID));
+	}
+}
+
 void FirstLaunchView::modPresetUpdate()
 {
 	bool translationExists = !findTranslationModName().isEmpty();
@@ -772,31 +868,21 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
 	bool canTrans  = checkCanInstallTranslation();
-	bool canExtras = checkCanInstallExtras();
-	bool canHota   = checkCanInstallHota();
-	bool canWog	= checkCanInstallWog();
-	bool canTow    = checkCanInstallTow();
-	bool canFod    = checkCanInstallFod();
-	bool canToa    = checkCanInstallToa();
+	bool canInstallPreset = false;
 
 	ui->buttonPresetLanguage->setVisible(canTrans);
-	ui->buttonPresetExtras->setVisible(canExtras);
-	ui->buttonPresetHota->setVisible(canHota);
-	ui->buttonPresetWog->setVisible(canWog);
-	ui->buttonPresetTow->setVisible(canTow);
-	ui->buttonPresetFod->setVisible(canFod);
-	ui->buttonPresetToa->setVisible(canToa);
-
 	ui->labelPresetLanguageDescr->setVisible(canTrans);
-	ui->labelPresetExtrasDescr->setVisible(canExtras);
-	ui->labelPresetHotaDescr->setVisible(canHota);
-	ui->labelPresetWogDescr->setVisible(canWog);
-	ui->labelPresetTowDescr->setVisible(canTow);
-	ui->labelPresetFodDescr->setVisible(canFod);
-	ui->labelPresetToaDescr->setVisible(canToa);
+
+	for(const auto & preset : modPresets)
+	{
+		const bool canInstall = checkCanInstallMod(preset.modID);
+		preset.button->setVisible(canInstall);
+		preset.description->setVisible(canInstall);
+		canInstallPreset |= canInstall;
+	}
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if(demoDataActive || (!canTrans && !canExtras && !canHota && !canWog && !canTow && !canFod && !canToa))
+	if(demoDataActive || (!canTrans && !canInstallPreset))
 		exitSetup(false);
 }
 
@@ -820,36 +906,6 @@ bool FirstLaunchView::checkCanInstallTranslation()
 		return false;
 
 	return checkCanInstallMod(modName);
-}
-
-bool FirstLaunchView::checkCanInstallExtras()
-{
-	return checkCanInstallMod("vcmi-extras");
-}
-
-bool FirstLaunchView::checkCanInstallHota()
-{
-	return checkCanInstallMod("hota");
-}
-
-bool FirstLaunchView::checkCanInstallWog()
-{
-	return checkCanInstallMod("wake-of-gods");
-}
-
-bool FirstLaunchView::checkCanInstallTow()
-{
-	return checkCanInstallMod("tides-of-war");
-}
-
-bool FirstLaunchView::checkCanInstallFod()
-{
-	return checkCanInstallMod("tears-of-ashan");
-}
-
-bool FirstLaunchView::checkCanInstallToa()
-{
-	return checkCanInstallMod("tears-of-ashan");
 }
 
 CModListView * FirstLaunchView::getModView()
@@ -880,23 +936,9 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 	if(ui->buttonPresetLanguage->isChecked() && checkCanInstallTranslation())
 		modsToInstall.push_back(findTranslationModName());
 
-	if(ui->buttonPresetExtras->isChecked() && checkCanInstallExtras())
-		modsToInstall.push_back("vcmi-extras");
-
-	if(ui->buttonPresetWog->isChecked() && checkCanInstallWog())
-		modsToInstall.push_back("wake-of-gods");
-
-	if(ui->buttonPresetHota->isChecked() && checkCanInstallHota())
-		modsToInstall.push_back("hota");
-
-	if(ui->buttonPresetTow->isChecked() && checkCanInstallTow())
-		modsToInstall.push_back("tides-of-war");
-
-	if(ui->buttonPresetFod->isChecked() && checkCanInstallFod())
-		modsToInstall.push_back("tears-of-ashan");
-
-	if(ui->buttonPresetToa->isChecked() && checkCanInstallToa())
-		modsToInstall.push_back("tears-of-ashan");
+	for(const auto & preset : modPresets)
+		if(preset.button->isChecked() && checkCanInstallMod(preset.modID))
+			modsToInstall.push_back(preset.modID);
 
 	modsToInstall.removeDuplicates();
 
