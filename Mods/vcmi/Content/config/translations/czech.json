@@ -1212,7 +1212,7 @@
 	"vcmi.wiki.town.creatures": "Jednotky",
 	"vcmi.wiki.town.heroes": "Hrdinové",
 	"vcmi.mod.preset.extras.name": "VCMI Extras",
-	"vcmi.mod.preset.extras.description": "Nainstalujte modifikaci, která přináší různá vylepšení, jako je lepší rozhraní pro náhodné mapy a možnost výběru akcí v bitvách",
+	"vcmi.mod.preset.extras.description": "Rozšíření a opravy pro rozhraní a hratelnost ve VCMI:<br><br>• <b>Rozšířené možnosti lobby</b><br> Přidává výběr šablony, tlačítka velikosti mapy (H / XH / G / C), šachové hodiny a podporu souběžných tahů<br><br>• <b>Tlačítka Znovunavštívit a Vyhledat</b><br> Přidává tlačítka pro opětovný vstup do aktuálního objektu a kontextové vyhledávání na mapě<br><br>• <b>Rychlá výměna</b><br> Vylepšuje okno výměny hrdinů o tlačítka pro výměnu všech jednotek a artefaktů jedním kliknutím<br><br>• <b>Vertikální rozvržení (režim portrétu)</b><br> Optimalizuje rozhraní mapy dobrodružství pro obrazovky ve svislé orientaci<br><br>• <b>Ikony bonusů</b><br> Zobrazuje vizuální indikátory bonusů a speciálních schopností jednotek<br><br>• <b>Ikony imunit vůči kouzlům</b><br> Zobrazuje ikony imunit vůči kouzlům během boje<br><br>• <b>Podpora emoji</b><br> Umožňuje zobrazení emoji ve hře (např. v chatu)",
 	"vcmi.mod.preset.hota.name": "Horn of the Abyss",
 	"vcmi.mod.preset.hota.description": "Vypilované fanouškovské rozšíření, které přidává města Zátoka, Továrna a Bulwark, nové kampaně, hrdiny, artefakty, objekty na mapě, dovednosti Síla vůle a Runy, úpravy vyvážení a nové terény, při zachování ducha Heroes III",
 	"vcmi.mod.preset.wog.name": "In The Wake of Gods",
