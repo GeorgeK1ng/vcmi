@@ -51,6 +51,9 @@
 
 void ClientCommandManager::handleQuitCommand()
 {
+	if(!ENGINE)
+		exit(EXIT_SUCCESS);
+
 	if(ENGINE->amIGuiThread())
 		GAME->onShutdownRequested(false);
 	else
