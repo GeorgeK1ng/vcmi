@@ -51,7 +51,10 @@
 
 void ClientCommandManager::handleQuitCommand()
 {
-		exit(EXIT_SUCCESS);
+	if(ENGINE->amIGuiThread())
+		GAME->onShutdownRequested(false);
+	else
+		ENGINE->dispatchMainThread([]() { GAME->onShutdownRequested(false); });
 }
 
 void ClientCommandManager::handleSaveCommand(std::istringstream & singleWordBuffer)
