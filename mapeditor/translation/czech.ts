@@ -26,7 +26,7 @@
     <message>
         <location filename="../inspector/abilitieswidget.ui" line="97"/>
         <source>&lt;font color=&apos;red&apos;&gt;Displayed skills assume default witch hut implementation. Mods can overwrite it.&lt;/font&gt;</source>
-        <translation>&lt;font color=&apos;red&apos;&gt;Zobrazené dovednosti předpokládají výchozí implementaci chýše čarodějnice. Mody ji mohou přepsat.&lt;/font&gt;</translation>
+        <translation>&lt;font color=&apos;red&apos;&gt;Zobrazené dovednosti předpokládají výchozí implementaci chaty vědmy. Mody ji mohou přepsat.&lt;/font&gt;</translation>
     </message>
 </context>
 <context>
@@ -921,7 +921,7 @@
 For the best experience, we recommend using the map editor on a tablet (or with a mouse/pen).</source>
         <translation>Editor map na Androidu je experimentální.
 
-Pro nejlepší zážitek doporučujeme používat editor map na tabletu (nebo s myší/perem).</translation>
+Pro nejlepší zážitek doporučujeme používat editor map na tabletu (nebo s myší/stylusem).</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="504"/>
@@ -4820,7 +4820,7 @@ Stráž: %3</translation>
     <message>
         <location filename="../validator.cpp" line="163"/>
         <source>A customized witch hut at x: %1 y: %2 on %3 layer does not hold a valid secondary skill</source>
-        <translation>Upravená chýše čarodějnice na x: %1 y: %2 ve vrstvě %3 neobsahuje platnou vedlejší dovednost</translation>
+        <translation>Upravená chata vědmy na x: %1 y: %2 ve vrstvě %3 neobsahuje platnou vedlejší dovednost</translation>
     </message>
     <message>
         <location filename="../validator.cpp" line="180"/>
