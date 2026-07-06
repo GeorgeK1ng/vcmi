@@ -1001,23 +1001,28 @@ CTransformerWindow::CItem::CItem(CTransformerWindow * parent_, int size_, int id
 
 void CTransformerWindow::makeDeal()
 {
-	const CItem * soundSource = nullptr;
+	const CItem * firstTransformed = nullptr;
+	AudioPath transformationSound;
 	for(auto & elem : items)
 	{
 		if(!elem->left)
 		{
-			if(!soundSource)
-				soundSource = elem.get();
+			if(!firstTransformed)
+				firstTransformed = elem.get();
+
+			if(transformationSound.empty())
+			{
+				const auto & sound = army->getCreature(SlotID(elem->id))->sounds.killed;
+				if(!sound.empty())
+					transformationSound = sound;
+			}
 
 			GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::CREATURE_UNDEAD, SlotID(elem->id), {}, {}, hero);
 		}
 	}
 
-	if(soundSource)
-	{
-		const auto & sound = army->getCreature(SlotID(soundSource->id))->sounds.killed;
-		ENGINE->sound().playSound(sound.empty() ? AudioPath::builtin("DEFAULT") : sound);
-	}
+	if(firstTransformed)
+		ENGINE->sound().playSound(transformationSound.empty() ? AudioPath::builtin("DEFAULT") : transformationSound);
 }
 
 void CTransformerWindow::addAll()
