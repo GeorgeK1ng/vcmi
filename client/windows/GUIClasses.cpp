@@ -24,6 +24,7 @@
 #include "../gui/CursorHandler.h"
 #include "../gui/Shortcut.h"
 #include "../gui/WindowHandler.h"
+#include "../media/ISoundPlayer.h"
 
 #include "../widgets/CComponent.h"
 #include "../widgets/CGarrisonInt.h"
@@ -1000,11 +1001,28 @@ CTransformerWindow::CItem::CItem(CTransformerWindow * parent_, int size_, int id
 
 void CTransformerWindow::makeDeal()
 {
+	const CItem * firstTransformed = nullptr;
+	AudioPath transformationSound;
 	for(auto & elem : items)
 	{
 		if(!elem->left)
+		{
+			if(!firstTransformed)
+				firstTransformed = elem.get();
+
+			if(transformationSound.empty())
+			{
+				const auto & sound = army->getCreature(SlotID(elem->id))->sounds.killed;
+				if(!sound.empty())
+					transformationSound = sound;
+			}
+
 			GAME->interface()->cb->trade(market->getObjInstanceID(), EMarketMode::CREATURE_UNDEAD, SlotID(elem->id), {}, {}, hero);
+		}
 	}
+
+	if(firstTransformed)
+		ENGINE->sound().playSound(transformationSound.empty() ? AudioPath::builtin("DEFAULT") : transformationSound);
 }
 
 void CTransformerWindow::addAll()
