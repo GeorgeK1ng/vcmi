@@ -30,7 +30,7 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 	iconv_t cd = iconv_open(destEncoding.c_str(), fromEncoding.c_str());
 	if(cd == reinterpret_cast<iconv_t>(-1))
 	{
-		logGlobal->error("Encoding coversion failure. Invalid encoding %s -> %s", fromEncoding, destEncoding);
+		logGlobal->error("Encoding conversion failure. Invalid encoding %s -> %s", fromEncoding, destEncoding);
 		return {};
 	}
 
@@ -51,9 +51,9 @@ FromString convertTextEncoding(const DestString & fromString, const std::string 
 	if(ret == static_cast<size_t>(-1))
 	{
 		if constexpr (fromCharSize == 1)
-			logGlobal->error("Encoding coversion failure. Failed to convert text: %s", fromString);
+			logGlobal->error("Encoding conversion failure. Failed to convert text: %s", fromString);
 		else
-			logGlobal->error("Encoding coversion failure. Failed to convert text.");
+			logGlobal->error("Encoding conversion failure. Failed to convert text.");
 		return {};
 	}
 
@@ -191,6 +191,9 @@ uint32_t TextOperations::getUnicodeCodepoint(const char * data, size_t maxSize)
 
 uint32_t TextOperations::getUnicodeCodepoint(char data, const std::string & encoding )
 {
+	if(encoding == "UTF-8" && isValidASCII(&data, 1))
+		return static_cast<uint8_t>(data);
+
 	std::string stringNative(1, data);
 	std::string stringUnicode = toUnicode(stringNative, encoding);
 

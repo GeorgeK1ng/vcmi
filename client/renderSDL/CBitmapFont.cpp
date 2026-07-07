@@ -128,8 +128,14 @@ void CBitmapFont::loadFont(const ResourcePath & resource, std::unordered_map<Cod
 
 		std::copy_n(pixelData, pixelsCount, symbol.pixels.data() );
 
+		// Bitmap fonts are indexed by single bytes. Standalone non-ASCII bytes are not
+		// complete UTF-8 characters, so skip such font slots instead of converting them.
+		if(modEncoding == "UTF-8" && charIndex >= 0x80)
+			continue;
+
 		CodePoint codepoint = TextOperations::getUnicodeCodepoint(static_cast<char>(charIndex), modEncoding);
-		loadedChars[codepoint] = symbol;
+		if(codepoint != 0 || charIndex == 0)
+			loadedChars[codepoint] = symbol;
 	}
 
 	// Try to use symbol 'L' to detect font 'ascent' - number of pixels above text baseline
