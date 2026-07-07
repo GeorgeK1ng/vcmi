@@ -191,11 +191,8 @@ uint32_t TextOperations::getUnicodeCodepoint(const char * data, size_t maxSize)
 
 uint32_t TextOperations::getUnicodeCodepoint(char data, const std::string & encoding )
 {
-	// Bitmap fonts are indexed by single bytes. A standalone non-ASCII byte is never
-	// a complete UTF-8 character, so do not pass it to iconv just to log an expected
-	// conversion failure while probing unused/invalid font slots.
-	if(encoding == "UTF-8" && !isValidASCII(&data, 1))
-		return 0;
+	if(encoding == "UTF-8" && isValidASCII(&data, 1))
+		return static_cast<uint8_t>(data);
 
 	std::string stringNative(1, data);
 	std::string stringUnicode = toUnicode(stringNative, encoding);
