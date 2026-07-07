@@ -26,6 +26,8 @@
 #include "../demo.h"
 #include "progressoverlay.h"
 
+#include <array>
+
 // Create and show overlay immediately
 static ProgressOverlay* createOverlayWidget(QWidget *parent, const QString &title, bool indeterminate = true)
 {
@@ -53,7 +55,6 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 {
 	ui->setupUi(this);
 
-	loadModPresets();
 	createModPresetWidgets();
 
 	enterSetup();
@@ -768,47 +769,57 @@ void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 }
 
 // Tab Mod Preset
-void FirstLaunchView::loadModPresets()
+namespace
 {
-	modPresets = {
-		{
-			"vcmi-extras",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "VCMI Extras"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Adds interface and gameplay improvements such as a better interface for random maps, revisit and search buttons for the adventure map, quick exchange for heroes, bonus and immunity icons, and actions in battle"),
-			true
-		},
-		{
-			"hota",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Horn of the Abyss"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "A polished fan-made expansion that adds Cove, Factory and Bulwark towns, new campaigns, heroes, artifacts, map objects, Interference and Runes skills, balance fixes and new terrains while staying faithful to Heroes III")
-		},
-		{
-			"wake-of-gods",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "In The Wake of Gods"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Deepens Heroes III with Commanders, stack experience, stack artifacts, many new hero and commander artifacts, extra progression systems and interactive adventure map objects")
-		},
-		{
-			"tides-of-war",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Tides of War"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "A feature-rich expansion that expands gameplay with one alternative unit for each of the 9 standard towns, plus new neutral creatures, creature banks, skills and spells")
-		},
-		{
-			"fallen-of-the-depth",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Fallen of the Depth"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Descend into the underground realm and uncover Casemate — a new faction where mushrooms, stone and rune magic thrive in the dark, created for VCMI")
-		},
-		{
-			"tears-of-ashan",
-			QT_TRANSLATE_NOOP("FirstLaunchView", "Tears of Ashan"),
-			QT_TRANSLATE_NOOP("FirstLaunchView", "A fan-made expansion inspired by Heroes V that adds alternate creature upgrades, Light and Dark Magic, Gating, a higher secondary skill cap and redesigned Conflux gameplay to Heroes III")
-		}
-	};
+struct ModPreset
+{
+	const char * modID;
+	const char * name;
+	const char * description;
+	bool checkedByDefault = false;
+};
+
+static constexpr std::array<ModPreset, 6> modPresets = {{
+	{
+		"vcmi-extras",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "VCMI Extras"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Adds interface and gameplay improvements such as a better interface for random maps, revisit and search buttons for the adventure map, quick exchange for heroes, bonus and immunity icons, and actions in battle"),
+		true
+	},
+	{
+		"hota",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Horn of the Abyss"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "A polished fan-made expansion that adds Cove, Factory and Bulwark towns, new campaigns, heroes, artifacts, map objects, Interference and Runes skills, balance fixes and new terrains while staying faithful to Heroes III")
+	},
+	{
+		"wake-of-gods",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "In The Wake of Gods"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Deepens Heroes III with Commanders, stack experience, stack artifacts, many new hero and commander artifacts, extra progression systems and interactive adventure map objects")
+	},
+	{
+		"tides-of-war",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Tides of War"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "A feature-rich expansion that expands gameplay with one alternative unit for each of the 9 standard towns, plus new neutral creatures, creature banks, skills and spells")
+	},
+	{
+		"fallen-of-the-depth",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Fallen of the Depth"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Descend into the underground realm and uncover Casemate — a new faction where mushrooms, stone and rune magic thrive in the dark, created for VCMI")
+	},
+	{
+		"tears-of-ashan",
+		QT_TRANSLATE_NOOP("FirstLaunchView", "Tears of Ashan"),
+		QT_TRANSLATE_NOOP("FirstLaunchView", "A fan-made expansion inspired by Heroes V that adds alternate creature upgrades, Light and Dark Magic, Gating, a higher secondary skill cap and redesigned Conflux gameplay to Heroes III")
+	}
+}};
 }
+
 
 void FirstLaunchView::createModPresetWidgets()
 {
 	int row = 2;
-	for(auto & preset : modPresets)
+	modPresetWidgets.reserve(static_cast<int>(modPresets.size()));
+	for(const auto & preset : modPresets)
 	{
 		auto button = std::make_unique<QToolButton>(ui->scrollAreaPresetModsContents);
 		button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -832,8 +843,7 @@ void FirstLaunchView::createModPresetWidgets()
 		ui->gridLayout_4->addWidget(button.get(), row, 0);
 		ui->gridLayout_4->addWidget(description.get(), row, 1);
 
-		preset.button = button.release();
-		preset.descriptionLabel = description.release();
+		modPresetWidgets.push_back(ModPresetWidgets{ button.release(), description.release() });
 
 		++row;
 	}
@@ -843,10 +853,11 @@ void FirstLaunchView::createModPresetWidgets()
 
 void FirstLaunchView::updateModPresetTexts()
 {
-	for(const auto & preset : modPresets)
+	for(size_t index = 0; index < modPresets.size(); ++index)
 	{
-		preset.button->setText(tr(preset.name));
-		preset.descriptionLabel->setText(tr(preset.description));
+		auto & widgets = modPresetWidgets[static_cast<int>(index)];
+		widgets.button->setText(tr(modPresets[index].name));
+		widgets.descriptionLabel->setText(tr(modPresets[index].description));
 	}
 }
 
@@ -863,11 +874,12 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetLanguage->setVisible(canTrans);
 	ui->labelPresetLanguageDescr->setVisible(canTrans);
 
-	for(const auto & preset : modPresets)
+	for(size_t index = 0; index < modPresets.size(); ++index)
 	{
-		const bool canInstall = checkCanInstallMod(preset.modID);
-		preset.button->setVisible(canInstall);
-		preset.descriptionLabel->setVisible(canInstall);
+		auto & widgets = modPresetWidgets[static_cast<int>(index)];
+		const bool canInstall = checkCanInstallMod(modPresets[index].modID);
+		widgets.button->setVisible(canInstall);
+		widgets.descriptionLabel->setVisible(canInstall);
 		canInstallPreset |= canInstall;
 	}
 
@@ -926,9 +938,12 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 	if(ui->buttonPresetLanguage->isChecked() && checkCanInstallTranslation())
 		modsToInstall.push_back(findTranslationModName());
 
-	for(const auto & preset : modPresets)
-		if(preset.button->isChecked() && checkCanInstallMod(preset.modID))
-			modsToInstall.push_back(preset.modID);
+	for(size_t index = 0; index < modPresets.size(); ++index)
+	{
+		auto & widgets = modPresetWidgets[static_cast<int>(index)];
+		if(widgets.button->isChecked() && checkCanInstallMod(modPresets[index].modID))
+			modsToInstall.push_back(modPresets[index].modID);
+	}
 
 	bool goToMods = !modsToInstall.empty();
 	exitSetup(goToMods);

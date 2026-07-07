@@ -60,20 +60,15 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
 
 	// Tab Mod Preset
-	struct ModPreset
+	struct ModPresetWidgets
 	{
-		QString modID;
-		const char * name;
-		const char * description;
-		bool checkedByDefault = false;
 		QToolButton * button = nullptr;
 		QLabel * descriptionLabel = nullptr;
 	};
 
-	QVector<ModPreset> modPresets;
+	QVector<ModPresetWidgets> modPresetWidgets;
 
 	void modPresetUpdate();
-	void loadModPresets();
 	void createModPresetWidgets();
 	void updateModPresetTexts();
 
