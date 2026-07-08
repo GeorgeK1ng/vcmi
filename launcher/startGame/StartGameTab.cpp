@@ -13,6 +13,7 @@
 
 #include "../helper.h"
 #include "../mainwindow_moc.h"
+#include "../languages.h"
 #include "../main.h"
 #include "../updatedialog_moc.h"
 #ifdef VCMI_IOS
@@ -25,6 +26,7 @@
 #include "../../lib/filesystem/Filesystem.h"
 #include "../../lib/GameConstants.h"
 #include "../../lib/VCMIDirs.h"
+#include "../../lib/texts/Languages.h"
 #include "../../vcmiqt/MessageBox.h"
 #include "../../vcmiqt/convpathqstring.h"
 
@@ -106,11 +108,10 @@ void StartGameTab::refreshState()
 	refreshGameData();
 	refreshUpdateStatus(EGameUpdateStatus::NOT_CHECKED);//TODO - follow automatic check on startup setting
 
+	refreshTranslation(Helper::getMainWindow()->getTranslationStatus());
+
 	if (!demoActive)
-	{
-		refreshTranslation(Helper::getMainWindow()->getTranslationStatus());
 		refreshMods();
-	}
 
 	refreshPresets();
 
@@ -199,8 +200,8 @@ void StartGameTab::refreshTranslation(ETranslationStatus status)
 	ui->buttonInstallTranslation->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
 	ui->buttonInstallTranslationHelp->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
 
-	ui->buttonActivateTranslation->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
-	ui->buttonActivateTranslationHelp->setVisible(status == ETranslationStatus::NOT_INSTALLLED);
+	ui->buttonActivateTranslation->setVisible(status == ETranslationStatus::DISABLED);
+	ui->buttonActivateTranslationHelp->setVisible(status == ETranslationStatus::DISABLED);
 }
 
 void StartGameTab::refreshMods()
@@ -243,6 +244,36 @@ void StartGameTab::refreshUpdateStatus(EGameUpdateStatus status)
 
 void StartGameTab::on_buttonGameStart_clicked()
 {
+	ETranslationStatus translationStatus = Helper::getMainWindow()->getTranslationStatus();
+	if(translationStatus == ETranslationStatus::NOT_INSTALLLED)
+	{
+		on_buttonInstallTranslation_clicked();
+		return;
+	}
+
+	if(translationStatus == ETranslationStatus::DISABLED)
+	{
+		auto enableTranslation = [this]()
+		{
+			QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+			QString languageName = Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString()));
+			QString message = tr("You are using %1, but the %2 language pack is not enabled. Do you want to enable it?")
+				.arg(languageName, languageName);
+			int result = QMessageBox::question(this, ui->buttonGameStart->text(), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+			if(result == QMessageBox::Yes)
+			{
+				QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredLanguage);
+				Helper::getMainWindow()->getModView()->enableModByName(modName);
+				Helper::getMainWindow()->hide();
+				startGame({});
+			}
+		};
+
+		MessageBoxCustom::showDialog(this, enableTranslation);
+		return;
+	}
+
 	Helper::getMainWindow()->hide();
 	startGame({});
 }
@@ -396,12 +427,26 @@ void StartGameTab::on_buttonImportFiles_clicked()
 
 void StartGameTab::on_buttonInstallTranslation_clicked()
 {
-	if (Helper::getMainWindow()->getTranslationStatus() == ETranslationStatus::NOT_INSTALLLED)
+	if (Helper::getMainWindow()->getTranslationStatus() != ETranslationStatus::NOT_INSTALLLED)
+		return;
+
+	auto installTranslation = [this]()
 	{
-		QString preferredlanguage = QString::fromStdString(settings["general"]["language"].String());
-		QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredlanguage);
+		QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+		QString languageName = Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString()));
+		QString message = tr("You are using %1, but the %2 language pack is not installed. Do you want to install it?")
+			.arg(languageName, languageName);
+		int result = QMessageBox::question(this, ui->buttonInstallTranslation->text(), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+		if(result != QMessageBox::Yes)
+			return;
+
+		QString modName = Helper::getMainWindow()->getModView()->getTranslationModName(preferredLanguage);
+		Helper::getMainWindow()->switchToModsTab();
 		Helper::getMainWindow()->getModView()->doInstallMod(modName);
-	}
+	};
+
+	MessageBoxCustom::showDialog(this, installTranslation);
 }
 
 void StartGameTab::on_buttonActivateTranslation_clicked()

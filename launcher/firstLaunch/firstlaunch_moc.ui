@@ -662,7 +662,7 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Install a translation of Heroes III in your preferred language</string>
+            <string>Install the required Heroes III language pack</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>

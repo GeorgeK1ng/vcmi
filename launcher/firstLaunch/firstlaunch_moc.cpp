@@ -771,6 +771,14 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
 	bool canTrans  = checkCanInstallTranslation();
+	if(canTrans)
+	{
+		QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+		ui->buttonPresetLanguage->setText(Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString())));
+		ui->buttonPresetLanguage->setChecked(true);
+	}
+	ui->buttonPresetLanguage->setEnabled(!canTrans);
+
 	bool canExtras = checkCanInstallExtras();
 	bool canHota   = checkCanInstallHota();
 	bool canWog	= checkCanInstallWog();
@@ -815,7 +823,7 @@ bool FirstLaunchView::checkCanInstallTranslation()
 	if(modName.isEmpty())
 		return false;
 
-	return checkCanInstallMod(modName);
+	return getModView() && (getModView()->isModAvailable(modName) || getModView()->isModInstalled(modName));
 }
 
 bool FirstLaunchView::checkCanInstallExtras()
@@ -868,7 +876,7 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 {
 	QStringList modsToInstall;
 
-	if(ui->buttonPresetLanguage->isChecked() && checkCanInstallTranslation())
+	if(checkCanInstallTranslation())
 		modsToInstall.push_back(findTranslationModName());
 
 	if(ui->buttonPresetExtras->isChecked() && checkCanInstallExtras())

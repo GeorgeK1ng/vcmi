@@ -307,13 +307,10 @@ ETranslationStatus MainWindow::getTranslationStatus()
 	QString preferredlanguage = QString::fromStdString(settings["general"]["language"].String());
 	QString installedlanguage = QString::fromStdString(settings["session"]["language"].String());
 
-	if (preferredlanguage == installedlanguage)
-		return ETranslationStatus::ACTIVE;
-
 	QString modName = getModView()->getTranslationModName(preferredlanguage);
 
 	if (modName.isEmpty())
-		return ETranslationStatus::NOT_AVAILABLE;
+		return preferredlanguage == installedlanguage ? ETranslationStatus::ACTIVE : ETranslationStatus::NOT_AVAILABLE;
 
 	if (!getModView()->isModInstalled(modName))
 		return ETranslationStatus::NOT_INSTALLLED;
