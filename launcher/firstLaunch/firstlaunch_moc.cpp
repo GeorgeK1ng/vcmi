@@ -158,8 +158,7 @@ void FirstLaunchView::onInstallFinished()
 {
 	demoOverlay->deleteLater();
 	demoOverlay = nullptr;
-	if(heroesDataUpdate(true))
-		activateTabModPreset();
+	heroesDataUpdate(true);
 }
 
 void FirstLaunchView::onInstallError()
@@ -799,6 +798,10 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetWogDescr->setVisible(canWog);
 	ui->labelPresetTowDescr->setVisible(canTow);
 	ui->labelPresetFodDescr->setVisible(canFod);
+
+	// we can't install anything - either repository checkout is off or all recommended mods are already installed
+	if(demoDataActive || (!canTrans && !canExtras && !canHota && !canWog && !canTow && !canFod))
+		exitSetup(false);
 }
 
 QString FirstLaunchView::findTranslationModName()
