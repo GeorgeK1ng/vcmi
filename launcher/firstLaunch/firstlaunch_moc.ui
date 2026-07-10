@@ -302,10 +302,10 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
               </sizepolicy>
              </property>
              <property name="maximumSize">
-              <size><width>16777215</width><height>72</height></size>
+              <size><width>16777215</width><height>60</height></size>
              </property>
              <property name="minimumSize">
-              <size><width>0</width><height>72</height></size>
+              <size><width>0</width><height>60</height></size>
              </property>
              <property name="text">
               <string>Use detected installation</string>
@@ -331,10 +331,10 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
               </sizepolicy>
              </property>
              <property name="maximumSize">
-              <size><width>16777215</width><height>72</height></size>
+              <size><width>16777215</width><height>60</height></size>
              </property>
              <property name="minimumSize">
-              <size><width>0</width><height>72</height></size>
+              <size><width>0</width><height>60</height></size>
              </property>
              <property name="text">
               <string>Install gog.com files</string>
@@ -364,10 +364,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
               </sizepolicy>
              </property>
              <property name="maximumSize">
-              <size><width>16777215</width><height>72</height></size>
+              <size><width>16777215</width><height>60</height></size>
              </property>
              <property name="minimumSize">
-              <size><width>0</width><height>72</height></size>
+              <size><width>0</width><height>60</height></size>
              </property>
              <property name="text">
               <string>Import existing data</string>
@@ -393,10 +393,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
               </sizepolicy>
              </property>
              <property name="maximumSize">
-              <size><width>16777215</width><height>72</height></size>
+              <size><width>16777215</width><height>60</height></size>
              </property>
              <property name="minimumSize">
-              <size><width>0</width><height>72</height></size>
+              <size><width>0</width><height>60</height></size>
              </property>
              <property name="text">
               <string>Download Demo</string>
@@ -422,10 +422,10 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
               </sizepolicy>
              </property>
              <property name="maximumSize">
-              <size><width>16777215</width><height>72</height></size>
+              <size><width>16777215</width><height>60</height></size>
              </property>
              <property name="minimumSize">
-              <size><width>0</width><height>72</height></size>
+              <size><width>0</width><height>60</height></size>
              </property>
              <property name="text">
               <string>Search again</string>
