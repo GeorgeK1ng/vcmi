@@ -19,6 +19,7 @@
 #include "../../lib/texts/Languages.h"
 #include "../../lib/VCMIDirs.h"
 #include "../../lib/filesystem/Filesystem.h"
+#include "../../lib/filesystem/CZipLoader.h"
 #include "../../vcmiqt/MessageBox.h"
 #include "../helper.h"
 #include "../languages.h"
@@ -63,6 +64,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->lineEditDataUser->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().userDataPath())));
 
 	Helper::enableScrollBySwiping(ui->listWidgetLanguage);
+	Helper::enableScrollBySwiping(ui->scrollAreaDataOptions);
 	Helper::enableScrollBySwiping(ui->scrollAreaPresetMods);
 
 #ifdef VCMI_MOBILE
@@ -70,9 +72,14 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->lineEditDataSystem->hide();
 #endif
 
+	ui->pushButtonDataDetected->setCheckable(true);
+	ui->pushButtonDataCopy->setCheckable(true);
+	ui->pushButtonGogInstall->setCheckable(true);
+	ui->pushButtonDemo->setCheckable(true);
+	ui->pushButtonDataSearch->setCheckable(true);
+
 #ifndef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->hide();
-	ui->labelDataGogTitle->hide();
 	ui->labelDataGogDescr->hide();
 #endif
 }
@@ -117,7 +124,14 @@ void FirstLaunchView::on_pushButtonLanguageNext_clicked()
 
 void FirstLaunchView::on_pushButtonDataNext_clicked()
 {
-	activateTabModPreset();
+	if(heroesDataDetect(false))
+	{
+		heroesDataDetected();
+		activateTabModPreset();
+		return;
+	}
+
+	startSelectedDataAction();
 }
 
 void FirstLaunchView::on_pushButtonDataBack_clicked()
@@ -127,36 +141,27 @@ void FirstLaunchView::on_pushButtonDataBack_clicked()
 
 void FirstLaunchView::on_pushButtonDataSearch_clicked()
 {
-	heroesDataUpdate(false);
+	selectDataAction(DataAction::SearchAgain);
 }
 
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
-	// iOS can't display modal dialogs when called directly on button press
-	// https://bugreports.qt.io/browse/QTBUG-98651
-	MessageBoxCustom::showDialog(this, [this]{
-		Helper::nativeFolderPicker(this, [this](const QString &picked){
-			if(!picked.isEmpty())
-				copyHeroesData(picked, false);
-		});
-	});
+	selectDataAction(DataAction::CopyFiles);
 }
 
 void FirstLaunchView::on_pushButtonGogInstall_clicked()
 {
-	// iOS can't display modal dialogs when called directly on button press
-	// https://bugreports.qt.io/browse/QTBUG-98651
-	MessageBoxCustom::showDialog(this, [this]{extractGogData();});
+	selectDataAction(DataAction::GogInstall);
 }
 
 void FirstLaunchView::on_pushButtonDemo_clicked()
 {
-	demoOverlay = createOverlay(tr("Downloading Heroes III Demo..."), false);
-	demoOverlay->setRange(100);
-	demoOverlay->setValue(0);
+	selectDataAction(DataAction::DownloadDemo);
+}
 
-	demo = std::make_unique<DemoInstaller>(this);
-	demo->download();
+void FirstLaunchView::on_pushButtonDataDetected_clicked()
+{
+	selectDataAction(DataAction::DetectedInstall);
 }
 
 void FirstLaunchView::onInstallFinished()
@@ -208,19 +213,14 @@ void FirstLaunchView::activateTabHeroesData()
 	ui->buttonTabHeroesData->setChecked(true);
 	ui->buttonTabModPreset->setChecked(false);
 
+	detectedInstallPath = getHeroesInstallDir();
 	if(heroesDataUpdate(false))
 	{
 		activateTabModPreset();
 		return;
 	}
 
-	QString installPath = getHeroesInstallDir();
-	if(!installPath.isEmpty())
-	{
-		auto reply = QMessageBox::question(this, tr("Heroes III installation found!"), tr("Copy data to VCMI folder?"), QMessageBox::Yes | QMessageBox::No);
-		if(reply == QMessageBox::Yes)
-			copyHeroesData(installPath, false);
-	}
+	selectDataAction(detectedInstallPath.isEmpty() ? DataAction::CopyFiles : DataAction::DetectedInstall);
 }
 
 void FirstLaunchView::activateTabModPreset()
@@ -267,26 +267,25 @@ void FirstLaunchView::heroesDataMissing()
 	ui->lineEditDataSystem->setPalette(newPalette);
 	ui->lineEditDataUser->setPalette(newPalette);
 
-	ui->labelDataManualTitle->setVisible(true);
+	const bool hasDetectedInstall = !detectedInstallPath.isEmpty();
+	const bool canUseDataCopy = Helper::canUseFolderPicker();
+
+	ui->labelDataDetectedDescr->setVisible(hasDetectedInstall);
+	ui->pushButtonDataDetected->setVisible(hasDetectedInstall);
+	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
+	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
 	ui->labelDataManualDescr->setVisible(true);
 	ui->pushButtonDataSearch->setVisible(true);
 
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
-
-	ui->labelDataCopyTitle->setVisible(canUseDataCopy);
-	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
-	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
-
 #ifdef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->setVisible(true);
-	ui->labelDataGogTitle->setVisible(true);
 	ui->labelDataGogDescr->setVisible(true);
 #endif
 
 	ui->labelDataFound->setVisible(false);
-	ui->pushButtonDataNext->setEnabled(false);
-	ui->labelDataDemoDescr->setVisible(true);
-	ui->pushButtonDemo->setVisible(true);
+	ui->pushButtonDataNext->setEnabled(true);
+	ui->labelDataDemoDescr->setVisible(checkCanInstallMod("demo-support"));
+	ui->pushButtonDemo->setVisible(checkCanInstallMod("demo-support"));
 }
 
 void FirstLaunchView::heroesDataDetected()
@@ -298,15 +297,14 @@ void FirstLaunchView::heroesDataDetected()
 
 	ui->pushButtonDataSearch->setVisible(false);
 	ui->pushButtonDataCopy->setVisible(false);
+	ui->pushButtonDataDetected->setVisible(false);
 
-	ui->labelDataManualTitle->setVisible(false);
+	ui->labelDataDetectedDescr->setVisible(false);
 	ui->labelDataManualDescr->setVisible(false);
-	ui->labelDataCopyTitle->setVisible(false);
 	ui->labelDataCopyDescr->setVisible(false);
 
 #ifdef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->setVisible(false);
-	ui->labelDataGogTitle->setVisible(false);
 	ui->labelDataGogDescr->setVisible(false);
 #endif
 
@@ -389,7 +387,6 @@ static QString defaultStartDirForOpen()
 #endif
 }
 
-
 QString FirstLaunchView::checkFileMagic(const QString &filename, const QString &filter, const QByteArray &magic, const QString &ext, bool &openFailed) const
 {
 	QFile file(filename);
@@ -446,6 +443,103 @@ QString FirstLaunchView::checkFileMagic(const QString &filename, const QString &
 		return tr("You need to select a %1 file!", "param is file extension").arg(filter);
 
 	return {};
+}
+
+
+void FirstLaunchView::selectDataAction(DataAction action)
+{
+	ui->pushButtonDataDetected->setChecked(action == DataAction::DetectedInstall);
+	ui->pushButtonDataCopy->setChecked(action == DataAction::CopyFiles);
+	ui->pushButtonGogInstall->setChecked(action == DataAction::GogInstall);
+	ui->pushButtonDemo->setChecked(action == DataAction::DownloadDemo);
+	ui->pushButtonDataSearch->setChecked(action == DataAction::SearchAgain);
+}
+
+FirstLaunchView::DataAction FirstLaunchView::getSelectedDataAction() const
+{
+	if(ui->pushButtonDataDetected->isChecked())
+		return DataAction::DetectedInstall;
+	if(ui->pushButtonDataCopy->isChecked())
+		return DataAction::CopyFiles;
+	if(ui->pushButtonGogInstall->isChecked())
+		return DataAction::GogInstall;
+	if(ui->pushButtonDemo->isChecked())
+		return DataAction::DownloadDemo;
+	return DataAction::SearchAgain;
+}
+
+void FirstLaunchView::startSelectedDataAction()
+{
+	switch(getSelectedDataAction())
+	{
+		case DataAction::DetectedInstall:
+			copyHeroesData(detectedInstallPath, false);
+			break;
+		case DataAction::CopyFiles:
+			selectCopySource();
+			break;
+		case DataAction::GogInstall:
+			// iOS can't display modal dialogs when called directly on button press
+			// https://bugreports.qt.io/browse/QTBUG-98651
+			MessageBoxCustom::showDialog(this, [this]{extractGogData();});
+			break;
+		case DataAction::DownloadDemo:
+			downloadDemoData();
+			break;
+		case DataAction::SearchAgain:
+			heroesDataUpdate(false);
+			break;
+	}
+}
+
+void FirstLaunchView::downloadDemoData()
+{
+	demoOverlay = createOverlay(tr("Downloading Heroes III Demo..."), false);
+	demoOverlay->setRange(100);
+	demoOverlay->setValue(0);
+	demo = std::make_unique<DemoInstaller>(this);
+	demo->download();
+}
+
+void FirstLaunchView::selectCopySource()
+{
+	// iOS can't display modal dialogs when called directly on button press
+	// https://bugreports.qt.io/browse/QTBUG-98651
+	MessageBoxCustom::showDialog(this, [this]{
+		QMessageBox msg(this);
+		msg.setWindowTitle(tr("Select Heroes III data"));
+		msg.setText(tr("Choose how to import existing Heroes III data files."));
+		QPushButton * folderButton = msg.addButton(tr("Select folder"), QMessageBox::AcceptRole);
+		QPushButton * zipButton = msg.addButton(tr("Select ZIP archive"), QMessageBox::AcceptRole);
+		msg.addButton(QMessageBox::Cancel);
+		msg.exec();
+
+		if(msg.clickedButton() == folderButton)
+		{
+			Helper::nativeFolderPicker(this, [this](const QString & picked){
+				if(!picked.isEmpty())
+					copyHeroesData(picked, false);
+			});
+		}
+		else if(msg.clickedButton() == zipButton)
+		{
+#if defined(VCMI_MOBILE)
+			QMessageBox::information(this, tr("File selection"), tr("Select a ZIP archive with Heroes III data files"));
+#endif
+			needPostCopyCheckZip = false;
+			QString archivePath = QFileDialog::getOpenFileName(this, tr("Select Heroes III data archive"), defaultStartDirForOpen(), tr("Zip archives (*.zip)"));
+			if(archivePath.isEmpty())
+				return;
+
+			QString errorText = checkFileMagic(archivePath, tr("Zip archives (*.zip)"), QByteArray{"PK"}, "ZIP", needPostCopyCheckZip);
+			if(!errorText.isEmpty())
+			{
+				QMessageBox::critical(this, tr("Invalid file selected"), errorText);
+				return;
+			}
+			copyHeroesDataFromZip(archivePath);
+		}
+	});
 }
 
 void FirstLaunchView::extractGogData()
@@ -745,6 +839,76 @@ void FirstLaunchView::extractGogDataAsync(QString filePathBin, QString filePathE
 #endif
 }
 
+void FirstLaunchView::copyHeroesDataFromZip(const QString & path)
+{
+	QPointer<ProgressOverlay> overlay = createOverlay(tr("Preparing Heroes III data archive..."), true);
+	overlay->raise();
+	auto work = [this, path, overlay]() {
+		QDir tempDir(pathToQString(VCMIDirs::get().userDataPath()));
+		if(tempDir.cd("tmp_zip_import"))
+		{
+			tempDir.removeRecursively();
+			tempDir.cdUp();
+		}
+		tempDir.mkdir("tmp_zip_import");
+		if(!tempDir.cd("tmp_zip_import"))
+		{
+			QMessageBox::critical(this, tr("Extracting error!"), tr("Failed to create temporary directory."));
+			overlay->deleteLater();
+			return;
+		}
+
+		const QString tmpArchivePath = tempDir.filePath("h3_data.zip");
+		Helper::performNativeCopy(path, tmpArchivePath);
+
+		if(needPostCopyCheckZip)
+		{
+			const QString err = checkFileMagic(tmpArchivePath, tr("Zip archives (*.zip)"), QByteArray{"PK"}, "ZIP", needPostCopyCheckZip);
+			if(!err.isEmpty())
+			{
+				QMessageBox::critical(this, tr("Invalid file selected"), err);
+				tempDir.removeRecursively();
+				overlay->deleteLater();
+				return;
+			}
+		}
+
+		try
+		{
+			overlay->setTitle(tr("Extracting Heroes III data archive..."));
+			overlay->setIndeterminate(false);
+			ZipArchive archive(qstringToPath(tmpArchivePath));
+			const auto files = archive.listFiles();
+			overlay->setRange(static_cast<int>(files.size()));
+			for(int i = 0; i < static_cast<int>(files.size()); ++i)
+			{
+				overlay->setFileName(QString::fromUtf8(files[i].data(), static_cast<int>(files[i].size())));
+				overlay->setValue(i + 1);
+				qApp->processEvents();
+				if(!archive.extract(qstringToPath(tempDir.path()), files[i]))
+					throw std::runtime_error("Failed to extract file from archive");
+			}
+		}
+		catch(const std::exception & e)
+		{
+			logGlobal->error("Failed to extract Heroes III data archive '%s'. Reason: %s", path.toStdString(), e.what());
+			QMessageBox::critical(this, tr("Extracting error!"), tr("Failed to extract selected ZIP archive."));
+			tempDir.removeRecursively();
+			overlay->deleteLater();
+			return;
+		}
+
+		QFile::remove(tmpArchivePath);
+		if(performCopyFlow(tempDir.path(), overlay, true))
+			if(heroesDataUpdate(false))
+				activateTabModPreset();
+
+		overlay->deleteLater();
+	};
+
+	QTimer::singleShot(0, this, work);
+}
+
 void FirstLaunchView::copyHeroesData(const QString &path, bool removeSource)
 {
 	QPointer<ProgressOverlay> overlay = createOverlay(tr("Scanning selected folder..."), true);
@@ -857,11 +1021,14 @@ void FirstLaunchView::modPresetUpdate()
 	ui->labelPresetLanguageDescr->setVisible(translationExists);
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
-	bool canTrans  = checkCanInstallTranslation();
+	bool canTrans = checkCanInstallTranslation();
+	bool canDemo = checkCanInstallDemo();
 	bool canInstallPreset = false;
 
 	ui->buttonPresetLanguage->setVisible(canTrans);
 	ui->labelPresetLanguageDescr->setVisible(canTrans);
+	ui->buttonPresetDemo->setVisible(canDemo);
+	ui->labelPresetDemoDescr->setVisible(canDemo);
 
 	for(const auto & preset : modPresets)
 	{
@@ -872,7 +1039,7 @@ void FirstLaunchView::modPresetUpdate()
 	}
 
 	// we can't install anything - either repository checkout is off or all recommended mods are already installed
-	if(demoDataActive || (!canTrans && !canInstallPreset))
+	if(demoDataActive || (!canTrans && !canDemo && !canInstallPreset))
 		exitSetup(false);
 }
 
@@ -896,6 +1063,39 @@ bool FirstLaunchView::checkCanInstallTranslation()
 		return false;
 
 	return checkCanInstallMod(modName);
+}
+
+bool FirstLaunchView::checkCanInstallDemo()
+{
+	if(!checkCanInstallMod("demo-support"))
+		return false;
+
+	QDir userRoot = pathToQString(VCMIDirs::get().userDataPath());
+	QDir dataDir(userRoot.filePath(QStringLiteral("Data")));
+	QDir mapsDir(userRoot.filePath(QStringLiteral("Maps")));
+
+	bool hasDemoMap = false;
+	QStringList mapFiles = mapsDir.entryList(QDir::Files | QDir::Readable);
+	for(const QString & name : mapFiles)
+		if(name.compare(QStringLiteral("h3demo.h3m"), Qt::CaseInsensitive) == 0)
+		{
+			hasDemoMap = true;
+			break;
+		}
+
+	QStringList files = dataDir.entryList(QDir::Files | QDir::Readable);
+	for(const QString & name : files)
+	{
+		if(name.compare(QStringLiteral("H3ab_spr.lod"), Qt::CaseInsensitive) == 0)
+		{
+			QFileInfo lodInfo(dataDir.filePath(name));
+			quint64 fileSize = static_cast<quint64>(lodInfo.size());
+			logGlobal->trace("H3ab_spr.lod size: %llu", fileSize);
+			if(fileSize < 8000000 && hasDemoMap) // 8 MB + Demo map = Merged Windows and MacOS Demo
+				return true;
+		}
+	}
+	return false;
 }
 
 CModListView * FirstLaunchView::getModView()
@@ -925,6 +1125,9 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 
 	if(ui->buttonPresetLanguage->isChecked() && checkCanInstallTranslation())
 		modsToInstall.push_back(findTranslationModName());
+
+	if(ui->buttonPresetDemo->isChecked() && checkCanInstallDemo())
+		modsToInstall.push_back("demo-support");
 
 	for(const auto & preset : modPresets)
 		if(preset.button->isChecked() && checkCanInstallMod(preset.modID))

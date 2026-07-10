@@ -27,6 +27,17 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	std::unique_ptr<DemoInstaller> demo;
 	ProgressOverlay * demoOverlay = nullptr;
 	bool demoDataActive = false;
+	bool needPostCopyCheckZip = false;
+	QString detectedInstallPath;
+
+	enum class DataAction
+	{
+		DetectedInstall,
+		CopyFiles,
+		GogInstall,
+		DownloadDemo,
+		SearchAgain
+	};
 
 	// IDemoInstallerCallback
 	void onInstallFinished() override;
@@ -57,6 +68,12 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	ProgressOverlay * createOverlay(const QString & title, bool indeterminate = true);
 	bool performCopyFlow(const QString& path, ProgressOverlay* overlay, bool removeSource);
 	void copyHeroesData(const QString & path = {}, bool removeSource = false);
+	void copyHeroesDataFromZip(const QString & path);
+	void selectDataAction(DataAction action);
+	DataAction getSelectedDataAction() const;
+	void startSelectedDataAction();
+	void downloadDemoData();
+	void selectCopySource();
 
 	// Tab Mod Preset
 	struct ModPreset
@@ -79,6 +96,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	QString findTranslationModName();
 
 	bool checkCanInstallTranslation();
+	bool checkCanInstallDemo();
 	bool checkCanInstallMod(const QString & modID);
 
 public:
@@ -114,6 +132,8 @@ private slots:
 	void on_pushButtonDataCopy_clicked();
 
 	void on_pushButtonGogInstall_clicked();
+
+	void on_pushButtonDataDetected_clicked();
 
 	void on_pushButtonPresetBack_clicked();
 
