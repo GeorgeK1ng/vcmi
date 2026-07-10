@@ -77,6 +77,7 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	ui->pushButtonGogInstall->setCheckable(true);
 	ui->pushButtonDemo->setCheckable(true);
 	ui->pushButtonDataSearch->setCheckable(true);
+	ui->gridLayout->setAlignment(Qt::AlignTop);
 
 #ifndef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->hide();
