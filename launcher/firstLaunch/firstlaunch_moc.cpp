@@ -971,7 +971,7 @@ void FirstLaunchView::loadModPresets()
 
 void FirstLaunchView::createModPresetWidgets()
 {
-	int row = 2;
+	int row = 3;
 	for(auto & preset : modPresets)
 	{
 		auto button = std::make_unique<QToolButton>(ui->scrollAreaPresetModsContents);
