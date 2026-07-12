@@ -473,20 +473,21 @@ void FirstLaunchView::selectCopySource()
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{
-		const bool canUseFolderPicker = Helper::canUseFolderPicker();
+		if(!Helper::canUseFolderPicker())
+		{
+			selectZipSource();
+			return;
+		}
+
 		QMessageBox msg(this);
 		msg.setWindowTitle(tr("Select Heroes III data"));
-		msg.setText(canUseFolderPicker
-			? tr("Choose how to import existing Heroes III data files.")
-			: tr("Select a ZIP archive with Heroes III data files."));
-		QPushButton * folderButton = canUseFolderPicker
-			? msg.addButton(tr("Select folder"), QMessageBox::AcceptRole)
-			: nullptr;
+		msg.setText(tr("Choose how to import existing Heroes III data files."));
+		QPushButton * folderButton = msg.addButton(tr("Select folder"), QMessageBox::AcceptRole);
 		QPushButton * zipButton = msg.addButton(tr("Select ZIP archive"), QMessageBox::AcceptRole);
 		msg.addButton(QMessageBox::Cancel);
 		msg.exec();
 
-		if(folderButton && msg.clickedButton() == folderButton)
+		if(msg.clickedButton() == folderButton)
 		{
 			Helper::nativeFolderPicker(this, [this](const QString & picked){
 				if(!picked.isEmpty())
@@ -495,23 +496,28 @@ void FirstLaunchView::selectCopySource()
 		}
 		else if(msg.clickedButton() == zipButton)
 		{
-#if defined(VCMI_MOBILE)
-			QMessageBox::information(this, tr("File selection"), tr("Select a ZIP archive with Heroes III data files"));
-#endif
-			needPostCopyCheckZip = false;
-			QString archivePath = QFileDialog::getOpenFileName(this, tr("Select Heroes III data archive"), defaultStartDirForOpen(), tr("Zip archives (*.zip)"));
-			if(archivePath.isEmpty())
-				return;
-
-			QString errorText = checkFileMagic(archivePath, tr("Zip archives (*.zip)"), QByteArray{"PK"}, "ZIP", needPostCopyCheckZip);
-			if(!errorText.isEmpty())
-			{
-				QMessageBox::critical(this, tr("Invalid file selected"), errorText);
-				return;
-			}
-			copyHeroesDataFromZip(archivePath);
+			selectZipSource();
 		}
 	});
+}
+
+void FirstLaunchView::selectZipSource()
+{
+#if defined(VCMI_MOBILE)
+	QMessageBox::information(this, tr("File selection"), tr("Select a ZIP archive with Heroes III data files"));
+#endif
+	needPostCopyCheckZip = false;
+	QString archivePath = QFileDialog::getOpenFileName(this, tr("Select Heroes III data archive"), defaultStartDirForOpen(), tr("Zip archives (*.zip)"));
+	if(archivePath.isEmpty())
+		return;
+
+	QString errorText = checkFileMagic(archivePath, tr("Zip archives (*.zip)"), QByteArray{"PK"}, "ZIP", needPostCopyCheckZip);
+	if(!errorText.isEmpty())
+	{
+		QMessageBox::critical(this, tr("Invalid file selected"), errorText);
+		return;
+	}
+	copyHeroesDataFromZip(archivePath);
 }
 
 void FirstLaunchView::extractGogData()

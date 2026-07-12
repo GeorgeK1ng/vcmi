@@ -73,6 +73,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 	void startSelectedDataAction();
 	void downloadDemoData();
 	void selectCopySource();
+	void selectZipSource();
 
 	// Tab Mod Preset
 	struct ModPreset
