@@ -126,17 +126,15 @@ public class FileUtil
 	private static void copyFileFromUri(String sourceFileUri, String destinationFile, Context context)
 	{
 		try (InputStream inputStream  = context.getContentResolver().openInputStream(Uri.parse(sourceFileUri));
-			 FileOutputStream outputStream = new FileOutputStream(new File(destinationFile))) {
-	            copyStream(inputStream, outputStream);
-		        // ensure data is flushed and durably written
-	            outputStream.flush();
-	            outputStream.getFD().sync();
-	        }
-
-	    catch (IOException e)
+			 FileOutputStream outputStream = new FileOutputStream(new File(destinationFile)))
 		{
-	        Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
-	    }
+			copyStream(inputStream, outputStream);
+			outputStream.flush();
+		}
+		catch (IOException e)
+		{
+			Log.e("FileUtil", "copyFileFromUri failed: " + sourceFileUri + " -> " + destinationFile, e);
+		}
 	}
 
 	@SuppressWarnings(Const.JNI_METHOD_SUPPRESS)
