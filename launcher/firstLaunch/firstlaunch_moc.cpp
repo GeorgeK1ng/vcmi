@@ -245,9 +245,13 @@ bool FirstLaunchView::heroesDataUpdate(bool checkDemo)
 void FirstLaunchView::heroesDataMissing()
 {
 	const bool hasDetectedInstall = !detectedInstallPath.isEmpty();
+	const bool canUseFolderPicker = Helper::canUseFolderPicker();
 
 	ui->labelDataDetectedDescr->setVisible(hasDetectedInstall);
 	ui->pushButtonDataDetected->setVisible(hasDetectedInstall);
+	ui->labelDataCopyDescr->setText(canUseFolderPicker
+		? tr("Select a folder with Heroes III files or a ZIP backup containing the same Data, Maps and Mp3 folders.")
+		: tr("Select a ZIP backup containing Heroes III Data, Maps and Mp3 folders."));
 	ui->labelDataCopyDescr->setVisible(true);
 	ui->pushButtonDataCopy->setVisible(true);
 
@@ -469,10 +473,13 @@ void FirstLaunchView::selectCopySource()
 	// iOS can't display modal dialogs when called directly on button press
 	// https://bugreports.qt.io/browse/QTBUG-98651
 	MessageBoxCustom::showDialog(this, [this]{
+		const bool canUseFolderPicker = Helper::canUseFolderPicker();
 		QMessageBox msg(this);
 		msg.setWindowTitle(tr("Select Heroes III data"));
-		msg.setText(tr("Choose how to import existing Heroes III data files."));
-		QPushButton * folderButton = Helper::canUseFolderPicker()
+		msg.setText(canUseFolderPicker
+			? tr("Choose how to import existing Heroes III data files.")
+			: tr("Select a ZIP archive with Heroes III data files."));
+		QPushButton * folderButton = canUseFolderPicker
 			? msg.addButton(tr("Select folder"), QMessageBox::AcceptRole)
 			: nullptr;
 		QPushButton * zipButton = msg.addButton(tr("Select ZIP archive"), QMessageBox::AcceptRole);
