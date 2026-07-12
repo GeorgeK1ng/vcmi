@@ -64,8 +64,6 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	Helper::enableScrollBySwiping(ui->scrollAreaDataOptions);
 	Helper::enableScrollBySwiping(ui->scrollAreaPresetMods);
 
-	ui->gridLayout->setAlignment(Qt::AlignTop);
-
 #ifndef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->hide();
 	ui->labelDataGogDescr->hide();
