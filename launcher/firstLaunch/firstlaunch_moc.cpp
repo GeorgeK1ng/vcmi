@@ -866,11 +866,22 @@ void FirstLaunchView::copyHeroesDataFromZip(const QString & path)
 			overlay->setRange(static_cast<int>(files.size()));
 			for(int i = 0; i < static_cast<int>(files.size()); ++i)
 			{
-				overlay->setFileName(QString::fromUtf8(files[i].data(), static_cast<int>(files[i].size())));
+				const std::string & file = files[i];
+				overlay->setFileName(QString::fromUtf8(file.data(), static_cast<int>(file.size())));
 				overlay->setValue(i + 1);
 				qApp->processEvents();
-				if(!archive.extract(qstringToPath(tempDir.path()), files[i]))
-					throw std::runtime_error("Failed to extract file from archive");
+
+				// Some ZIP creators store directory entries without trailing slash.
+				// Skip them so they do not get extracted as regular files.
+				const bool directoryEntry = std::ranges::any_of(files, [&file](const std::string & other)
+				{
+					return other.starts_with(file + "/") || other.starts_with(file + "\\");
+				});
+				if(directoryEntry)
+					continue;
+
+				if(!archive.extract(qstringToPath(tempDir.path()), file))
+					throw std::runtime_error("Failed to extract file from archive: " + file);
 			}
 		}
 		catch(const std::exception & e)
