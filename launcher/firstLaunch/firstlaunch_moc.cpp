@@ -259,8 +259,8 @@ void FirstLaunchView::heroesDataMissing()
 
 	ui->labelDataFound->setVisible(false);
 	ui->pushButtonDataNext->setEnabled(true);
-	ui->labelDataDemoDescr->setVisible(checkCanInstallMod("demo-support"));
-	ui->pushButtonDemo->setVisible(checkCanInstallMod("demo-support"));
+	ui->labelDataDemoDescr->setVisible(true);
+	ui->pushButtonDemo->setVisible(true);
 }
 
 void FirstLaunchView::heroesDataDetected()
