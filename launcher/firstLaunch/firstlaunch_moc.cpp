@@ -245,12 +245,11 @@ bool FirstLaunchView::heroesDataUpdate(bool checkDemo)
 void FirstLaunchView::heroesDataMissing()
 {
 	const bool hasDetectedInstall = !detectedInstallPath.isEmpty();
-	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
 	ui->labelDataDetectedDescr->setVisible(hasDetectedInstall);
 	ui->pushButtonDataDetected->setVisible(hasDetectedInstall);
-	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
-	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
+	ui->labelDataCopyDescr->setVisible(true);
+	ui->pushButtonDataCopy->setVisible(true);
 
 #ifdef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->setVisible(true);
@@ -473,12 +472,14 @@ void FirstLaunchView::selectCopySource()
 		QMessageBox msg(this);
 		msg.setWindowTitle(tr("Select Heroes III data"));
 		msg.setText(tr("Choose how to import existing Heroes III data files."));
-		QPushButton * folderButton = msg.addButton(tr("Select folder"), QMessageBox::AcceptRole);
+		QPushButton * folderButton = Helper::canUseFolderPicker()
+			? msg.addButton(tr("Select folder"), QMessageBox::AcceptRole)
+			: nullptr;
 		QPushButton * zipButton = msg.addButton(tr("Select ZIP archive"), QMessageBox::AcceptRole);
 		msg.addButton(QMessageBox::Cancel);
 		msg.exec();
 
-		if(msg.clickedButton() == folderButton)
+		if(folderButton && msg.clickedButton() == folderButton)
 		{
 			Helper::nativeFolderPicker(this, [this](const QString & picked){
 				if(!picked.isEmpty())
