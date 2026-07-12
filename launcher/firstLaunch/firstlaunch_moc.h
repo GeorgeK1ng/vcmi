@@ -35,8 +35,7 @@ class FirstLaunchView : public QWidget, public IDemoInstallerCallback
 		DetectedInstall,
 		CopyFiles,
 		GogInstall,
-		DownloadDemo,
-		SearchAgain
+		DownloadDemo
 	};
 
 	// IDemoInstallerCallback
@@ -124,8 +123,6 @@ private slots:
 	void on_pushButtonLanguageNext_clicked();
 	void on_pushButtonDataNext_clicked();
 	void on_pushButtonDataBack_clicked();
-
-	void on_pushButtonDataSearch_clicked();
 
 	void on_pushButtonDemo_clicked();
 

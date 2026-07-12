@@ -60,23 +60,14 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	enterSetup();
 	activateTabLanguage();
 
-	ui->lineEditDataSystem->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().dataPaths().front())));
-	ui->lineEditDataUser->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().userDataPath())));
-
 	Helper::enableScrollBySwiping(ui->listWidgetLanguage);
 	Helper::enableScrollBySwiping(ui->scrollAreaDataOptions);
 	Helper::enableScrollBySwiping(ui->scrollAreaPresetMods);
-
-#ifdef VCMI_MOBILE
-	// This directory is not accessible to players without rooting of their device
-	ui->lineEditDataSystem->hide();
-#endif
 
 	ui->pushButtonDataDetected->setCheckable(true);
 	ui->pushButtonDataCopy->setCheckable(true);
 	ui->pushButtonGogInstall->setCheckable(true);
 	ui->pushButtonDemo->setCheckable(true);
-	ui->pushButtonDataSearch->setCheckable(true);
 	ui->gridLayout->setAlignment(Qt::AlignTop);
 
 #ifndef ENABLE_INNOEXTRACT
@@ -140,11 +131,6 @@ void FirstLaunchView::on_pushButtonDataBack_clicked()
 	activateTabLanguage();
 }
 
-void FirstLaunchView::on_pushButtonDataSearch_clicked()
-{
-	selectDataAction(DataAction::SearchAgain);
-}
-
 void FirstLaunchView::on_pushButtonDataCopy_clicked()
 {
 	selectDataAction(DataAction::CopyFiles);
@@ -169,7 +155,8 @@ void FirstLaunchView::onInstallFinished()
 {
 	demoOverlay->deleteLater();
 	demoOverlay = nullptr;
-	heroesDataUpdate(true);
+	if(heroesDataUpdate(true))
+		activateTabModPreset();
 }
 
 void FirstLaunchView::onInstallError()
@@ -263,11 +250,6 @@ bool FirstLaunchView::heroesDataUpdate(bool checkDemo)
 
 void FirstLaunchView::heroesDataMissing()
 {
-	QPalette newPalette = palette();
-	newPalette.setColor(QPalette::Base, QColor(200, 50, 50));
-	ui->lineEditDataSystem->setPalette(newPalette);
-	ui->lineEditDataUser->setPalette(newPalette);
-
 	const bool hasDetectedInstall = !detectedInstallPath.isEmpty();
 	const bool canUseDataCopy = Helper::canUseFolderPicker();
 
@@ -275,8 +257,6 @@ void FirstLaunchView::heroesDataMissing()
 	ui->pushButtonDataDetected->setVisible(hasDetectedInstall);
 	ui->labelDataCopyDescr->setVisible(canUseDataCopy);
 	ui->pushButtonDataCopy->setVisible(canUseDataCopy);
-	ui->labelDataManualDescr->setVisible(true);
-	ui->pushButtonDataSearch->setVisible(true);
 
 #ifdef ENABLE_INNOEXTRACT
 	ui->pushButtonGogInstall->setVisible(true);
@@ -291,17 +271,10 @@ void FirstLaunchView::heroesDataMissing()
 
 void FirstLaunchView::heroesDataDetected()
 {
-	QPalette newPalette = palette();
-	newPalette.setColor(QPalette::Base, QColor(50, 200, 50));
-	ui->lineEditDataSystem->setPalette(newPalette);
-	ui->lineEditDataUser->setPalette(newPalette);
-
-	ui->pushButtonDataSearch->setVisible(false);
 	ui->pushButtonDataCopy->setVisible(false);
 	ui->pushButtonDataDetected->setVisible(false);
 
 	ui->labelDataDetectedDescr->setVisible(false);
-	ui->labelDataManualDescr->setVisible(false);
 	ui->labelDataCopyDescr->setVisible(false);
 
 #ifdef ENABLE_INNOEXTRACT
@@ -453,7 +426,6 @@ void FirstLaunchView::selectDataAction(DataAction action)
 	ui->pushButtonDataCopy->setChecked(action == DataAction::CopyFiles);
 	ui->pushButtonGogInstall->setChecked(action == DataAction::GogInstall);
 	ui->pushButtonDemo->setChecked(action == DataAction::DownloadDemo);
-	ui->pushButtonDataSearch->setChecked(action == DataAction::SearchAgain);
 }
 
 FirstLaunchView::DataAction FirstLaunchView::getSelectedDataAction() const
@@ -466,7 +438,7 @@ FirstLaunchView::DataAction FirstLaunchView::getSelectedDataAction() const
 		return DataAction::GogInstall;
 	if(ui->pushButtonDemo->isChecked())
 		return DataAction::DownloadDemo;
-	return DataAction::SearchAgain;
+	return DataAction::CopyFiles;
 }
 
 void FirstLaunchView::startSelectedDataAction()
@@ -486,9 +458,6 @@ void FirstLaunchView::startSelectedDataAction()
 			break;
 		case DataAction::DownloadDemo:
 			downloadDemoData();
-			break;
-		case DataAction::SearchAgain:
-			heroesDataUpdate(false);
 			break;
 	}
 }
