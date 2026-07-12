@@ -310,6 +310,9 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
              <property name="text">
               <string>Use detected installation</string>
              </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -338,6 +341,9 @@ Heroes® of Might and Magic® III HD is currently not supported!</string>
              </property>
              <property name="text">
               <string>Install gog.com files</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -372,6 +378,9 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              <property name="text">
               <string>Import existing data</string>
              </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item row="3" column="1">
@@ -400,6 +409,9 @@ Offline installer consists of two files: &quot;.exe&quot; and &quot;.bin&quot; -
              </property>
              <property name="text">
               <string>Download Demo</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
              </property>
             </widget>
            </item>

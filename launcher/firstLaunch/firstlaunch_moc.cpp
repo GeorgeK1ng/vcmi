@@ -64,10 +64,6 @@ FirstLaunchView::FirstLaunchView(QWidget * parent)
 	Helper::enableScrollBySwiping(ui->scrollAreaDataOptions);
 	Helper::enableScrollBySwiping(ui->scrollAreaPresetMods);
 
-	ui->pushButtonDataDetected->setCheckable(true);
-	ui->pushButtonDataCopy->setCheckable(true);
-	ui->pushButtonGogInstall->setCheckable(true);
-	ui->pushButtonDemo->setCheckable(true);
 	ui->gridLayout->setAlignment(Qt::AlignTop);
 
 #ifndef ENABLE_INNOEXTRACT
