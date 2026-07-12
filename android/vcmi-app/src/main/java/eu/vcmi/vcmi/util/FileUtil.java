@@ -130,6 +130,7 @@ public class FileUtil
 		{
 			copyStream(inputStream, outputStream);
 			outputStream.flush();
+			outputStream.getFD().sync();
 		}
 		catch (IOException e)
 		{

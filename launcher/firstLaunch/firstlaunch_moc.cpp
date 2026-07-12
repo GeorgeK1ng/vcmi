@@ -831,7 +831,13 @@ void FirstLaunchView::copyHeroesDataFromZip(const QString & path)
 		}
 
 		const QString tmpArchivePath = tempDir.filePath("h3_data.zip");
-		Helper::performNativeCopy(path, tmpArchivePath);
+		if(!Helper::performNativeCopy(path, tmpArchivePath))
+		{
+			QMessageBox::critical(this, tr("Copying error!"), tr("Failed to copy selected ZIP archive."));
+			tempDir.removeRecursively();
+			overlay->deleteLater();
+			return;
+		}
 
 		if(needPostCopyCheckZip)
 		{
