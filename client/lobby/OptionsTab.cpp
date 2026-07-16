@@ -551,7 +551,7 @@ void OptionsTab::SelectionWindow::recreate(int sliderPos)
 
 	int visibleLines = amountLines;
 	if(type == SelType::TOWN)
-		visibleLines = getMaxElementsPerLine(static_cast<int>(allowedFactions.size()) + 1);
+		visibleLines = std::min(amountLines, MAX_LINES);
 	else if(type == SelType::HERO)
 		visibleLines = std::min(amountLines, MIN_LINES);
 	int x = (elementsPerLine) * (ICON_BIG_WIDTH-1);
