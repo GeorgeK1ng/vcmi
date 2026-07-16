@@ -122,8 +122,10 @@ private:
 		const int TEXT_POS_X = 29;
 		const int TEXT_POS_Y = 56;
 
-		const int MAX_LINES = 5;
-		const int MAX_ELEM_PER_LINES = 5;
+		const int MIN_LINES = 5;
+		const int MIN_ELEM_PER_LINE = 5;
+		const int MAX_LINES = 7;
+		const int MAX_ELEM_PER_LINE = 7;
 
 		int elementsPerLine;
 
@@ -156,6 +158,7 @@ private:
 		void genContentBonus();
 
 		void drawOutlinedText(int x, int y, ColorRGBA color, std::string text);
+		int getMaxElementsPerLine(int itemCount) const;
 		std::tuple<int, int> calcLines(FactionID faction);
 		void apply();
 		void recreate(int sliderPos = 0);
