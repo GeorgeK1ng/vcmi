@@ -659,14 +659,14 @@ void SelectionTab::filter(int size, bool selectFirst)
 	{
 		if((elem->mapHeader && (!size || elem->mapHeader->width == size)) || tabType == ESelectionScreen::campaignList)
 		{
-			if(!matchesSearch(*elem))
-				continue;
-
 			if(!isMapCompatibleWithLobbyPlayerCount(*elem))
 			{
 				++hiddenIncompatibleMapsCount;
 				continue;
 			}
+
+			if(!matchesSearch(*elem))
+				continue;
 
 			if(showRandom)
 				curFolder = "RandomMaps/";
@@ -713,13 +713,21 @@ void SelectionTab::filter(int size, bool selectFirst)
 			if(firstPos < curItems.size())
 			{
 				slider->scrollTo(firstPos);
-				callOnSelect(curItems[firstPos]);
 				selectAbs(firstPos);
+			}
+			else
+			{
+				selectionPos = curItems.size();
+				updateListItems();
+				if(callOnSelect)
+					callOnSelect(nullptr);
 			}
 		}
 	}
 	else
 	{
+		selectionPos = 0;
+		slider->setAmount(0);
 		updateListItems();
 		redraw();
 		slider->block(true);
@@ -970,7 +978,7 @@ void SelectionTab::selectNewestFile()
 
 std::shared_ptr<ElementInfo> SelectionTab::getSelectedMapInfo() const
 {
-	return curItems.empty() || curItems[selectionPos]->isFolder ? nullptr : curItems[selectionPos];
+	return selectionPos >= curItems.size() || curItems[selectionPos]->isFolder ? nullptr : curItems[selectionPos];
 }
 
 void SelectionTab::rememberCurrentSelection()
