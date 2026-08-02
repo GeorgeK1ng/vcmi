@@ -292,7 +292,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		buttonsSortBy.push_back(sortByDate);
 
 		const Rect searchRect(49, 18, 312 - (ENGINE->isRoeData() ? 36 : 0), 20);
-		searchDescription = std::make_shared<CLabel>(searchRect.center().x, searchRect.center().y, FONT_MEDIUM, ETextAlignment::CENTER, ColorRGBA(158, 130, 105), LIBRARY->generaltexth->translate("vcmi.spellBook.search"));
+		searchDescription = std::make_shared<CLabel>(searchRect.center().x, searchRect.center().y, FONT_MEDIUM, ETextAlignment::CENTER, ColorRGBA(105, 127, 159), LIBRARY->generaltexth->translate("vcmi.spellBook.search"));
 		searchDescription->disable();
 
 		searchInput = std::make_shared<CTextInput>(searchRect, FONT_MEDIUM, ETextAlignment::CENTER, false);
@@ -666,7 +666,15 @@ void SelectionTab::filter(int size, bool selectFirst)
 	curItems.clear();
 
 	if(buttonDeleteMode)
-		buttonDeleteMode->setEnabled(searchMode || tabType != ESelectionScreen::newGame || showRandom);
+	{
+		if(searchMode && searchInput->getText().empty())
+			buttonDeleteMode->disable();
+		else
+		{
+			buttonDeleteMode->enable();
+			buttonDeleteMode->setEnabled(searchMode || tabType != ESelectionScreen::newGame || showRandom);
+		}
+	}
 
 	hiddenIncompatibleMapsCount = 0;
 
@@ -769,8 +777,8 @@ void SelectionTab::toggleSearch(bool enabled)
 		searchInput->giveFocus();
 		if(buttonDeleteMode)
 		{
-			buttonDeleteMode->setEnabled(true);
 			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.clearSearch")));
+			buttonDeleteMode->disable();
 		}
 	}
 	else
@@ -780,7 +788,10 @@ void SelectionTab::toggleSearch(bool enabled)
 		searchDescription->disable();
 		labelTabTitle->enable();
 		if(buttonDeleteMode)
+		{
+			buttonDeleteMode->enable();
 			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")));
+		}
 		filter(-1, true);
 	}
 }
