@@ -290,6 +290,19 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		sortByDate->setOverlay(std::make_shared<CPicture>(ImagePath::builtin("lobby/selectionTabSortDate")));
 		buttonsSortBy.push_back(sortByDate);
 
+		searchInput = std::make_shared<CTextInput>(Rect(49, 18, 312 - (ENGINE->isRoeData() ? 36 : 0), 20), FONT_MEDIUM, ETextAlignment::CENTER, false);
+		searchInput->setColor(Colors::WHITE);
+		searchInput->setCallback([this](const std::string &)
+		{
+			filter(-1, true);
+		});
+		searchInput->disable();
+
+		buttonSearch = std::make_shared<CToggleButton>(Point(8, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](bool enabled)
+		{
+			toggleSearch(enabled);
+		});
+
 		if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::newGame)
 		{
 			buttonDeleteMode = std::make_shared<CButton>(Point(367 - (ENGINE->isRoeData() ? 36 : 0), 18), AnimationPath::builtin("lobby/deleteButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")), [this, tabTitle, tabTitleDelete](){
@@ -470,6 +483,13 @@ void SelectionTab::clickReleased(const Point & cursorPosition)
 
 void SelectionTab::keyPressed(EShortcut key)
 {
+	if(key == EShortcut::ADVENTURE_SEARCH && buttonSearch)
+	{
+		buttonSearch->setSelectedSilent(true);
+		toggleSearch(true);
+		return;
+	}
+
 	int moveBy = 0;
 	switch(key)
 	{
@@ -639,6 +659,9 @@ void SelectionTab::filter(int size, bool selectFirst)
 	{
 		if((elem->mapHeader && (!size || elem->mapHeader->width == size)) || tabType == ESelectionScreen::campaignList)
 		{
+			if(!matchesSearch(*elem))
+				continue;
+
 			if(!isMapCompatibleWithLobbyPlayerCount(*elem))
 			{
 				++hiddenIncompatibleMapsCount;
@@ -702,6 +725,31 @@ void SelectionTab::filter(int size, bool selectFirst)
 		slider->block(true);
 		if(callOnSelect)
 			callOnSelect(nullptr);
+	}
+}
+
+bool SelectionTab::matchesSearch(const ElementInfo & info) const
+{
+	if(!searchInput || searchInput->getText().empty())
+		return true;
+
+	return boost::icontains(info.name, searchInput->getText());
+}
+
+void SelectionTab::toggleSearch(bool enabled)
+{
+	if(enabled)
+	{
+		labelTabTitle->disable();
+		searchInput->enable();
+		searchInput->giveFocus();
+	}
+	else
+	{
+		searchInput->setText("");
+		searchInput->disable();
+		labelTabTitle->enable();
+		filter(-1, true);
 	}
 }
 
