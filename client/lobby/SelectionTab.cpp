@@ -312,6 +312,15 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::newGame)
 		{
 			buttonDeleteMode = std::make_shared<CButton>(Point(367 - (ENGINE->isRoeData() ? 36 : 0), 18), AnimationPath::builtin("lobby/deleteButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")), [this, tabTitle, tabTitleDelete](){
+				if(searchMode)
+				{
+					searchInput->setText("");
+					searchDescription->enable();
+					filter(-1, true);
+					searchInput->giveFocus();
+					return;
+				}
+
 				deleteMode = !deleteMode;
 				if(deleteMode)
 					labelTabTitle->setText(tabTitleDelete);
@@ -449,7 +458,7 @@ void SelectionTab::clickReleased(const Point & cursorPosition)
 
 	if(line != -1 && curItems.size() > line)
 	{
-		if(!deleteMode)
+		if(!deleteMode || searchMode)
 			select(line);
 		else
 		{
@@ -657,7 +666,7 @@ void SelectionTab::filter(int size, bool selectFirst)
 	curItems.clear();
 
 	if(buttonDeleteMode)
-		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
+		buttonDeleteMode->setEnabled(searchMode || tabType != ESelectionScreen::newGame || showRandom);
 
 	hiddenIncompatibleMapsCount = 0;
 
@@ -758,6 +767,11 @@ void SelectionTab::toggleSearch(bool enabled)
 		searchInput->enable();
 		searchDescription->setEnabled(searchInput->getText().empty());
 		searchInput->giveFocus();
+		if(buttonDeleteMode)
+		{
+			buttonDeleteMode->setEnabled(true);
+			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.clearSearch")));
+		}
 	}
 	else
 	{
@@ -765,6 +779,8 @@ void SelectionTab::toggleSearch(bool enabled)
 		searchInput->disable();
 		searchDescription->disable();
 		labelTabTitle->enable();
+		if(buttonDeleteMode)
+			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")));
 		filter(-1, true);
 	}
 }

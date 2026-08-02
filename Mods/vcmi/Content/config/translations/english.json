@@ -850,6 +850,7 @@
 	"vcmi.lobby.deleteFolder": "Do you want to delete following folder?",
 	"vcmi.lobby.deleteMapTitle": "Select a Scenario to delete",
 	"vcmi.lobby.deleteMode": "Switch to delete mode and back",
+	"vcmi.lobby.clearSearch": "Clear search",
 	"vcmi.lobby.search": "Search scenarios (Ctrl+F)",
 	"vcmi.lobby.deleteSaveGameTitle": "Select a Saved Game to delete",
 	"vcmi.lobby.deleteUnsupportedSave": "{Unsupported saves found}\n\nVCMI has found %d saved games that are no longer supported, possibly due to differences in VCMI versions.\n\nDo you want to delete them?",
