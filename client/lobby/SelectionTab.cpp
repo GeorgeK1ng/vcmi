@@ -207,6 +207,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 	, currentMapSizeFilter(0)
 	, showRandom(false)
 	, deleteMode(false)
+	, searchMode(false)
 	, enableUiEnhancements(settings["general"]["enableUiEnhancements"].Bool())
 	, campaignSets(JsonUtils::assembleFromFiles("config/campaignSets.json"))
 {
@@ -298,9 +299,9 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		});
 		searchInput->disable();
 
-		buttonSearch = std::make_shared<CToggleButton>(Point(8, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](bool enabled)
-		{
-			toggleSearch(enabled);
+		buttonSearch = std::make_shared<CButton>(Point(8, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](){
+			searchMode = !searchMode;
+			toggleSearch(searchMode);
 		});
 
 		if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::newGame)
@@ -485,8 +486,8 @@ void SelectionTab::keyPressed(EShortcut key)
 {
 	if(key == EShortcut::ADVENTURE_SEARCH && buttonSearch)
 	{
-		buttonSearch->setSelectedSilent(true);
-		toggleSearch(true);
+		searchMode = true;
+		toggleSearch(searchMode);
 		return;
 	}
 

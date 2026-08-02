@@ -1,5 +1,5 @@
 {
-	"basepath" : "../",
+	"basepath" : "lobby/",
 	"images" :
 	[
 		{ "frame" : 0, "file" : "iam-search.png"},

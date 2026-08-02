@@ -129,10 +129,11 @@ private:
 	Rect inputNameRect;
 
 	std::shared_ptr<CButton> buttonDeleteMode;
-	std::shared_ptr<CToggleButton> buttonSearch;
+	std::shared_ptr<CButton> buttonSearch;
 	std::shared_ptr<CTextInput> searchInput;
 	std::shared_ptr<ScenarioTabConfigurable> scenarioTabConfigurable;
 	bool deleteMode;
+	bool searchMode;
 
 	bool enableUiEnhancements;
 	std::shared_ptr<CButton> buttonCampaignSet;
