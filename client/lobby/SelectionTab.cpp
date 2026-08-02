@@ -291,15 +291,20 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		sortByDate->setOverlay(std::make_shared<CPicture>(ImagePath::builtin("lobby/selectionTabSortDate")));
 		buttonsSortBy.push_back(sortByDate);
 
-		searchInput = std::make_shared<CTextInput>(Rect(49, 18, 312 - (ENGINE->isRoeData() ? 36 : 0), 20), FONT_MEDIUM, ETextAlignment::CENTER, false);
+		const Rect searchRect(49, 18, 312 - (ENGINE->isRoeData() ? 36 : 0), 20);
+		searchDescription = std::make_shared<CLabel>(searchRect.center().x, searchRect.center().y, FONT_MEDIUM, ETextAlignment::CENTER, ColorRGBA(158, 130, 105), LIBRARY->generaltexth->translate("vcmi.spellBook.search"));
+		searchDescription->disable();
+
+		searchInput = std::make_shared<CTextInput>(searchRect, FONT_MEDIUM, ETextAlignment::CENTER, false);
 		searchInput->setColor(Colors::WHITE);
 		searchInput->setCallback([this](const std::string &)
 		{
+			searchDescription->setEnabled(searchInput->getText().empty());
 			filter(-1, true);
 		});
 		searchInput->disable();
 
-		buttonSearch = std::make_shared<CButton>(Point(8, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](){
+		buttonSearch = std::make_shared<CButton>(Point(18, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](){
 			searchMode = !searchMode;
 			toggleSearch(searchMode);
 		});
@@ -751,12 +756,14 @@ void SelectionTab::toggleSearch(bool enabled)
 	{
 		labelTabTitle->disable();
 		searchInput->enable();
+		searchDescription->setEnabled(searchInput->getText().empty());
 		searchInput->giveFocus();
 	}
 	else
 	{
 		searchInput->setText("");
 		searchInput->disable();
+		searchDescription->disable();
 		labelTabTitle->enable();
 		filter(-1, true);
 	}

@@ -131,6 +131,7 @@ private:
 	std::shared_ptr<CButton> buttonDeleteMode;
 	std::shared_ptr<CButton> buttonSearch;
 	std::shared_ptr<CTextInput> searchInput;
+	std::shared_ptr<CLabel> searchDescription;
 	std::shared_ptr<ScenarioTabConfigurable> scenarioTabConfigurable;
 	bool deleteMode;
 	bool searchMode;
