@@ -72,7 +72,12 @@ CCampaignScreen::CCampaignScreen(const JsonNode & config, std::string name)
 	}
 
 	if (!images.empty())
-		center(Rect(0, 0, images[0]->pos.w, images[0]->pos.h), true);
+	{
+		images[0]->center(); // move background to center
+		moveTo(images[0]->pos.topLeft()); // move everything else to center
+		images[0]->moveTo(pos.topLeft()); // restore moved twice background
+		pos = images[0]->pos; // fix height\width of this window
+	}
 	
 	for (const auto& node : campaigns)
 	{
