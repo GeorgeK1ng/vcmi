@@ -304,7 +304,8 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		});
 		searchInput->disable();
 
-		buttonSearch = std::make_shared<CButton>(Point(18, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.search")), [this](){
+		const std::string searchTooltip = LIBRARY->generaltexth->translate(tabType == ESelectionScreen::campaignList ? "vcmi.lobby.search.campaigns" : "vcmi.lobby.search.scenarios");
+		buttonSearch = std::make_shared<CButton>(Point(18, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", searchTooltip), [this](){
 			searchMode = !searchMode;
 			toggleSearch(searchMode);
 		});
@@ -500,7 +501,7 @@ void SelectionTab::keyPressed(EShortcut key)
 {
 	if(key == EShortcut::ADVENTURE_SEARCH && buttonSearch)
 	{
-		searchMode = true;
+		searchMode = !searchMode;
 		toggleSearch(searchMode);
 		return;
 	}
