@@ -129,8 +129,12 @@ private:
 	Rect inputNameRect;
 
 	std::shared_ptr<CButton> buttonDeleteMode;
+	std::shared_ptr<CButton> buttonSearch;
+	std::shared_ptr<CTextInput> searchInput;
+	std::shared_ptr<CLabel> searchDescription;
 	std::shared_ptr<ScenarioTabConfigurable> scenarioTabConfigurable;
 	bool deleteMode;
+	bool searchMode;
 
 	bool enableUiEnhancements;
 	std::shared_ptr<CButton> buttonCampaignSet;
@@ -138,6 +142,8 @@ private:
 	auto checkSubfolder(std::string path);
 	size_t getRequiredHumanPlayers() const;
 	bool isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const;
+	bool matchesSearch(const ElementInfo & info) const;
+	void toggleSearch(bool enabled);
 
 	bool isMapSupported(const CMapInfo & info);
 	void parseMaps(const std::unordered_set<ResourcePath> & files);
