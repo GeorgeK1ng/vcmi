@@ -207,6 +207,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 	, currentMapSizeFilter(0)
 	, showRandom(false)
 	, deleteMode(false)
+	, searchMode(false)
 	, enableUiEnhancements(settings["general"]["enableUiEnhancements"].Bool())
 	, campaignSets(JsonUtils::assembleFromFiles("config/campaignSets.json"))
 {
@@ -290,9 +291,37 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		sortByDate->setOverlay(std::make_shared<CPicture>(ImagePath::builtin("lobby/selectionTabSortDate")));
 		buttonsSortBy.push_back(sortByDate);
 
+		const Rect searchRect(49, 18, 312 - (ENGINE->isRoeData() ? 36 : 0), 20);
+		searchDescription = std::make_shared<CLabel>(searchRect.center().x, searchRect.center().y, FONT_MEDIUM, ETextAlignment::CENTER, ColorRGBA(105, 127, 159), LIBRARY->generaltexth->translate("vcmi.spellBook.search"));
+		searchDescription->disable();
+
+		searchInput = std::make_shared<CTextInput>(searchRect, FONT_MEDIUM, ETextAlignment::CENTER, false);
+		searchInput->setColor(Colors::WHITE);
+		searchInput->setCallback([this](const std::string &)
+		{
+			searchDescription->setEnabled(searchInput->getText().empty());
+			filter(-1, true);
+		});
+		searchInput->disable();
+
+		const std::string searchTooltip = LIBRARY->generaltexth->translate(tabType == ESelectionScreen::campaignList ? "vcmi.lobby.search.campaigns" : "vcmi.lobby.search.scenarios");
+		buttonSearch = std::make_shared<CToggleButton>(Point(18, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", searchTooltip), [this](bool enabled){
+			searchMode = enabled;
+			toggleSearch(searchMode);
+		});
+
 		if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::newGame)
 		{
 			buttonDeleteMode = std::make_shared<CButton>(Point(367 - (ENGINE->isRoeData() ? 36 : 0), 18), AnimationPath::builtin("lobby/deleteButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")), [this, tabTitle, tabTitleDelete](){
+				if(searchMode)
+				{
+					searchInput->setText("");
+					searchDescription->enable();
+					filter(-1, true);
+					searchInput->giveFocus();
+					return;
+				}
+
 				deleteMode = !deleteMode;
 				if(deleteMode)
 					labelTabTitle->setText(tabTitleDelete);
@@ -430,7 +459,7 @@ void SelectionTab::clickReleased(const Point & cursorPosition)
 
 	if(line != -1 && curItems.size() > line)
 	{
-		if(!deleteMode)
+		if(!deleteMode || searchMode)
 			select(line);
 		else
 		{
@@ -470,6 +499,14 @@ void SelectionTab::clickReleased(const Point & cursorPosition)
 
 void SelectionTab::keyPressed(EShortcut key)
 {
+	if(key == EShortcut::ADVENTURE_SEARCH && buttonSearch)
+	{
+		searchMode = !searchMode;
+		buttonSearch->setSelectedSilent(searchMode);
+		toggleSearch(searchMode);
+		return;
+	}
+
 	int moveBy = 0;
 	switch(key)
 	{
@@ -631,7 +668,15 @@ void SelectionTab::filter(int size, bool selectFirst)
 	curItems.clear();
 
 	if(buttonDeleteMode)
-		buttonDeleteMode->setEnabled(tabType != ESelectionScreen::newGame || showRandom);
+	{
+		if(searchMode && searchInput->getText().empty())
+			buttonDeleteMode->disable();
+		else
+		{
+			buttonDeleteMode->enable();
+			buttonDeleteMode->setEnabled(searchMode || tabType != ESelectionScreen::newGame || showRandom);
+		}
+	}
 
 	hiddenIncompatibleMapsCount = 0;
 
@@ -644,6 +689,9 @@ void SelectionTab::filter(int size, bool selectFirst)
 				++hiddenIncompatibleMapsCount;
 				continue;
 			}
+
+			if(!matchesSearch(*elem))
+				continue;
 
 			if(showRandom)
 				curFolder = "RandomMaps/";
@@ -690,18 +738,69 @@ void SelectionTab::filter(int size, bool selectFirst)
 			if(firstPos < curItems.size())
 			{
 				slider->scrollTo(firstPos);
-				callOnSelect(curItems[firstPos]);
 				selectAbs(firstPos);
+			}
+			else
+			{
+				selectionPos = curItems.size();
+				updateListItems();
+				if(callOnSelect)
+					callOnSelect(nullptr);
 			}
 		}
 	}
 	else
 	{
+		selectionPos = 0;
+		slider->setAmount(0);
 		updateListItems();
 		redraw();
 		slider->block(true);
 		if(callOnSelect)
 			callOnSelect(nullptr);
+	}
+}
+
+bool SelectionTab::matchesSearch(const ElementInfo & info) const
+{
+	if(!searchInput || searchInput->getText().empty())
+		return true;
+
+	return boost::icontains(info.name, searchInput->getText());
+}
+
+void SelectionTab::toggleSearch(bool enabled)
+{
+	if(enabled)
+		buttonSearch->setBorderColor(Colors::WHITE);
+	else
+		buttonSearch->setBorderColor(std::nullopt);
+	buttonSearch->redraw();
+
+	if(enabled)
+	{
+		labelTabTitle->disable();
+		searchInput->enable();
+		searchDescription->setEnabled(searchInput->getText().empty());
+		searchInput->giveFocus();
+		if(buttonDeleteMode)
+		{
+			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.clearSearch")));
+			buttonDeleteMode->disable();
+		}
+	}
+	else
+	{
+		searchInput->setText("");
+		searchInput->disable();
+		searchDescription->disable();
+		labelTabTitle->enable();
+		if(buttonDeleteMode)
+		{
+			buttonDeleteMode->enable();
+			buttonDeleteMode->setHelp(CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")));
+		}
+		filter(-1, true);
 	}
 }
 
@@ -922,7 +1021,7 @@ void SelectionTab::selectNewestFile()
 
 std::shared_ptr<ElementInfo> SelectionTab::getSelectedMapInfo() const
 {
-	return curItems.empty() || curItems[selectionPos]->isFolder ? nullptr : curItems[selectionPos];
+	return selectionPos >= curItems.size() || curItems[selectionPos]->isFolder ? nullptr : curItems[selectionPos];
 }
 
 void SelectionTab::rememberCurrentSelection()
