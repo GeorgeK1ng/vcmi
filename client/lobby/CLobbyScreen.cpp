@@ -134,10 +134,10 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 			GAME->server().getGlobalLobby().activateInterface();
 	}, EShortcut::GLOBAL_CANCEL);
 
-	// Make sure scenario selection is centered
+	// Make sure scenario and campaign selection content is centered
 	if(settings["general"]["enableUiEnhancements"].Bool())
 	{
-		if((screenType == ESelectionScreen::newGame || screenType == ESelectionScreen::loadGame) && !ENGINE->isDemoData())
+		if(!ENGINE->isDemoData())
 		{
 			const Point contentOffset(19, 0);
 			for(CIntObject * child : children)

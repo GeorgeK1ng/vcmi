@@ -1,0 +1,8 @@
+{
+	"basepath" : "",
+	"images" :
+	[
+		{ "frame" : 0, "file" : "iam-search.png"},
+		{ "frame" : 1, "file" : "iam-search.png"}
+	]
+}
