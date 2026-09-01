@@ -154,6 +154,7 @@ public:
 };
 
 static constexpr int LARGE_SPELLBOOK_CAPACITY = 24;
+static constexpr Point LARGE_BORDERED_SPELLBOOK_SIZE = Point(830, 636);
 static constexpr Point EXTRA_LARGE_SPELLBOOK_SIZE = Point(1015, 733);
 
 static bool hasMoreSpellsThanLargeSpellbook(const CGHeroInstance * hero)
@@ -176,17 +177,18 @@ static bool useExtraLargeSpellbook(const CGHeroInstance * hero)
 		&& hasMoreSpellsThanLargeSpellbook(hero);
 }
 
-static bool useBorderedSpellbook(const CGHeroInstance * hero)
+static bool useBorderedSpellbook()
 {
 	if(!settings["gameTweaks"]["enableLargeSpellbook"].Bool())
 		return false;
 
 	const Point screenSize = ENGINE->screenDimensions();
-	return useExtraLargeSpellbook(hero) || screenSize.x > 800 || screenSize.y > 600;
+	return screenSize.x >= LARGE_BORDERED_SPELLBOOK_SIZE.x
+		&& screenSize.y >= LARGE_BORDERED_SPELLBOOK_SIZE.y;
 }
 
 CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _myInt, bool openOnBattleSpells, const std::function<void(SpellID)> & onSpellSelect):
-	CWindowObject(useBorderedSpellbook(_myHero) ? PLAYER_COLORED_BORDERED_STATUSBAR : PLAYER_COLORED),
+	CWindowObject(useBorderedSpellbook() ? PLAYER_COLORED_BORDERED_STATUSBAR : PLAYER_COLORED),
 	battleSpellsOnly(openOnBattleSpells),
 	selectedTab(SpellSchool::ANY),
 	currentPage(0),
@@ -214,7 +216,7 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	const int extraLargeWidth = isExtraLargeSpellbook ? 100 : 0;
 	const int extraLargeRightBookmarkOffset = isExtraLargeSpellbook ? extraLargeWidth - 6 : 0;
 	const int extraLargeExitBookmarkOffset = isExtraLargeSpellbook ? 2 * extraLargeWidth - 15 : 0;
-	hasBorderedStatusBar = useBorderedSpellbook(myHero);
+	hasBorderedStatusBar = useBorderedSpellbook();
 	const int horizontalBookPadding = hasBorderedStatusBar ? 15 : 0;
 	const int bottomStatusBarPadding = hasBorderedStatusBar ? 36 : 0;
 
@@ -362,7 +364,7 @@ void CSpellWindow::onScreenResize()
 {
 	CIntObject::onScreenResize();
 
-	if(isExtraLargeSpellbook == useExtraLargeSpellbook(myHero) && hasBorderedStatusBar == useBorderedSpellbook(myHero))
+	if(isExtraLargeSpellbook == useExtraLargeSpellbook(myHero) && hasBorderedStatusBar == useBorderedSpellbook())
 		return;
 
 	const auto previousWindow = this;
