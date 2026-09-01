@@ -452,9 +452,67 @@ std::shared_ptr<CSpell> CSpellHandler::loadFromJson(const std::string & scope, c
 		const JsonNode & levelNode = json["levels"][LEVEL_NAMES[levelIndex]];
 
 		CSpell::LevelInfo & levelObject = spell->levels[levelIndex];
+		std::set<std::string> ambiguousTextValues;
+		auto registerTextValue = [&](const std::string & name, const std::string & value)
+		{
+			if(name.empty() || ambiguousTextValues.contains(name))
+				return;
+
+			auto existing = levelObject.textValues.find(name);
+			if(existing == levelObject.textValues.end())
+				levelObject.textValues[name] = value;
+			else if(existing->second != value)
+			{
+				levelObject.textValues.erase(existing);
+				ambiguousTextValues.insert(name);
+			}
+		};
+		std::function<void(const JsonNode &, const std::string &)> registerTextValues;
+		registerTextValues = [&](const JsonNode & node, const std::string & path)
+		{
+			if(node.isStruct())
+			{
+				for(const auto & [name, child] : node.Struct())
+				{
+					if(name != "description" && name != "formula")
+						registerTextValues(child, path.empty() ? name : path + "." + name);
+				}
+			}
+			else if(node.isVector())
+			{
+				for(size_t index = 0; index < node.Vector().size(); ++index)
+					registerTextValues(node[index], path + "." + std::to_string(index));
+			}
+			else if(node.isString() || node.isNumber() || node.isBool())
+			{
+				const auto separator = path.rfind('.');
+				const std::string leaf = separator == std::string::npos ? path : path.substr(separator + 1);
+				const std::string parentPath = separator == std::string::npos ? std::string() : path.substr(0, separator);
+				const auto parentSeparator = parentPath.rfind('.');
+				const std::string parent = parentSeparator == std::string::npos ? parentPath : parentPath.substr(parentSeparator + 1);
+				const std::string value = node.isString() ? node.String() : node.toCompactString();
+
+				std::string descriptiveName;
+				if(leaf == "val" || leaf == "value" || leaf == "amount")
+					descriptiveName = parent;
+				else if(parent.empty())
+					descriptiveName = leaf;
+				else
+					descriptiveName = parent + boost::algorithm::to_upper_copy(leaf.substr(0, 1)) + leaf.substr(1);
+
+				registerTextValue(descriptiveName, value);
+				registerTextValue(leaf, value);
+			}
+		};
+		registerTextValues(levelNode, {});
 
 		if (!levelNode["description"].String().empty())
 			LIBRARY->generaltexth->registerString(scope, spell->getDescriptionTextID(levelIndex), levelNode["description"]);
+		if(!levelNode["formula"].String().empty())
+		{
+			LIBRARY->generaltexth->registerString(scope, spell->getFormulaTextID(levelIndex), levelNode["formula"]);
+			levelObject.hasFormula = true;
+		}
 
 		levelObject.cost          = static_cast<si32>(levelNode["cost"].Integer());
 		levelObject.smartTarget   = levelNode["targetModifier"]["smart"].Bool();

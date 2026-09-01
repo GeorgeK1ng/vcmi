@@ -238,8 +238,13 @@ TODO
 ```json
 
 {
-	//Localizable description. Use {xxx} for formatting
+	// Localizable description. Use {xxx} for formatting.
+	// Spell and effect values can be inserted with placeholders described below.
 	"description": "",
+
+	// Optional localizable formula shown below the description when the player
+	// enables "Show spell formulas". It supports the same placeholders.
+	"formula": "Spell Power x %basePower% + %levelPower%",
 
 	//Cost in mana points
 	"cost": 1,
@@ -301,6 +306,65 @@ TODO
 	}
 }
 ```
+
+### Dynamic description and formula placeholders
+
+Both `description` and `formula` can display values from the resolved configuration of the current spell mastery level. This keeps translated text synchronized with balance changes and avoids repeating numeric values in translation files.
+
+The following spell placeholders are always available:
+
+| Placeholder | Value |
+| --- | --- |
+| `%spellLevel%` | Spell level, normally 1-5 |
+| `%basePower%` | Top-level spell `power`; the Spell Power multiplier used by standard spell effects |
+| `%levelPower%` or `%power%` | `power` of the current mastery level |
+| `%basicPower%` | `power` of the Basic mastery level |
+| `%powerDifference%` | Current mastery `power` minus Basic mastery `power` |
+| `%spellPoints%` or `%cost%` | Mana cost of the current mastery level |
+| `%schoolLevel%` | Numeric mastery level: none = 0, basic = 1, advanced = 2, expert = 3 |
+
+Scalar fields from `effects`, `cumulativeEffects`, `battleEffects`, `adventureEffect`, and other parts of the resolved mastery configuration automatically receive short placeholders:
+
+- A conventional `val`, `value`, or `amount` field uses the name of its owning object. For example, `effects.speedBonus.val` becomes `%speedBonus%`.
+- Other named fields combine the owning object and field names. For example, `battleEffects.directDamage.multiplier` becomes `%directDamageMultiplier%`, and `battleEffects.speedPenalty.duration` becomes `%speedPenaltyDuration%`.
+- The leaf field name is also available when it identifies only one value in that mastery level. For example, `%duration%` can be used when there is only one `duration` field.
+- If the same short name refers to different values, that ambiguous placeholder is not registered. Use the more descriptive owner-and-field placeholder instead.
+
+The configuration is resolved before placeholders are collected, so values inherited from the level's `base` configuration are also available.
+
+For example:
+
+```json
+"levels": {
+	"base": {
+		"cost": 10,
+		"power": 20,
+		"range": "0",
+		"description": "Deals (Spell Power x %basePower% + %levelPower%) damage and reduces Speed by %speedPenalty%% for %speedPenaltyTurns% turns.",
+		"formula": "Spell Power x %basePower% + %levelPower%",
+		"effects": {
+			"speedPenalty": {
+				"type": "STACKS_SPEED",
+				"val": 20,
+				"duration": "N_TURNS",
+				"turns": 3
+			}
+		}
+	},
+	"advanced": {
+		"power": 40,
+		"effects": {
+			"speedPenalty": {
+				"val": 25
+			}
+		}
+	}
+}
+```
+
+At Advanced mastery, this produces values equivalent to `Spell Power x 20 + 40`, a `25%` Speed penalty, and a duration of `3` turns. A literal percent sign can be placed immediately after a placeholder, as in `%speedPenalty%%`.
+
+The formula heading and formula text are only appended when the player enables the corresponding setting and the selected mastery level has a non-empty `formula`. Runtime-dependent data that is not part of spell configuration, such as the current hero level, target creature level, army size, or final damage after resistances, should remain a symbolic part of the formula text.
 
 ## Spell power
 

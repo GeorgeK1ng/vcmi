@@ -1281,5 +1281,8 @@
 	"vcmi.wiki.town.cost": "Cena",
 	"vcmi.wiki.town.creatureName": "Jednotka",
 	"vcmi.wiki.town.creatures": "Jednotky",
-	"vcmi.wiki.town.heroes": "Hrdinové"
+	"vcmi.wiki.town.heroes": "Hrdinové",
+	"vcmi.spell.formula": "Vzorec kouzla",
+	"vcmi.systemOptions.showSpellFormulaButton.hover": "Zobrazit vzorce kouzel",
+	"vcmi.systemOptions.showSpellFormulaButton.help": "{Zobrazit vzorce kouzel}\n\nZobrazuje nastavený vzorec kouzla pod jeho popisem."
 }

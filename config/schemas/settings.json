@@ -861,6 +861,7 @@
 				"skipBattleIntroMusic",
 				"infoBarCreatureManagement",
 				"enableLargeSpellbook",
+				"showSpellFormula",
 				"simpleObjectSelection",
 				"skipAdventureMapAnimations"
 			],
@@ -900,6 +901,10 @@
 				"enableLargeSpellbook" : {
 					"type": "boolean",
 					"default": true
+				},
+				"showSpellFormula" : {
+					"type": "boolean",
+					"default": false
 				},
 				"simpleObjectSelection" : {
 					"type": "boolean",

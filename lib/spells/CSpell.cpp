@@ -16,6 +16,7 @@
 #include "ISpellMechanics.h"
 
 #include "../CBonusTypeHandler.h"
+#include "../CConfigHandler.h"
 #include "../battle/Unit.h"
 #include "../bonuses/BonusSelector.h"
 #include "../GameLibrary.h"
@@ -146,7 +147,45 @@ std::string CSpell::getDescriptionTextID(int32_t schoolLevel) const
 
 std::string CSpell::getDescriptionTranslated(int32_t schoolLevel) const
 {
-	return LIBRARY->generaltexth->translate(getDescriptionTextID(schoolLevel));
+	std::string result = formatDescriptionText(LIBRARY->generaltexth->translate(getDescriptionTextID(schoolLevel)), schoolLevel);
+
+	if(settings["gameTweaks"]["showSpellFormula"].Bool() && getLevelInfo(schoolLevel).hasFormula)
+	{
+		result += "\n\n{" + LIBRARY->generaltexth->translate("vcmi.spell.formula") + "}\n\n";
+		result += formatDescriptionText(LIBRARY->generaltexth->translate(getFormulaTextID(schoolLevel)), schoolLevel);
+	}
+
+	return result;
+}
+
+std::string CSpell::getFormulaTextID(int32_t schoolLevel) const
+{
+	TextIdentifier textID("spell", modScope, identifier, "formula", LEVEL_NAMES[schoolLevel]);
+	return textID.get();
+}
+
+std::string CSpell::formatDescriptionText(std::string text, int32_t schoolLevel) const
+{
+	const auto & levelInfo = getLevelInfo(schoolLevel);
+	const auto basicPower = getLevelInfo(static_cast<int32_t>(MasteryLevel::BASIC)).power;
+	const std::array replacements = {
+		std::pair{"%spellLevel%", std::to_string(getLevel())},
+		std::pair{"%basePower%", std::to_string(getBasePower())},
+		std::pair{"%basicPower%", std::to_string(basicPower)},
+		std::pair{"%levelPower%", std::to_string(levelInfo.power)},
+		std::pair{"%power%", std::to_string(levelInfo.power)},
+		std::pair{"%powerDifference%", std::to_string(levelInfo.power - basicPower)},
+		std::pair{"%spellPoints%", std::to_string(levelInfo.cost)},
+		std::pair{"%cost%", std::to_string(levelInfo.cost)},
+		std::pair{"%schoolLevel%", std::to_string(schoolLevel)}
+	};
+
+	for(const auto & [placeholder, value] : replacements)
+		boost::replace_all(text, placeholder, value);
+	for(const auto & [placeholder, value] : levelInfo.textValues)
+		boost::replace_all(text, "%" + placeholder + "%", value);
+
+	return text;
 }
 
 std::string CSpell::getAdventureEffectTextID(const std::string & effectType, const std::string & field) const
