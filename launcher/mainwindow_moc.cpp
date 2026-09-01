@@ -63,6 +63,7 @@ void MainWindow::updateDisplayIndex(QScreen * screen)
 
 	Settings node = settings.write["video"]["displayIndex"];
 	node->Float() = displayIndex;
+	ui->settingsView->setDisplayIndex(displayIndex);
 }
 
 void MainWindow::computeSidePanelSizes()

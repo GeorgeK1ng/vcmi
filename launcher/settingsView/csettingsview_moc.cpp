@@ -86,19 +86,19 @@ void CSettingsView::setDisplayList()
 	for (const auto screen : QGuiApplication::screens())
 		list << QString{"%1 - %2"}.arg(screen->name(), resolutionToString(screen->size()));
 
-	if(list.count() < 2)
-	{
-		ui->comboBoxDisplayIndex->hide();
-		ui->labelDisplayIndex->hide();
-		fillValidResolutionsForScreen(0);
-	}
-	else
-	{
-		int displayIndex = settings["video"]["displayIndex"].Integer();
-		ui->comboBoxDisplayIndex->addItems(list);
-		// calls fillValidResolutions() in slot
-		ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
-	}
+	const int displayIndex = settings["video"]["displayIndex"].Integer();
+	ui->comboBoxDisplayIndex->clear();
+	ui->comboBoxDisplayIndex->addItems(list);
+	// calls fillValidResolutions() in slot
+	ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
+}
+
+void CSettingsView::setDisplayIndex(int displayIndex)
+{
+	if(ui->comboBoxDisplayIndex->currentIndex() == displayIndex)
+		return;
+
+	ui->comboBoxDisplayIndex->setCurrentIndex(displayIndex);
 }
 
 void CSettingsView::setCheckbuttonState(QToolButton * button, bool checked)
