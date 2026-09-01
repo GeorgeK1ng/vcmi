@@ -168,6 +168,10 @@ GeneralOptionsTab::GeneralOptionsTab()
 	{
 		setBoolSetting("general", "enableUiEnhancements", value);
 	});
+	addCallback("showSpellFormulaChanged", [](bool value)
+	{
+		setBoolSetting("gameTweaks", "showSpellFormula", value);
+	});
 
 	addCallback("enableLargeSpellbookChanged", [this](bool value)
 	{
@@ -239,6 +243,9 @@ GeneralOptionsTab::GeneralOptionsTab()
 	std::shared_ptr<CToggleButton> enableUiEnhancementsCheckbox = widget<CToggleButton>("enableUiEnhancementsCheckbox");
 	if (enableUiEnhancementsCheckbox)
 		enableUiEnhancementsCheckbox->setSelected(settings["general"]["enableUiEnhancements"].Bool());
+
+	std::shared_ptr<CToggleButton> showSpellFormulaCheckbox = widget<CToggleButton>("showSpellFormulaCheckbox");
+	showSpellFormulaCheckbox->setSelected(settings["gameTweaks"]["showSpellFormula"].Bool());
 
 	std::shared_ptr<CToggleButton> enableLargeSpellbookCheckbox = widget<CToggleButton>("enableLargeSpellbookCheckbox");
 	if (enableLargeSpellbookCheckbox)

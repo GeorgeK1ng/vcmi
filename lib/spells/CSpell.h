@@ -86,6 +86,9 @@ public:
 	{
 		si32 cost = 0;
 		si32 power = 0;
+		bool hasFormula = false;
+		/// Scalar values from resolved level configuration, indexed by placeholder name.
+		std::map<std::string, std::string> textValues;
 
 		bool smartTarget = true;
 		bool clearTarget = false;
@@ -175,6 +178,7 @@ public:
 
 	std::string getDescriptionTextID(int32_t level) const override;
 	std::string getDescriptionTranslated(int32_t level) const override;
+	std::string getFormulaTextID(int32_t level) const;
 	std::string getAdventureEffectTextID(const std::string & effectType, const std::string & field) const;
 
 	int32_t getLevel() const override;
@@ -208,6 +212,8 @@ public:
 	friend class CSpellHandler;
 	friend class Graphics;
 	friend class test::CSpellTest;
+private:
+	std::string formatDescriptionText(std::string text, int32_t schoolLevel) const;
 public:
 	///internal interface (for callbacks)
 

@@ -211,7 +211,13 @@
 			"properties" : {
 				"description" : {
 					"type" : "string",
-					"description" : "Localizable description. Use {xxx} for formatting"
+					"description" : "Localizable description with optional dynamic placeholders. Built-ins: %spellLevel%, %basePower%, %basicPower%, %levelPower% (or %power%), %powerDifference%, %spellPoints% (or %cost%), and %schoolLevel%. Resolved scalar level fields receive short names automatically: effects.speedBonus.val becomes %speedBonus%, and battleEffects.directDamage.multiplier becomes %directDamageMultiplier%. Unambiguous leaf names such as %duration% are also available. See docs/modders/Entities_Format/Spell_Format.md for naming and collision rules.",
+					"examples" : ["Deals Spell Power x %basePower% + %levelPower% damage and reduces Speed by %speedPenalty%%."]
+				},
+				"formula" : {
+					"type" : "string",
+					"description" : "Optional localizable formula displayed below the description when enabled by the user. Supports the same dynamic placeholders as description.",
+					"examples" : ["Spell Power x %basePower% + %levelPower%"]
 				},
 				"cost" : {
 					"type" : "number",

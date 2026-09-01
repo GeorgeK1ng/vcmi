@@ -72,6 +72,9 @@
 				},
 				{
 					"text": "vcmi.systemOptions.enableUiEnhancementsButton.hover"
+				},
+				{
+					"text": "vcmi.systemOptions.showSpellFormulaButton.hover"
 				}
 			]
 		},
@@ -101,6 +104,7 @@
 				{
 					"created" : "mobile"
 				},
+				{},
 				{},
 				{}
 			]
@@ -172,6 +176,11 @@
 					"name": "enableUiEnhancementsCheckbox",
 					"help": "vcmi.systemOptions.enableUiEnhancementsButton",
 					"callback": "enableUiEnhancementsChanged"
+				},
+				{
+					"name": "showSpellFormulaCheckbox",
+					"help": "vcmi.systemOptions.showSpellFormulaButton",
+					"callback": "showSpellFormulaChanged"
 				}
 			]
 		},
