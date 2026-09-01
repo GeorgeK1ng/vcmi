@@ -37,7 +37,6 @@ void AssetGenerator::initialize()
 		boost::filesystem::remove_all(VCMIDirs::get().userDataPath() / "Generated");
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
-	imageFiles[ImagePath::builtin("SpellBookSmall.png")] = [this](){ return createBigSpellBook(2, 3);};
 	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook(3, 4);};
 	imageFiles[ImagePath::builtin("SpellBookLargeBordered.png")] = [this](){ return createBigSpellBook(3, 4, true);};
 	imageFiles[ImagePath::builtin("SpellBookExtraLarge.png")] = [this](){ return createBigSpellBook(4, 5, true);};

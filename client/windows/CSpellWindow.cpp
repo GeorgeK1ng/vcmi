@@ -153,20 +153,40 @@ public:
 	}
 };
 
-static int getConfiguredSpellbookSize()
+static constexpr int LARGE_SPELLBOOK_CAPACITY = 24;
+static constexpr Point EXTRA_LARGE_SPELLBOOK_SIZE = Point(1015, 733);
+
+static bool hasMoreSpellsThanLargeSpellbook(const CGHeroInstance * hero)
 {
-	return settings["gameTweaks"]["spellbookSize"].Integer();
+	int spellCount = 0;
+	for(const auto & spell : LIBRARY->spellh->objects)
+	{
+		if(!spell->isCreatureAbility() && hero->canCastThisSpell(spell.get()))
+			++spellCount;
+	}
+	return spellCount > LARGE_SPELLBOOK_CAPACITY;
 }
 
-static bool useBorderedSpellbook()
+static bool useExtraLargeSpellbook(const CGHeroInstance * hero)
 {
-	const int spellbookSize = getConfiguredSpellbookSize();
 	const Point screenSize = ENGINE->screenDimensions();
-	return spellbookSize >= 2 || (spellbookSize == 1 && (screenSize.x > 800 || screenSize.y > 600));
+	return settings["gameTweaks"]["enableLargeSpellbook"].Bool()
+		&& screenSize.x >= EXTRA_LARGE_SPELLBOOK_SIZE.x
+		&& screenSize.y >= EXTRA_LARGE_SPELLBOOK_SIZE.y
+		&& hasMoreSpellsThanLargeSpellbook(hero);
+}
+
+static bool useBorderedSpellbook(const CGHeroInstance * hero)
+{
+	if(!settings["gameTweaks"]["enableLargeSpellbook"].Bool())
+		return false;
+
+	const Point screenSize = ENGINE->screenDimensions();
+	return useExtraLargeSpellbook(hero) || screenSize.x > 800 || screenSize.y > 600;
 }
 
 CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _myInt, bool openOnBattleSpells, const std::function<void(SpellID)> & onSpellSelect):
-	CWindowObject(useBorderedSpellbook() ? PLAYER_COLORED_BORDERED_STATUSBAR : PLAYER_COLORED),
+	CWindowObject(useBorderedSpellbook(_myHero) ? PLAYER_COLORED_BORDERED_STATUSBAR : PLAYER_COLORED),
 	battleSpellsOnly(openOnBattleSpells),
 	selectedTab(SpellSchool::ANY),
 	currentPage(0),
@@ -175,6 +195,8 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 	openOnBattleSpells(openOnBattleSpells),
 	onSpellSelect(onSpellSelect),
 	isBigSpellbook(false),
+	isExtraLargeSpellbook(false),
+	hasBorderedStatusBar(false),
 	spellbookColumnsPerPageHalf(2),
 	spellbookRowsPerPage(3),
 	spellsPerPage(24),
@@ -186,14 +208,13 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 {
 	OBJECT_CONSTRUCTION;
 
-	const int effectiveSpellbookSize = getConfiguredSpellbookSize();
-	isBigSpellbook = effectiveSpellbookSize > 0;
-	const bool isExtraLargeSpellbook = effectiveSpellbookSize >= 2;
+	isBigSpellbook = settings["gameTweaks"]["enableLargeSpellbook"].Bool();
+	isExtraLargeSpellbook = useExtraLargeSpellbook(myHero);
 	const int extraSpellbookRows = isExtraLargeSpellbook ? 1 : 0;
 	const int extraLargeWidth = isExtraLargeSpellbook ? 100 : 0;
 	const int extraLargeRightBookmarkOffset = isExtraLargeSpellbook ? extraLargeWidth - 6 : 0;
 	const int extraLargeExitBookmarkOffset = isExtraLargeSpellbook ? 2 * extraLargeWidth - 15 : 0;
-	const bool hasBorderedStatusBar = useBorderedSpellbook();
+	hasBorderedStatusBar = useBorderedSpellbook(myHero);
 	const int horizontalBookPadding = hasBorderedStatusBar ? 15 : 0;
 	const int bottomStatusBarPadding = hasBorderedStatusBar ? 36 : 0;
 
@@ -335,6 +356,29 @@ CSpellWindow::CSpellWindow(const CGHeroInstance * _myHero, CPlayerInterface * _m
 
 CSpellWindow::~CSpellWindow()
 {
+}
+
+void CSpellWindow::onScreenResize()
+{
+	CIntObject::onScreenResize();
+
+	if(isExtraLargeSpellbook == useExtraLargeSpellbook(myHero) && hasBorderedStatusBar == useBorderedSpellbook(myHero))
+		return;
+
+	const auto previousWindow = this;
+	const auto hero = myHero;
+	const auto playerInterface = myInt;
+	const auto battleSpells = battleSpellsOnly;
+	const auto spellSelectCallback = onSpellSelect;
+	ENGINE->dispatchMainThread([previousWindow, hero, playerInterface, battleSpells, spellSelectCallback]()
+	{
+		const auto currentWindow = ENGINE->windows().topWindow<CSpellWindow>();
+		if(currentWindow.get() != previousWindow)
+			return;
+
+		ENGINE->windows().popWindows(1);
+		ENGINE->windows().createAndPushWindow<CSpellWindow>(hero, playerInterface, battleSpells, spellSelectCallback);
+	});
 }
 
 void CSpellWindow::searchInput()

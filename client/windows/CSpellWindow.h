@@ -95,6 +95,8 @@ class CSpellWindow : public CWindowObject, public IVideoHolder
 	std::shared_ptr<VideoWidgetOnce> video;
 
 	bool isBigSpellbook;
+	bool isExtraLargeSpellbook;
+	bool hasBorderedStatusBar;
 	int spellbookColumnsPerPageHalf;
 	int spellbookRowsPerPage;
 	int spellsPerPage;
@@ -151,6 +153,7 @@ public:
 	int pagesWithinCurrentTab();
 
 	void keyPressed(EShortcut key) override;
+	void onScreenResize() override;
 
 	void show(Canvas & to) override;
 };
