@@ -1030,7 +1030,7 @@ public:
 	}
 };
 
-void CServerHandler::onPacketReceived(const std::shared_ptr<INetworkConnection> &, const std::vector<std::byte> & message)
+void CServerHandler::onPacketReceived(const std::shared_ptr<INetworkConnection> & connection, const std::vector<std::byte> & message)
 {
 	std::unique_lock<std::mutex> interfaceLock;
 	if(ENGINE)
@@ -1039,9 +1039,23 @@ void CServerHandler::onPacketReceived(const std::shared_ptr<INetworkConnection> 
 	if(getState() == EClientState::DISCONNECTING)
 		return;
 
-	auto pack = logicConnection->retrievePack(message);
-	ServerHandlerCPackVisitor visitor(*this);
-	pack->visit(visitor);
+	try
+	{
+		auto pack = logicConnection->retrievePack(message);
+		ServerHandlerCPackVisitor visitor(*this);
+		pack->visit(visitor);
+	}
+	catch(const std::exception & e)
+	{
+		// Never let malformed or unsupported packs unwind through the network event loop. In
+		// particular, doing so can destroy the client from this network thread on mobile.
+		logNetwork->error("Failed to process incoming network pack; aborting game start safely: %s", e.what());
+		showServerError(e.what());
+		setState(EClientState::DISCONNECTING);
+		if(serverRunner)
+			serverRunner->shutdown();
+		connection->close();
+	}
 }
 
 void CServerHandler::onDisconnected(const std::shared_ptr<INetworkConnection> & connection, const std::string & errorMessage)
