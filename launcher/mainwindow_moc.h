@@ -48,6 +48,7 @@ class MainWindow : public QMainWindow
 #endif
 
 	void load();
+	void updateDisplayIndex(QScreen * screen);
 
 	enum TabRows
 	{
