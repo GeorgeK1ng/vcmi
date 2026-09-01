@@ -30,7 +30,6 @@ public:
 	void loadToggleButtonSettings();
 	void loadTranslation();
 	void setDisplayList();
-	void setDisplayIndex(int displayIndex);
 	void changeEvent(QEvent *event) override;
 	void showEvent(QShowEvent * event) override;
 

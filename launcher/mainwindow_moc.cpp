@@ -55,17 +55,6 @@ void MainWindow::load()
 	Helper::loadSettings();
 }
 
-void MainWindow::updateDisplayIndex(QScreen * screen)
-{
-	const int displayIndex = QGuiApplication::screens().indexOf(screen);
-	if(displayIndex < 0 || settings["video"]["displayIndex"].Integer() == displayIndex)
-		return;
-
-	Settings node = settings.write["video"]["displayIndex"];
-	node->Float() = displayIndex;
-	ui->settingsView->setDisplayIndex(displayIndex);
-}
-
 void MainWindow::computeSidePanelSizes()
 {
 	QVector<QToolButton*> widgets = {
@@ -136,12 +125,6 @@ MainWindow::MainWindow(QWidget * parent)
 		enterSetup();
 
 	ui->settingsView->setDisplayList();
-
-	if(windowHandle())
-	{
-		updateDisplayIndex(windowHandle()->screen());
-		connect(windowHandle(), &QWindow::screenChanged, this, &MainWindow::updateDisplayIndex);
-	}
 	
 	if(settings["launcher"]["updateOnStartup"].Bool())
 		UpdateDialog::showUpdateDialog(false);
