@@ -179,10 +179,12 @@ MetaString CMapGenerator::getMapDescription() const
 
 	const auto * mapTemplate = mapGenOptions.getMapTemplate();
 	int monsterStrengthIndex = mapGenOptions.getMonsterStrength() - EMonsterStrength::GLOBAL_WEAK; //does not start from 0
-	const auto computerPlayerCount = std::ranges::count_if(mapGenOptions.getPlayersSettings(), [](const auto & player)
-	{
-		return player.second.getPlayerType() != EPlayerType::HUMAN;
-	});
+	const auto computerPlayerCount = mapGenOptions.arePlayersCustomized()
+		? std::ranges::count_if(mapGenOptions.getPlayersSettings(), [](const auto & player)
+		{
+			return player.second.getPlayerType() != EPlayerType::HUMAN;
+		})
+		: mapGenOptions.getCompOnlyPlayerCount();
 
 	MetaString result = MetaString::createFromTextID(mainPattern.get());
 
