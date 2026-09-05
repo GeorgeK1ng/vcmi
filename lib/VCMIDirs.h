@@ -9,6 +9,15 @@
  */
 #pragma once
 
+enum class EUserDirectory
+{
+	DATA,
+	CACHE,
+	CONFIG,
+	LOGS,
+	SAVES
+};
+
 class DLL_LINKAGE IVCMIDirs
 {
 public:
@@ -26,6 +35,7 @@ public:
 
 	// Path to saved games
 	virtual boost::filesystem::path userSavePath() const;
+	boost::filesystem::path userPath(EUserDirectory directory) const;
 
 	// Path to "extracted" directory, used to temporarily hold extracted Original H3 files
 	virtual boost::filesystem::path userExtractedPath() const;
@@ -51,9 +61,12 @@ public:
 	// Updates directories what change name/path between versions.
 	// Function called automatically.
 	virtual void init();
+
+	/// Changes a user directory and persists it if supported by the platform.
+	virtual bool setUserPath(EUserDirectory directory, const boost::filesystem::path & path);
 };
 
 namespace VCMIDirs
 {
-	extern DLL_LINKAGE const IVCMIDirs & get();
+	extern DLL_LINKAGE IVCMIDirs & get();
 }
