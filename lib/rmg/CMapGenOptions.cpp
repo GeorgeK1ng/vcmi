@@ -559,6 +559,9 @@ void CMapGenOptions::finalize(vstd::RNG & rand)
 	}
 	if(compOnlyPlayerCount == RANDOM_SIZE)
 	{
+		// A fixed standard-player count may still have placeholder AI slots up to the template limit.
+		updatePlayers();
+
 		// Use remaining range
 		auto presentPlayers = getHumanOrCpuPlayerCount();
 		auto possiblePlayers = mapTemplate->getPlayers().getNumbers();
