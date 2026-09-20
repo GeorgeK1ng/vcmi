@@ -884,6 +884,15 @@ void FirstLaunchView::modPresetUpdate()
 	ui->buttonPresetLanguage->setVisible(translationExists);
 
 	bool canTrans  = checkCanInstallTranslation();
+
+	if(canTrans)
+	{
+		QString preferredLanguage = QString::fromStdString(settings["general"]["language"].String());
+		ui->buttonPresetLanguage->setText(Languages::generateLanguageName(Languages::getLanguageOptions(preferredLanguage.toStdString())));
+		ui->buttonPresetLanguage->setChecked(true);
+	}
+	ui->buttonPresetLanguage->setEnabled(!canTrans);
+
 	bool canInstallPreset = false;
 
 	ui->buttonPresetLanguage->setVisible(canTrans);
@@ -921,7 +930,7 @@ bool FirstLaunchView::checkCanInstallTranslation()
 	if(modName.isEmpty())
 		return false;
 
-	return checkCanInstallMod(modName);
+	return getModView() && (getModView()->isModAvailable(modName) || getModView()->isModInstalled(modName));
 }
 
 CModListView * FirstLaunchView::getModView()
@@ -949,7 +958,7 @@ void FirstLaunchView::on_pushButtonPresetNext_clicked()
 {
 	QStringList modsToInstall;
 
-	if(ui->buttonPresetLanguage->isChecked() && checkCanInstallTranslation())
+	if(checkCanInstallTranslation())
 		modsToInstall.push_back(findTranslationModName());
 
 	for(const auto & preset : modPresets)
