@@ -13,12 +13,10 @@
 
 #include <boost/crc.hpp>
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 /**
  * Abstract class which provides method definitions for reading from a stream.
  */
-class DLL_LINKAGE CInputStream : public virtual CStream
+class CInputStream : public virtual CStream
 {
 public:
 	/**
@@ -63,5 +61,3 @@ public:
 		return checksum.checksum();
 	}
 };
-
-VCMI_LIB_NAMESPACE_END

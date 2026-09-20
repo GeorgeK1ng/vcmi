@@ -16,8 +16,6 @@
 #include "IHandlerBase.h"
 #include "filesystem/ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 struct DLL_LINKAGE RiverPaletteAnimation
 {
 	/// index of first color to cycle
@@ -26,7 +24,7 @@ struct DLL_LINKAGE RiverPaletteAnimation
 	int32_t length;
 };
 
-class DLL_LINKAGE RiverType : public EntityT<RiverId>
+class RiverType : public EntityT<RiverId>
 {
 	friend class RiverTypeHandler;
 	std::string identifier;
@@ -53,12 +51,12 @@ public:
 	RiverType();
 };
 
-class DLL_LINKAGE RiverTypeService : public EntityServiceT<RiverId, RiverType>
+class RiverTypeService : public EntityServiceT<RiverId, RiverType>
 {
 public:
 };
 
-class DLL_LINKAGE RiverTypeHandler : public CHandlerBase<RiverId, RiverType, RiverType, RiverTypeService>
+class RiverTypeHandler : public CHandlerBase<RiverId, RiverType, RiverType, RiverTypeService>
 {
 public:
 	std::shared_ptr<RiverType> loadFromJson(
@@ -72,5 +70,3 @@ public:
 	const std::vector<std::string> & getTypeNames() const override;
 	std::vector<JsonNode> loadLegacyData() override;
 };
-
-VCMI_LIB_NAMESPACE_END

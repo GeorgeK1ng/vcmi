@@ -13,10 +13,8 @@
 #include "../../lib/ConditionalWait.h"
 #include "../../lib/Point.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
 struct ObjectPosInfo;
 class PlayerColor;
-VCMI_LIB_NAMESPACE_END
 
 struct MapRendererContextState;
 
@@ -36,6 +34,9 @@ class MapRendererPuzzleMapContext;
 class MapViewController : public IMapObjectObserver
 {
 	ConditionalWait animationWait;
+
+	/// Busy while the GUI thread makes a snapshot for the network thread
+	std::shared_ptr<ConditionalWait> snapshotWait = std::make_shared<ConditionalWait>();
 
 	std::shared_ptr<IMapRendererContext> context;
 	std::shared_ptr<MapRendererContextState> state;
@@ -68,6 +69,9 @@ private:
 
 	void removeObject(const CGObjectInstance * obj);
 	void addObject(const CGObjectInstance * obj);
+
+	/// Draws the view for a transition. Runs on the GUI thread, which owns the GL context
+	void createTransitionSnapshot();
 
 	// IMapObjectObserver impl
 	bool hasOngoingAnimations() override;

@@ -45,6 +45,7 @@ set(lib_SRCS
 )
 
 set(lib_MAIN_SRCS
+	filesystem/SavegamePath.cpp
 
 	battle/AccessibilityInfo.cpp
 	battle/BattleAction.cpp
@@ -58,9 +59,9 @@ set(lib_MAIN_SRCS
 	battle/CBattleInfoCallback.cpp
 	battle/CBattleInfoEssentials.cpp
 	battle/CObstacleInstance.cpp
+	battle/CombatValue.cpp
 	battle/CPlayerBattleCallback.cpp
 	battle/CUnitState.cpp
-	battle/DamageCalculator.cpp
 	battle/Destination.cpp
 	battle/IBattleState.cpp
 	battle/ReachabilityInfo.cpp
@@ -74,6 +75,8 @@ set(lib_MAIN_SRCS
 	bonuses/BonusList.cpp
 	bonuses/BonusSelector.cpp
 	bonuses/BonusCustomTypes.cpp
+	bonuses/BonusFilter.cpp
+	bonuses/BonusMigration.cpp
 	bonuses/BonusParameters.cpp
 	bonuses/CBonusSystemNode.cpp
 	bonuses/IBonusBearer.cpp
@@ -100,6 +103,7 @@ set(lib_MAIN_SRCS
 	campaign/CampaignRegionsHandler.cpp
 
 	constants/EntityIdentifiers.cpp
+	constants/StringConstants.cpp
 	constants/IdentifierBase.cpp
 
 	entities/artifact/ArtifactUtils.cpp
@@ -136,6 +140,7 @@ set(lib_MAIN_SRCS
 	gameState/HighScore.cpp
 	gameState/InfoAboutArmy.cpp
 	gameState/QuestInfo.cpp
+	gameState/ReplayLog.cpp
 	gameState/RumorState.cpp
 	gameState/TavernHeroesPool.cpp
 	gameState/GameStatistics.cpp
@@ -160,7 +165,7 @@ set(lib_MAIN_SRCS
 	mapObjects/CGResource.cpp
 	mapObjects/TownBuildingInstance.cpp
 	mapObjects/CGTownInstance.cpp
-	mapObjects/CQuest.cpp
+	mapObjects/Quest.cpp
 	mapObjects/CRewardableObject.cpp
 	mapObjects/FlaggableMapObject.cpp
 	mapObjects/IMarket.cpp
@@ -182,6 +187,7 @@ set(lib_MAIN_SRCS
 	mapping/CMapInfo.cpp
 	mapping/CMapOperation.cpp
 	mapping/CMapService.cpp
+	mapping/HotaScriptConverter.cpp
 	mapping/MapEditUtils.cpp
 	mapping/MapIdentifiersH3M.cpp
 	mapping/MapFeaturesH3M.cpp
@@ -267,6 +273,8 @@ set(lib_MAIN_SRCS
 	serializer/JsonUpdater.cpp
 	serializer/SerializerReflection.cpp
 
+	scripting/ScriptVariablesStorage.cpp
+
 	spells/AbilityCaster.cpp
 	spells/BattleSpellMechanics.cpp
 	spells/BonusCaster.cpp
@@ -291,13 +299,15 @@ set(lib_MAIN_SRCS
 	spells/adventure/TownPortalEffect.cpp
 	spells/adventure/ViewWorldEffect.cpp
 
+	scripting/ScriptHandler.cpp
+
 	spells/effects/Effect.cpp
 	spells/effects/Effects.cpp
 	spells/effects/LocationEffect.cpp
-	spells/effects/SpellEffectHandler.cpp
 
 	texts/CGeneralTextHandler.cpp
 	texts/CLegacyConfigParser.cpp
+	texts/CompositeTranslator.cpp
 	texts/MetaString.cpp
 	texts/TextLocalizationContainer.cpp
 
@@ -392,6 +402,8 @@ set(lib_HEADERS
 )
 
 set(lib_MAIN_HEADERS
+	filesystem/SavegamePath.h
+
 	../include/vstd/ContainerUtils.h
 	../include/vstd/RNG.h
 
@@ -453,9 +465,9 @@ set(lib_MAIN_HEADERS
 	battle/CBattleInfoCallback.h
 	battle/CBattleInfoEssentials.h
 	battle/CObstacleInstance.h
+	battle/CombatValue.h
 	battle/CPlayerBattleCallback.h
 	battle/CUnitState.h
-	battle/DamageCalculator.h
 	battle/Destination.h
 	battle/IBattleInfoCallback.h
 	battle/IBattleState.h
@@ -472,6 +484,8 @@ set(lib_MAIN_HEADERS
 	bonuses/BonusList.h
 	bonuses/BonusSelector.h
 	bonuses/BonusCustomTypes.h
+	bonuses/BonusFilter.h
+	bonuses/BonusMigration.h
 	bonuses/BonusParameters.h
 	bonuses/CBonusSystemNode.h
 	bonuses/IBonusBearer.h
@@ -557,12 +571,14 @@ set(lib_MAIN_HEADERS
 	gameState/GameStatePackVisitor.h
 	gameState/HighScore.h
 	gameState/InfoAboutArmy.h
+	gameState/ReplayLog.h
 	gameState/RumorState.h
 	gameState/SThievesGuildInfo.h
 	gameState/TavernHeroesPool.h
 	gameState/GameStatistics.h
 	gameState/TavernSlot.h
 	gameState/QuestInfo.h
+	gameState/ScenarioEventJournalEntry.h
 
 	mapObjectConstructors/AObjectTypeHandler.h
 	mapObjectConstructors/CDefaultObjectTypeHandler.h
@@ -573,6 +589,7 @@ set(lib_MAIN_HEADERS
 	mapObjectConstructors/HillFortInstanceConstructor.h
 	mapObjectConstructors/FlaggableInstanceConstructor.h
 	mapObjectConstructors/IObjectInfo.h
+	mapObjectConstructors/KeyGuardInstanceConstructor.h
 	mapObjectConstructors/MarketInstanceConstructor.h
 	mapObjectConstructors/RandomMapInfo.h
 	mapObjectConstructors/ShipyardInstanceConstructor.h
@@ -587,7 +604,7 @@ set(lib_MAIN_HEADERS
 	mapObjects/TownBuildingInstance.h
 	mapObjects/CGResource.h
 	mapObjects/CGTownInstance.h
-	mapObjects/CQuest.h
+	mapObjects/Quest.h
 	mapObjects/CRewardableObject.h
 	mapObjects/FlaggableMapObject.h
 	mapObjects/IMarket.h
@@ -616,6 +633,7 @@ set(lib_MAIN_HEADERS
 	mapping/CMapOperation.h
 	mapping/CMapService.h
 	mapping/MapDifficulty.h
+	mapping/HotaScriptConverter.h
 	mapping/MapEditUtils.h
 	mapping/MapIdentifiersH3M.h
 	mapping/MapFeaturesH3M.h
@@ -654,6 +672,7 @@ set(lib_MAIN_HEADERS
 	networkPacks/PacksForLobby.h
 	networkPacks/PacksForServer.h
 	networkPacks/SetRewardableConfiguration.h
+	networkPacks/SetScriptVariable.h
 	networkPacks/SetStackEffect.h
 	networkPacks/SaveLocalState.h
 	networkPacks/StackLocation.h
@@ -684,6 +703,7 @@ set(lib_MAIN_HEADERS
 	rmg/CRmgTemplateStorage.h
 	rmg/CZonePlacer.h
 	rmg/CZoneGridPlacer.h
+	rmg/ZonePlacementConfig.h
 	rmg/CRoadRandomizer.h
 	rmg/TileInfo.h
 	rmg/Zone.h
@@ -723,6 +743,8 @@ set(lib_MAIN_HEADERS
 	serializer/CSerializer.h
 	serializer/CTypeList.h
 	serializer/GameConnectionID.h
+	scripting/IScriptVariablesHost.h
+	scripting/ScriptVariablesStorage.h
 	serializer/JsonDeserializer.h
 	serializer/JsonSerializeFormat.h
 	serializer/JsonSerializer.h
@@ -757,16 +779,24 @@ set(lib_MAIN_HEADERS
 	spells/adventure/TownPortalEffect.h
 	spells/adventure/ViewWorldEffect.h
 
+	combatScripts/CombatEventPayload.h
+	combatScripts/ICombatEventScript.h
+	combatScripts/IDamageCalculatorScript.h
+
+	scripting/ScriptHandler.h
+	scripting/ScriptService.h
+	scripting/ScriptTypeDescription.h
+
 	spells/effects/Effect.h
 	spells/effects/Effects.h
 	spells/effects/EffectsFwd.h
 	spells/effects/LocationEffect.h
-	spells/effects/SpellEffectHandler.h
-	spells/effects/SpellEffectService.h
 
 	texts/CGeneralTextHandler.h
 	texts/Languages.h
 	texts/CLegacyConfigParser.h
+	texts/CompositeTranslator.h
+	texts/ITranslator.h
 	texts/MetaString.h
 	texts/TextIdentifier.h
 	texts/TextLocalizationContainer.h
@@ -823,7 +853,7 @@ add_library(vcmiMain OBJECT ${lib_SRCS} ${lib_HEADERS})
 target_compile_definitions(vcmiMain PRIVATE "VCMI_DLL=1")
 target_link_libraries(vcmiMain PUBLIC
 	minizip::minizip ZLIB::ZLIB Iconv::Iconv
-	${SYSTEM_LIBS} Boost::boost Boost::filesystem Boost::program_options Boost::date_time
+	${SYSTEM_LIBS} Boost::boost Boost::filesystem Boost::program_options
 )
 
 if (NOT ENABLE_MINIMAL_LIB)
@@ -864,4 +894,8 @@ endif()
 
 if(VCMI_PORTMASTER)
 	target_compile_definitions(vcmiMain PRIVATE VCMI_PORTMASTER)
+endif()
+
+if(VCMI_FLATPAK)
+	target_compile_definitions(vcmiMain PRIVATE VCMI_FLATPAK)
 endif()

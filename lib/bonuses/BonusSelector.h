@@ -12,8 +12,6 @@
 
 #include "Bonus.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CSelector : std::function<bool(const Bonus*)>
 {
 	using TBase = std::function<bool(const Bonus*)>;
@@ -79,7 +77,7 @@ public:
 	}
 };
 
-class DLL_LINKAGE CWillLastTurns
+class CWillLastTurns
 {
 	int turnsRequested;
 public:
@@ -95,7 +93,7 @@ public:
 	}
 };
 
-class DLL_LINKAGE CWillLastDays
+class CWillLastDays
 {
 	int daysRequested;
 
@@ -147,5 +145,3 @@ namespace Selector
 	 */
 	extern DLL_LINKAGE CSelector none;
 }
-
-VCMI_LIB_NAMESPACE_END

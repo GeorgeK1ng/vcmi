@@ -14,8 +14,6 @@
 
 #include "effects/Effects.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 struct BattleSpellCast;
 
 namespace battle
@@ -26,7 +24,7 @@ namespace battle
 namespace spells
 {
 
-class DLL_LINKAGE BattleSpellMechanics : public BaseMechanics
+class BattleSpellMechanics : public BaseMechanics
 {
 public:
 	BattleSpellMechanics(const IBattleCast * event, std::shared_ptr<effects::Effects> effects_, std::shared_ptr<IReceptiveCheck> targetCondition_);
@@ -84,7 +82,7 @@ private:
 	void reflect(BattleSpellCast & sc, vstd::RNG & rng, const battle::Unit * unit);
 	const battle::Unit * getRandomUnit(vstd::RNG & rng, const BattleSide & side);
 
-	std::set<const battle::Unit *> collectTargets() const;
+	battle::Units collectTargets() const;
 
 	void doRemoveEffects(ServerCallback * server, const battle::Units & targets, const CSelector & selector);
 
@@ -97,5 +95,3 @@ private:
 
 }
 
-
-VCMI_LIB_NAMESPACE_END

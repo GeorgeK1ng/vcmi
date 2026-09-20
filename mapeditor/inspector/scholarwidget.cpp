@@ -20,6 +20,7 @@
 #include "lib/modding/ModScope.h"
 #include "lib/modding/IdentifierStorage.h"
 #include "lib/spells/CSpellHandler.h"
+#include "../translator.h"
 
 ScholarWidget::ScholarWidget(CRewardableObject & scholar, MapController & controller, QWidget * parent)
 	: QDialog(parent), ui(new Ui::ScholarWidget), scholar(scholar), extractor(controller.getCallback()), controller(controller)
@@ -41,8 +42,8 @@ void ScholarWidget::loadData()
 {
 	for(int i = 0; i < GameConstants::PRIMARY_SKILLS; i++)
 	{
-		ui->pSkills->insertItem(i, QString::fromStdString(LIBRARY->generaltexth->primarySkillNames[i]));
-		ui->pSkills->setItemData(i, QString::fromStdString(NPrimarySkill::names[i]));
+		ui->pSkills->insertItem(i, QString::fromStdString(Translator::instance().translate("core.priskill", i)));
+		ui->pSkills->setItemData(i, QString::fromUtf8(NPrimarySkill::names[i]));
 	}
 	int ssi = 0;
 	for(const auto & skill : LIBRARY->skillh->objects)
@@ -54,9 +55,12 @@ void ScholarWidget::loadData()
 	int spi = 0;
 	for(const auto & spell : LIBRARY->spellh->objects)
 	{
-		ui->spells->insertItem(spi, QString::fromStdString(spell->getNameTranslated()));
-		ui->spells->setItemData(spi, QString::fromStdString(spell->getJsonKey()));
-		spi++;
+		if(spell->isCommonHeroSpell())
+		{
+			ui->spells->insertItem(spi, QString::fromStdString(spell->getNameTranslated()));
+			ui->spells->setItemData(spi, QString::fromStdString(spell->getJsonKey()));
+			spi++;
+		}
 	}
 
 	auto allowCompletion = [](QComboBox * comboBox)

@@ -16,8 +16,6 @@
 #include "battle/BattleHexArray.h"
 #include "filesystem/ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class DLL_LINKAGE ObstacleInfo : public EntityT<Obstacle>
 {
 public:
@@ -59,7 +57,7 @@ public:
 	bool isAppropriate(const TerrainId terrainType, const BattleField & specialBattlefield) const;
 };
 
-class DLL_LINKAGE ObstacleService : public EntityServiceT<Obstacle, ObstacleInfo>
+class ObstacleService : public EntityServiceT<Obstacle, ObstacleInfo>
 {
 public:
 };
@@ -75,5 +73,3 @@ public:
 	const std::vector<std::string> & getTypeNames() const override;
 	std::vector<JsonNode> loadLegacyData() override;
 };
-
-VCMI_LIB_NAMESPACE_END

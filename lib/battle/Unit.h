@@ -20,12 +20,12 @@
 #include "IUnitInfo.h"
 #include "BattleHexArray.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 enum class EMetaText : uint8_t;
 class MetaString;
 class JsonNode;
 class JsonSerializeFormat;
+
+class ITranslator;
 
 namespace battle
 {
@@ -75,6 +75,9 @@ public:
 	virtual int32_t creatureIndex() const = 0;
 	virtual CreatureID creatureId() const = 0;
 	virtual int32_t creatureLevel() const = 0;
+	/// Level of this unit rather than the tier of its creature - the two differ for a commander,
+	/// which levels up on its own. Same as creatureLevel unless overridden.
+	virtual int32_t unitLevel() const;
 	virtual int32_t creatureCost() const = 0;
 	virtual int32_t creatureIconIndex() const = 0;
 
@@ -115,6 +118,9 @@ public:
 
 	/// returns total amount of killed in this unit
 	virtual int32_t getKilled() const = 0;
+
+	/// returns amount of currently alive creatures that were resurrected temporarily and will be lost after combat
+	virtual int32_t getResurrected() const = 0;
 
 	/// returns total health that unit still has
 	virtual int64_t getAvailableHealth() const = 0;
@@ -160,9 +166,10 @@ public:
 	static BattleHex occupiedHex(const BattleHex & assumedPos, bool twoHex, BattleSide side);
 
 	///MetaStrings
-	void addText(MetaString & text, EMetaText type, int32_t serial, const boost::logic::tribool & plural = boost::logic::indeterminate) const;
-	void addNameReplacement(MetaString & text, const boost::logic::tribool & plural = boost::logic::indeterminate) const;
-	std::string formatGeneralMessage(const int32_t baseTextId) const;
+	void addText(MetaString & text, EMetaText type, int32_t serial) const;
+	void addNameReplacement(MetaString & text) const;
+	void addNameReplacement(MetaString & text, TQuantity count) const;
+	std::string formatGeneralMessage(const int32_t baseTextId, const ITranslator * translator) const;
 
 	int getRawSurrenderCost() const;
 
@@ -205,5 +212,3 @@ public:
 };
 
 }
-
-VCMI_LIB_NAMESPACE_END

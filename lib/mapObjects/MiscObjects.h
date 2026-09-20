@@ -14,8 +14,6 @@
 #include "../entities/artifact/CArtifactInstance.h"
 #include "../texts/MetaString.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CMap;
 class UpgradeInfo;
 class MineInstanceConstructor;
@@ -25,7 +23,7 @@ class MineInstanceConstructor;
 using TTeleportExitsList = std::vector<std::pair<ObjectInstanceID, int3>>;
 
 /// Legacy class, use CRewardableObject instead
-class DLL_LINKAGE CTeamVisited: public CGObjectInstance
+class CTeamVisited: public CGObjectInstance
 {
 public:
 	using CGObjectInstance::CGObjectInstance;
@@ -102,9 +100,9 @@ public:
 	void battleFinished(IGameEventCallback & gameEvents, const CGHeroInstance *hero, const BattleResult &result) const override;
 	void blockingDialogAnswered(IGameEventCallback & gameEvents, const CGHeroInstance *hero, int32_t answer) const override;
 
-	std::string getObjectName() const override;
-	std::string getPopupText(PlayerColor player) const override;
-	std::string getPopupText(const CGHeroInstance * hero) const override;
+	MetaString getObjectName() const override;
+	MetaString getPopupText(PlayerColor player) const override;
+	MetaString getPopupText(const CGHeroInstance * hero) const override;
 	std::vector<Component> getPopupComponents(PlayerColor player) const override;
 
 	void pick(IGameEventCallback & gameEvents, const CGHeroInstance * h) const;
@@ -121,18 +119,7 @@ public:
 	{
 		h & static_cast<CArmedInstance&>(*this);
 		h & message;
-		if (h.saving || h.hasFeature(Handler::Version::NO_RAW_POINTERS_IN_SERIALIZER))
-		{
-			h & storedArtifact;
-		}
-		else
-		{
-			std::shared_ptr<CArtifactInstance> pointer;
-			h & pointer;
-			if (pointer->getId() == ArtifactInstanceID())
-				CArtifactInstance::saveCompatibilityFixArtifactID(pointer);
-			storedArtifact = pointer->getId();
-		}
+		h & storedArtifact;
 	}
 protected:
 	void serializeJsonOptions(JsonSerializeFormat & handler) override;
@@ -173,8 +160,8 @@ private:
 	void flagMine(IGameEventCallback & gameEvents, const PlayerColor & player) const;
 	void initObj(IGameRandomizer & gameRandomizer) override;
 
-	std::string getObjectName() const override;
-	std::string getHoverText(PlayerColor player) const override;
+	MetaString getObjectName() const override;
+	MetaString getHoverText(PlayerColor player) const override;
 
 public:
 	template <typename Handler> void serialize(Handler &h)
@@ -197,7 +184,7 @@ protected:
 	void serializeJsonOptions(JsonSerializeFormat & handler) override;
 };
 
-struct DLL_LINKAGE TeleportChannel : public Serializeable
+struct TeleportChannel : public Serializeable
 {
 	enum EPassability {UNKNOWN, IMPASSABLE, PASSABLE};
 
@@ -253,7 +240,7 @@ public:
 	}
 };
 
-class DLL_LINKAGE CGMonolith : public CGTeleport
+class CGMonolith : public CGTeleport
 {
 	TeleportChannelID findMeChannel(const std::vector<Obj> & IDs, MapObjectSubID SubID) const;
 
@@ -265,13 +252,16 @@ protected:
 public:
 	using CGTeleport::CGTeleport;
 
+	/// Pairs this monolith/whirlpool with its channel; called once every map object exists
+	virtual void assignTeleportChannel();
+
 	template <typename Handler> void serialize(Handler &h)
 	{
 		h & static_cast<CGTeleport&>(*this);
 	}
 };
 
-class DLL_LINKAGE CGSubterraneanGate : public CGMonolith
+class CGSubterraneanGate : public CGMonolith
 {
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
 	void initObj(IGameRandomizer & gameRandomizer) override;
@@ -281,13 +271,16 @@ public:
 
 	static void postInit(IGameInfoCallback * cb);
 
+	/// no-op: gates are paired by postInit() above instead
+	void assignTeleportChannel() override {}
+
 	template <typename Handler> void serialize(Handler &h)
 	{
 		h & static_cast<CGMonolith&>(*this);
 	}
 };
 
-class DLL_LINKAGE CGWhirlpool : public CGMonolith
+class CGWhirlpool : public CGMonolith
 {
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
 	void teleportDialogAnswered(IGameEventCallback & gameEvents, const CGHeroInstance *hero, ui32 answer, TTeleportExitsList exits) const override;
@@ -302,13 +295,13 @@ public:
 	}
 };
 
-class DLL_LINKAGE CGSirens : public CGObjectInstance
+class CGSirens : public CGObjectInstance
 {
 public:
 	using CGObjectInstance::CGObjectInstance;
 
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
-	std::string getHoverText(const CGHeroInstance * hero) const override;
+	MetaString getHoverText(const CGHeroInstance * hero) const override;
 	void initObj(IGameRandomizer & gameRandomizer) override;
 
 	template <typename Handler> void serialize(Handler &h)
@@ -345,16 +338,7 @@ public:
 		h & static_cast<CGObjectInstance&>(*this);
 		h & static_cast<CBonusSystemNode&>(*this);
 		h & direction;
-		if (h.hasFeature(Handler::Version::NO_RAW_POINTERS_IN_SERIALIZER))
-		{
-			h & boardedHeroID;
-		}
-		else
-		{
-			std::shared_ptr<CGObjectInstance> ptr;
-			h & ptr;
-			boardedHeroID = ptr ? ptr->id : ObjectInstanceID();
-		}
+		h & boardedHeroID;
 
 		h & layer;
 		h & onboardAssaultAllowed;
@@ -395,7 +379,7 @@ protected:
 	void serializeJsonOptions(JsonSerializeFormat & handler) override;
 };
 
-class DLL_LINKAGE CGMagi : public CGObjectInstance
+class CGMagi : public CGObjectInstance
 {
 public:
 	using CGObjectInstance::CGObjectInstance;
@@ -409,7 +393,7 @@ public:
 	}
 };
 
-class DLL_LINKAGE CGDenOfthieves : public CGObjectInstance
+class CGDenOfthieves : public CGObjectInstance
 {
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
 public:
@@ -423,8 +407,8 @@ public:
 
 	void onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstance * h) const override;
 	void initObj(IGameRandomizer & gameRandomizer) override;
-	std::string getHoverText(PlayerColor player) const override;
-	std::string getObjectDescription(PlayerColor player) const;
+	MetaString getHoverText(PlayerColor player) const override;
+	MetaString getObjectDescription(PlayerColor player) const;
 
 	template <typename Handler> void serialize(Handler &h)
 	{
@@ -434,7 +418,7 @@ protected:
 	void setPropertyDer(ObjProperty what, ObjPropertyID identifier) override;
 };
 
-class DLL_LINKAGE CGTerrainPatch : public CGObjectInstance
+class CGTerrainPatch : public CGObjectInstance
 {
 public:
 	using CGObjectInstance::CGObjectInstance;
@@ -458,8 +442,8 @@ protected:
 public:
 	using CGObjectInstance::CGObjectInstance;
 
-	std::string getPopupText(PlayerColor player) const override;
-	std::string getPopupText(const CGHeroInstance * hero) const override;
+	MetaString getPopupText(PlayerColor player) const override;
+	MetaString getPopupText(const CGHeroInstance * hero) const override;
 
 	std::string getDescriptionToolTip() const;
 	std::string getUnavailableUpgradeMessage() const;
@@ -470,5 +454,3 @@ public:
 		h & upgradeCostPercentage;
 	}
 };
-
-VCMI_LIB_NAMESPACE_END

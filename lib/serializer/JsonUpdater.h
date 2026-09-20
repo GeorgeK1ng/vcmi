@@ -11,11 +11,9 @@
 
 #include "JsonTreeSerializer.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CBonusSystemNode;
 
-class DLL_LINKAGE JsonUpdater: public JsonTreeSerializer<const JsonNode *>
+class JsonUpdater: public JsonTreeSerializer<const JsonNode *>
 {
 public:
 	JsonUpdater(const IInstanceResolver * instanceResolver_, const JsonNode & root_);
@@ -29,7 +27,7 @@ public:
 	void serializeBonuses(const std::string & fieldName, CBonusSystemNode * value);
 
 protected:
-	void serializeInternal(const std::string & fieldName, boost::logic::tribool & value) override;
+	void serializeInternal(const std::string & fieldName, std::optional<bool> & value) override;
 	void serializeInternal(const std::string & fieldName, si32 & value, const std::optional<si32> & defaultValue, const TDecoder & decoder, const TEncoder & encoder)	override;
 	void serializeInternal(const std::string & fieldName, std::vector<si32> & value, const TDecoder & decoder, const TEncoder & encoder) override;
 	void serializeInternal(const std::string & fieldName, double & value, const std::optional<double> & defaultValue) override;
@@ -41,5 +39,3 @@ protected:
 	void serializeInternal(std::string & value) override;
 	void serializeInternal(int64_t & value) override;
 };
-
-VCMI_LIB_NAMESPACE_END

@@ -10,10 +10,8 @@
 #pragma once
 #include "../GameConstants.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 //only for use in BattleInfo
-struct DLL_LINKAGE SiegeInfo
+struct SiegeInfo
 {
 	std::map<EWallPart, EWallState> wallState;
 	EGateState gateState;
@@ -29,5 +27,3 @@ struct DLL_LINKAGE SiegeInfo
 		h & gateState;
 	}
 };
-
-VCMI_LIB_NAMESPACE_END

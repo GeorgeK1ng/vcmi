@@ -25,6 +25,7 @@
                 "ENABLE_TEST": "OFF",
                 "ENABLE_STRICT_COMPILATION": "ON",
                 "ENABLE_GOLDMASTER": "$env{VCMI_PACKAGE_GOLDMASTER}",
+                "ENABLE_LTO": "$env{VCMI_ENABLE_LTO}",
                 "ENABLE_PCH" : "OFF"
             }
         },
@@ -259,7 +260,8 @@
                 "ENABLE_MULTI_PROCESS_BUILDS": "OFF",
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "CMAKE_C_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7",
-                "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7"
+                "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /DNDEBUG /Z7",
+				"ENABLE_COPY_CONAN_RUNTIME_DLLS": "OFF"
             }
         },
         {

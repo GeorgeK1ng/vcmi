@@ -12,8 +12,6 @@
 
 #include "AdventureSpellEffect.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGTownInstance;
 class CSpell;
 struct MapObjectSelectDialog;
@@ -23,7 +21,7 @@ namespace spells
 {
 namespace adventure
 {	
-class DLL_LINKAGE TownRelatedAdventureSpellEffect : public IAdventureSpellEffect
+class TownRelatedAdventureSpellEffect : public IAdventureSpellEffect
 {
 protected:
 	const CSpell * owner;
@@ -44,5 +42,3 @@ public:
 };
 }
 }
-
-VCMI_LIB_NAMESPACE_END

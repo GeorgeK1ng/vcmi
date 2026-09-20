@@ -14,11 +14,9 @@
 
 #include "army/CArmedInstance.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGDwelling;
 
-class DLL_LINKAGE CGDwellingRandomizationInfo
+class CGDwellingRandomizationInfo
 {
 public:
 	std::set<FactionID> allowedFactions;
@@ -77,5 +75,3 @@ public:
 	}
 };
 
-
-VCMI_LIB_NAMESPACE_END

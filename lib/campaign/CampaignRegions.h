@@ -19,8 +19,6 @@ class CampaignProperties;
 class ScenarioProperties;
 #endif
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class DLL_LINKAGE CampaignRegions
 {
 #ifdef ENABLE_EDITOR
@@ -38,7 +36,7 @@ class DLL_LINKAGE CampaignRegions
 	/// Lookup scheme for colored campaign images location
 	int colorSuffixLength = 0;
 
-	struct DLL_LINKAGE RegionDescription
+	struct RegionDescription
 	{
 		std::string infix;
 		Point pos;
@@ -83,5 +81,3 @@ public:
 
 	JsonNode toJson() const;
 };
-
-VCMI_LIB_NAMESPACE_END

@@ -12,9 +12,7 @@
 
 #include "AdventureSpellEffect.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
-class DLL_LINKAGE SummonBoatEffect final : public IAdventureSpellEffect
+class SummonBoatEffect final : public IAdventureSpellEffect
 {
 	const CSpell * owner;
 	BoatId createdBoat = BoatId::NONE;
@@ -30,5 +28,3 @@ private:
 	bool canBeCastImpl(spells::Problem & problem, const IGameInfoCallback * cb, const spells::Caster * caster) const final;
 	ESpellCastResult applyAdventureEffects(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const final;
 };
-
-VCMI_LIB_NAMESPACE_END

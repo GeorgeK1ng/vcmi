@@ -14,8 +14,6 @@
 #include "ResourceSet.h"
 #include "callback/GameCallbackHolder.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace vstd
 {
 class RNG;
@@ -29,7 +27,7 @@ struct Component;
 class CStackBasicDescriptor;
 class IGameRandomizer;
 
-class DLL_LINKAGE JsonRandomizationException : public std::runtime_error
+class JsonRandomizationException : public std::runtime_error
 {
 	std::string cleanupJson(const JsonNode & value);
 public:
@@ -82,5 +80,3 @@ public:
 
 	static std::vector<std::shared_ptr<Bonus>> loadBonuses(const JsonNode & value);
 };
-
-VCMI_LIB_NAMESPACE_END

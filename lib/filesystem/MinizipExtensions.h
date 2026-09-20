@@ -24,13 +24,11 @@
 #define MINIZIP_NEEDS_32BIT_FUNCS 1
 #endif
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CInputStream;
 class CInputOutputStream;
 class CMemoryBuffer;
 
-class DLL_LINKAGE CIOApi
+class CIOApi
 {
 public:
 	virtual ~CIOApi() = default;
@@ -50,7 +48,7 @@ public:
 };
 
 ///redirects all file IO to single stream
-class DLL_LINKAGE CProxyIOApi: public CIOApi
+class CProxyIOApi: public CIOApi
 {
 public:
 	CProxyIOApi(CInputOutputStream * buffer);
@@ -72,7 +70,7 @@ private:
 };
 
 ///redirects all file IO to single stream read-only
-class DLL_LINKAGE CProxyROIOApi: public CIOApi
+class CProxyROIOApi: public CIOApi
 {
 public:
 	CProxyROIOApi(CInputStream * buffer);
@@ -93,5 +91,3 @@ private:
 	static int ZCALLBACK errorFileProxy(voidpf opaque, voidpf stream);
 };
 
-
-VCMI_LIB_NAMESPACE_END

@@ -13,11 +13,9 @@
 
 #include "MinizipExtensions.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CZipSaver;
 
-class DLL_LINKAGE CZipOutputStream: public COutputStream
+class CZipOutputStream: public COutputStream
 {
 public:
 	/**
@@ -56,5 +54,3 @@ private:
 	COutputStream * activeStream;
 	friend class CZipOutputStream;
 };
-
-VCMI_LIB_NAMESPACE_END

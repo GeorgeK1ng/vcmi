@@ -24,8 +24,6 @@
 #include "json/JsonBonus.h"
 #include "json/JsonUtils.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 CSkill::CSkill(const SecondarySkill & id, std::string identifier):
 	id(id),
 	identifier(std::move(identifier))
@@ -279,7 +277,7 @@ std::shared_ptr<CSkill> CSkillHandler::loadFromJson(const std::string & scope, c
 	}
 	for(int level = 1; level < NSecondarySkill::levels.size(); level++)
 	{
-		const std::string & levelName = NSecondarySkill::levels[level]; // basic, advanced, expert
+		const char * levelName = NSecondarySkill::levels[level]; // basic, advanced, expert
 		const JsonNode & levelNode = json[levelName];
 		// parse bonus effects
 		for(const auto & b : levelNode["effects"].Struct())
@@ -352,5 +350,3 @@ std::set<SecondarySkill> CSkillHandler::getDefaultAllowed() const
 
 	return result;
 }
-
-VCMI_LIB_NAMESPACE_END

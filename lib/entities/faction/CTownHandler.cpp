@@ -32,8 +32,6 @@
 #include "../../json/JsonBonus.h"
 #include "../../json/JsonUtils.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 const int NAMES_PER_TOWN=16; // number of town names per faction in H3 files. Json can define any number
 
 CTownHandler::CTownHandler()
@@ -53,7 +51,7 @@ JsonNode readBuilding(CLegacyConfigParser & parser)
 	JsonNode ret;
 	JsonNode & cost = ret["cost"];
 
-	for(const std::string & resID : GameConstants::RESOURCE_NAMES)
+	for(const char * resID : GameConstants::RESOURCE_NAMES)
 		cost[resID].Float() = parser.readNumber();
 	
 	parser.endLine();
@@ -632,11 +630,8 @@ void CTownHandler::loadClientData(CTown &town, const JsonNode & source) const
 
 void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 {
-	const auto * resIter = boost::find(GameConstants::RESOURCE_NAMES, source["primaryResource"].String());
-	if(resIter == std::end(GameConstants::RESOURCE_NAMES))
-		town->primaryRes = GameResID(EGameResID::WOOD_AND_ORE); //Wood + Ore
-	else
-		town->primaryRes = GameResID(resIter - std::begin(GameConstants::RESOURCE_NAMES));
+	int primaryResIndex = vstd::find_pos(GameConstants::RESOURCE_NAMES, source["primaryResource"].String());
+	town->primaryRes = primaryResIndex < 0 ? GameResID(EGameResID::WOOD_AND_ORE) : GameResID(primaryResIndex);
 
 	if (!source["warMachine"].isNull())
 	{
@@ -839,7 +834,7 @@ std::shared_ptr<CFaction> CTownHandler::loadFromJson(const std::string & scope, 
 	return faction;
 }
 
-void CTownHandler::loadObject(std::string scope, std::string name, const JsonNode & data)
+void CTownHandler::loadObject(const std::string & scope, const std::string & name, const JsonNode & data)
 {
 	auto object = loadFromJson(scope, data, name, objects.size());
 
@@ -878,7 +873,7 @@ void CTownHandler::loadObject(std::string scope, std::string name, const JsonNod
 	registerObject(scope, "faction", name, data, object->index.getNum());
 }
 
-void CTownHandler::loadObject(std::string scope, std::string name, const JsonNode & data, size_t index)
+void CTownHandler::loadObject(const std::string & scope, const std::string & name, const JsonNode & data, size_t index)
 {
 	auto object = loadFromJson(scope, data, name, index);
 
@@ -1027,5 +1022,3 @@ const std::vector<std::string> & CTownHandler::getTypeNames() const
 	static const std::vector<std::string> typeNames = { "faction", "town" };
 	return typeNames;
 }
-
-VCMI_LIB_NAMESPACE_END

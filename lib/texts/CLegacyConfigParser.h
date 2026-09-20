@@ -11,10 +11,8 @@
 
 #include "filesystem/ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 /// Parser for any text files from H3
-class DLL_LINKAGE CLegacyConfigParser
+class CLegacyConfigParser
 {
 	std::string fileEncoding;
 
@@ -57,5 +55,3 @@ public:
 
 	explicit CLegacyConfigParser(const TextPath & URI);
 };
-
-VCMI_LIB_NAMESPACE_END

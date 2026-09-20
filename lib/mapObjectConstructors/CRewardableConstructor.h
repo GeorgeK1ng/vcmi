@@ -12,11 +12,9 @@
 #include "AObjectTypeHandler.h"
 #include "../rewardable/Info.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 struct Bonus;
 
-class DLL_LINKAGE CRewardableConstructor : public AObjectTypeHandler
+class CRewardableConstructor : public AObjectTypeHandler
 {
 	Rewardable::Info objectInfo;
 
@@ -36,5 +34,3 @@ public:
 
 	Rewardable::Configuration generateConfiguration(IGameInfoCallback * cb, IGameRandomizer & gameRandomizer, MapObjectID objectID, const std::map<std::string, JsonNode> & presetVariables) const;
 };
-
-VCMI_LIB_NAMESPACE_END

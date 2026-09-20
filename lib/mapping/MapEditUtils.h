@@ -13,13 +13,11 @@
 #include "../int3.h"
 #include "../GameConstants.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGObjectInstance;
 class CMap;
 
 /// Represents a map rectangle.
-struct DLL_LINKAGE MapRect
+struct MapRect
 {
 	MapRect();
 	MapRect(const int3 & pos, si32 width, si32 height);
@@ -98,7 +96,7 @@ public:
 };
 
 /// Selection class to select objects.
-class DLL_LINKAGE CObjectSelection : public CMapSelection<CGObjectInstance *>
+class CObjectSelection : public CMapSelection<CGObjectInstance *>
 {
 public:
 	explicit CObjectSelection(CMap * map);
@@ -232,10 +230,8 @@ private:
 	std::map<std::string, TVPVector> terrainTypePatterns;
 };
 
-class DLL_LINKAGE CTerrainViewPatternUtils
+class CTerrainViewPatternUtils
 {
 public:
 	static void printDebuggingInfoAboutTile(const CMap * map, const int3 & pos);
 };
-
-VCMI_LIB_NAMESPACE_END

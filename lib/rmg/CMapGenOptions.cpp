@@ -21,8 +21,6 @@
 
 #include <vstd/RNG.h>
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 CMapGenOptions::CMapGenOptions()
 	: width(CMapHeader::MAP_SIZE_MIDDLE), height(CMapHeader::MAP_SIZE_MIDDLE), levels(2),
 	humanOrCpuPlayerCount(RANDOM_SIZE), teamCount(RANDOM_SIZE), compOnlyPlayerCount(RANDOM_SIZE), compOnlyTeamCount(RANDOM_SIZE),
@@ -30,6 +28,7 @@ CMapGenOptions::CMapGenOptions()
 	customizedPlayers(false)
 {
 	initPlayersMap();
+	resetLevelMapLayers();
 }
 
 si32 CMapGenOptions::getWidth() const
@@ -62,6 +61,23 @@ int CMapGenOptions::getLevels() const
 void CMapGenOptions::setLevels(int value)
 {
 	levels = value;
+	syncLevelMapLayersSize();
+}
+
+void CMapGenOptions::syncLevelMapLayersSize()
+{
+	if(levelMapLayers.size() > static_cast<size_t>(levels))
+		levelMapLayers.resize(levels);
+	else
+		while(levelMapLayers.size() < static_cast<size_t>(levels))
+			levelMapLayers.push_back(getDefaultLayerForLevel(static_cast<int>(levelMapLayers.size())));
+}
+
+void CMapGenOptions::resetLevelMapLayers()
+{
+	levelMapLayers.clear();
+	for (int i = 0; i < levels; i++)
+		levelMapLayers.push_back(getDefaultLayerForLevel(i));
 }
 
 si8 CMapGenOptions::getHumanOrCpuPlayerCount() const
@@ -384,6 +400,14 @@ const std::map<PlayerColor, CMapGenOptions::CPlayerSettings> & CMapGenOptions::g
 	return players;
 }
 
+int CMapGenOptions::getComputerPlayerCount() const
+{
+	return static_cast<int>(std::ranges::count_if(players, [](const std::pair<PlayerColor, CPlayerSettings> & pair)
+	{
+		return pair.second.getPlayerType() != EPlayerType::HUMAN;
+	}));
+}
+
 void CMapGenOptions::setStartingTownForPlayer(const PlayerColor & color, FactionID town)
 {
 	auto it = players.find(color);
@@ -431,6 +455,7 @@ void CMapGenOptions::setMapTemplate(const CRmgTemplate * value)
 			setWidth(sizes.first.x);
 			setHeight(sizes.first.y);
 			setLevels(sizes.first.z);
+			resetLevelMapLayers();
 		}
 
 		si8 maxPlayerCount = getMaxPlayersCount(false);
@@ -488,7 +513,16 @@ void CMapGenOptions::setPlayerTeam(const PlayerColor & color, const TeamID & tea
 
 void CMapGenOptions::finalize(vstd::RNG & rand)
 {
-	logGlobal->info("RMG map: %dx%d, %s underground", getWidth(), getHeight(), getLevels() >= 2 ? "WITH" : "NO");
+	{
+		std::string layersStr;
+		for(size_t i = 0; i < levelMapLayers.size(); i++)
+		{
+			if(i > 0)
+				layersStr += "/";
+			layersStr += MapLayerId::encode(levelMapLayers[i].getNum());
+		}
+		logGlobal->info("RMG map: %dx%d, %s", getWidth(), getHeight(), layersStr.c_str());
+	}
 	logGlobal->info("RMG settings: players %d, teams %d, computer players %d, computer teams %d, water %d, monsters %d",
 		static_cast<int>(getHumanOrCpuPlayerCount()), static_cast<int>(getTeamCount()), static_cast<int>(getCompOnlyPlayerCount()),
 		static_cast<int>(getCompOnlyTeamCount()), static_cast<int>(getWaterContent()), static_cast<int>(getMonsterStrength()));
@@ -525,6 +559,9 @@ void CMapGenOptions::finalize(vstd::RNG & rand)
 	}
 	if(compOnlyPlayerCount == RANDOM_SIZE)
 	{
+		// A fixed standard-player count may still have placeholder AI slots up to the template limit.
+		updatePlayers();
+
 		// Use remaining range
 		auto presentPlayers = getHumanOrCpuPlayerCount();
 		auto possiblePlayers = mapTemplate->getPlayers().getNumbers();
@@ -617,12 +654,15 @@ void CMapGenOptions::updatePlayers()
 
 void CMapGenOptions::updateCompOnlyPlayers()
 {
+	const int requestedPlayerCount = getHumanOrCpuPlayerCount() + getCompOnlyPlayerCount();
+
 	// Remove comp only players only from the end of the players map if necessary
 	for(auto itrev = players.end(); itrev != players.begin();)
 	{
 		auto it = itrev;
 		--it;
-		if (players.size() <= getHumanOrCpuPlayerCount()) break;
+		if(static_cast<int>(players.size()) <= requestedPlayerCount)
+			break;
 		if(it->second.getPlayerType() == EPlayerType::COMP_ONLY)
 		{
 			players.erase(it);
@@ -634,13 +674,9 @@ void CMapGenOptions::updateCompOnlyPlayers()
 	}
 
 	// Add some comp only players if necessary
-	int compOnlyPlayersToAdd = static_cast<int>(getHumanOrCpuPlayerCount() - players.size());
+	int compOnlyPlayersToAdd = requestedPlayerCount - static_cast<int>(players.size());
+	assert(compOnlyPlayersToAdd >= 0);
 
-	if (compOnlyPlayersToAdd < 0)
-	{
-		logGlobal->error("Incorrect number of players to add. Requested players %d, current players %d", humanOrCpuPlayerCount, players.size());
-		assert (compOnlyPlayersToAdd < 0);
-	}
 	for(int i = 0; i < compOnlyPlayersToAdd; ++i)
 	{
 		CPlayerSettings pSettings;
@@ -652,7 +688,7 @@ void CMapGenOptions::updateCompOnlyPlayers()
 
 int CMapGenOptions::countHumanPlayers() const
 {
-	return static_cast<int>(boost::count_if(players, [](const std::pair<PlayerColor, CPlayerSettings> & pair)
+	return static_cast<int>(std::ranges::count_if(players, [](const std::pair<PlayerColor, CPlayerSettings> & pair)
 	{
 		return pair.second.getPlayerType() == EPlayerType::HUMAN;
 	}));
@@ -660,7 +696,7 @@ int CMapGenOptions::countHumanPlayers() const
 
 int CMapGenOptions::countCompOnlyPlayers() const
 {
-	return static_cast<int>(boost::count_if(players, [](const std::pair<PlayerColor, CPlayerSettings> & pair)
+	return static_cast<int>(std::ranges::count_if(players, [](const std::pair<PlayerColor, CPlayerSettings> & pair)
 	{
 		return pair.second.getPlayerType() == EPlayerType::COMP_ONLY;
 	}));
@@ -696,6 +732,16 @@ bool CMapGenOptions::checkOptions() const
 bool CMapGenOptions::arePlayersCustomized() const
 {
 	return customizedPlayers;
+}
+
+MetaString CMapGenOptions::getMapName() const
+{
+	if(mapTemplate)
+		return MetaString::createFromRawString(mapTemplate->getName());
+
+	MetaString result;
+	result.appendTextID("core.genrltxt.740");
+	return result;
 }
 
 std::vector<const CRmgTemplate *> CMapGenOptions::getPossibleTemplates() const
@@ -853,6 +899,14 @@ void CMapGenOptions::serializeJson(JsonSerializeFormat & handler)
 	}
 
 	handler.serializeIdArray("roads", enabledRoads);
+	if(!handler.saving && handler.getCurrent()["levelMapLayers"].isNull())
+	{
+		// Old settings without levelMapLayers — keep constructor defaults
+	}
+	else
+	{
+		handler.enterArray("levelMapLayers").serializeArray(levelMapLayers);
+	}
 	if (!handler.saving)
 	{
 		// Player settings won't be saved
@@ -860,4 +914,22 @@ void CMapGenOptions::serializeJson(JsonSerializeFormat & handler)
 	}
 }
 
-VCMI_LIB_NAMESPACE_END
+MapLayerId CMapGenOptions::getDefaultLayerForLevel(int levelIndex)
+{
+	if (levelIndex == 0)
+		return MapLayerId::SURFACE;
+	if (levelIndex == 1)
+		return MapLayerId::UNDERGROUND;
+	return MapLayerId::UNKNOWN;
+}
+
+void CMapGenOptions::setLevelMapLayers(const std::vector<MapLayerId> & value)
+{
+	levelMapLayers = value;
+	syncLevelMapLayersSize();
+}
+
+const std::vector<MapLayerId> & CMapGenOptions::getLevelMapLayers() const
+{
+	return levelMapLayers;
+}

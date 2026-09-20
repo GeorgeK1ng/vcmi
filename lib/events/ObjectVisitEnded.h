@@ -14,12 +14,10 @@
 
 #include "../GameConstants.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace events
 {
 
-class DLL_LINKAGE CObjectVisitEnded : public ObjectVisitEnded
+class CObjectVisitEnded : public ObjectVisitEnded
 {
 public:
 	CObjectVisitEnded(const PlayerColor & player_, const ObjectInstanceID & heroId_);
@@ -33,5 +31,3 @@ private:
 };
 
 }
-
-VCMI_LIB_NAMESPACE_END

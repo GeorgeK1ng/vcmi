@@ -13,9 +13,7 @@
 
 struct z_stream_s;
 
-VCMI_LIB_NAMESPACE_BEGIN
-
-class DLL_LINKAGE DecompressionException : public std::runtime_error
+class DecompressionException : public std::runtime_error
 {
 public:
 	using runtime_error::runtime_error;
@@ -144,5 +142,3 @@ private:
 		FINISHED
 	};
 };
-
-VCMI_LIB_NAMESPACE_END

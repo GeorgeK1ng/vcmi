@@ -30,15 +30,13 @@
 
 #include <vstd/RNG.h>
 
-VCMI_LIB_NAMESPACE_BEGIN
-
-std::string CGCreature::getHoverText(PlayerColor player) const
+MetaString CGCreature::getHoverText(PlayerColor player) const
 {
 	if(stacks.empty())
 	{
 		//should not happen...
 		logGlobal->error("Invalid stack at tile %s: subID=%d; id=%d", anchorPos().toString(), getCreature(), id.getNum());
-		return "INVALID_STACK";
+		return MetaString::createFromRawString("INVALID_STACK");
 	}
 
 	MetaString ms;
@@ -51,10 +49,10 @@ std::string CGCreature::getHoverText(PlayerColor player) const
 	ms.appendRawString(" ");
 	ms.appendNamePlural(getCreatureID());
 
-	return ms.toString();
+	return ms;
 }
 
-std::string CGCreature::getHoverText(const CGHeroInstance * hero) const
+MetaString CGCreature::getHoverText(const CGHeroInstance * hero) const
 {
 	if(hero->hasVisions(this, BonusCustomSubtype::visionsMonsters))
 	{
@@ -62,7 +60,7 @@ std::string CGCreature::getHoverText(const CGHeroInstance * hero) const
 		ms.appendNumber(stacks.begin()->second->getCount());
 		ms.appendRawString(" ");
 		ms.appendName(getCreatureID(), stacks.begin()->second->getCount());
-		return ms.toString();
+		return ms;
 	}
 	else
 	{
@@ -70,25 +68,26 @@ std::string CGCreature::getHoverText(const CGHeroInstance * hero) const
 	}
 }
 
-std::string CGCreature::getMonsterLevelText() const
+MetaString CGCreature::getMonsterLevelText() const
 {
-	std::string monsterLevel = LIBRARY->generaltexth->translate("vcmi.adventureMap.monsterLevel");
 	bool isRanged = getCreature()->getBonusBearer()->hasBonusOfType(BonusType::SHOOTER);
 	std::string attackTypeKey = isRanged ? "vcmi.adventureMap.monsterRangedType" : "vcmi.adventureMap.monsterMeleeType";
-	std::string attackType = LIBRARY->generaltexth->translate(attackTypeKey);
-	boost::replace_first(monsterLevel, "%TOWN", getCreature()->getFactionID().toEntity(LIBRARY)->getNameTranslated());
-	boost::replace_first(monsterLevel, "%LEVEL", std::to_string(getCreature()->getLevel()));
-	boost::replace_first(monsterLevel, "%ATTACK_TYPE", attackType);
+
+	MetaString monsterLevel;
+	monsterLevel.appendTextID("vcmi.adventureMap.monsterLevel");
+	monsterLevel.replaceTokenTextID("%TOWN", getCreature()->getFactionID().toEntity(LIBRARY)->getNameTextID());
+	monsterLevel.replaceTokenNumber("%LEVEL", getCreature()->getLevel());
+	monsterLevel.replaceTokenTextID("%ATTACK_TYPE", attackTypeKey);
 	return monsterLevel;
 }
 
-std::string CGCreature::getPopupText(const CGHeroInstance * hero) const
+MetaString CGCreature::getPopupText(const CGHeroInstance * hero) const
 {
-	std::string hoverName;
+	MetaString hoverName;
 	if(hero->hasVisions(this, BonusCustomSubtype::visionsMonsters))
 	{
 		MetaString ms;
-		ms.appendRawString(getHoverText(hero));
+		ms.append(getHoverText(hero));
 		ms.appendRawString("\n\n");
 
 		int decision = takenAction(hero, true);
@@ -96,20 +95,20 @@ std::string CGCreature::getPopupText(const CGHeroInstance * hero) const
 		switch (decision)
 		{
 		case FIGHT:
-			ms.appendLocalString(EMetaText::GENERAL_TXT,246);
+			ms.appendTextID("core.genrltxt.246");
 			break;
 		case FLEE:
-			ms.appendLocalString(EMetaText::GENERAL_TXT,245);
+			ms.appendTextID("core.genrltxt.245");
 			break;
 		case JOIN_FOR_FREE:
-			ms.appendLocalString(EMetaText::GENERAL_TXT,243);
+			ms.appendTextID("core.genrltxt.243");
 			break;
 		default: //decision = cost in gold
-			ms.appendLocalString(EMetaText::GENERAL_TXT,244);
+			ms.appendTextID("core.genrltxt.244");
 			ms.replaceNumber(decision);
 			break;
 		}
-		hoverName = ms.toString();
+		hoverName = ms;
 	}
 	else
 	{
@@ -118,8 +117,8 @@ std::string CGCreature::getPopupText(const CGHeroInstance * hero) const
 
 	if (settings["general"]["enableUiEnhancements"].Bool())
 	{
-		hoverName += getMonsterLevelText();
-		hoverName += LIBRARY->generaltexth->translate("vcmi.adventureMap.monsterThreat.title");
+		hoverName.append(getMonsterLevelText());
+		hoverName.appendTextID("vcmi.adventureMap.monsterThreat.title");
 
 		int choice;
 		uint64_t armyStrength = getArmyStrength();
@@ -138,16 +137,16 @@ std::string CGCreature::getPopupText(const CGHeroInstance * hero) const
 		else if (ratio < 20)   choice = 10;
 		else                   choice = 11;
 
-		hoverName += LIBRARY->generaltexth->translate("vcmi.adventureMap.monsterThreat.levels." + std::to_string(choice));
+		hoverName.appendTextID("vcmi.adventureMap.monsterThreat.levels", choice);
 	}
 	return hoverName;
 }
 
-std::string CGCreature::getPopupText(PlayerColor player) const
+MetaString CGCreature::getPopupText(PlayerColor player) const
 {
-	std::string hoverName = getHoverText(player);
+	MetaString hoverName = getHoverText(player);
 	if (settings["general"]["enableUiEnhancements"].Bool())
-		hoverName += getMonsterLevelText();
+		hoverName.append(getMonsterLevelText());
 	return hoverName;
 }
 
@@ -185,7 +184,7 @@ void CGCreature::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstan
 		{
 			BlockingDialog ynd(true,false);
 			ynd.player = h->tempOwner;
-			ynd.text.appendLocalString(EMetaText::ADVOB_TXT, 86);
+			ynd.text.appendTextID("core.advevent.86");
 			ynd.text.replaceName(getCreatureID(), getJoiningAmount());
 			gameEvents.showBlockingDialog(this, &ynd);
 			break;
@@ -198,11 +197,10 @@ void CGCreature::onHeroVisit(IGameEventCallback & gameEvents, const CGHeroInstan
 			BlockingDialog ynd(true,false);
 			ynd.player = h->tempOwner;
 			ynd.components.emplace_back(ComponentType::RESOURCE, GameResID(GameResID::GOLD), action);
-			std::string tmp = LIBRARY->generaltexth->advobtxt[90];
-			boost::algorithm::replace_first(tmp, "%d", std::to_string(getJoiningAmount()));
-			boost::algorithm::replace_first(tmp, "%d", std::to_string(action));
-			boost::algorithm::replace_first(tmp,"%s",getCreature()->getNamePluralTranslated());
-			ynd.text.appendRawString(tmp);
+			ynd.text.appendTextID("core.advevent.90");
+			ynd.text.replaceNumber(getJoiningAmount());
+			ynd.text.replaceNumber(action);
+			ynd.text.replaceNamePlural(getCreature()->getId());
 			gameEvents.showBlockingDialog(this, &ynd);
 			break;
 		}
@@ -367,10 +365,11 @@ int CGCreature::takenAction(const CGHeroInstance *h, bool allowJoin) const
 
 	for(const auto & elem : h->Slots())
 	{
+		bool isSameCreature = elem.second->getCreatureID() == getCreatureID();
 		bool isOurUpgrade = vstd::contains(getCreature()->upgrades, elem.second->getCreatureID());
 		bool isOurDowngrade = vstd::contains(elem.second->getCreature()->upgrades, getCreatureID());
 
-		if(isOurUpgrade || isOurDowngrade)
+		if(isSameCreature || isOurUpgrade || isOurDowngrade)
 			count += elem.second->getCount();
 		totalCount += elem.second->getCount();
 	}
@@ -381,7 +380,10 @@ int CGCreature::takenAction(const CGHeroInstance *h, bool allowJoin) const
 	if(count*2 > totalCount)
 		sympathy++; // 2 - hero have similar creatures more that 50%
 
-	int diplomacy = h->valOfBonuses(BonusType::WANDERING_CREATURES_JOIN_BONUS);
+	//WANDERING_CREATURES_JOIN_BONUS is a disposition factor, not a mastery level - it is only capped here
+	//because in H3, easiest difficulty grants a bonus equal to one more level of Diplomacy, up to expert
+	static constexpr int maxDiplomacyDisposition = 3; // as granted by expert Diplomacy
+	int diplomacy = std::min<int>(h->valOfBonuses(BonusType::WANDERING_CREATURES_JOIN_BONUS), maxDiplomacyDisposition);
 	int charisma = powerFactor + diplomacy + sympathy;
 
 	if(charisma < agression)
@@ -444,7 +446,7 @@ void CGCreature::joinDecision(IGameEventCallback & gameEvents, const CGHeroInsta
 		{
 			InfoWindow iw;
 			iw.player = h->tempOwner;
-			iw.text.appendLocalString(EMetaText::GENERAL_TXT,29);  //You don't have enough gold
+			iw.text.appendTextID("core.genrltxt.29");  //You don't have enough gold
 			gameEvents.showInfoDialog(&iw);
 
 			//act as if player refused
@@ -510,7 +512,7 @@ void CGCreature::flee(IGameEventCallback & gameEvents, const CGHeroInstance * h)
 {
 	BlockingDialog ynd(true,false);
 	ynd.player = h->tempOwner;
-	ynd.text.appendLocalString(EMetaText::ADVOB_TXT,91);
+	ynd.text.appendTextID("core.advevent.91");
 	ynd.text.replaceName(getCreatureID(), getStackCount(SlotID(0)));
 	gameEvents.showBlockingDialog(this, &ynd);
 }
@@ -719,8 +721,8 @@ void CGCreature::giveReward(IGameEventCallback & gameEvents, const CGHeroInstanc
 	if(!iw.components.empty())
 	{
 		iw.type = EInfoWindowMode::AUTO;
-		iw.text.appendLocalString(EMetaText::ADVOB_TXT, 183); // % has found treasure
-		iw.text.replaceRawString(h->getNameTranslated());
+		iw.text.appendTextID("core.advevent.183"); // % has found treasure
+		iw.text.replaceTextID(h->getNameTextID());
 		gameEvents.showInfoDialog(&iw);
 	}
 }
@@ -729,6 +731,13 @@ static const std::vector<std::string> CHARACTER_JSON  =
 {
 	"compliant", "friendly", "aggressive", "hostile", "savage", "custom"
 };
+
+//UpgradedStackPresence starts at RANDOM = -1, while serializeEnum indexes from zero
+static const std::vector<std::string> UPGRADED_STACK_PRESENCE_JSON =
+{
+	"random", "never", "always"
+};
+static constexpr int32_t UPGRADED_STACK_PRESENCE_OFFSET = static_cast<int32_t>(CGCreature::UpgradedStackPresence::RANDOM);
 
 void CGCreature::serializeJsonOptions(JsonSerializeFormat & handler)
 {
@@ -759,6 +768,21 @@ void CGCreature::serializeJsonOptions(JsonSerializeFormat & handler)
 	handler.serializeBool("noGrowing", notGrowingTeam);
 	handler.serializeBool("neverFlees", neverFlees);
 	handler.serializeStruct("rewardMessage", message);
-}
 
-VCMI_LIB_NAMESPACE_END
+	//Per-object settings introduced by the HotA map format - without these a HotA map
+	//loses them as soon as it is saved in VCMI format. Aggression is only read by
+	//initObj() for Character::CUSTOM, so storing it for any other character would be
+	//dead data.
+	if(!handler.saving || initialCharacter == Character::CUSTOM)
+		handler.serializeInt("aggression", agression, static_cast<int8_t>(0));
+
+	handler.serializeBool("joinOnlyForMoney", joinOnlyForMoney, false);
+	handler.serializeInt("joiningPercentage", joiningPercentage, static_cast<int8_t>(-1));
+	handler.serializeInt("stacksCount", stacksCount, static_cast<int64_t>(-1));
+
+	//written as a string like every other enum here, so shift RANDOM = -1 into range
+	auto upgradedPresence = static_cast<int32_t>(upgradedStackPresence) - UPGRADED_STACK_PRESENCE_OFFSET;
+	handler.serializeEnum("upgradedStackPresence", upgradedPresence, static_cast<int32_t>(UpgradedStackPresence::RANDOM) - UPGRADED_STACK_PRESENCE_OFFSET, UPGRADED_STACK_PRESENCE_JSON);
+	if(!handler.saving)
+		upgradedStackPresence = static_cast<UpgradedStackPresence>(upgradedPresence + UPGRADED_STACK_PRESENCE_OFFSET);
+}

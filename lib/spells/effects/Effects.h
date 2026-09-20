@@ -13,14 +13,12 @@
 #include "Effect.h"
 #include "../../GameConstants.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace spells
 {
 namespace effects
 {
 
-class DLL_LINKAGE Effects
+class Effects
 {
 public:
 	using EffectsToApply = std::vector<std::pair<const Effect *, Target>>;
@@ -46,5 +44,3 @@ public:
 
 }
 }
-
-VCMI_LIB_NAMESPACE_END

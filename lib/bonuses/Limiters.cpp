@@ -22,8 +22,6 @@
 #include "../battle/BattleInfo.h"
 #include "../json/JsonUtils.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 const std::map<std::string, TLimiterPtr> bonusLimiterMap =
 {
 	{"SHOOTER_ONLY", std::make_shared<HasAnotherBonusLimiter>(BonusType::SHOOTER)},
@@ -97,7 +95,7 @@ ILimiter::EDecision CCreatureTypeLimiter::limit(const BonusLimitationContext &co
 	const CCreature *c = retrieveCreature(&context.node);
 	if(!c)
 		return ILimiter::EDecision::NOT_APPLICABLE;
-	
+
 	auto accept =  c->getId() == creatureID || (includeUpgrades && creatureID.toCreature()->isMyDirectOrIndirectUpgrade(c));
 	return accept ? ILimiter::EDecision::ACCEPT : ILimiter::EDecision::DISCARD;
 	//drop bonus if it's not our creature and (we don`t check upgrades or its not our upgrade)
@@ -306,11 +304,14 @@ ILimiter::EDecision TerrainLimiter::limit(const BonusLimitationContext &context)
 	if (!allowedNodes.contains(nodeType))
 		return ILimiter::EDecision::NOT_APPLICABLE;
 
-	ETerrainId currentTerrain;
+	ETerrainId currentTerrain = ETerrainId::NONE;
 
 	if (stackNodes.contains(nodeType))
 	{
-		if (const auto * stack = retrieveStackInstance(&context.node))
+		// in battle use the battle terrain (e.g. town's native terrain in siege), not the army's map tile
+		if (const auto * battleStack = retrieveStackBattle(&context.node))
+			currentTerrain = battleStack->getCurrentTerrain();
+		else if (const auto * stack = retrieveStackInstance(&context.node))
 			currentTerrain = stack->getCurrentTerrain();
 	}
 	else if (const auto * army = dynamic_cast<const CArmedInstance *>(&context.node))
@@ -370,7 +371,7 @@ ILimiter::EDecision FactionLimiter::limit(const BonusLimitationContext &context)
 		{
 			case BonusSource::CREATURE_ABILITY:
 				return bearer->getFactionID() == context.b.sid.as<CreatureID>().toCreature()->getFactionID() ? ILimiter::EDecision::ACCEPT : ILimiter::EDecision::DISCARD;
-			
+
 			case BonusSource::TOWN_STRUCTURE:
 				return bearer->getFactionID() == context.b.sid.as<BuildingTypeUniqueID>().getFaction() ? ILimiter::EDecision::ACCEPT : ILimiter::EDecision::DISCARD;
 
@@ -440,13 +441,8 @@ ILimiter::EDecision CreatureAlignmentLimiter::limit(const BonusLimitationContext
 {
 	const auto * c = retrieveCreature(&context.node);
 	if(c) {
-		if(alignment == EAlignment::GOOD && c->isGood())
+		if(alignment == c->getAlignment())
 			return ILimiter::EDecision::ACCEPT;
-		if(alignment == EAlignment::EVIL && c->isEvil())
-			return ILimiter::EDecision::ACCEPT;
-		if(alignment == EAlignment::NEUTRAL && !c->isEvil() && !c->isGood())
-			return ILimiter::EDecision::ACCEPT;
-
 		return ILimiter::EDecision::DISCARD;
 	}
 
@@ -634,5 +630,3 @@ ILimiter::EDecision HasChargesLimiter::limit(const BonusLimitationContext & cont
 	}
 	return ILimiter::EDecision::DISCARD;
 }
-
-VCMI_LIB_NAMESPACE_END

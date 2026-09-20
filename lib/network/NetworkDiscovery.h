@@ -12,8 +12,6 @@
 
 #include "NetworkDefines.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class DLL_LINKAGE ServerDiscovery : public IServerDiscovery, public std::enable_shared_from_this<ServerDiscovery>
 {
 public:
@@ -31,7 +29,7 @@ private:
 	std::set<std::pair<std::string, uint16_t>> discoveredServers;
 };
 
-class DLL_LINKAGE ServerDiscoveryListener : public IServerDiscoveryListener, public std::enable_shared_from_this<ServerDiscoveryListener>
+class ServerDiscoveryListener : public IServerDiscoveryListener, public std::enable_shared_from_this<ServerDiscoveryListener>
 {
 public:
 	ServerDiscoveryListener(NetworkContext & context, IServerDiscoveryAnnouncer & announcer, uint16_t port = 3030);
@@ -48,5 +46,3 @@ private:
 	std::array<char, 1024> recvBuffer;
 	boost::asio::ip::udp::endpoint remoteEndpoint;
 };
-
-VCMI_LIB_NAMESPACE_END

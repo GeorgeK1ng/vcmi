@@ -13,12 +13,10 @@
 #include "IObjectInterface.h"
 #include "../rewardable/Interface.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGTownInstance;
 class CBuilding;
 
-class DLL_LINKAGE TownBuildingInstance : public IObjectInterface
+class TownBuildingInstance : public IObjectInterface
 {
 ///basic class for town structures handled as map objects
 public:
@@ -49,7 +47,7 @@ private:
 	BuildingID bID; //from building list
 };
 
-class DLL_LINKAGE TownRewardableBuildingInstance : public TownBuildingInstance, public Rewardable::Interface
+class TownRewardableBuildingInstance : public TownBuildingInstance, public Rewardable::Interface
 {
 	/// reward selected by player, no serialize
 	ui16 selectedReward = 0;
@@ -87,5 +85,3 @@ public:
 		h & visitors;
 	}
 };
-
-VCMI_LIB_NAMESPACE_END

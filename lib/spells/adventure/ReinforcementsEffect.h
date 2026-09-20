@@ -12,11 +12,9 @@
 
 #include "TownRelatedAdventureSpellEffect.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGTownInstance;
 
-class DLL_LINKAGE ReinforcementsEffect final : public spells::adventure::TownRelatedAdventureSpellEffect
+class ReinforcementsEffect final : public spells::adventure::TownRelatedAdventureSpellEffect
 {
 	std::string casterInTownTextID;
 	std::string selectTownTitleTextID;
@@ -31,5 +29,3 @@ private:
 	ESpellCastResult beginCastExtraChecks(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const std::vector<const CGTownInstance *> & towns) const override;
 	ESpellCastResult applyAdventureEffects(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const override;
 };
-
-VCMI_LIB_NAMESPACE_END

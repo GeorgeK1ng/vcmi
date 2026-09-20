@@ -11,8 +11,6 @@
 
 #include "BattleSide.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace battle
 {
 	class Unit;
@@ -21,7 +19,7 @@ namespace battle
 
 class CGHeroInstance;
 
-class DLL_LINKAGE BattleStateInfoForRetreat
+class BattleStateInfoForRetreat
 {
 public:
 	bool canFlee;
@@ -38,5 +36,3 @@ public:
 	uint64_t getOurStrength() const;
 	uint64_t getEnemyStrength() const;
 };
-
-VCMI_LIB_NAMESPACE_END

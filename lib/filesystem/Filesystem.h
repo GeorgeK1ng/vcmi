@@ -13,13 +13,11 @@
 #include "ISimpleResourceLoader.h"
 #include "ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CFilesystemList;
 class JsonNode;
 
 /// Helper class that allows generation of a ISimpleResourceLoader entry out of Json config(s)
-class DLL_LINKAGE CFilesystemGenerator : boost::noncopyable
+class CFilesystemGenerator : boost::noncopyable
 {
 	using TLoadFunctor = std::function<void(const std::string &, const JsonNode &)>;
 	using TLoadFunctorMap = std::map<std::string, TLoadFunctor>;
@@ -126,5 +124,3 @@ private:
 	CResourceHandler() {};
 	std::unique_ptr<ISimpleResourceLoader> rootLoader;
 };
-
-VCMI_LIB_NAMESPACE_END

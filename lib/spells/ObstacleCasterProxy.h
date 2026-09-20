@@ -13,7 +13,6 @@
 #include "../battle/BattleHex.h"
 #include "../battle/CObstacleInstance.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
 namespace spells
 {
 
@@ -31,7 +30,7 @@ public:
 	int32_t manaLimit() const override;
 };
 
-class DLL_LINKAGE ObstacleCasterProxy : public SilentCaster
+class ObstacleCasterProxy : public SilentCaster
 {
 public:
 	ObstacleCasterProxy(PlayerColor owner_, const Caster * hero_, const SpellCreatedObstacle & obs_);
@@ -49,4 +48,3 @@ private:
 };
 
 }//
-VCMI_LIB_NAMESPACE_END

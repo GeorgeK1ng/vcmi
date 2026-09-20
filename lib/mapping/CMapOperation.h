@@ -13,8 +13,6 @@
 #include "../int3.h"
 #include "MapEditUtils.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CGObjectInstance;
 class CMap;
 
@@ -24,7 +22,7 @@ class RNG;
 }
 
 /// The abstract base class CMapOperation defines an operation that can be executed, undone and redone.
-class DLL_LINKAGE CMapOperation : public boost::noncopyable
+class CMapOperation : public boost::noncopyable
 {
 public:
 	explicit CMapOperation(CMap * map);
@@ -47,7 +45,7 @@ protected:
 };
 
 /// The CComposedOperation is an operation which consists of several operations.
-class DLL_LINKAGE CComposedOperation : public CMapOperation
+class CComposedOperation : public CMapOperation
 {
 public:
 	CComposedOperation(CMap * map);
@@ -171,5 +169,3 @@ private:
 	CGObjectInstance * targetedObject;
 	std::shared_ptr<CGObjectInstance> removedObject;
 };
-
-VCMI_LIB_NAMESPACE_END

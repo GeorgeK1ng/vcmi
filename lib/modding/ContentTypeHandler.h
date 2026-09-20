@@ -11,13 +11,11 @@
 
 #include "../json/JsonNode.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class IHandlerBase;
 class ModDescription;
 
 /// internal type to handle loading of one data type (e.g. artifacts, creatures)
-class DLL_LINKAGE ContentTypeHandler
+class ContentTypeHandler
 {
 	JsonNode conflictList;
 
@@ -70,5 +68,3 @@ public:
 	const ContentTypeHandler & operator[] (const std::string & name) const;
 };
 
-
-VCMI_LIB_NAMESPACE_END

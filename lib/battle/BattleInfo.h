@@ -19,8 +19,6 @@
 #include "../bonuses/CBonusSystemNode.h"
 #include "../int3.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class CStack;
 class CStackInstance;
 class CStackBasicDescriptor;
@@ -169,7 +167,7 @@ public:
 };
 
 
-class DLL_LINKAGE CMP_stack
+class CMP_stack
 {
 	int phase; //rules of which phase will be used
 	int turn;
@@ -178,5 +176,3 @@ public:
 	bool operator()(const battle::Unit * a, const battle::Unit * b) const;
 	CMP_stack(int Phase = 1, int Turn = 0, BattleSide Side = BattleSide::ATTACKER);
 };
-
-VCMI_LIB_NAMESPACE_END

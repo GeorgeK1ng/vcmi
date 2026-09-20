@@ -16,9 +16,7 @@
 #include "IHandlerBase.h"
 #include "filesystem/ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
-class DLL_LINKAGE RoadType : public EntityT<RoadId>
+class RoadType : public EntityT<RoadId>
 {
 	friend class RoadTypeHandler;
 	std::string identifier;
@@ -43,12 +41,12 @@ public:
 	RoadType();
 };
 
-class DLL_LINKAGE RoadTypeService : public EntityServiceT<RoadId, RoadType>
+class RoadTypeService : public EntityServiceT<RoadId, RoadType>
 {
 public:
 };
 
-class DLL_LINKAGE RoadTypeHandler : public CHandlerBase<RoadId, RoadType, RoadType, RoadTypeService>
+class RoadTypeHandler : public CHandlerBase<RoadId, RoadType, RoadType, RoadTypeService>
 {
 public:
 	std::shared_ptr<RoadType> loadFromJson(
@@ -62,5 +60,3 @@ public:
 	const std::vector<std::string> & getTypeNames() const override;
 	std::vector<JsonNode> loadLegacyData() override;
 };
-
-VCMI_LIB_NAMESPACE_END

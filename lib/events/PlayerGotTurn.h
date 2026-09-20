@@ -14,12 +14,10 @@
 
 #include "../GameConstants.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace events
 {
 
-class DLL_LINKAGE CPlayerGotTurn : public PlayerGotTurn
+class CPlayerGotTurn : public PlayerGotTurn
 {
 public:
 	CPlayerGotTurn();
@@ -36,5 +34,3 @@ private:
 };
 
 }
-
-VCMI_LIB_NAMESPACE_END

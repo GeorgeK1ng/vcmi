@@ -12,12 +12,10 @@
 
 #include <vcmi/events/TurnStarted.h>
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace events
 {
 
-class DLL_LINKAGE CTurnStarted : public TurnStarted
+class CTurnStarted : public TurnStarted
 {
 public:
 	CTurnStarted();
@@ -26,5 +24,3 @@ public:
 };
 
 }
-
-VCMI_LIB_NAMESPACE_END

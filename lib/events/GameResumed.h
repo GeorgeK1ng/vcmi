@@ -12,12 +12,10 @@
 
 #include <vcmi/events/GameResumed.h>
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 namespace events
 {
 
-class DLL_LINKAGE CGameResumed : public GameResumed
+class CGameResumed : public GameResumed
 {
 public:
 	CGameResumed();
@@ -26,5 +24,3 @@ public:
 };
 
 }
-
-VCMI_LIB_NAMESPACE_END

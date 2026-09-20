@@ -10,12 +10,11 @@
 #pragma once
 
 #include "../constants/EntityIdentifiers.h"
+#include "../constants/Enumerations.h"
 #include "../constants/VariantIdentifier.h"
 #include "BonusEnum.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
-class DLL_LINKAGE BonusCustomSource : public StaticIdentifier<BonusCustomSource>
+class BonusCustomSource : public StaticIdentifier<BonusCustomSource>
 {
 public:
 	using StaticIdentifier<BonusCustomSource>::StaticIdentifier;
@@ -45,13 +44,6 @@ public:
 	static const BonusCustomSubtype heroMovementLand; // 1
 	static const BonusCustomSubtype heroMovementSea; // 0
 
-	static const BonusCustomSubtype deathStareGorgon; // 0
-	static const BonusCustomSubtype deathStareCommander;
-	static const BonusCustomSubtype deathStareNoRangePenalty;
-	static const BonusCustomSubtype deathStareRangePenalty;
-	static const BonusCustomSubtype deathStareObstaclePenalty;
-	static const BonusCustomSubtype deathStareRangeObstaclePenalty;
-
 	static const BonusCustomSubtype rebirthRegular; // 0
 	static const BonusCustomSubtype rebirthSpecial; // 1
 
@@ -62,23 +54,18 @@ public:
 	static const BonusCustomSubtype immunityBattleWide; // 0
 	static const BonusCustomSubtype immunityEnemyHero; // 1
 
-	static const BonusCustomSubtype transmutationPerHealth; // 0
-	static const BonusCustomSubtype transmutationPerUnit; // 1
-
-	static const BonusCustomSubtype destructionKillPercentage; // 0
-	static const BonusCustomSubtype destructionKillAmount; // 1
-
-	static const BonusCustomSubtype soulStealPermanent; // 0
-	static const BonusCustomSubtype soulStealBattle; // 1
-
 	static const BonusCustomSubtype movementFlying; // -1
 	static const BonusCustomSubtype movementTeleporting; // 1
 
+	static const BonusCustomSubtype freeShootingNoPenalty; // 0
+	static const BonusCustomSubtype freeShootingExceptAdjacent; // 1
+
 	static BonusCustomSubtype spellLevel(int level);
 	static BonusCustomSubtype creatureLevel(int level);
+	static BonusCustomSubtype alignment(EAlignment alignment);
 };
 
-class DLL_LINKAGE BonusTypeID : public EntityIdentifier<BonusTypeID>
+class BonusTypeID : public EntityIdentifier<BonusTypeID>
 {
 public:
 	using EntityIdentifier<BonusTypeID>::EntityIdentifier;
@@ -98,7 +85,32 @@ public:
 	}
 };
 
-using BonusSubtypeID = VariantIdentifier<BonusCustomSubtype, SpellID, CreatureID, PrimarySkill, TerrainId, GameResID, SpellSchool, BonusTypeID>;
+using BonusSubtypeID = VariantIdentifier<BonusCustomSubtype, SpellID, CreatureID, PrimarySkill, TerrainId, GameResID, SpellSchool, BonusTypeID, ScriptID>;
 using BonusSourceID = VariantIdentifier<BonusCustomSource, SpellID, CreatureID, ArtifactID, CampaignScenarioID, SecondarySkill, HeroTypeID, Obj, ObjectInstanceID, BuildingTypeUniqueID, BattleField, ArtifactInstanceID>;
 
-VCMI_LIB_NAMESPACE_END
+/// Kind of entity an identifier names - a creature, a spell, a terrain, ... The same vocabulary as
+/// `Identifier::entityType()`, as an enum. Bonus subtypes are given as plain identifiers
+/// ("core:devil", "damageTypeMelee") with no say in what they name, so this is what the type of the
+/// bonus resolves to before such an identifier can be looked up.
+enum class EntityTypeEnum
+{
+	NONE,
+	CUSTOM,
+	SPELL,
+	CREATURE,
+	PRIMARY_SKILL,
+	TERRAIN,
+	RESOURCE,
+	SPELL_SCHOOL,
+	BONUS_TYPE,
+	SCRIPT
+};
+
+/// What the subtype of a bonus of this type names.
+EntityTypeEnum bonusSubtypeEntityType(BonusType type);
+/// Name this entity type is known by, which is what identifiers of it are resolved under. Empty for NONE.
+std::string entityTypeName(EntityTypeEnum entityType);
+/// Subtype holding the given index, as an identifier of this entity type.
+BonusSubtypeID bonusSubtypeOf(EntityTypeEnum entityType, int32_t index);
+/// Subtype named by this identifier for this bonus type. Throws when the identifier names nothing.
+BonusSubtypeID decodeBonusSubtype(BonusType type, const std::string & identifier);

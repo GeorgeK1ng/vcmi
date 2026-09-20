@@ -18,16 +18,14 @@
 #include "../IHandlerBase.h"
 #include "../filesystem/ResourcePath.h"
 
-VCMI_LIB_NAMESPACE_BEGIN
-
 class SpellSchoolHandler;
 
 namespace spells
 {
 
-class DLL_LINKAGE SpellSchoolType : public EntityT<SpellSchool>, public scripting::ApiRawPointer<SpellSchoolType>
+class SpellSchoolType : public EntityT<SpellSchool>, public scripting::ApiRawPointer<SpellSchoolType>
 {
-	friend class VCMI_LIB_WRAP_NAMESPACE(SpellSchoolHandler);
+	friend class ::SpellSchoolHandler;
 
 	SpellSchool id; //backlink
 	AnimationPath spellBordersPath;
@@ -65,7 +63,7 @@ public:
 
 }
 
-class DLL_LINKAGE SpellSchoolHandler : public CHandlerBase<SpellSchool, spells::SpellSchoolType, spells::SpellSchoolType, spells::SchoolService>
+class SpellSchoolHandler : public CHandlerBase<SpellSchool, spells::SpellSchoolType, spells::SpellSchoolType, spells::SchoolService>
 {
 public:
 	std::vector<JsonNode> loadLegacyData() override;
@@ -76,5 +74,3 @@ protected:
 	std::shared_ptr<spells::SpellSchoolType> loadFromJson(const std::string & scope, const JsonNode & json, const std::string & identifier, size_t index) override;
 	const std::vector<std::string> & getTypeNames() const override;
 };
-
-VCMI_LIB_NAMESPACE_END
