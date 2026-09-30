@@ -1,36 +1,84 @@
-# Installation macOS
+# Installing VCMI on macOS
 
-## Step 1: Download and install VCMI
+This guide installs VCMI and imports the original Heroes III files it needs.
 
-- The latest release (recommended):
-  - manually: <https://github.com/vcmi/vcmi/releases/latest>
-  - via Homebrew: `brew install --cask vcmi` (official) or `brew install --cask vcmi/vcmi/vcmi` (from our tap)
-- Daily builds (might be unstable)
-  - [Intel (x86_64) builds](https://builds.vcmi.download/branch/develop/macos-intel/)
-  - [Apple Silicon (arm64) builds](https://builds.vcmi.download/branch/develop/macos-arm/)
+## Requirements
 
-If the app doesn't open, right-click the app bundle - select *Open* menu item - press *Open* button. On macOS 15 Sequoia and later there will be no *Open* button, instead you'll see the following dialog:
+- macOS 10.15 or newer.
+- An Intel or Apple silicon Mac. Download the package for your processor.
+- Game data from **Heroes of Might and Magic III: Shadow of Death** or
+  **Heroes III Complete**. The GOG Complete release is recommended.
 
-![open error on macOS 15](images/macos15-open.png)
+> [!IMPORTANT]
+> The Ubisoft *Heroes III HD Edition* is not compatible because it does not
+> include the expansion data. VCMI is an engine and does not include copyrighted
+> Heroes III game files.
 
-To fix it, go to System Settings - Privacy & Security tab - scroll down and press the *Open Anyway* button (marked with an arrow on the image below). After that confirm your action and enter your administrator password.
+## 1. Install VCMI
 
-![macOS 15 - Privacy & Security](images/macos15-privacy.png)
+Choose one method:
 
-## Step 2: Installing Heroes III data files
+- Download the appropriate package from the
+  [latest GitHub release](https://github.com/vcmi/vcmi/releases/latest).
+- Install the official Homebrew cask with `brew install --cask vcmi`.
+- Install the VCMI tap with `brew install --cask vcmi/vcmi/vcmi`.
+- For testing only, download an unstable build for
+  [Intel](https://builds.vcmi.download/branch/develop/macos-intel/) or
+  [Apple silicon](https://builds.vcmi.download/branch/develop/macos-arm/).
 
-### Step 2.a: Installing data files with GOG offline installer
+Open **VCMI Launcher** after installation.
 
-If you bought HoMM3 on [GOG](https://www.gog.com/de/game/heroes_of_might_and_magic_3_complete_edition), you can download the files directly from the browser and install them in the launcher.
+### If macOS blocks the application
 
-Select the `.exe` file first. The matching `.bin` file will be located automatically if the correct installer is selected.
+1. Try opening VCMI once.
+2. Open **System Settings → Privacy & Security**.
+3. Find the message about VCMI and select **Open Anyway**, then confirm.
 
-This may take a few seconds. Please be patient.
+On macOS 14 and earlier, you can instead Control-click the app, choose **Open**,
+and confirm **Open** in the dialog. macOS 15 and later may only offer the
+**Open Anyway** method.
 
-gog.com download page:
-![GoG-Installer](images/gog_offline_installer.png)
+![VCMI blocked on macOS 15](images/macos15-open.png)
 
-### Step 2.b: Installing by the classic way
+![Open Anyway in macOS Privacy & Security](images/macos15-privacy.png)
 
-1. Find a way to unpack Windows Heroes III or GOG installer. For example, use `vcmibuilder` script inside app bundle or install the game with [CrossOver](https://www.codeweavers.com/crossover) or [Kegworks](https://github.com/Kegworks-App/Kegworks).
-2. Place or symlink **Data**, **Maps** and **Mp3** directories from Heroes III to:`~/Library/Application\ Support/vcmi/`
+## 2. Import Heroes III data
+
+### From the GOG offline installer (recommended)
+
+1. In your GOG library, download the **offline backup game installer** for
+   Heroes III Complete. Download both its `.exe` and `.bin` files and keep them
+   in the same directory.
+2. In VCMI Launcher, choose the GOG installer import option.
+3. Select the `.exe` file. The launcher finds the matching `.bin` file and
+   extracts the required data automatically.
+
+![GOG offline installer download page](images/gog_offline_installer.png)
+
+### From extracted or existing game files
+
+Use VCMI Launcher's existing-files import option and select the directory that
+contains `Data`, `Maps`, and `Mp3`.
+
+Advanced users may instead copy or symlink those directories into:
+
+```text
+~/Library/Application Support/vcmi/
+```
+
+The `vcmibuilder` utility inside the application bundle can also import data
+from supported installers and existing installations.
+
+## 3. Finish setup and play
+
+Follow the remaining launcher prompts. You may install recommended content from
+its **Mods** page, then select **Start game**.
+
+## Troubleshooting and updates
+
+- If the launcher cannot find GOG data, confirm that the `.exe` and `.bin` belong
+  to the same offline installer and are in the same directory.
+- Stable releases are recommended for normal play. Save compatibility between
+  different major VCMI versions is not guaranteed.
+- For further help, see the [FAQ](https://vcmi.eu/faq/) or follow the
+  [bug-reporting guide](Bug_Reporting_Guidelines.md).

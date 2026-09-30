@@ -1,16 +1,36 @@
-# Heroes Chronicles
+# Installing Heroes Chronicles
 
-It also possible to play the Heroes Chronicles with VCMI. You still need a completly installed VCMI (with heroes 3 sod / complete files).
+VCMI can run all eight **Heroes Chronicles** chapters after the base game is set
+up.
 
-You also need Heroes Chronicles from [gog.com](https://www.gog.com/en/game/heroes_chronicles_all_chapters). You need to download the offline installer. CD installations are not supported yet.
+## Requirements
 
-gog.com download page:
-![GoG-Installer-Chr](images/gog_offline_installer_chr.png)
+- A working VCMI installation with data from Heroes III: Shadow of Death or
+  Complete.
+- The [Heroes Chronicles collection from GOG](https://www.gog.com/en/game/heroes_chronicles_all_chapters).
+- Enough temporary free storage to extract each installer, especially on mobile
+  devices.
 
-For each chapter you will need a seperate exe file to install (if you want to install all, you'll need 8 exe files).
+CD releases are not currently supported by the automatic importer.
 
-There is also an "All in one" installer as alternative. Just login into your gog account and open this url: [All in one installer](https://www.gog.com/downloads/heroes_chronicles_all_chapters/en1installer0)
+## Install the campaigns
 
-You can use the "Install file" button in the launcher to select the downloaded exe files. This process can take a while (especially on mobile platforms) and need some temporary free space.
+1. In your GOG library, download the **offline backup installer** for every
+   chapter you want to play. Installing all chapters normally requires eight
+   `.exe` installers.
+2. Open **VCMI Launcher** and select **Install files**.
+3. Select the downloaded installers and wait while the launcher extracts and
+   configures them. Do not close the launcher during this process.
+4. Start VCMI and open **Campaigns**. The installed Heroes Chronicles chapters
+   appear in the campaign selection menu.
 
-After that you can select Heroes Chronicles from Campaign selection menu (button or custom campaign).
+![GOG Heroes Chronicles offline installers](images/gog_offline_installer_chr.png)
+
+GOG also provides an
+[all-in-one installer](https://www.gog.com/downloads/heroes_chronicles_all_chapters/en1installer0)
+for signed-in owners of the collection. It can be selected through the same
+**Install files** action.
+
+If an installer is not accepted, confirm that it is the offline backup installer
+and download a fresh copy from your GOG library. For further help, follow the
+[bug-reporting guide](Bug_Reporting_Guidelines.md).
