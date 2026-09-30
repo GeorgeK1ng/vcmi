@@ -54,7 +54,7 @@ and Linux distributions.
 
 | Platform | Minimum supported version | Architectures | Installation |
 | :---: | :--- | :--- | :--- |
-| <img src="images/platforms/windows.svg" width="26" alt="Windows"><br>**Windows** | Windows 7 SP1 | x86, x86_64; ARM64 on Windows 10+ | [Guide](players/Installation_Windows.md) |
+| <img src="https://cdn.simpleicons.org/windows11/0078D4" width="26" alt="Windows"><br>**Windows** | Windows 7 SP1 | x86, x86_64; ARM64 on Windows 10+ | [Guide](players/Installation_Windows.md) |
 | <img src="https://cdn.simpleicons.org/linux/FCC624" width="26" alt="Linux"><br>**Linux** | Current supported distribution | x86_64 and distribution-dependent | [Guide](players/Installation_Linux.md) |
 | <img src="https://cdn.simpleicons.org/apple/999999" width="26" alt="Apple"><br>**macOS** | macOS 10.15 | Intel and Apple silicon | [Guide](players/Installation_macOS.md) |
 | <img src="https://cdn.simpleicons.org/android/3DDC84" width="26" alt="Android"><br>**Android** | Android 5.0 | arm64, armv7, x86_64 | [Guide](players/Installation_Android.md) |
