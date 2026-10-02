@@ -82,6 +82,32 @@ bool WindowsUserDirectoryManager::removePath(const QString & path) const
 	return remove() || !QFileInfo::exists(path);
 }
 
+bool WindowsUserDirectoryManager::removePathExcept(const QString & path, const QStringList & preservedPaths) const
+{
+	for(const auto & preservedPath : preservedPaths)
+		if(isSameOrChildPath(path, preservedPath))
+			return true;
+
+	const bool containsPreservedPath = std::ranges::any_of(preservedPaths, [this, &path](const QString & preservedPath)
+	{
+		return isSameOrChildPath(preservedPath, path);
+	});
+	if(!containsPreservedPath)
+		return removePath(path);
+
+	bool result = true;
+	const QDir directory(path);
+	for(const auto & entry : directory.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System))
+	{
+		if(!removePathExcept(entry.absoluteFilePath(), preservedPaths))
+		{
+			result = false;
+			logGlobal->warn("Failed to remove old user data '%s'", entry.absoluteFilePath().toStdString());
+		}
+	}
+	return result;
+}
+
 bool WindowsUserDirectoryManager::reportPermissionError(const QString & message) const
 {
 	QMessageBox dialog(QMessageBox::Critical, tr("Insufficient permissions"), message, QMessageBox::NoButton, parent);
@@ -113,7 +139,8 @@ bool WindowsUserDirectoryManager::reportPermissionError(const QString & message)
 	return false;
 }
 
-bool WindowsUserDirectoryManager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const{
+bool WindowsUserDirectoryManager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const
+{
 	if(isSameOrChildPath(target, source) && isSameOrChildPath(source, target))
 	{
 		logGlobal->info("User directory change skipped because source and target are the same: %s", source.toStdString());
@@ -478,7 +505,9 @@ void WindowsUserDirectoryManager::changeDirectory(EUserDirectory directory, cons
 			pauseDownloads();
 
 			const bool targetInsideSource = isSameOrChildPath(selected, source);
-			const QString stagingParent = installInPlace ? selected : (targetInsideSource ? QFileInfo(source).dir().absolutePath() : targetParent);
+			// Staging must never be placed below the source or target. Apart from making cleanup
+			// unsafe, a merge into a child would exclude the staging directory together with the target.
+			const QString stagingParent = targetInsideSource ? QFileInfo(source).dir().absolutePath() : targetParent;
 
 			QTemporaryDir stagingDirectory(QDir(stagingParent).filePath(QStringLiteral(".vcmi-transfer-XXXXXX")));
 
@@ -577,31 +606,22 @@ void WindowsUserDirectoryManager::changeDirectory(EUserDirectory directory, cons
 	{
 		if(sourceContainsActiveUserDirectory)
 			QMessageBox::warning(parent, tr("Original files kept"), tr("The original directory still contains another active VCMI directory and cannot be removed safely."));
-		else if(isSameOrChildPath(selected, relocatedSourcePath) || (!displacedTargetPath.isEmpty() && isSameOrChildPath(displacedTargetPath, relocatedSourcePath)))
-		{
-			QDir sourceDirectory(relocatedSourcePath);
-			bool removalFailed = false;
-			for(const auto & entry : sourceDirectory.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries))
-			{
-				const QString entryPath = entry.absoluteFilePath();
-				if(isSameOrChildPath(selected, entryPath) || (!displacedTargetPath.isEmpty() && isSameOrChildPath(displacedTargetPath, entryPath)))
-					continue;
-				if(!removePath(entryPath))
-				{
-					removalFailed = true;
-					logGlobal->warn("Failed to remove old user data '%s'", entryPath.toStdString());
-				}
-			}
-			if(removalFailed)
-				QMessageBox::warning(parent, tr("Original files kept"), tr("The data was copied and reloaded, but some original files could not be removed."));
-		}
-		else if(QFileInfo::exists(relocatedSourcePath) && !removePath(relocatedSourcePath))
-			QMessageBox::warning(parent, tr("Original files kept"), tr("The data was copied and reloaded, but the original directory could not be removed."));
 		else
 		{
-			const QFileInfo sourceParent(QFileInfo(relocatedSourcePath).dir().absolutePath());
-			if(sourceParent.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0)
-				QDir().rmdir(sourceParent.absoluteFilePath());
+			QStringList preservedPaths;
+			if(isSameOrChildPath(selected, relocatedSourcePath))
+				preservedPaths.push_back(selected);
+			if(!displacedTargetPath.isEmpty() && isSameOrChildPath(displacedTargetPath, relocatedSourcePath))
+				preservedPaths.push_back(displacedTargetPath);
+
+			if(QFileInfo::exists(relocatedSourcePath) && !removePathExcept(relocatedSourcePath, preservedPaths))
+				QMessageBox::warning(parent, tr("Original files kept"), tr("The data was copied and reloaded, but some original files could not be removed."));
+			else if(!QFileInfo::exists(relocatedSourcePath))
+			{
+				const QFileInfo sourceParent(QFileInfo(relocatedSourcePath).dir().absolutePath());
+				if(sourceParent.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0)
+					QDir().rmdir(sourceParent.absoluteFilePath());
+			}
 		}
 	}
 
