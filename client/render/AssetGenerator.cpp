@@ -36,7 +36,14 @@ void AssetGenerator::initialize()
 		boost::filesystem::remove_all(VCMIDirs::get().userDataPath() / "Generated");
 
 	imageFiles[ImagePath::builtin("AdventureOptionsBackgroundClear.png")] = [this](){ return createAdventureOptionsCleanBackground();};
-	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this](){ return createBigSpellBook();};
+	imageFiles[ImagePath::builtin("SpellBookLarge.png")] = [this]()
+	{
+		return createBigSpellBook(false);
+	};
+	imageFiles[ImagePath::builtin("SpellBookLargeFramed.png")] = [this]()
+	{
+		return createBigSpellBook(true);
+	};
 
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowDefault.png")]  = [this](){ return createCombatUnitNumberWindow(0.6f, 0.2f, 1.0f);};
 	imageFiles[ImagePath::builtin("combatUnitNumberWindowNeutral.png")]  = [this](){ return createCombatUnitNumberWindow(1.0f, 1.0f, 2.0f);};
@@ -103,7 +110,7 @@ AssetGenerator::CanvasPtr AssetGenerator::createAdventureOptionsCleanBackground(
 	return image;
 }
 
-AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
+AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook(bool withFrame) const
 {
 	auto locator = ImageLocator(ImagePath::builtin("SpelBack"), EImageBlitMode::OPAQUE);
 
@@ -152,7 +159,12 @@ AssetGenerator::CanvasPtr AssetGenerator::createBigSpellBook() const
 	canvas.draw(img, Point(575, 465), Rect(417, 406, 37, 45));
 	canvas.draw(img, Point(667, 465), Rect(478, 406, 37, 47));
 
-	return image;
+	if(!withFrame)
+		return image;
+
+	auto framedImage = ENGINE->renderHandler().createImage(Point(828, 629), CanvasScalingPolicy::IGNORE);
+	framedImage->getCanvas().draw(image, Point(14, 15));
+	return framedImage;
 }
 
 AssetGenerator::CanvasPtr AssetGenerator::createPlayerColoredBackground(const PlayerColor & player) const
