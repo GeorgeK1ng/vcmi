@@ -1512,6 +1512,25 @@ begin
 end;
 
 
+function TryReadUninstallExeFromHKLM(const SubKey: String; var UninstallerPath: String): Boolean;
+begin
+  Result := RegQueryStringValue(HKLM, SubKey, 'UninstallString', UninstallerPath);
+  if (not Result) or (Trim(UninstallerPath) = '') then
+  begin
+    UninstallerPath := '';
+    Result := False;
+  end;
+
+  UninstallerPath := RemoveQuotes(Trim(UninstallerPath));
+end;
+
+
+function GetLegacyUninstallerPath(var UninstallerPath: String): Boolean;
+begin
+  Result := TryReadUninstallExeFromHKLM('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath) or TryReadUninstallExeFromHKLM('SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath);
+end;
+
+
 procedure RemoveLegacyInstaller();
 var
   AppFolder: String;
