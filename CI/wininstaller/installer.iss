@@ -637,6 +637,35 @@ begin
 end;
 
 
+function LoadUTF8TextFile(const FileName: String; var Content: String): Boolean;
+var
+  Lines: TArrayOfString;
+  Index: Integer;
+begin
+  Content := '';
+  Result := LoadStringsFromFile(FileName, Lines);
+  if not Result then
+    Exit;
+
+  for Index := 0 to GetArrayLength(Lines) - 1 do
+  begin
+    if Index > 0 then
+      Content := Content + #13#10;
+    Content := Content + Lines[Index];
+  end;
+end;
+
+
+function SaveUTF8TextFile(const FileName, Content: String): Boolean;
+var
+  Lines: TArrayOfString;
+begin
+  SetArrayLength(Lines, 1);
+  Lines[0] := Content;
+  Result := SaveStringsToUTF8FileWithoutBOM(FileName, Lines, False);
+end;
+
+
 function ReadPathFromConfig(const InstallDir, Key, Fallback: String): String;
 var
   Content, ConfigFile, Value, SearchKey: String;
@@ -645,7 +674,7 @@ var
 begin
   Result := Fallback;
   ConfigFile := AddBackslash(InstallDir) + 'config\dirs.json';
-  if not LoadStringFromFile(ConfigFile, Content) then
+  if not LoadUTF8TextFile(ConfigFile, Content) then
     Exit;
 
   SearchKey := '"' + Key + '"';
@@ -1566,7 +1595,7 @@ begin
     if not DirExists(ConfigDir) then
       ForceDirectories(ConfigDir);
 
-    SaveStringToFile(SettingsFile, JSONContent, False);
+    SaveUTF8TextFile(SettingsFile, JSONContent);
   end;
 end;
 
@@ -1588,7 +1617,7 @@ begin
   RegWriteStringValue(HKCU32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
   RegWriteStringValue(HKCU32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
 
-  if LoadStringFromFile(ConfigFile, JSONContent) then
+  if LoadUTF8TextFile(ConfigFile, JSONContent) then
   begin
     KeyPosition := Pos('"userDataPath"', JSONContent);
     if KeyPosition > 0 then
@@ -1641,7 +1670,7 @@ begin
 
   if not DirExists(ConfigDir) then
     ForceDirectories(ConfigDir);
-  if SaveStringToFile(ConfigFile, JSONContent, False) then
+  if SaveUTF8TextFile(ConfigFile, JSONContent) then
   begin
     RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
     RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
