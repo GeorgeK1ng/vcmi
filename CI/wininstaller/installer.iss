@@ -722,8 +722,9 @@ end;
 
 function ReadUserDataPath(const InstallDir, Fallback: String): String;
 begin
-  if RegQueryStringValue(HKCU64, 'Software\VCMI', 'userDataPath', Result) then
-    Exit;
+  if IsWin64 then
+    if RegQueryStringValue(HKCU64, 'Software\VCMI', 'userDataPath', Result) then
+      Exit;
   if RegQueryStringValue(HKCU32, 'Software\VCMI', 'userDataPath', Result) then
     Exit;
   Result := ReadPathFromConfig(InstallDir, 'userDataPath', Fallback);
@@ -735,7 +736,9 @@ var
   Key: String;
 begin
   Key := 'Software\VCMI\Installer\' + Architecture;
-  Result := RegQueryStringValue(HKCU64, Key, ValueName, Value);
+  Result := False;
+  if IsWin64 then
+    Result := RegQueryStringValue(HKCU64, Key, ValueName, Value);
   if not Result then
     Result := RegQueryStringValue(HKCU32, Key, ValueName, Value);
 end;
@@ -755,10 +758,17 @@ begin
   // uninstall entry. Check both views because their Setup process was x86.
   UninstallKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#VCMIFolder}.'
     + Architecture + '_is1';
-  Result := RegQueryStringValue(HKCU64, UninstallKey, 'InstallLocation', InstallPath)
-    or RegQueryStringValue(HKCU32, UninstallKey, 'InstallLocation', InstallPath)
-    or RegQueryStringValue(HKLM64, UninstallKey, 'InstallLocation', InstallPath)
-    or RegQueryStringValue(HKLM32, UninstallKey, 'InstallLocation', InstallPath);
+  Result := False;
+  if IsWin64 then
+  begin
+    Result := RegQueryStringValue(HKCU64, UninstallKey, 'InstallLocation', InstallPath);
+    if not Result then
+      Result := RegQueryStringValue(HKLM64, UninstallKey, 'InstallLocation', InstallPath);
+  end;
+  if not Result then
+    Result := RegQueryStringValue(HKCU32, UninstallKey, 'InstallLocation', InstallPath);
+  if not Result then
+    Result := RegQueryStringValue(HKLM32, UninstallKey, 'InstallLocation', InstallPath);
 end;
 
 
@@ -775,8 +785,9 @@ end;
 
 function ReadRuntimePath(const InstallDir, Key, Fallback: String): String;
 begin
-  if RegQueryStringValue(HKCU64, 'Software\VCMI', Key, Result) then
-    Exit;
+  if IsWin64 then
+    if RegQueryStringValue(HKCU64, 'Software\VCMI', Key, Result) then
+      Exit;
   if RegQueryStringValue(HKCU32, 'Software\VCMI', Key, Result) then
     Exit;
   Result := ReadPathFromConfig(InstallDir, Key, Fallback);
@@ -1631,8 +1642,11 @@ begin
   InstallerRegistryKey := 'Software\VCMI\Installer\{#InstallerArch}';
   ValueUpdated := False;
 
-  RegWriteStringValue(HKCU64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-  RegWriteStringValue(HKCU64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+  if IsWin64 then
+  begin
+    RegWriteStringValue(HKCU64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
+    RegWriteStringValue(HKCU64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+  end;
   RegWriteStringValue(HKCU32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
   RegWriteStringValue(HKCU32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
 
@@ -1691,13 +1705,19 @@ begin
     ForceDirectories(ConfigDir);
   if SaveUTF8TextFile(ConfigFile, JSONContent) then
   begin
-    RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
+    if IsWin64 then
+      RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
     RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
   end
   else
   begin
     Log('Failed to write user data path to ' + ConfigFile);
-    if not RegWriteStringValue(HKCU64, 'Software\VCMI', 'userDataPath', SelectedDataDir) then
+    if IsWin64 then
+    begin
+      if not RegWriteStringValue(HKCU64, 'Software\VCMI', 'userDataPath', SelectedDataDir) then
+        RegWriteStringValue(HKCU32, 'Software\VCMI', 'userDataPath', SelectedDataDir);
+    end
+    else
       RegWriteStringValue(HKCU32, 'Software\VCMI', 'userDataPath', SelectedDataDir);
   end;
 end;
@@ -1807,7 +1827,8 @@ begin
   if CurUninstallStep = usPostUninstall then
   begin
     PerformFileDeletion;
-    RegDeleteKeyIncludingSubkeys(HKCU64, 'Software\VCMI\Installer\{#InstallerArch}');
+    if IsWin64 then
+      RegDeleteKeyIncludingSubkeys(HKCU64, 'Software\VCMI\Installer\{#InstallerArch}');
     RegDeleteKeyIncludingSubkeys(HKCU32, 'Software\VCMI\Installer\{#InstallerArch}');
   end;
 end;
