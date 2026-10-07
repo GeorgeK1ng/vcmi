@@ -810,11 +810,23 @@ jobs:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }}.zip
         path: ${{github.workspace}}/artifact
 
-    - name: Ensure Inno Setup is installed
+    - name: Install Inno Setup 7
+      shell: pwsh
       run: |
-        if [ ! -f "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ] && [ ! -f "/c/ProgramData/Chocolatey/bin/ISCC.exe" ]; then
-          choco install innosetup --no-progress -y
-        fi
+        gh release download is-7_1_0 --repo jrsoftware/issrc --pattern 'innosetup-7.1.0-x64.exe' --dir $env:RUNNER_TEMP
+        $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.0-x64.exe'
+        gh release verify-asset $installer --repo jrsoftware/issrc
+        & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Build installer plugin
+      shell: pwsh
+      run: |
+        $pluginArch = if ('${{ matrix.arch }}' -eq 'x64') { 'x64' } else { 'Win32' }
+        cmake -S CI/wininstaller/plugins -B CI/wininstaller/plugins/build -A $pluginArch
+        cmake --build CI/wininstaller/plugins/build --config Release --target installerPlugin
 
     - name: Build VCMI Installer
       run: >
@@ -826,6 +838,7 @@ jobs:
         "${{ env.VCMI_PACKAGE_FILE_NAME }}"
         "${{ github.workspace }}\artifact"
         "${{ github.workspace }}\ucrt"
+        "${{ github.workspace }}\CI\wininstaller\plugins\build\bin\Release"
       shell: cmd
 
     - name: Upload VCMI Installer Artifacts

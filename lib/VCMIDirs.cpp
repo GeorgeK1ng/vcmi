@@ -9,7 +9,6 @@
  */
 
 #include "StdInc.h"
-#include "GameConstants.h"
 #include "ScopeGuard.h"
 #include "VCMIDirs.h"
 #include "json/JsonNode.h"
@@ -94,11 +93,43 @@ bool IVCMIDirs::isOneDrivePath(const bfs::path &) const
 	return false;
 }
 
+bool IVCMIDirs::isCloudStoragePath(const bfs::path &) const
+{
+	return false;
+}
+
+bool IVCMIDirs::isReservedUserDataSubdirectory(const bfs::path & path) const
+{
+	static constexpr std::array names = {
+		"cache",
+		"config",
+		"Data",
+		"Generated",
+		"logs",
+		"Maps",
+		"Mods",
+		"Mp3",
+		"saves",
+		"scripts",
+		"Sounds",
+		"Sprites",
+		"Video"
+	};
+
+	const std::string directoryName = path.filename().string();
+	return std::any_of(names.begin(), names.end(), [&directoryName](const auto * reservedName)
+	{
+		return boost::iequals(directoryName, reservedName);
+	});
+}
+
 void IVCMIDirs::removeObsoleteUserDataParent(const bfs::path &) const
 {
 }
 
 #ifdef VCMI_WINDOWS
+
+#include "platform/windows/CloudStorageDetection.h"
 
 #include <windows.h>
 #include <shlobj.h>
@@ -124,6 +155,7 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 		bool setUserPath(EUserDirectory directory, const bfs::path & path) override;
 		bool supportsUserPathChange() const override;
 		bool isOneDrivePath(const bfs::path & path) const override;
+		bool isCloudStoragePath(const bfs::path & path) const override;
 		void removeObsoleteUserDataParent(const bfs::path & path) const override;
 
 	private:
@@ -383,12 +415,12 @@ bfs::path VCMIDirsWIN32::getPathFromConfigOrDefault(
 
 bfs::path VCMIDirsWIN32::getDefaultUserDataPath() const
 {
-	const bfs::path applicationName(GameConstants::VCMI_PROJECT_NAME);
+	const bfs::path applicationName("VCMI");
 	wchar_t profileDir[MAX_PATH];
 	if(SHGetSpecialFolderPathW(nullptr, profileDir, CSIDL_MYDOCUMENTS, FALSE) != FALSE)
 	{
 		const bfs::path documentsPath(profileDir);
-		if(!isOneDrivePath(documentsPath))
+		if(!isCloudStoragePath(documentsPath))
 			return documentsPath / userDataParentDirectoryName / applicationName;
 	}
 
@@ -400,28 +432,17 @@ bfs::path VCMIDirsWIN32::getDefaultUserDataPath() const
 
 bfs::path VCMIDirsWIN32::portableUserDataPath() const
 {
-	return binaryPath() / (std::string(GameConstants::VCMI_PROJECT_NAME) + "-data");
+	return binaryPath() / "VCMI-data";
 }
 
 bool VCMIDirsWIN32::isOneDrivePath(const bfs::path & path) const
 {
-	wchar_t oneDrivePath[MAX_PATH];
-	const DWORD pathSize = ExpandEnvironmentStringsW(L"%OneDrive%", oneDrivePath, MAX_PATH);
-	if(pathSize == 0 || pathSize > MAX_PATH || std::wstring(oneDrivePath) == L"%OneDrive%")
-		return false;
+	return VCMI::Windows::isOneDrivePath(path.wstring().c_str());
+}
 
-	bfs::path normalizedCandidate = path.lexically_normal();
-	normalizedCandidate.make_preferred();
-	bfs::path normalizedOneDrive = bfs::path(oneDrivePath).lexically_normal();
-	normalizedOneDrive.make_preferred();
-
-	const std::wstring candidate = normalizedCandidate.wstring();
-	std::wstring oneDrive = normalizedOneDrive.wstring();
-	if(boost::iequals(candidate, oneDrive))
-		return true;
-	oneDrive += bfs::path::preferred_separator;
-
-	return boost::istarts_with(candidate, oneDrive);
+bool VCMIDirsWIN32::isCloudStoragePath(const bfs::path & path) const
+{
+	return VCMI::Windows::isCloudStoragePath(path.wstring().c_str());
 }
 
 void VCMIDirsWIN32::removeObsoleteUserDataParent(const bfs::path & path) const

@@ -71,6 +71,10 @@ public:
 
 	/// Returns true when the path is stored inside a OneDrive-synchronized directory.
 	virtual bool isOneDrivePath(const boost::filesystem::path & path) const;
+	/// Returns true when the path is probably managed by a cloud synchronization provider.
+	virtual bool isCloudStoragePath(const boost::filesystem::path & path) const;
+	/// Returns true when the path name is reserved for a directory inside the VCMI user-data root.
+	bool isReservedUserDataSubdirectory(const boost::filesystem::path & path) const;
 
 	/// Removes a platform-specific legacy user-data parent if it became empty.
 	virtual void removeObsoleteUserDataParent(const boost::filesystem::path & path) const;
