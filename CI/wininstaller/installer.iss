@@ -178,6 +178,15 @@ type
   TUninstallPathDescriptionArray = array[0..4] of String;
   TUninstallPathProtectionArray = array[0..4] of Boolean;
 
+const
+  MOVEFILE_REPLACE_EXISTING = 1;
+  MOVEFILE_WRITE_THROUGH = 8;
+  WTS_CURRENT_SERVER_HANDLE = 0;
+  WTS_CURRENT_SESSION = -1;
+  WTSUserName = 5;
+  FILE_ATTRIBUTE_REPARSE_POINT_VALUE = $400;
+  INVALID_FILE_ATTRIBUTES = $FFFFFFFF;
+
 var
   InstallModePage: TInputOptionWizardPage;
   FooterLabel: TLabel;
@@ -226,6 +235,25 @@ var
   HasCommandLineInstallDir: Boolean;
   CommandLinePortable: Boolean;
   FirewallTaskPreviouslySelected: Boolean;
+
+// Keep all imported APIs before the first routine implementation. Pascal Script
+// does not allow new external declarations after routine bodies have started.
+function WTSQuerySessionInformation(hServer: THandle; SessionId: Cardinal; WTSInfoClass: Integer; var pBuffer: NativeUInt; var BytesReturned: DWord): Boolean;
+  external 'WTSQuerySessionInformationW@wtsapi32.dll stdcall';
+procedure WTSFreeMemory(pMemory: NativeUInt);
+  external 'WTSFreeMemory@wtsapi32.dll stdcall';
+procedure RtlMoveMemoryAsString(Dest: string; Source: NativeUInt; Len: Integer);
+  external 'RtlMoveMemory@kernel32.dll stdcall';
+function ExpandEnvironmentStrings(Source, Destination: String; Size: Cardinal): Cardinal;
+  external 'ExpandEnvironmentStringsW@kernel32.dll stdcall';
+function MoveFileEx(ExistingFileName, NewFileName: String; Flags: Cardinal): Boolean;
+  external 'MoveFileExW@kernel32.dll stdcall';
+function PluginIsCloudStoragePath(Path: string): BOOL;
+  external 'IsCloudStoragePath@files:installerPlugin.dll stdcall setuponly delayload';
+function PluginModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
+  external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
+function GetFileAttributes(FileName: String): Cardinal;
+  external 'GetFileAttributesW@kernel32.dll stdcall';
 
 function EnsureNonEmptyDir(const CaptionText, DirText: String): Boolean;
 begin
@@ -388,20 +416,6 @@ end;
 // Setup may be elevated with credentials of a different administrator. Resolve
 // the interactive session user so user-facing paths still belong to the person
 // who launched Setup. NativeUInt keeps returned pointers safe in 32/64-bit Setup.
-function WTSQuerySessionInformation(hServer: THandle; SessionId: Cardinal; WTSInfoClass: Integer; var pBuffer: NativeUInt; var BytesReturned: DWord): Boolean;
-  external 'WTSQuerySessionInformationW@wtsapi32.dll stdcall';
-
-procedure WTSFreeMemory(pMemory: NativeUInt);
-  external 'WTSFreeMemory@wtsapi32.dll stdcall';
-
-procedure RtlMoveMemoryAsString(Dest: string; Source: NativeUInt; Len: Integer);
-  external 'RtlMoveMemory@kernel32.dll stdcall';
-
-const
-  WTS_CURRENT_SERVER_HANDLE = 0;
-  WTS_CURRENT_SESSION = -1;
-  WTSUserName = 5;
-
 function GetCurrentSessionUserName: String;
 var
   Buffer: NativeUInt;
@@ -548,9 +562,6 @@ begin
   Result := SaveStringsToUTF8FileWithoutBOM(FileName, Lines, False);
 end;
 
-function ExpandEnvironmentStrings(Source, Destination: String; Size: Cardinal): Cardinal;
-  external 'ExpandEnvironmentStringsW@kernel32.dll stdcall';
-
 function ExpandEnvironmentPath(const Value: String): String;
 var
   ExpandedSize: Cardinal;
@@ -569,13 +580,7 @@ begin
   SetLength(Result, ExpandedSize - 1);
 end;
 
-function MoveFileEx(ExistingFileName, NewFileName: String; Flags: Cardinal): Boolean;
-  external 'MoveFileExW@kernel32.dll stdcall';
-
 function SaveUTF8TextFileAtomically(const FileName, Content: String): Boolean;
-const
-  MOVEFILE_REPLACE_EXISTING = 1;
-  MOVEFILE_WRITE_THROUGH = 8;
 var
   TemporaryFile: String;
 begin
@@ -913,10 +918,6 @@ begin
   AddUninstallPath(ReadRuntimePath(InstallDir, 'userSavePath', DataPath + '\saves'), ExpandConstant('{cm:SavesDirectory}'));
 end;
 
-// BOOL __stdcall IsCloudStoragePath(LPCWSTR)
-function PluginIsCloudStoragePath(Path: string): BOOL;
-  external 'IsCloudStoragePath@files:installerPlugin.dll stdcall setuponly delayload';
-
 function IsCloudStoragePath(const Path: String): Boolean;
 begin
   Result := False;
@@ -1073,10 +1074,6 @@ begin
 
   Result := True;
 end;
-
-// BOOL __stdcall ModerFolderPicker(HWND, LPCWSTR, LPCWSTR, LPWSTR, DWORD)
-function PluginModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
-  external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
 
 function PickFolderModern(const Title, Initial: string): string;
 var
@@ -1841,13 +1838,6 @@ end;
 var
   DeleteUserDataLabel: TNewStaticText;
   DeleteUserDataDescriptionLabel: TNewStaticText;
-
-const
-  FILE_ATTRIBUTE_REPARSE_POINT_VALUE = $400;
-  INVALID_FILE_ATTRIBUTES = $FFFFFFFF;
-
-function GetFileAttributes(FileName: String): Cardinal;
-  external 'GetFileAttributesW@kernel32.dll stdcall';
 
 function IsReparsePoint(const Path: String): Boolean;
 var
