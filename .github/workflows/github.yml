@@ -848,7 +848,7 @@ jobs:
     - name: Smoke test Windows installer
       shell: pwsh
       run: |
-        function Invoke-InstallerExecutable {
+        function Invoke-Executable {
           param(
             [Parameter(Mandatory)] [string] $FilePath,
             [Parameter(Mandatory)] [string[]] $Arguments
@@ -894,7 +894,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $dataDir, $outsideDir | Out-Null
         Set-Content -LiteralPath (Join-Path $outsideDir 'sentinel.txt') -Value 'keep'
 
-        $exitCode = Invoke-InstallerExecutable $installer @(
+        $exitCode = Invoke-Executable $installer @(
           '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER',
           "/DIR=$installDir", "/USERDATADIR=$dataDir", '/TASKS='
         )
@@ -911,7 +911,7 @@ jobs:
         New-Item -ItemType Junction -Path (Join-Path $dataDir 'external-link') -Target $outsideDir | Out-Null
 
         $uninstaller = Join-Path $installDir 'unins000.exe'
-        $exitCode = Invoke-InstallerExecutable $uninstaller @(
+        $exitCode = Invoke-Executable $uninstaller @(
           '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/DELETEUSERDATA=1'
         )
         if ($exitCode -ne 0) { throw "Uninstaller failed with exit code $exitCode" }
@@ -924,7 +924,7 @@ jobs:
         if (-not (Test-Path -LiteralPath (Join-Path $outsideDir 'sentinel.txt'))) { throw 'Uninstaller followed a directory junction' }
 
         $portableDir = Join-Path $testRoot 'portable app'
-        $exitCode = Invoke-InstallerExecutable $installer @(
+        $exitCode = Invoke-Executable $installer @(
           '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER',
           '/PORTABLE=1', "/DIR=$portableDir", '/TASKS='
         )
@@ -940,11 +940,15 @@ jobs:
         if ($portableConfig.userDataPath -ne $expectedPortableData) { throw "Unexpected portable userDataPath: $($portableConfig.userDataPath)" }
 
         $installerRegistryKey = "HKCU\Software\VCMI\Installer\${{ matrix.arch }}"
-        & reg.exe query $installerRegistryKey /reg:32 *> $null
-        if ($LASTEXITCODE -eq 0) { throw 'Portable setup wrote 32-bit installer registry metadata' }
+        $registryExitCode = Invoke-Executable "$env:SystemRoot\System32\reg.exe" @(
+          'query', $installerRegistryKey, '/reg:32'
+        )
+        if ($registryExitCode -eq 0) { throw 'Portable setup wrote 32-bit installer registry metadata' }
         if ([Environment]::Is64BitOperatingSystem) {
-          & reg.exe query $installerRegistryKey /reg:64 *> $null
-          if ($LASTEXITCODE -eq 0) { throw 'Portable setup wrote 64-bit installer registry metadata' }
+          $registryExitCode = Invoke-Executable "$env:SystemRoot\System32\reg.exe" @(
+            'query', $installerRegistryKey, '/reg:64'
+          )
+          if ($registryExitCode -eq 0) { throw 'Portable setup wrote 64-bit installer registry metadata' }
         }
 
         Remove-Item -LiteralPath $portableDir -Recurse -Force
