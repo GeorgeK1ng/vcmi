@@ -198,9 +198,9 @@ bool datamanager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedD
 	const QString compatibleInstallationPath = installationDataPath();
 	const bool usesCompatibleInstallationPath = !compatibleInstallationPath.isEmpty() && normalizedPath(target).compare(normalizedPath(compatibleInstallationPath), pathCaseSensitivity()) == 0;
 
-	if(pathsOverlap(target, binaryPath) && !usesCompatibleInstallationPath)
+	if(isSameOrChildPath(target, binaryPath) && !usesCompatibleInstallationPath)
 	{
-		QMessageBox::warning(parent, tr("Invalid directory"), tr("A user directory cannot be the VCMI installation directory, contain it, or be located inside it."));
+		QMessageBox::warning(parent, tr("Invalid directory"), tr("A user directory cannot be the VCMI installation directory or be located inside it."));
 		return false;
 	}
 
