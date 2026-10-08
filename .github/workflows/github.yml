@@ -868,6 +868,23 @@ jobs:
           return $process.ExitCode
         }
 
+        function Wait-PathRemoval {
+          param(
+            [Parameter(Mandatory)] [string] $Path,
+            [int] $TimeoutMilliseconds = 10000
+          )
+
+          # Inno may finish removing the copied uninstaller immediately after
+          # the main GUI process exits. Allow that cleanup to complete without
+          # hiding persistent files left by an incorrect uninstall definition.
+          $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+          while ((Test-Path -LiteralPath $Path) -and
+                 ($stopwatch.ElapsedMilliseconds -lt $TimeoutMilliseconds)) {
+            Start-Sleep -Milliseconds 100
+          }
+          return -not (Test-Path -LiteralPath $Path)
+        }
+
         $installer = Join-Path '${{ github.workspace }}\CI\wininstaller\Output' '${{ env.VCMI_PACKAGE_FILE_NAME }}.exe'
         $testRoot = Join-Path $env:RUNNER_TEMP 'vcmi-installer-smoke'
         $installDir = Join-Path $testRoot 'app'
@@ -898,7 +915,11 @@ jobs:
           '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/DELETEUSERDATA=1'
         )
         if ($exitCode -ne 0) { throw "Uninstaller failed with exit code $exitCode" }
-        if (Test-Path -LiteralPath $installDir) { throw 'Installation directory was not removed' }
+        if (-not (Wait-PathRemoval $installDir)) {
+          $remainingEntries = Get-ChildItem -LiteralPath $installDir -Recurse -Force |
+            ForEach-Object { $_.FullName.Substring($installDir.Length).TrimStart('\') }
+          throw "Installation directory was not removed. Remaining entries: $($remainingEntries -join ', ')"
+        }
         if (Test-Path -LiteralPath $dataDir) { throw 'Selected user data directory was not removed' }
         if (-not (Test-Path -LiteralPath (Join-Path $outsideDir 'sentinel.txt'))) { throw 'Uninstaller followed a directory junction' }
 

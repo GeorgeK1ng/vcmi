@@ -177,6 +177,7 @@ Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI
 Type: files; Name: "{app}\config\dirs.json"
 Type: files; Name: "{app}\config\dirs.json.tmp"
 Type: dirifempty; Name: "{app}\config"
+Type: dirifempty; Name: "{app}"
 
 [Code]
 type
