@@ -144,8 +144,8 @@ Name: "firewallrules"; Description: "{cm:AddFirewallRules}"; GroupDescription: "
 Name: "h3copyfiles"; Description: "{cm:CopyH3Files}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsHeroes3Installed and IsCopyFilesNeeded
 
 [Registry]
-Root: HKA; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey; Check: not IsPortableInstall
-Root: HKA; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "userDataPath"; ValueData: "{code:GetSelectedDataDir}"; Flags: uninsdeletekey; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\VCMI\Installer\{#InstallerArch}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\VCMI\Installer\{#InstallerArch}"; ValueType: string; ValueName: "userDataPath"; ValueData: "{code:GetSelectedDataDir}"; Flags: uninsdeletekey; Check: not IsPortableInstall
 
 Root: HKA; Subkey: "Software\Classes\.vmap"; ValueType: string; ValueName: ""; ValueData: "VCMI.vmap"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
 Root: HKA; Subkey: "Software\Classes\VCMI.vmap"; ValueType: string; ValueName: ""; ValueData: "{cm:VMAPDescription}"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
@@ -1708,39 +1708,14 @@ end;
 
 procedure WriteDirectoriesConfig();
 var
-  ConfigDir, ConfigFile, JSONContent, EscapedPath, InstallerRegistryKey: String;
+  ConfigDir, ConfigFile, JSONContent, EscapedPath: String;
   KeyPosition, ColonPosition, Position, ValueStart, ClosingBrace: Integer;
   Escaped, ValueUpdated: Boolean;
 begin
   ConfigDir := ExpandConstant('{app}\config');
   ConfigFile := ConfigDir + '\dirs.json';
   EscapedPath := EscapeJsonString(SelectedDataDir);
-  InstallerRegistryKey := 'Software\VCMI\Installer\{#InstallerArch}';
   ValueUpdated := False;
-
-  if not IsPortableInstall then
-  begin
-    if IsAdminInstallMode then
-    begin
-      if IsWin64 then
-      begin
-        RegWriteStringValue(HKLM64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-        RegWriteStringValue(HKLM64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
-      end;
-      RegWriteStringValue(HKLM32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-      RegWriteStringValue(HKLM32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
-    end
-    else
-    begin
-      if IsWin64 then
-      begin
-        RegWriteStringValue(HKCU64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-        RegWriteStringValue(HKCU64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
-      end;
-      RegWriteStringValue(HKCU32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-      RegWriteStringValue(HKCU32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
-    end;
-  end;
 
   if LoadUTF8TextFile(ConfigFile, JSONContent) then
   begin
@@ -2051,18 +2026,6 @@ begin
     MaintainFileAssociation('.vmap', 'VCMI.vmap', ExpandConstant('{cm:VMAPDescription}'));
     MaintainFileAssociation('.vcmp', 'VCMI.vcmp', ExpandConstant('{cm:VCMPDescription}'));
     MaintainFileAssociation('.h3m', 'VCMI.h3m', ExpandConstant('{cm:H3MDescription}'));
-    if IsAdminInstallMode then
-    begin
-      if IsWin64 then
-        RegDeleteKeyIncludingSubkeys(HKLM64, 'Software\VCMI\Installer\{#InstallerArch}');
-      RegDeleteKeyIncludingSubkeys(HKLM32, 'Software\VCMI\Installer\{#InstallerArch}');
-    end
-    else
-    begin
-      if IsWin64 then
-        RegDeleteKeyIncludingSubkeys(HKCU64, 'Software\VCMI\Installer\{#InstallerArch}');
-      RegDeleteKeyIncludingSubkeys(HKCU32, 'Software\VCMI\Installer\{#InstallerArch}');
-    end;
   end;
 end;
 
