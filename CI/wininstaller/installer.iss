@@ -459,7 +459,7 @@ begin
     else
       // For 32-bit installer on 64-bit system, return the 32-bit Program Files directory
       Result := ExpandConstant('{commonpf32}');
-  end;
+  end
   else
     // On 32-bit systems, always return the 32-bit Program Files directory
     Result := ExpandConstant('{commonpf32}');
