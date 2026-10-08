@@ -415,6 +415,8 @@ AutoStartProgram=Starta automatiskt %1
 AddonHostProgramNotFound=%1 kunde inte hittas i katalogen du valde.%n%nVill du fortsätta ändå?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Installationsmapp
+DataFolderTitle=Mapp för användardata
 SelectSetupInstallModeTitle=Välj installationsläge
 SelectSetupInstallModeDesc=VCMI kan installeras för alla användare eller bara för dig.
 SelectSetupInstallModeSubTitle=Välj önskat installationsläge:

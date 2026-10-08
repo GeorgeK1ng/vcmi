@@ -417,6 +417,8 @@ AutoStartProgram=%1 자동 시작
 AddonHostProgramNotFound=%1을(를) 선택한 폴더에서 찾을 수 없습니다.%n%n계속하시겠습니까?
 
 ; VCMI Custom Messages
+InstallFolderTitle=설치 폴더
+DataFolderTitle=사용자 데이터 폴더
 SelectSetupInstallModeTitle=설치 모드 선택
 SelectSetupInstallModeDesc=VCMI는 모든 사용자 또는 본인만을 위해 설치할 수 있습니다.
 SelectSetupInstallModeSubTitle=선호하는 설치 모드를 선택하세요:

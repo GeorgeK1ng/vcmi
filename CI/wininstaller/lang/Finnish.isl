@@ -383,6 +383,8 @@ AutoStartProgram=Käynnistä %1 automaattisesti
 AddonHostProgramNotFound=%1 ei ole valitsemassasi kansiossa.%n%nHaluatko jatkaa tästä huolimatta?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Asennuskansio
+DataFolderTitle=Käyttäjätietojen kansio
 SelectSetupInstallModeTitle=Valitse asennustila
 SelectSetupInstallModeDesc=VCMI voidaan asentaa kaikille käyttäjille tai vain sinulle.
 SelectSetupInstallModeSubTitle=Valitse haluamasi asennustila:

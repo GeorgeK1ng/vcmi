@@ -882,7 +882,7 @@ end;
 
 
 // BOOL __stdcall IsCloudStoragePath(LPCWSTR)
-function IsCloudStoragePath(Path: string): Boolean;
+function IsCloudStoragePath(Path: string): BOOL;
   external 'IsCloudStoragePath@files:installerPlugin.dll stdcall setuponly delayload';
 
 
@@ -1057,13 +1057,13 @@ end;
 
 
 // BOOL __stdcall ModerFolderPicker(HWND, LPCWSTR, LPCWSTR, LPWSTR, DWORD)
-function ModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): Boolean;
+function ModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
   external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
 
 function PickFolderModern(const Title, Initial: string): string;
 var
   buf: string;
-  ok: Boolean;
+  ok: BOOL;
   n: Integer;
 begin
   // Large buffer (counted in UTF-16 code units)

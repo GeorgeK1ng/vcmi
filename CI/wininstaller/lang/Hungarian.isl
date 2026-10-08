@@ -410,6 +410,8 @@ AutoStartProgram=%1 automatikus indítása
 AddonHostProgramNotFound=A(z) %1 nem található a kiválasztott könyvtárban.%n%nMindenképpen folytatja?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Telepítési mappa
+DataFolderTitle=Felhasználói adatok mappája
 SelectSetupInstallModeTitle=Wählen Sie den Installationsmodus
 SelectSetupInstallModeDesc=VCMI kann für alle Benutzer oder nur für Sie installiert werden.
 SelectSetupInstallModeSubTitle=Wählen Sie den bevorzugten Installationsmodus:

@@ -400,6 +400,8 @@ AutoStartProgram=Автоматично завантажувати %1
 AddonHostProgramNotFound=%1 не знайдений у вказаній вами теці%n%nВи все одно бажаєте продовжити?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Тека встановлення
+DataFolderTitle=Тека даних користувача
 SelectSetupInstallModeTitle=Виберіть режим встановлення
 SelectSetupInstallModeDesc=VCMI можна встановити для всіх користувачів або лише для вас.
 SelectSetupInstallModeSubTitle=Виберіть бажаний режим встановлення:

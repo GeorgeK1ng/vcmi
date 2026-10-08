@@ -384,6 +384,8 @@ AutoStartProgram=Tự động khởi động %1
 AddonHostProgramNotFound=%1 không thể được xác định trong thư mục bạn đã chọn.%n%nBạn có muốn tiếp tục bằng mọi giá?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Thư mục cài đặt
+DataFolderTitle=Thư mục dữ liệu người dùng
 SelectSetupInstallModeTitle=Chọn Chế độ Cài đặt
 SelectSetupInstallModeDesc=VCMI có thể được cài đặt cho tất cả người dùng hoặc chỉ dành cho bạn.
 SelectSetupInstallModeSubTitle=Chọn chế độ cài đặt bạn muốn:

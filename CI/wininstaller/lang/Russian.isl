@@ -407,6 +407,8 @@ AutoStartProgram=Автоматически запускать %1
 AddonHostProgramNotFound=%1 не найден в указанной вами папке.%n%nВы всё равно хотите продолжить?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Папка установки
+DataFolderTitle=Папка пользовательских данных
 SelectSetupInstallModeTitle=Выберите режим установки
 SelectSetupInstallModeDesc=VCMI можно установить для всех пользователей или только для вас.
 SelectSetupInstallModeSubTitle=Выберите предпочтительный режим установки:

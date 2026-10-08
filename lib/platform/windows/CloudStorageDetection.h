@@ -31,6 +31,10 @@ inline bool isOneDrivePath(const wchar_t * path)
 		expanded.pop_back();
 
 	const size_t oneDriveLength = expanded.size();
+	const size_t pathLength = std::wcslen(path);
+	if(pathLength < oneDriveLength)
+		return false;
+
 	return _wcsnicmp(path, expanded.c_str(), oneDriveLength) == 0
 		&& (path[oneDriveLength] == L'\0' || path[oneDriveLength] == L'\\' || path[oneDriveLength] == L'/');
 }

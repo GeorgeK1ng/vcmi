@@ -402,6 +402,8 @@ AutoStartProgram=Spouštět aplikaci %1 automaticky
 AddonHostProgramNotFound=Aplikace %1 nebyla ve Vámi zvolené složce nalezena.%n%nChcete přesto pokračovat?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Instalační složka
+DataFolderTitle=Složka uživatelských dat
 SelectSetupInstallModeTitle=Vyberte režim instalace
 SelectSetupInstallModeDesc=VCMI může být nainstalováno pro všechny uživatele nebo pouze pro vás.
 SelectSetupInstallModeSubTitle=Vyberte preferovaný režim instalace:

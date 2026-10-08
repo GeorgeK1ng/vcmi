@@ -410,6 +410,8 @@ AutoStartProgram=%1 otomatik olarak başlatılsın
 AddonHostProgramNotFound=%1 seçtiğiniz klasörde bulunamadı.%n%nYine de ilerlemek istiyor musunuz?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Kurulum klasörü
+DataFolderTitle=Kullanıcı verileri klasörü
 SelectSetupInstallModeTitle=Kurulum Modunu Seçin
 SelectSetupInstallModeDesc=VCMI tüm kullanicilar için veya sadece sizin için kurulabilir.
 SelectSetupInstallModeSubTitle=Tercih ettiginiz kurulum modunu seçin:

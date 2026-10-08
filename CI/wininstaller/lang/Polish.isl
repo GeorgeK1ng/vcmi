@@ -400,6 +400,8 @@ AutoStartProgram=Automatycznie uruchamiaj aplikację %1
 AddonHostProgramNotFound=Aplikacja %1 nie została znaleziona we wskazanym przez Ciebie folderze.%n%nCzy pomimo tego chcesz kontynuować?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Folder instalacyjny
+DataFolderTitle=Folder danych użytkownika
 SelectSetupInstallModeTitle=Wybierz tryb instalacji
 SelectSetupInstallModeDesc=VCMI moze zostac zainstalowane dla wszystkich uzytkowników lub tylko dla Ciebie.
 SelectSetupInstallModeSubTitle=Wybierz preferowany tryb instalacji:

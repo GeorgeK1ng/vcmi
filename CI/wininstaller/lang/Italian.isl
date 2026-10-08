@@ -417,6 +417,8 @@ AutoStartProgram=Esegui automaticamente %1
 AddonHostProgramNotFound=Impossibile individuare %1 nella cartella selezionata.%n%nVuoi continuare ugualmente?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Cartella di installazione
+DataFolderTitle=Cartella dei dati utente
 SelectSetupInstallModeTitle=Scegli il tipo di installazione
 SelectSetupInstallModeDesc=VCMI può essere installato per tutti gli utenti o solo per te.
 SelectSetupInstallModeSubTitle=Seleziona il tipo di installazione preferito:

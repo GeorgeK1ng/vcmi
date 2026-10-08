@@ -430,6 +430,8 @@ AutoStartProgram=Démarrer automatiquement %1
 AddonHostProgramNotFound=%1 n'a pas été trouvé dans le dossier que vous avez choisi.%n%nVoulez-vous continuer malgré tout ?
 
 ; VCMI Custom Messages
+InstallFolderTitle=Dossier d'installation
+DataFolderTitle=Dossier des données utilisateur
 SelectSetupInstallModeTitle=Choisissez le mode d'installation
 SelectSetupInstallModeDesc=VCMI peut être installé pour tous les utilisateurs ou seulement pour vous.
 SelectSetupInstallModeSubTitle=Saisissez votre mode d'installation préféré :
