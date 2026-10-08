@@ -17,6 +17,8 @@
 
 #if defined(VCMI_WINDOWS)
 #include <shellapi.h>
+
+#include "../lib/platform/windows/CloudStorageDetection.h"
 #endif
 
 #include "progressoverlay.h"
@@ -141,11 +143,12 @@ bool datamanager::reportPermissionError(const QString & message) const
 	return false;
 }
 
-bool datamanager::confirmSynchronizedTarget(const IVCMIDirs & dirs, EUserDirectory directory, const QString & target) const
+bool datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const
 {
-	const auto targetPath = qstringToPath(target);
-	const bool isOneDrive = dirs.isOneDrivePath(targetPath);
-	if(!isOneDrive && !dirs.isCloudStoragePath(targetPath))
+#if defined(VCMI_WINDOWS)
+	const std::wstring nativeTarget = QDir::toNativeSeparators(target).toStdWString();
+	const bool isOneDrive = VCMI::Windows::isOneDrivePath(nativeTarget.c_str());
+	if(!isOneDrive && !VCMI::Windows::isCloudStoragePath(nativeTarget.c_str()))
 		return true;
 
 	const QString synchronizationDescription = isOneDrive
@@ -173,6 +176,11 @@ bool datamanager::confirmSynchronizedTarget(const IVCMIDirs & dirs, EUserDirecto
 
 	const auto confirmation = QMessageBox::warning(parent, tr("Confirm synchronized directory"), tr("Using a synchronized directory can make VCMI unreliable and may cause data-writing operations to fail.\n\nDo you really want to use this directory?"), QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 	return confirmation == QMessageBox::Yes;
+#else
+	Q_UNUSED(directory);
+	Q_UNUSED(target);
+	return true;
+#endif
 }
 
 bool datamanager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const
@@ -227,7 +235,7 @@ bool datamanager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedD
 		return false;
 	}
 
-	if(!confirmSynchronizedTarget(dirs, changedDirectory, target))
+	if(!confirmSynchronizedTarget(changedDirectory, target))
 	{
 		selectAnother = true;
 		return false;
@@ -839,8 +847,16 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			QMessageBox::warning(parent, tr("Original files kept"), tr("The original directory still contains another active VCMI directory and cannot be removed safely."));
 		else if(QFileInfo::exists(source) && !removePath(source))
 			QMessageBox::warning(parent, tr("Original files kept"), tr("The data was copied and reloaded, but the original directory could not be removed."));
+#if defined(VCMI_WINDOWS)
 		else
-			dirs.removeObsoleteUserDataParent(qstringToPath(source));
+		{
+			// Windows historically stored VCMI in Documents\My Games. Remove that parent after
+			// moving its last directory; QDir::rmdir intentionally leaves a non-empty folder intact.
+			const QFileInfo parentInfo(QFileInfo(source).dir().absolutePath());
+			if(parentInfo.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0)
+				parentInfo.dir().rmdir(parentInfo.fileName());
+		}
+#endif
 	}
 
 	const bool displacedTargetCanBeRemoved = completedTargetAction == EExistingTargetAction::REPLACE

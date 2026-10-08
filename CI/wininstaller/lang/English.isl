@@ -414,6 +414,8 @@ AddonHostProgramNotFound=%1 could not be located in the folder you selected.%n%n
 ; VCMI Custom Messages
 InstallFolderTitle=Installation folder
 DataFolderTitle=User data folder
+DataFolderDescription=Stores original Heroes III data, modifications, maps, saved games, and other user files.
+ResetFoldersToDefault=Reset to default
 SelectSetupInstallModeTitle=Choose Installation Mode
 SelectSetupInstallModeDesc=VCMI can be installed for all users or only for you.
 SelectSetupInstallModeSubTitle=Select your preferred installation mode:

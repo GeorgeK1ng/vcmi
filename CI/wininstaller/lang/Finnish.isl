@@ -385,6 +385,8 @@ AddonHostProgramNotFound=%1 ei ole valitsemassasi kansiossa.%n%nHaluatko jatkaa 
 ; VCMI Custom Messages
 InstallFolderTitle=Asennuskansio
 DataFolderTitle=Käyttäjätietojen kansio
+DataFolderDescription=Sisältää alkuperäiset Heroes III -tiedot, muokkaukset, kartat, tallennetut pelit ja muut käyttäjätiedostot.
+ResetFoldersToDefault=Palauta oletukset
 SelectSetupInstallModeTitle=Valitse asennustila
 SelectSetupInstallModeDesc=VCMI voidaan asentaa kaikille käyttäjille tai vain sinulle.
 SelectSetupInstallModeSubTitle=Valitse haluamasi asennustila:

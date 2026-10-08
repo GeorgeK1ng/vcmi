@@ -404,6 +404,8 @@ AddonHostProgramNotFound=Aplikace %1 nebyla ve Vámi zvolené složce nalezena.%
 ; VCMI Custom Messages
 InstallFolderTitle=Instalační složka
 DataFolderTitle=Složka uživatelských dat
+DataFolderDescription=Obsahuje původní data Heroes III, modifikace, mapy, uložené hry a další uživatelské soubory.
+ResetFoldersToDefault=Obnovit výchozí
 SelectSetupInstallModeTitle=Vyberte režim instalace
 SelectSetupInstallModeDesc=VCMI může být nainstalováno pro všechny uživatele nebo pouze pro vás.
 SelectSetupInstallModeSubTitle=Vyberte preferovaný režim instalace:

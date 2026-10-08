@@ -405,6 +405,8 @@ AddonHostProgramNotFound=您选择的文件夹中无法找到 %1。%n%n您要继
 ; VCMI Custom Messages
 InstallFolderTitle=安装文件夹
 DataFolderTitle=用户数据文件夹
+DataFolderDescription=存储原始 Heroes III 数据、模组、地图、游戏存档和其他用户文件。
+ResetFoldersToDefault=恢复默认值
 SelectSetupInstallModeTitle=选择安装模式
 SelectSetupInstallModeDesc=VCMI 可以为所有用户或仅为您安装。
 SelectSetupInstallModeSubTitle=选择您的首选安装模式：

@@ -412,6 +412,8 @@ AddonHostProgramNotFound=A(z) %1 nem található a kiválasztott könyvtárban.%
 ; VCMI Custom Messages
 InstallFolderTitle=Telepítési mappa
 DataFolderTitle=Felhasználói adatok mappája
+DataFolderDescription=Az eredeti Heroes III-adatokat, módosításokat, pályákat, mentéseket és egyéb felhasználói fájlokat tárolja.
+ResetFoldersToDefault=Alapértékek visszaállítása
 SelectSetupInstallModeTitle=Wählen Sie den Installationsmodus
 SelectSetupInstallModeDesc=VCMI kann für alle Benutzer oder nur für Sie installiert werden.
 SelectSetupInstallModeSubTitle=Wählen Sie den bevorzugten Installationsmodus:

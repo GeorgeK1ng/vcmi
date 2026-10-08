@@ -402,6 +402,8 @@ AddonHostProgramNotFound=%1 не знайдений у вказаній вами
 ; VCMI Custom Messages
 InstallFolderTitle=Тека встановлення
 DataFolderTitle=Тека даних користувача
+DataFolderDescription=Містить оригінальні дані Heroes III, модифікації, мапи, збереження та інші файли користувача.
+ResetFoldersToDefault=Відновити типові
 SelectSetupInstallModeTitle=Виберіть режим встановлення
 SelectSetupInstallModeDesc=VCMI можна встановити для всіх користувачів або лише для вас.
 SelectSetupInstallModeSubTitle=Виберіть бажаний режим встановлення:

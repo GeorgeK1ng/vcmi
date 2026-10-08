@@ -412,6 +412,8 @@ AddonHostProgramNotFound=%1 seçtiğiniz klasörde bulunamadı.%n%nYine de ilerl
 ; VCMI Custom Messages
 InstallFolderTitle=Kurulum klasörü
 DataFolderTitle=Kullanıcı verileri klasörü
+DataFolderDescription=Orijinal Heroes III verilerini, modifikasyonları, haritaları, kayıtlı oyunları ve diğer kullanıcı dosyalarını içerir.
+ResetFoldersToDefault=Varsayılana sıfırla
 SelectSetupInstallModeTitle=Kurulum Modunu Seçin
 SelectSetupInstallModeDesc=VCMI tüm kullanicilar için veya sadece sizin için kurulabilir.
 SelectSetupInstallModeSubTitle=Tercih ettiginiz kurulum modunu seçin:

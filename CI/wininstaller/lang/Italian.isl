@@ -419,6 +419,8 @@ AddonHostProgramNotFound=Impossibile individuare %1 nella cartella selezionata.%
 ; VCMI Custom Messages
 InstallFolderTitle=Cartella di installazione
 DataFolderTitle=Cartella dei dati utente
+DataFolderDescription=Contiene i dati originali di Heroes III, le modifiche, le mappe, i salvataggi e altri file utente.
+ResetFoldersToDefault=Ripristina predefiniti
 SelectSetupInstallModeTitle=Scegli il tipo di installazione
 SelectSetupInstallModeDesc=VCMI può essere installato per tutti gli utenti o solo per te.
 SelectSetupInstallModeSubTitle=Seleziona il tipo di installazione preferito:

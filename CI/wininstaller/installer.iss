@@ -66,6 +66,8 @@
 ;    warning messages; Inno Setup expands it to a blank line.
 ;      InstallFolderTitle
 ;      DataFolderTitle
+;      DataFolderDescription
+;      ResetFoldersToDefault
 ;      CloudDataWarning
 ;      CloudDataNotice
 ;      CloudInstallWarning
@@ -311,14 +313,12 @@ var
   // Our combined page that replaces wpSelectDir
   DirSelectPage: TWizardPage;
 
-  // Left bitmap (clone of the default page’s image)
-  DirPageBitmap: TBitmapImage;
+  InstallDirBitmap: TBitmapImage;
+  DataDirBitmap: TBitmapImage;
 
   // Controls for INSTALLATION folder (program files)
 
   LabelInstallInfo1: TNewStaticText;
-  LabelInstallInfo2: TNewStaticText;
-
   LabelInstall: TNewStaticText;
   CloudInstallNotice: TNewStaticText;
   InstallDirEdit: TEdit;
@@ -326,9 +326,11 @@ var
 
   // Controls for DATA folder (user data: mods, maps, saves)
   LabelData: TNewStaticText;
+  LabelDataInfo: TNewStaticText;
   CloudDataNotice: TNewStaticText;
   DataDirEdit: TEdit;
   DataDirBrowseBtn: TButton;
+  ResetDirsBtn: TButton;
 
   SelectedDataDir: String;
   ConfirmedCloudInstallDir: String;
@@ -1007,55 +1009,6 @@ begin
 end;
 
 
-// Binary size constants as floating-point to force real division
-const
-  ONE_KIB = 1024.0;
-  ONE_MIB = 1024.0 * 1024.0;
-  ONE_GIB = 1024.0 * 1024.0 * 1024.0;
-
-// Picks unit (MB/GB) and returns the numeric value for that unit (as Extended)
-procedure PickUnit(const Bytes: Int64; var UseGB: Boolean; var Value: Extended);
-begin
-  if Bytes >= Trunc(ONE_GIB) then
-  begin
-    UseGB := True;
-    Value := Bytes / ONE_GIB;   // GiB, real division
-  end
-  else
-  begin
-    UseGB := False;
-    Value := Bytes / ONE_MIB;   // MiB, real division
-  end;
-end;
-
-
-// Formats localized "At least X MB/GB of free disk space is required."
-function BuildDiskSpaceText(const Bytes: Int64): String;
-var
-  useGB: Boolean;
-  val: Extended;
-  txt, num: String;
-begin
-  PickUnit(Bytes, useGB, val);
-  num := Format('%.1f', [val]); // one decimal place
-
-  if useGB then
-  begin
-    // msgDiskSpaceGBLabel expects [gb]
-    txt := SetupMessage(msgDiskSpaceGBLabel);
-    StringChangeEx(txt, '[gb]', num, True);
-  end
-  else
-  begin
-    // msgDiskSpaceMBLabel expects [mb]
-    txt := SetupMessage(msgDiskSpaceMBLabel);
-    StringChangeEx(txt, '[mb]', num, True);
-  end;
-
-  Result := txt;
-end;
-
-
 // BOOL __stdcall ModerFolderPicker(HWND, LPCWSTR, LPCWSTR, LPWSTR, DWORD)
 function ModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
   external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
@@ -1135,14 +1088,23 @@ begin
 end;
 
 
+procedure ResetDirsClick(Sender: TObject);
+begin
+  if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1) then
+    InstallDirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}'
+  else
+    InstallDirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
+  DataDirEdit.Text := DefaultDataDir;
+end;
+
+
 procedure InitializeWizard();
 var
   TitleText, SubTitleText, InfoText: String;
-  LeftCol, TopY, EditWidth, ButtonWidth, RowGap: Integer;
+  LeftCol, TopY, ButtonWidth, RowGap: Integer;
 
   // Disk space line (same wording as the original page)
   DiskSpaceLabel: TNewStaticText;
-  RequiredBytes: Int64;
 
 begin
   // Check if the application is already installed
@@ -1219,37 +1181,20 @@ begin
   );
 
   // --- Layout metrics ---------------------------------------------------------
-  LeftCol     := ScaleX(0); // leave space for the left bitmap
-  TopY        := ScaleY(40);
-  EditWidth   := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(90);
+  LeftCol     := ScaleX(44);
+  TopY        := ScaleY(6);
   ButtonWidth := ScaleX(85);
-  RowGap      := ScaleY(12);
+  RowGap      := ScaleY(8);
 
-  // --- Clone the left bitmap from the default dir page -----------------------
-  DirPageBitmap := TBitmapImage.Create(DirSelectPage);
-  DirPageBitmap.Parent := DirSelectPage.Surface;
-  DirPageBitmap.Left := ScaleX(0);
-  DirPageBitmap.Top  := ScaleY(0);
-  DirPageBitmap.AutoSize := True;
-  // assign the same bitmap used by the original SelectDir page
-  DirPageBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
-
-
-
-  // --- INSTALLATION FOLDER CONTROLS (program files) --------------------------
-
-  LabelInstallInfo1 := TNewStaticText.Create(DirSelectPage);
-  LabelInstallInfo1.Parent := DirSelectPage.Surface;
-  LabelInstallInfo1.Left := 44;
-  LabelInstallInfo1.Top  := 9;
-
-  // Make sure this message looks same as SetupMessage(msgSelectDirLabel3) on wpSelectDir
-  InfoText := SetupMessage(msgSelectDirLabel3);
-  StringChangeEx(InfoText, '[name]', '{#VCMIFolder}', True);
-
-  LabelInstallInfo1.Caption := InfoText;
-  LabelInstallInfo1.AutoSize := True;
-
+  // Both sections use the same small folder icon and text layout as the standard page.
+  InstallDirBitmap := TBitmapImage.Create(DirSelectPage);
+  InstallDirBitmap.Parent := DirSelectPage.Surface;
+  InstallDirBitmap.Left := ScaleX(0);
+  InstallDirBitmap.Top := TopY;
+  InstallDirBitmap.Width := ScaleX(32);
+  InstallDirBitmap.Height := ScaleY(32);
+  InstallDirBitmap.Stretch := True;
+  InstallDirBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
 
   LabelInstall := TNewStaticText.Create(DirSelectPage);
   LabelInstall.Parent := DirSelectPage.Surface;
@@ -1257,15 +1202,27 @@ begin
   LabelInstall.Top  := TopY;
   LabelInstall.Caption := ExpandConstant('{cm:InstallFolderTitle}');
   LabelInstall.AutoSize := True;
-  //LabelInstall.Font.Style := [fsBold];
+  LabelInstall.Font.Style := [fsBold];
 
-  TopY := LabelInstall.Top + LabelInstall.Height + ScaleY(6);
+  LabelInstallInfo1 := TNewStaticText.Create(DirSelectPage);
+  LabelInstallInfo1.Parent := DirSelectPage.Surface;
+  LabelInstallInfo1.Left := LeftCol;
+  LabelInstallInfo1.Top := LabelInstall.Top + LabelInstall.Height + ScaleY(2);
+  LabelInstallInfo1.Width := DirSelectPage.SurfaceWidth - LeftCol;
+  LabelInstallInfo1.Height := ScaleY(28);
+  LabelInstallInfo1.AutoSize := False;
+  LabelInstallInfo1.WordWrap := True;
+  InfoText := SetupMessage(msgSelectDirLabel3);
+  StringChangeEx(InfoText, '[name]', '{#VCMIDisplayName}', True);
+  LabelInstallInfo1.Caption := InfoText;
+
+  TopY := LabelInstallInfo1.Top + LabelInstallInfo1.Height + ScaleY(4);
 
   InstallDirEdit := TEdit.Create(DirSelectPage);
   InstallDirEdit.Parent := DirSelectPage.Surface;
-  InstallDirEdit.Left := LeftCol;
+  InstallDirEdit.Left := ScaleX(0);
   InstallDirEdit.Top  := TopY;
-  InstallDirEdit.Width := EditWidth;
+  InstallDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
   // default like current logic (admin vs non-admin)
   InstallDirEdit.Text := WizardForm.DirEdit.Text;
 
@@ -1294,21 +1251,40 @@ begin
   TopY := CloudInstallNotice.Top + CloudInstallNotice.Height + RowGap;
 
   // --- DATA FOLDER CONTROLS (user files: mods, maps, saves) ------------------
+  DataDirBitmap := TBitmapImage.Create(DirSelectPage);
+  DataDirBitmap.Parent := DirSelectPage.Surface;
+  DataDirBitmap.Left := ScaleX(0);
+  DataDirBitmap.Top := TopY;
+  DataDirBitmap.Width := ScaleX(32);
+  DataDirBitmap.Height := ScaleY(32);
+  DataDirBitmap.Stretch := True;
+  DataDirBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
+
   LabelData := TNewStaticText.Create(DirSelectPage);
   LabelData.Parent := DirSelectPage.Surface;
   LabelData.Left := LeftCol;
   LabelData.Top  := TopY;
   LabelData.Caption := ExpandConstant('{cm:DataFolderTitle}');
   LabelData.AutoSize := True;
-  //LabelData.Font.Style := [fsBold];
+  LabelData.Font.Style := [fsBold];
 
-  TopY := LabelData.Top + LabelData.Height + ScaleY(6);
+  LabelDataInfo := TNewStaticText.Create(DirSelectPage);
+  LabelDataInfo.Parent := DirSelectPage.Surface;
+  LabelDataInfo.Left := LeftCol;
+  LabelDataInfo.Top := LabelData.Top + LabelData.Height + ScaleY(2);
+  LabelDataInfo.Width := DirSelectPage.SurfaceWidth - LeftCol;
+  LabelDataInfo.Height := ScaleY(28);
+  LabelDataInfo.AutoSize := False;
+  LabelDataInfo.WordWrap := True;
+  LabelDataInfo.Caption := ExpandConstant('{cm:DataFolderDescription}');
+
+  TopY := LabelDataInfo.Top + LabelDataInfo.Height + ScaleY(4);
 
   DataDirEdit := TEdit.Create(DirSelectPage);
   DataDirEdit.Parent := DirSelectPage.Surface;
-  DataDirEdit.Left := LeftCol;
+  DataDirEdit.Left := ScaleX(0);
   DataDirEdit.Top  := TopY;
-  DataDirEdit.Width := EditWidth;
+  DataDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
   DataDirEdit.Text := ReadUserDataPath(InstallDirEdit.Text, DefaultDataDir);
 
   DataDirBrowseBtn := TButton.Create(DirSelectPage);
@@ -1335,25 +1311,26 @@ begin
 
   // Visibility per scenario
   LabelData.Visible := ShowDataPickerOnOurPage;
+  LabelDataInfo.Visible := ShowDataPickerOnOurPage;
+  DataDirBitmap.Visible := ShowDataPickerOnOurPage;
   DataDirEdit.Visible := ShowDataPickerOnOurPage;
   DataDirBrowseBtn.Visible := ShowDataPickerOnOurPage;
   CloudDataNotice.Visible := ShowDataPickerOnOurPage and CloudDataNotice.Visible;
 
-  // --- Disk space line (same position as original) ---------------------------
-  // Compute required size based on packaged sources; add other sources if needed.
-  RequiredBytes := FolderSize(ExpandConstant('{#SourceFilesPath}')) + FolderSize(ExpandConstant('{#UCRTFilesPath}\{#InstallerArch}'));
-
-  //DiskSpaceLabel := TNewStaticText.Create(DirSelectPage);
-  //DiskSpaceLabel.Parent := DirSelectPage.Surface;
-  //DiskSpaceLabel.Left := 0;  // align with original left margin
-  //DiskSpaceLabel.Top := DataDirEdit.Top + DataDirEdit.Height + RowGap;
-  //DiskSpaceLabel.AutoSize := True;
-  //DiskSpaceLabel.Caption := BuildDiskSpaceText(RequiredBytes);
+  ResetDirsBtn := TButton.Create(DirSelectPage);
+  ResetDirsBtn.Parent := DirSelectPage.Surface;
+  ResetDirsBtn.Width := ScaleX(120);
+  ResetDirsBtn.Height := ScaleY(23);
+  ResetDirsBtn.Left := DirSelectPage.SurfaceWidth - ResetDirsBtn.Width;
+  ResetDirsBtn.Top := CloudDataNotice.Top + CloudDataNotice.Height + ScaleY(2);
+  ResetDirsBtn.Caption := ExpandConstant('{cm:ResetFoldersToDefault}');
+  ResetDirsBtn.OnClick := @ResetDirsClick;
 
   DiskSpaceLabel := TNewStaticText.Create(DirSelectPage);
   DiskSpaceLabel.Parent := DirSelectPage.Surface;
   DiskSpaceLabel.AutoSize := True;
-  DiskSpaceLabel.Caption := BuildDiskSpaceText(RequiredBytes);
+  // Inno has already calculated the installed size; CI source paths do not exist at runtime.
+  DiskSpaceLabel.Caption := WizardForm.DiskSpaceLabel.Caption;
   DiskSpaceLabel.Left := 0; // align with original left margin
   DiskSpaceLabel.Top := DirSelectPage.SurfaceHeight - DiskSpaceLabel.Height - ScaleY(7);
   DiskSpaceLabel.Anchors := [akLeft, akBottom];
@@ -1387,10 +1364,10 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False; // Default is not to skip the page
 
-  // Don't skip Target page if this is a PR build and upgrade
-  if IsPRInstaller and IsUpgrade and (PageID = wpSelectDir) then
+  // The custom page handles both application and user-data locations.
+  if PageID = wpSelectDir then
   begin
-    Result := False;
+    Result := True;
     Exit;
   end;
 

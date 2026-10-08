@@ -48,7 +48,7 @@ private:
 	bool isDirectoryWritable(const QString & path) const;
 	bool containsActiveUserDirectory(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & path) const;
 	bool validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const;
-	bool confirmSynchronizedTarget(const IVCMIDirs & dirs, EUserDirectory directory, const QString & target) const;
+	bool confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const;
 
 	bool removePath(const QString & path) const;
 	qint64 directorySize(const QString & path) const;
