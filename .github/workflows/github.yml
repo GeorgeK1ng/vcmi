@@ -848,6 +848,26 @@ jobs:
     - name: Smoke test Windows installer
       shell: pwsh
       run: |
+        function Invoke-InstallerExecutable {
+          param(
+            [Parameter(Mandatory)] [string] $FilePath,
+            [Parameter(Mandatory)] [string[]] $Arguments
+          )
+
+          # Setup and Uninstall are GUI executables. PowerShell does not reliably
+          # wait for GUI processes or populate $LASTEXITCODE when invoked with &.
+          $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+          $startInfo.FileName = $FilePath
+          $startInfo.UseShellExecute = $false
+          foreach ($argument in $Arguments) {
+            $startInfo.ArgumentList.Add($argument)
+          }
+
+          $process = [System.Diagnostics.Process]::Start($startInfo)
+          $process.WaitForExit()
+          return $process.ExitCode
+        }
+
         $installer = Join-Path '${{ github.workspace }}\CI\wininstaller\Output' '${{ env.VCMI_PACKAGE_FILE_NAME }}.exe'
         $testRoot = Join-Path $env:RUNNER_TEMP 'vcmi-installer-smoke'
         $installDir = Join-Path $testRoot 'app'
@@ -857,8 +877,11 @@ jobs:
         New-Item -ItemType Directory -Force -Path $dataDir, $outsideDir | Out-Null
         Set-Content -LiteralPath (Join-Path $outsideDir 'sentinel.txt') -Value 'keep'
 
-        & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER "/DIR=$installDir" "/USERDATADIR=$dataDir" /TASKS=""
-        if ($LASTEXITCODE -ne 0) { throw "Installer failed with exit code $LASTEXITCODE" }
+        $exitCode = Invoke-InstallerExecutable $installer @(
+          '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER',
+          "/DIR=$installDir", "/USERDATADIR=$dataDir", '/TASKS='
+        )
+        if ($exitCode -ne 0) { throw "Installer failed with exit code $exitCode" }
 
         $configFile = Join-Path $installDir 'config\dirs.json'
         if (-not (Test-Path -LiteralPath (Join-Path $installDir 'VCMI_launcher.exe'))) { throw 'Launcher was not installed' }
@@ -871,15 +894,20 @@ jobs:
         New-Item -ItemType Junction -Path (Join-Path $dataDir 'external-link') -Target $outsideDir | Out-Null
 
         $uninstaller = Join-Path $installDir 'unins000.exe'
-        & $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DELETEUSERDATA=1
-        if ($LASTEXITCODE -ne 0) { throw "Uninstaller failed with exit code $LASTEXITCODE" }
+        $exitCode = Invoke-InstallerExecutable $uninstaller @(
+          '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/DELETEUSERDATA=1'
+        )
+        if ($exitCode -ne 0) { throw "Uninstaller failed with exit code $exitCode" }
         if (Test-Path -LiteralPath $installDir) { throw 'Installation directory was not removed' }
         if (Test-Path -LiteralPath $dataDir) { throw 'Selected user data directory was not removed' }
         if (-not (Test-Path -LiteralPath (Join-Path $outsideDir 'sentinel.txt'))) { throw 'Uninstaller followed a directory junction' }
 
         $portableDir = Join-Path $testRoot 'portable app'
-        & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER /PORTABLE=1 "/DIR=$portableDir" /TASKS=""
-        if ($LASTEXITCODE -ne 0) { throw "Portable setup failed with exit code $LASTEXITCODE" }
+        $exitCode = Invoke-InstallerExecutable $installer @(
+          '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER',
+          '/PORTABLE=1', "/DIR=$portableDir", '/TASKS='
+        )
+        if ($exitCode -ne 0) { throw "Portable setup failed with exit code $exitCode" }
 
         $portableConfigFile = Join-Path $portableDir 'config\dirs.json'
         if (-not (Test-Path -LiteralPath (Join-Path $portableDir 'VCMI_launcher.exe'))) { throw 'Portable launcher was not installed' }
