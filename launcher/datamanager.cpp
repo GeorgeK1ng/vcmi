@@ -852,10 +852,15 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 #if defined(VCMI_WINDOWS)
 		else
 		{
-			// Windows historically stored VCMI in Documents\My Games. Remove that parent after
-			// moving its last directory; QDir::rmdir intentionally leaves a non-empty folder intact.
+			// Windows historically stored VCMI in Documents\My Games. Also clean up a parent merely
+			// named OneDrive, but preserve it when it is an actual cloud-synchronized directory.
+			// QDir::rmdir intentionally leaves every non-empty folder intact.
 			const QFileInfo parentInfo(QFileInfo(source).dir().absolutePath());
-			if(parentInfo.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0)
+			const bool isMyGames = parentInfo.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0;
+			const bool isNamedOneDrive = parentInfo.fileName().compare(QStringLiteral("OneDrive"), Qt::CaseInsensitive) == 0;
+			const std::wstring nativeParent = QDir::toNativeSeparators(parentInfo.absoluteFilePath()).toStdWString();
+			const bool isActualCloudDirectory = VCMI::Windows::isCloudStoragePath(nativeParent.c_str());
+			if(isMyGames || (isNamedOneDrive && !isActualCloudDirectory))
 				parentInfo.dir().rmdir(parentInfo.fileName());
 		}
 #endif

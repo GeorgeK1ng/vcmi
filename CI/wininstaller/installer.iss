@@ -73,6 +73,12 @@
 ;      CloudInstallWarning
 ;      CloudInstallNotice
 ;      SharedUserDataNotice
+;      DeleteUserDataDescription
+;      UserDataDirectory
+;      CacheDirectory
+;      ConfigDirectory
+;      LogsDirectory
+;      SavesDirectory
 ;
 ;    CloudDataWarning and CloudInstallWarning are confirmation dialogs.
 ;    CloudDataNotice and CloudInstallNotice are displayed below the matching
@@ -286,6 +292,7 @@ Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=vcmi_c
 [Code]
 type
   TUninstallPathArray = array[0..4] of String;
+  TUninstallPathDescriptionArray = array[0..4] of String;
   TUninstallPathProtectionArray = array[0..4] of Boolean;
   TUninstallCheckboxArray = array[0..4] of TNewCheckBox;
 
@@ -296,6 +303,7 @@ var
   PreInstallTasksDone: Boolean;
   UninstallPathCount: Integer;
   UninstallPaths: TUninstallPathArray;
+  UninstallPathDescriptions: TUninstallPathDescriptionArray;
   UninstallPathProtected: TUninstallPathProtectionArray;
   DeletePathCheckboxes: TUninstallCheckboxArray;
   Heroes3Path: String;
@@ -849,7 +857,7 @@ begin
 end;
 
 
-procedure AddUninstallPath(const Path: String);
+procedure AddUninstallPath(const Path, Description: String);
 var
   Index: Integer;
   NormalizedPath: String;
@@ -864,6 +872,7 @@ begin
     Exit;
 
   UninstallPaths[UninstallPathCount] := NormalizedPath;
+  UninstallPathDescriptions[UninstallPathCount] := Description;
   UninstallPathProtected[UninstallPathCount] := IsPathUsedByOtherInstallation(NormalizedPath);
   UninstallPathCount := UninstallPathCount + 1;
 end;
@@ -875,11 +884,11 @@ var
 begin
   UninstallPathCount := 0;
   CachePath := ReadRuntimePath(InstallDir, 'userCachePath', DataPath + '\cache');
-  AddUninstallPath(DataPath);
-  AddUninstallPath(CachePath);
-  AddUninstallPath(ReadRuntimePath(InstallDir, 'userConfigPath', DataPath + '\config'));
-  AddUninstallPath(ReadRuntimePath(InstallDir, 'userLogsPath', DataPath + '\logs'));
-  AddUninstallPath(ReadRuntimePath(InstallDir, 'userSavePath', DataPath + '\saves'));
+  AddUninstallPath(DataPath, ExpandConstant('{cm:UserDataDirectory}'));
+  AddUninstallPath(CachePath, ExpandConstant('{cm:CacheDirectory}'));
+  AddUninstallPath(ReadRuntimePath(InstallDir, 'userConfigPath', DataPath + '\config'), ExpandConstant('{cm:ConfigDirectory}'));
+  AddUninstallPath(ReadRuntimePath(InstallDir, 'userLogsPath', DataPath + '\logs'), ExpandConstant('{cm:LogsDirectory}'));
+  AddUninstallPath(ReadRuntimePath(InstallDir, 'userSavePath', DataPath + '\saves'), ExpandConstant('{cm:SavesDirectory}'));
 end;
 
 
@@ -1743,7 +1752,8 @@ end;
 
 
 var
-  DeleteUserDataLabel: TLabel;
+  DeleteUserDataLabel: TNewStaticText;
+  DeleteUserDataDescriptionLabel: TNewStaticText;
 
 
 function DeleteFolderContents(const FolderPath: String): Boolean;
@@ -1884,17 +1894,31 @@ begin
       PageIndex := 0; // first page
     end;
 
-    DeleteUserDataLabel := TLabel.Create(UninstallProgressForm);
+    DeleteUserDataLabel := TNewStaticText.Create(UninstallProgressForm);
     with DeleteUserDataLabel do
     begin
       Parent := Page;
       Top := ScaleX(20);
       Left := ScaleX(20);
-      Width := ScaleX(400);
+      Width := Page.Width - ScaleX(40);
       Caption := ExpandConstant('{cm:DeleteUserData}');
+      Font.Style := [fsBold];
     end;
 
-    CheckboxTop := DeleteUserDataLabel.Top + ScaleY(24);
+    DeleteUserDataDescriptionLabel := TNewStaticText.Create(UninstallProgressForm);
+    with DeleteUserDataDescriptionLabel do
+    begin
+      Parent := Page;
+      Top := DeleteUserDataLabel.Top + DeleteUserDataLabel.Height + ScaleY(4);
+      Left := ScaleX(20);
+      Width := Page.Width - ScaleX(40);
+      Height := ScaleY(32);
+      AutoSize := False;
+      WordWrap := True;
+      Caption := ExpandConstant('{cm:DeleteUserDataDescription}');
+    end;
+
+    CheckboxTop := DeleteUserDataDescriptionLabel.Top + DeleteUserDataDescriptionLabel.Height + ScaleY(8);
     for Index := 0 to UninstallPathCount - 1 do
     begin
       DeletePathCheckboxes[Index] := TNewCheckBox.Create(UninstallProgressForm);
@@ -1903,17 +1927,17 @@ begin
         Parent := Page;
         Top := CheckboxTop;
         Left := ScaleX(20);
-        Width := ScaleX(400);
-        Height := ScaleY(34);
+        Width := Page.Width - ScaleX(40);
+        Height := ScaleY(42);
         Checked := False;
         Enabled := not UninstallPathProtected[Index];
         if UninstallPathProtected[Index] then
-          Caption := UninstallPaths[Index] + #13#10 + ExpandConstant('{cm:SharedUserDataNotice}')
+          Caption := UninstallPathDescriptions[Index] + #13#10 + UninstallPaths[Index] + #13#10 + ExpandConstant('{cm:SharedUserDataNotice}')
         else
-          Caption := UninstallPaths[Index];
+          Caption := UninstallPathDescriptions[Index] + #13#10 + UninstallPaths[Index];
         TabOrder := Index;
       end;
-      CheckboxTop := CheckboxTop + ScaleY(38);
+      CheckboxTop := CheckboxTop + DeletePathCheckboxes[Index].Height + ScaleY(3);
     end;
 
     // -- Activate the first page
