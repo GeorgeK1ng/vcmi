@@ -1,137 +1,16 @@
 ; ============================================================================
-; VCMI Installer – Adding a New Translation
+; Building and maintenance
 ; ============================================================================
 ;
-; 1. Download the base ISL file for your language:
-;    - Get the appropriate .isl file from the official Inno Setup repository:
-;      https://github.com/jrsoftware/issrc/tree/main/Files/Languages
+; Local build instructions, architecture mapping, command-line parameters,
+; plugin behavior, directory metadata, and uninstall behavior are documented in:
+;   docs/developers/Building_Windows.md#building-the-windows-installer
+; Translation maintenance is documented in:
+;   docs/translators/Maintenance.md#translating-the-installer
 ;
-; 2. Add VCMI custom messages:
-;    - Open the downloaded .isl file and insert all VCMI-specific messages.
-;    - Use English.isl (VCMI version) as a reference.
-;    - Ensure translations keep placeholders (%1, %2, etc.) intact and match
-;      the format of the English version exactly.
-;
-; 3. Update/translate the following modified messages:
-;    These differ from the default Inno Setup language files and are required
-;    for VCMI's custom installer functionality.
-;
-;    ------------------------------------------------------------------------
-;    WindowsVersionNotSupported
-;    ------------------------------------------------------------------------
-;    Why: VCMI adds a more descriptive message for unsupported Windows versions.
-;    Original:
-;      WindowsVersionNotSupported=This program does not support the version of Windows your computer is running.
-;    VCMI version:
-;      WindowsVersionNotSupported=This program cannot run on your version of Windows. Please ensure you are using the correct Windows version.
-;
-;    ------------------------------------------------------------------------
-;    PrivilegesRequiredOverride* messages
-;    ------------------------------------------------------------------------
-;    Why: VCMI customizes privilege escalation messages to clarify installation
-;         for all users vs. current user and highlight administrative rights.
-;    Messages to add/update:
-;      PrivilegesRequiredOverrideTitle
-;      PrivilegesRequiredOverrideInstruction
-;      PrivilegesRequiredOverrideText1
-;      PrivilegesRequiredOverrideText2
-;      PrivilegesRequiredOverrideAllUsers
-;      PrivilegesRequiredOverrideAllUsersRecommended
-;      PrivilegesRequiredOverrideCurrentUser
-;      PrivilegesRequiredOverrideCurrentUserRecommended
-;
-;    Example (VCMI English):
-;      PrivilegesRequiredOverrideTitle=Administrator Privileges Required
-;      PrivilegesRequiredOverrideInstruction=Choose how to run the installer
-;      PrivilegesRequiredOverrideText1=%1 requires administrative rights to install for all users. You can also install just for your account (no administrative rights required) or for all users (administrator rights required).
-;      PrivilegesRequiredOverrideText2=%1 can be installed only for your account (no administrative rights required) or for all users (administrator rights required).
-;      PrivilegesRequiredOverrideAllUsers=Run as &Administrator (install for all users)
-;      PrivilegesRequiredOverrideAllUsersRecommended=Run as &Administrator (recommended)
-;      PrivilegesRequiredOverrideCurrentUser=Run as &Standard User (install for me only)
-;      PrivilegesRequiredOverrideCurrentUserRecommended=Run as &Standard User (recommended)
-;
-;    ------------------------------------------------------------------------
-;    ConfirmUninstall
-;    ------------------------------------------------------------------------
-;    Why: VCMI uses a custom uninstall wizard. The message must reflect this.
-;    Original:
-;      ConfirmUninstall=Are you sure you want to completely remove %1 and all of its components?
-;    VCMI version:
-;      ConfirmUninstall=Are you sure you want to run the %1 uninstall wizard?
-;
-;    ------------------------------------------------------------------------
-;    Directory selection and cloud-storage messages
-;    ------------------------------------------------------------------------
-;    These entries are required in every language file. Keep %n%n in the
-;    warning messages; Inno Setup expands it to a blank line.
-;      InstallFolderTitle
-;      DataFolderTitle
-;      DataFolderDescription
-;      ResetFoldersToDefault
-;      CloudDataWarning
-;      CloudDataNotice
-;      CloudInstallWarning
-;      CloudInstallNotice
-;      SharedUserDataNotice
-;      DeleteUserDataDescription
-;      UserDataDirectory
-;      CacheDirectory
-;      ConfigDirectory
-;      LogsDirectory
-;      SavesDirectory
-;
-;    CloudDataWarning and CloudInstallWarning are confirmation dialogs.
-;    CloudDataNotice and CloudInstallNotice are displayed below the matching
-;    directory editor. SharedUserDataNotice explains why uninstall cannot
-;    delete a directory which is still used by another VCMI architecture.
-;
-; 4. Add the new language to the installer:
-;    - In the [Languages] section of the script, register your translation:
-;      Name: "YourLanguage"; MessagesFile: "{#LangPath}\YourLanguage.isl"
-;
-; 5. Verify consistency:
-;    - Check all custom messages against the English VCMI ISL file.
-;    - Test the installer to confirm all messages appear correctly.
-
-
-; ============================================================================
-; Installer plugin and directory handling
-; ============================================================================
-;
-; CI/wininstaller/plugins builds installerPlugin.dll for the bitness of Setup.
-; The installer is compiled by Inno Setup 7 and requires Windows 7 SP1 or newer.
-; The DLL exports:
-;   ModerFolderPicker  - Unicode IFileDialog folder picker for Windows 7+
-;   IsCloudStoragePath - OneDrive environment check plus the dynamically
-;                        loaded Windows Cloud Files API
-;
-; The x64 package uses an x64 Setup and plugin. The x86 and ARM64 packages use
-; an x86 Setup and plugin because Inno Setup has no ARM64 SetupArchitecture;
-; the application payload in the ARM64 package remains native ARM64.
-; Older x64 packages used an x86 Setup process. Their architecture-specific
-; Inno uninstall records are searched in both 32-bit and 64-bit registry views
-; so they can be upgraded and protected during another architecture's uninstall.
-;
-; Documents\My Games\VCMI is the normal user-data default. If Documents is
-; cloud synchronized, Local AppData\VCMI is used instead. A manually selected
-; cloud installation or user-data directory remains allowed after an explicit
-; warning and is marked on the directory page.
-;
-; The selected user-data path is stored in {app}\config\dirs.json. Registry
-; values under HKCU\Software\VCMI\Installer\<architecture> store per-installer
-; fallback metadata. The global HKCU\Software\VCMI\userDataPath value is only
-; the runtime fallback used when dirs.json cannot be written.
-;
-; During uninstall, all five managed paths (data, cache, config, logs, saves)
-; are resolved from dirs.json and registry fallbacks. Paths below the same
-; selected root are collapsed into one item; paths in different trees are
-; presented as separate checkboxes. Deletion is disabled for any path also
-; used by another installed VCMI architecture.
-
-
-; Manual preprocessor definitions are provided using ISCC.exe parameters.
-; build_installer.cmd supplies all values in CI. InstallerArch is the payload
-; architecture (x86, x64, or arm64); SetupArch is limited to x86 or x64.
+; build_installer.cmd supplies the preprocessor definitions below. InstallerArch
+; is the payload architecture (x86, x64, or arm64); SetupArch is the architecture
+; of Setup and installerPlugin.dll and is limited to x86 or x64.
 
 ; #define AppVersion "1.7.0"
 ; #define AppBuild "1122334455A"
@@ -144,6 +23,7 @@
 ; #define InstallerPluginPath "C:\_VCMI_Source\CI\wininstaller\plugins\build\bin\Release"
 ; #define UCRTFilesPath "C:\Program Files (x86)\Windows Kits\10\Redist\10.0.22621.0\ucrt\DLLs"
 ; #define LangPath "C:\_VCMI_Source\CI\wininstaller\lang"
+; #define UnofficialLangPath "C:\Temp\vcmi-inno-languages-7.1.0"
 ; #define LicenseFile "C:\_VCMI_Source\license.txt"
 ; #define IconFile "C:\_VCMI_Source\clientapp\icons\vcmi.ico"
 ; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\vcmismalllogo.bmp"
@@ -163,7 +43,6 @@
 #define VCMIHome "https://vcmi.eu/"
 #define VCMIContact "https://discord.gg/chBT42V"
 
-
 [Setup]
 AppId={#VCMIFolder}.{#InstallerArch}
 AppName={#VCMIDisplayName}
@@ -175,10 +54,13 @@ AppSupportURL={#VCMIContact}
 AppComments={#AppComment}
 DefaultDirName={code:GetDefaultDir}
 DefaultGroupName={#VCMIFolder}
+Uninstallable=not IsPortableInstall
+CreateUninstallRegKey=not IsPortableInstall
 UninstallDisplayIcon={app}\VCMI_launcher.exe
 OutputBaseFilename={#InstallerName}
 PrivilegesRequiredOverridesAllowed=commandline dialog
 ShowLanguageDialog=yes
+LanguageDetectionMethod=uilanguage
 DisableWelcomePage=no
 DisableProgramGroupPage=yes
 ChangesAssociations=yes
@@ -201,7 +83,7 @@ SetupIconFile={#IconFile}
 WizardSmallImageFile={#SmallLogo}
 WizardImageFile={#WizardLogo}
 
-; Version informations
+; Version information
 MinVersion=6.1sp1
 VersionInfoCompany={#VCMITeam}
 VersionInfoDescription={#VCMIDisplayName} {#AppVersion} Setup (Build {#AppBuild})
@@ -210,25 +92,34 @@ VersionInfoCopyright={#VCMICopyright}
 VersionInfoVersion={#AppVersion}
 VersionInfoOriginalFileName={#InstallerName}.exe
 
-
 [Languages]
-Name: "english"; MessagesFile: "{#LangPath}\English.isl"
-Name: "czech"; MessagesFile: "{#LangPath}\Czech.isl"
-Name: "chinese"; MessagesFile: "{#LangPath}\ChineseSimplified.isl"
-Name: "finnish"; MessagesFile: "{#LangPath}\Finnish.isl"
-Name: "french"; MessagesFile: "{#LangPath}\French.isl"
-Name: "german"; MessagesFile: "{#LangPath}\German.isl"
-Name: "hungarian"; MessagesFile: "{#LangPath}\Hungarian.isl"
-Name: "italian"; MessagesFile: "{#LangPath}\Italian.isl"
-Name: "korean"; MessagesFile: "{#LangPath}\Korean.isl"
-Name: "polish"; MessagesFile: "{#LangPath}\Polish.isl"
-Name: "portuguese"; MessagesFile: "{#LangPath}\BrazilianPortuguese.isl"
-Name: "russian"; MessagesFile: "{#LangPath}\Russian.isl"
-Name: "spanish"; MessagesFile: "{#LangPath}\Spanish.isl"
-Name: "swedish"; MessagesFile: "{#LangPath}\Swedish.isl"
-Name: "turkish"; MessagesFile: "{#LangPath}\Turkish.isl"
-Name: "ukrainian"; MessagesFile: "{#LangPath}\Ukrainian.isl"
-Name: "vietnamese"; MessagesFile: "{#LangPath}\Vietnamese.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl,{#LangPath}\English.isl"
+Name: "belarusian"; MessagesFile: "{#UnofficialLangPath}\Belarusian.isl,{#LangPath}\Belarusian.isl"
+Name: "bulgarian"; MessagesFile: "compiler:Languages\Bulgarian.isl,{#LangPath}\Bulgarian.isl"
+Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl,{#LangPath}\Czech.isl"
+Name: "chinese"; MessagesFile: "compiler:Languages\ChineseSimplified.isl,{#LangPath}\ChineseSimplified.isl"
+Name: "tchinese"; MessagesFile: "compiler:Languages\ChineseTraditional.isl,{#LangPath}\ChineseTraditional.isl"
+Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl,{#LangPath}\Dutch.isl"
+Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl,{#LangPath}\Finnish.isl"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl,{#LangPath}\French.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl,{#LangPath}\German.isl"
+Name: "greek"; MessagesFile: "{#UnofficialLangPath}\Greek.isl,{#LangPath}\Greek.isl"
+Name: "hungarian"; MessagesFile: "compiler:Languages\Hungarian.isl,{#LangPath}\Hungarian.isl"
+Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl,{#LangPath}\Italian.isl"
+Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl,{#LangPath}\Japanese.isl"
+Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl,{#LangPath}\Korean.isl"
+Name: "latvian"; MessagesFile: "{#UnofficialLangPath}\Latvian.isl,{#LangPath}\Latvian.isl"
+Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl,{#LangPath}\Norwegian.isl"
+Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl,{#LangPath}\Polish.isl"
+Name: "portuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl,{#LangPath}\BrazilianPortuguese.isl"
+Name: "romanian"; MessagesFile: "{#UnofficialLangPath}\Romanian.isl,{#LangPath}\Romanian.isl"
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl,{#LangPath}\Russian.isl"
+Name: "serbian"; MessagesFile: "{#UnofficialLangPath}\SerbianCyrillic.isl,{#LangPath}\SerbianCyrillic.isl"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl,{#LangPath}\Spanish.isl"
+Name: "swedish"; MessagesFile: "compiler:Languages\Swedish.isl,{#LangPath}\Swedish.isl"
+Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl,{#LangPath}\Turkish.isl"
+Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl,{#LangPath}\Ukrainian.isl"
+Name: "vietnamese"; MessagesFile: "{#UnofficialLangPath}\Vietnamese.isl,{#LangPath}\Vietnamese.isl"
 
 [Files]
 Source: "{#InstallerPluginPath}\installerPlugin.dll"; Flags: dontcopy noencryption
@@ -236,65 +127,56 @@ Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded
 
 [Icons]
-Name: "{group}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}";  Tasks: startmenu
-Name: "{group}\{cm:ShortcutMapEditor}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_mapeditor.exe"; Comment: "{cm:ShortcutMapEditorComment}{code:GetBranchSuffix}";  Tasks: startmenu
-Name: "{group}\{cm:ShortcutWebPage}"; Filename: "{#VCMIHome}"; Comment: "{cm:ShortcutWebPageComment}";  Tasks: startmenu
-Name: "{group}\{cm:ShortcutDiscord}"; Filename: "{#VCMIContact}"; Comment: "{cm:ShortcutDiscordComment}";  Tasks: startmenu
+Name: "{group}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: startmenu; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutMapEditor}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_mapeditor.exe"; Comment: "{cm:ShortcutMapEditorComment}{code:GetBranchSuffix}"; Tasks: startmenu; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutWebPage}"; Filename: "{#VCMIHome}"; Comment: "{cm:ShortcutWebPageComment}"; Tasks: startmenu; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutDiscord}"; Filename: "{#VCMIContact}"; Comment: "{cm:ShortcutDiscordComment}"; Tasks: startmenu; Check: not IsPortableInstall
 
-Name: "{code:GetUserDesktopFolder}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: desktop
-
+Name: "{code:GetUserDesktopFolder}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: desktop; Check: not IsPortableInstall
 
 [Tasks]
-Name: "desktop"; Description: "{cm:CreateDesktopShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller
-Name: "startmenu"; Description: "{cm:CreateStartMenuShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller
-Name: "fileassociation_h3m"; Description: "{cm:AssociateH3MFiles}"; GroupDescription: "{cm:SystemIntegration}"; Flags: unchecked; Check: not IsPRInstaller
-Name: "fileassociation_vcmimap"; Description: "{cm:AssociateVCMIMapFiles}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller
+Name: "desktop"; Description: "{cm:CreateDesktopShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "startmenu"; Description: "{cm:CreateStartMenuShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_h3m"; Description: "{cm:AssociateH3MFiles}"; GroupDescription: "{cm:SystemIntegration}"; Flags: unchecked; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_vcmimap"; Description: "{cm:AssociateVCMIMapFiles}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
 
-Name: "firewallrules"; Description: "{cm:AddFirewallRules}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsAdminInstallMode
+Name: "firewallrules"; Description: "{cm:AddFirewallRules}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsAdminInstallMode and not IsPortableInstall
 Name: "h3copyfiles"; Description: "{cm:CopyH3Files}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsHeroes3Installed and IsCopyFilesNeeded
 
 [Registry]
-Root: HKCU; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "userDataPath"; ValueData: "{code:GetSelectedDataDir}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\{#VCMIFolder}\Installer\{#InstallerArch}"; ValueType: string; ValueName: "userDataPath"; ValueData: "{code:GetSelectedDataDir}"; Flags: uninsdeletekey; Check: not IsPortableInstall
 
-Root: HKCU; Subkey: "Software\Classes\.vmap"; ValueType: string; ValueName: ""; ValueData: "VCMI.vmap"; Flags: uninsdeletevalue; Tasks: fileassociation_vcmimap
-Root: HKCU; Subkey: "Software\Classes\VCMI.vmap"; ValueType: string; ValueName: ""; ValueData: "{cm:VMAPDescription}"; Flags: uninsdeletekey; Tasks: fileassociation_vcmimap
-Root: HKCU; Subkey: "Software\Classes\VCMI.vmap\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap
+Root: HKA; Subkey: "Software\Classes\.vmap"; ValueType: string; ValueName: ""; ValueData: "VCMI.vmap"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vmap"; ValueType: string; ValueName: ""; ValueData: "{cm:VMAPDescription}"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vmap\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
 
-Root: HKCU; Subkey: "Software\Classes\.vcmp"; ValueType: string; ValueName: ""; ValueData: "VCMI.vcmp"; Flags: uninsdeletevalue; Tasks: fileassociation_vcmimap
-Root: HKCU; Subkey: "Software\Classes\VCMI.vcmp"; ValueType: string; ValueName: ""; ValueData: "{cm:VCMPDescription}"; Flags: uninsdeletekey; Tasks: fileassociation_vcmimap
-Root: HKCU; Subkey: "Software\Classes\VCMI.vcmp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap
+Root: HKA; Subkey: "Software\Classes\.vcmp"; ValueType: string; ValueName: ""; ValueData: "VCMI.vcmp"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vcmp"; ValueType: string; ValueName: ""; ValueData: "{cm:VCMPDescription}"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vcmp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
 
-Root: HKCU; Subkey: "Software\Classes\.h3m"; ValueType: string; ValueName: ""; ValueData: "VCMI.h3m"; Flags: uninsdeletevalue; Tasks: fileassociation_h3m
-Root: HKCU; Subkey: "Software\Classes\VCMI.h3m"; ValueType: string; ValueName: ""; ValueData: "{cm:H3MDescription}"; Flags: uninsdeletekey; Tasks: fileassociation_h3m
-Root: HKCU; Subkey: "Software\Classes\VCMI.h3m\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_h3m
-
+Root: HKA; Subkey: "Software\Classes\.h3m"; ValueType: string; ValueName: ""; ValueData: "VCMI.h3m"; Tasks: fileassociation_h3m; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.h3m"; ValueType: string; ValueName: ""; ValueData: "{cm:H3MDescription}"; Tasks: fileassociation_h3m; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.h3m\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_h3m; Check: not IsPortableInstall
 
 [Run]
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=vcmi_server dir=in action=allow program=""{app}\vcmi_server.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=vcmi_client dir=in action=allow program=""{app}\vcmi_client.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI server ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_server.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI client ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_client.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
 
 Filename: "{app}\VCMI_launcher.exe"; Description: "{cm:RunVCMILauncherAfterInstall}"; Flags: nowait postinstall; Check: ShouldRunLauncher
 
-
 [UninstallRun]
-; Kill VCMI processes
-Filename: "taskkill.exe"; Parameters: "/F /IM VCMI_client.exe"; Flags: runhidden; RunOnceId: "KillVCMIClient"
-Filename: "taskkill.exe"; Parameters: "/F /IM VCMI_server.exe"; Flags: runhidden; RunOnceId: "KillVCMIServer"
-Filename: "taskkill.exe"; Parameters: "/F /IM VCMI_launcher.exe"; Flags: runhidden; RunOnceId: "KillVCMILauncher"
-Filename: "taskkill.exe"; Parameters: "/F /IM VCMI_mapeditor.exe"; Flags: runhidden; RunOnceId: "KillVCMIMapEditor"
-
 ; Remove firewall rules
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=vcmi_server"; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIServer"
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=vcmi_client"; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIClient"
-
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIServer"
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIClient"
 
 [Code]
 type
   TUninstallPathArray = array[0..4] of String;
   TUninstallPathDescriptionArray = array[0..4] of String;
   TUninstallPathProtectionArray = array[0..4] of Boolean;
-  TUninstallCheckboxArray = array[0..4] of TNewCheckBox;
 
 var
   InstallModePage: TInputOptionWizardPage;
@@ -305,7 +187,8 @@ var
   UninstallPaths: TUninstallPathArray;
   UninstallPathDescriptions: TUninstallPathDescriptionArray;
   UninstallPathProtected: TUninstallPathProtectionArray;
-  DeletePathCheckboxes: TUninstallCheckboxArray;
+  DeletePathsList: TNewCheckListBox;
+  DeleteAllUserData: Boolean;
   Heroes3Path: String;
   GlobalUserName: String;
   GlobalUserDocsFolder: String;
@@ -315,16 +198,10 @@ var
   VCMIMapsFolder, VCMIDataFolder, VCMIMp3Folder: String;
   Heroes3MapsFolder, Heroes3DataFolder, Heroes3Mp3Folder: String;
 
-
-
-
-  // Our combined page that replaces wpSelectDir
   DirSelectPage: TWizardPage;
 
   InstallDirBitmap: TBitmapImage;
   DataDirBitmap: TBitmapImage;
-
-  // Controls for INSTALLATION folder (program files)
 
   LabelInstallInfo1: TNewStaticText;
   LabelInstall: TNewStaticText;
@@ -332,7 +209,6 @@ var
   InstallDirEdit: TEdit;
   InstallDirBrowseBtn: TButton;
 
-  // Controls for DATA folder (user data: mods, maps, saves)
   LabelData: TNewStaticText;
   LabelDataInfo: TNewStaticText;
   CloudDataNotice: TNewStaticText;
@@ -343,32 +219,14 @@ var
   SelectedDataDir: String;
   ConfirmedCloudInstallDir: String;
   ConfirmedCloudDataDir: String;
+  CommandLineUserDataDir: String;
+  CustomProgressTotal: Integer;
+  CustomProgressPosition: Integer;
+  CustomUninstallStatusText: String;
+  HasCommandLineInstallDir: Boolean;
+  CommandLinePortable: Boolean;
+  FirewallTaskPreviouslySelected: Boolean;
 
-  // Visibility behavior toggles (adjust to your liking)
-  ShowOurDirPage: Boolean;
-  ShowDataPickerOnOurPage: Boolean;
-
-
-// Standard folder picker
-// procedure BrowseDirClick(Sender: TObject);
-// var
-//   Dir: String;
-// begin
-//   Dir := '';
-//   if BrowseForFolder(SetupMessage(msgSelectDirLabel3), Dir, True) then
-//   begin
-//     if Sender = InstallDirBrowseBtn then
-//       InstallDirEdit.Text := Dir
-//     else if Sender = DataDirBrowseBtn then
-//       DataDirEdit.Text := Dir;
-//   end;
-// end;
-
-
-
-
-
-// Minimal validation; you can tighten as needed
 function EnsureNonEmptyDir(const CaptionText, DirText: String): Boolean;
 begin
   Result := True;
@@ -380,8 +238,6 @@ begin
   end;
 end;
 
-
-
 function RegistryQueryPath(Key, ValueName: String): String;
 begin
   if RegQueryStringValue(HKLM, Key, ValueName, Result) then
@@ -390,30 +246,52 @@ begin
     Result := '';
 end;
 
+function HasCommandLineSwitch(const Name: String): Boolean;
+var
+  Index: Integer;
+  SwitchName, Argument: String;
+begin
+  Result := False;
+  SwitchName := '/' + Name;
+  for Index := 1 to ParamCount do
+  begin
+    Argument := ParamStr(Index);
+    if (CompareText(Argument, SwitchName) = 0)
+      or (CompareText(Argument, SwitchName + '=1') = 0) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
 
 function ShouldRunLauncher(): Boolean;
 begin
-  Result := True;
-
-  if Pos('SILENT', UpperCase(GetCmdTail())) > 0 then
-    Result := False;
-
-  if Pos('LAUNCH', UpperCase(GetCmdTail())) > 0 then
-    Result := True;
+  Result := not WizardSilent or HasCommandLineSwitch('LAUNCH');
 end;
 
+function IsCloudTargetAllowed(): Boolean;
+begin
+  Result := HasCommandLineSwitch('ALLOWCLOUDTARGET');
+end;
 
 function FolderSize(FolderPath: String): Int64;
 var
   FindRec: TFindRec;
+  FileSizeValue: Int64;
 begin
   Result := 0;
   if FindFirst(FolderPath + '\*', FindRec) then
   begin
     try
       repeat
-        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
-          Result := Result + FindRec.SizeLow
+        if (FindRec.Attributes and $400) <> 0 then
+          Continue
+        else if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
+        begin
+          if FileSize64(FolderPath + '\' + FindRec.Name, FileSizeValue) then
+            Result := Result + FileSizeValue;
+        end
         else if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
           Result := Result + FolderSize(FolderPath + '\' + FindRec.Name);
       until not FindNext(FindRec);
@@ -423,27 +301,54 @@ begin
   end;
 end;
 
-
 function IsFolderValid(FolderPath: String): Boolean;
 begin
   Result := DirExists(FolderPath) and (FolderSize(FolderPath) > 1024 * 1024);
 end;
 
+function CountRegularFiles(const FolderPath: String): Integer;
+var
+  FindRec: TFindRec;
+begin
+  Result := 0;
+  if FindFirst(FolderPath + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..')
+          and ((FindRec.Attributes and $400) = 0) then
+        begin
+          if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+            Result := Result + CountRegularFiles(FolderPath + '\' + FindRec.Name)
+          else
+            Result := Result + 1;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
 
-procedure CopyFolderContents(SourceDir, DestDir: String; Overwrite: Boolean);
+procedure UpdateInstallCopyProgress(const FileName: String);
+begin
+  CustomProgressPosition := CustomProgressPosition + 1;
+  WizardForm.ProgressGauge.Position := CustomProgressPosition;
+  WizardForm.FilenameLabel.Caption := MinimizePathName(
+    FileName, WizardForm.FilenameLabel.Font, WizardForm.FilenameLabel.Width);
+  WizardForm.Update;
+end;
+
+function CopyFolderContents(SourceDir, DestDir: String; Overwrite: Boolean): Boolean;
 var
   FindRec: TFindRec;
   SourceFile, DestFile: String;
 begin
-  // Ensure the destination directory exists
+  Result := False;
   if not DirExists(DestDir) then
     if not ForceDirectories(DestDir) then
-    begin
-      //MsgBox('Failed to create destination directory: ' + DestDir, mbError, MB_OK);
       Exit;
-    end;
 
-  // Start file copying
   if FindFirst(SourceDir + '\*.*', FindRec) then
   begin
     try
@@ -451,37 +356,45 @@ begin
         SourceFile := SourceDir + '\' + FindRec.Name;
         DestFile := DestDir + '\' + FindRec.Name;
 
-        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
+        // Copy directory contents only. Junctions and other reparse points may
+        // lead outside the selected Heroes III directory or form a cycle.
+        if (FindRec.Attributes and $400) <> 0 then
+          Log('Skipping Heroes III reparse point: ' + SourceFile)
+        else if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
         begin
           if Overwrite or not FileExists(DestFile) then
           begin
-            if not FileCopy(SourceFile, DestFile, False) then
-              //MsgBox('Failed to copy file: ' + SourceFile + ' to ' + DestFile, mbError, MB_OK);
+            if not FileCopy(SourceFile, DestFile, not Overwrite) then
+            begin
+              Log('Failed to copy Heroes III file from ' + SourceFile + ' to ' + DestFile);
+              Exit;
+            end;
           end;
+          UpdateInstallCopyProgress(SourceFile);
         end
         else if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
         begin
-          // Copy subdirectories recursively
-          CopyFolderContents(SourceFile, DestFile, Overwrite);
+          if not CopyFolderContents(SourceFile, DestFile, Overwrite) then
+            Exit;
         end;
       until not FindNext(FindRec);
     finally
       FindClose(FindRec);
     end;
-  end
-  //else
-  //  MsgBox('No files found in directory: ' + SourceDir, mbError, MB_OK);
+  end;
+  Result := True;
 end;
 
-
-// A huge workaround to get non-admin profile name on elevated installer as admin
-function WTSQuerySessionInformation(hServer: THandle; SessionId: Cardinal; WTSInfoClass: Integer; var pBuffer: DWord; var BytesReturned: DWord): Boolean;
+// Setup may be elevated with credentials of a different administrator. Resolve
+// the interactive session user so user-facing paths still belong to the person
+// who launched Setup. NativeUInt keeps returned pointers safe in 32/64-bit Setup.
+function WTSQuerySessionInformation(hServer: THandle; SessionId: Cardinal; WTSInfoClass: Integer; var pBuffer: NativeUInt; var BytesReturned: DWord): Boolean;
   external 'WTSQuerySessionInformationW@wtsapi32.dll stdcall';
 
-procedure WTSFreeMemory(pMemory: DWord);
+procedure WTSFreeMemory(pMemory: NativeUInt);
   external 'WTSFreeMemory@wtsapi32.dll stdcall';
 
-procedure RtlMoveMemoryAsString(Dest: string; Source: DWord; Len: Integer);
+procedure RtlMoveMemoryAsString(Dest: string; Source: NativeUInt; Len: Integer);
   external 'RtlMoveMemory@kernel32.dll stdcall';
 
 const
@@ -489,38 +402,25 @@ const
   WTS_CURRENT_SESSION = -1;
   WTSUserName = 5;
 
-function GetCurrentSessionUserName: string;
+function GetCurrentSessionUserName: String;
 var
-  Buffer: DWord;
+  Buffer: NativeUInt;
   BytesReturned: DWord;
   QueryResult: Boolean;
 begin
-  // Initialize Result to an empty string
   Result := '';
-
-  // Query the username for the current session
   QueryResult := WTSQuerySessionInformation(
     WTS_CURRENT_SERVER_HANDLE, WTS_CURRENT_SESSION, WTSUserName, Buffer, BytesReturned);
-
   if not QueryResult then
-  begin
-    // Error if the query fails
     Exit;
-  end;
 
   try
-    // Set the length of the result string (BytesReturned includes null terminator)
-    SetLength(Result, (BytesReturned div 2) - 1); // Divide by 2 for Unicode and exclude null terminator
-
-    // Copy the buffer contents into the result string
-    RtlMoveMemoryAsString(Result, Buffer, BytesReturned - 2); // Exclude null terminator
+    SetLength(Result, (BytesReturned div 2) - 1);
+    RtlMoveMemoryAsString(Result, Buffer, BytesReturned - 2);
   finally
-    // Free the allocated memory
     WTSFreeMemory(Buffer);
   end;
-
 end;
-
 
 function GetBranchSuffix(Param: string): string;
 var
@@ -536,7 +436,6 @@ begin
   else
     Result := '';
 end;
-
 
 function GetCommonProgramFilesDir: String;
 begin
@@ -560,16 +459,15 @@ begin
     else
       // For 32-bit installer on 64-bit system, return the 32-bit Program Files directory
       Result := ExpandConstant('{commonpf32}');
-  end
+  end;
   else
     // On 32-bit systems, always return the 32-bit Program Files directory
     Result := ExpandConstant('{commonpf32}');
 end;
 
-
 function GetDefaultDir(Default: String): String;
 begin
-  if IsAdmin then
+  if IsAdminInstallMode then
     // Default to Program Files for admins
     Result := GetCommonProgramFilesDir + '\{#VCMIFolder}'
   else
@@ -577,48 +475,28 @@ begin
     Result := GlobalUserAppdataFolder + '\{#VCMIFolder}';
 end;
 
-
 function GetUserFolderPath(Constant: String): String;
 var
-  FolderPath: String;
-  OriginalUserName: String;
-  CurrentSessionUserName: String;
+  FolderPath, OriginalUserName, CurrentSessionUserName: String;
 begin
-  // Retrieve the current username from the session
   CurrentSessionUserName := '\' + GlobalUserName + '\';
-
-  // Retrieve the original username
   OriginalUserName := '\' + GetUserNameString + '\';
-
-  // Expand the specified constant
   FolderPath := ExpandConstant(Constant);
-
-  // Replace the original username with the current session username in the path
   StringChangeEx(FolderPath, OriginalUserName, CurrentSessionUserName, True);
-
-  // Return the modified folder path
   Result := FolderPath;
 end;
 
-
 procedure OnTaskCheck(Sender: TObject);
 var
-  idx: Integer;
+  FirewallSelected: Boolean;
 begin
-  // Get the index of the currently clicked task
-  idx := WizardForm.TasksList.ItemIndex;
-
-  // Check if the clicked task is the "AddFirewallRules" one
-  if WizardForm.TasksList.Items[idx] = ExpandConstant('{cm:AddFirewallRules}') then
+  FirewallSelected := WizardIsTaskSelected('firewallrules');
+  if FirewallTaskPreviouslySelected and not FirewallSelected then
   begin
-    // If it was just unchecked, show the warning
-    if not WizardForm.TasksList.Checked[idx] then
-    begin
-      MsgBox(ExpandConstant('{cm:Warning}') + '!' + #13#10 + #13#10 + ExpandConstant('{cm:InstallForMeOnly1}') + #13#10 + ExpandConstant('{cm:InstallForMeOnly2}'), mbError, MB_OK);
-    end;
+    MsgBox(ExpandConstant('{cm:Warning}') + '!' + #13#10 + #13#10 + ExpandConstant('{cm:InstallForMeOnly1}') + #13#10 + ExpandConstant('{cm:InstallForMeOnly2}'), mbError, MB_OK);
   end;
+  FirewallTaskPreviouslySelected := FirewallSelected;
 end;
-
 
 // Specific functions for user folders
 function GetUserDocsFolder: String;
@@ -626,18 +504,15 @@ begin
   Result := GetUserFolderPath('{userdocs}');
 end;
 
-
 function GetUserAppdataFolder: String;
 begin
   Result := GetUserFolderPath('{userappdata}');
 end;
 
-
 function GetUserDesktopFolder(Default: String): String;
 begin
   Result := GetUserFolderPath('{userdesktop}');
 end;
-
 
 function EscapeJsonString(Value: String): String;
 begin
@@ -645,7 +520,6 @@ begin
   StringChangeEx(Result, '\', '\\', True);
   StringChangeEx(Result, '"', '\"', True);
 end;
-
 
 function LoadUTF8TextFile(const FileName: String; var Content: String): Boolean;
 var
@@ -665,7 +539,6 @@ begin
   end;
 end;
 
-
 function SaveUTF8TextFile(const FileName, Content: String): Boolean;
 var
   Lines: TArrayOfString;
@@ -675,6 +548,48 @@ begin
   Result := SaveStringsToUTF8FileWithoutBOM(FileName, Lines, False);
 end;
 
+function ExpandEnvironmentStrings(Source, Destination: String; Size: Cardinal): Cardinal;
+  external 'ExpandEnvironmentStringsW@kernel32.dll stdcall';
+
+function ExpandEnvironmentPath(const Value: String): String;
+var
+  ExpandedSize: Cardinal;
+begin
+  Result := Value;
+  ExpandedSize := ExpandEnvironmentStrings(Value, '', 0);
+  if ExpandedSize = 0 then
+    Exit;
+
+  SetLength(Result, ExpandedSize);
+  if ExpandEnvironmentStrings(Value, Result, ExpandedSize) <> ExpandedSize then
+  begin
+    Result := Value;
+    Exit;
+  end;
+  SetLength(Result, ExpandedSize - 1);
+end;
+
+function MoveFileEx(ExistingFileName, NewFileName: String; Flags: Cardinal): Boolean;
+  external 'MoveFileExW@kernel32.dll stdcall';
+
+function SaveUTF8TextFileAtomically(const FileName, Content: String): Boolean;
+const
+  MOVEFILE_REPLACE_EXISTING = 1;
+  MOVEFILE_WRITE_THROUGH = 8;
+var
+  TemporaryFile: String;
+begin
+  TemporaryFile := FileName + '.tmp';
+  DeleteFile(TemporaryFile);
+  Result := SaveUTF8TextFile(TemporaryFile, Content);
+  if not Result then
+    Exit;
+
+  Result := MoveFileEx(TemporaryFile, FileName,
+    MOVEFILE_REPLACE_EXISTING or MOVEFILE_WRITE_THROUGH);
+  if not Result then
+    DeleteFile(TemporaryFile);
+end;
 
 function ReadPathFromConfig(const InstallDir, Key, Fallback: String): String;
 var
@@ -714,7 +629,7 @@ begin
       Escaped := True
     else if Content[Position] = '"' then
     begin
-      Result := Value;
+      Result := ExpandEnvironmentPath(Value);
       Exit;
     end
     else
@@ -723,15 +638,16 @@ begin
   end;
 end;
 
-
 function GetSelectedDataDir(Default: String): String;
 begin
   Result := SelectedDataDir;
 end;
 
-
 function ReadUserDataPath(const InstallDir, Fallback: String): String;
 begin
+  // Keep the same precedence as VCMIDirsWIN32: the per-user registry is the
+  // write fallback when dirs.json cannot be replaced, followed by this
+  // installation's config file and finally the platform default.
   if IsWin64 then
     if RegQueryStringValue(HKCU64, 'Software\VCMI', 'userDataPath', Result) then
       Exit;
@@ -739,7 +655,6 @@ begin
     Exit;
   Result := ReadPathFromConfig(InstallDir, 'userDataPath', Fallback);
 end;
-
 
 function ReadArchitectureValue(const Architecture, ValueName: String; var Value: String): Boolean;
 var
@@ -751,8 +666,11 @@ begin
     Result := RegQueryStringValue(HKCU64, Key, ValueName, Value);
   if not Result then
     Result := RegQueryStringValue(HKCU32, Key, ValueName, Value);
+  if not Result and IsWin64 then
+    Result := RegQueryStringValue(HKLM64, Key, ValueName, Value);
+  if not Result then
+    Result := RegQueryStringValue(HKLM32, Key, ValueName, Value);
 end;
-
 
 function ReadArchitectureInstallPath(const Architecture: String; var InstallPath: String): Boolean;
 var
@@ -781,6 +699,72 @@ begin
     Result := RegQueryStringValue(HKLM32, UninstallKey, 'InstallLocation', InstallPath);
 end;
 
+function UseAlternativeMapEditor(const InstallPath: String; var MapEditorPath: String): Boolean;
+begin
+  MapEditorPath := AddBackslash(InstallPath) + 'VCMI_mapeditor.exe';
+  Result := (CompareText(RemoveBackslashUnlessRoot(InstallPath),
+    RemoveBackslashUnlessRoot(ExpandConstant('{app}'))) <> 0)
+    and FileExists(MapEditorPath);
+end;
+
+function FindOtherMapEditor(var MapEditorPath: String): Boolean;
+var
+  InstallPath: String;
+begin
+  Result := False;
+  if (CompareText('{#InstallerArch}', 'x64') <> 0)
+    and ReadArchitectureInstallPath('x64', InstallPath)
+    and UseAlternativeMapEditor(InstallPath, MapEditorPath) then
+    Result := True
+  else if (CompareText('{#InstallerArch}', 'arm64') <> 0)
+    and ReadArchitectureInstallPath('arm64', InstallPath)
+    and UseAlternativeMapEditor(InstallPath, MapEditorPath) then
+    Result := True
+  else if (CompareText('{#InstallerArch}', 'x86') <> 0)
+    and ReadArchitectureInstallPath('x86', InstallPath)
+    and UseAlternativeMapEditor(InstallPath, MapEditorPath) then
+    Result := True;
+end;
+
+function IntegrationRegistryRoot: Integer;
+begin
+  if IsAdminInstallMode then
+    Result := HKLM
+  else
+    Result := HKCU;
+end;
+
+procedure MaintainFileAssociation(const Extension, ProgId, Description: String);
+var
+  RootKey: Integer;
+  CommandKey, CurrentCommand, CurrentProgId, ReplacementEditor: String;
+begin
+  RootKey := IntegrationRegistryRoot;
+  CommandKey := 'Software\Classes\' + ProgId + '\shell\open\command';
+  if not RegQueryStringValue(RootKey, CommandKey, '', CurrentCommand) then
+    Exit;
+
+  // A coexisting architecture may have replaced this association after this
+  // setup ran. Never remove an association owned by that newer installation.
+  if CompareText(CurrentCommand,
+    '"' + ExpandConstant('{app}\VCMI_mapeditor.exe') + '" "%1"') <> 0 then
+    Exit;
+
+  if FindOtherMapEditor(ReplacementEditor) then
+  begin
+    RegWriteStringValue(RootKey, 'Software\Classes\' + Extension, '', ProgId);
+    RegWriteStringValue(RootKey, 'Software\Classes\' + ProgId, '', Description);
+    RegWriteStringValue(RootKey, CommandKey, '', '"' + ReplacementEditor + '" "%1"');
+    Log('File association ' + Extension + ' transferred to ' + ReplacementEditor);
+  end
+  else
+  begin
+    RegDeleteKeyIncludingSubkeys(RootKey, 'Software\Classes\' + ProgId);
+    if RegQueryStringValue(RootKey, 'Software\Classes\' + Extension, '', CurrentProgId)
+      and (CompareText(CurrentProgId, ProgId) = 0) then
+      RegDeleteValue(RootKey, 'Software\Classes\' + Extension, '');
+  end;
+end;
 
 function ReadUninstallUserDataPath(const InstallDir, Fallback: String): String;
 begin
@@ -792,9 +776,10 @@ begin
   Result := Fallback;
 end;
 
-
 function ReadRuntimePath(const InstallDir, Key, Fallback: String): String;
 begin
+  // This mirrors VCMIDirsWIN32::getPathFromConfigOrDefault. Architecture-specific
+  // registry values below are installer ownership metadata, not runtime paths.
   if IsWin64 then
     if RegQueryStringValue(HKCU64, 'Software\VCMI', Key, Result) then
       Exit;
@@ -802,7 +787,6 @@ begin
     Exit;
   Result := ReadPathFromConfig(InstallDir, Key, Fallback);
 end;
-
 
 function IsSameOrChildPath(const Path, Parent: String): Boolean;
 var
@@ -816,12 +800,29 @@ begin
       and (NormalizedPath[Length(NormalizedParent) + 1] = '\');
 end;
 
-
 function PathsOverlap(const First, Second: String): Boolean;
 begin
   Result := IsSameOrChildPath(First, Second) or IsSameOrChildPath(Second, First);
 end;
 
+function IsSafeUninstallRoot(const Path: String): Boolean;
+var
+  NormalizedPath, UserProfile: String;
+begin
+  NormalizedPath := RemoveBackslashUnlessRoot(ExpandFileName(Path));
+  Result := (NormalizedPath <> '')
+    and (CompareText(NormalizedPath, AddBackslash(ExtractFileDrive(NormalizedPath))) <> 0);
+  if not Result then
+    Exit;
+
+  UserProfile := ExtractFileDir(ExtractFileDir(GlobalUserAppdataFolder));
+  Result := not PathsOverlap(NormalizedPath, ExpandConstant('{win}'))
+    and not PathsOverlap(NormalizedPath, ExpandConstant('{commonpf32}'))
+    and not IsSameOrChildPath(UserProfile, NormalizedPath)
+    and not PathsOverlap(NormalizedPath, ExpandConstant('{app}'));
+  if Result and IsWin64 then
+    Result := not PathsOverlap(NormalizedPath, ExpandConstant('{commonpf64}'));
+end;
 
 function ArchitectureUsesPath(const Architecture, Path: String): Boolean;
 var
@@ -848,7 +849,6 @@ begin
     or PathsOverlap(Path, SavesPath);
 end;
 
-
 function IsPathUsedByOtherInstallation(const Path: String): Boolean;
 begin
   Result := ArchitectureUsesPath('x86', Path)
@@ -856,18 +856,41 @@ begin
     or ArchitectureUsesPath('arm64', Path);
 end;
 
-
 procedure AddUninstallPath(const Path, Description: String);
 var
-  Index: Integer;
+  Index, WriteIndex: Integer;
   NormalizedPath: String;
 begin
   NormalizedPath := RemoveBackslashUnlessRoot(Path);
   if NormalizedPath = '' then
     Exit;
+  if not IsSafeUninstallRoot(NormalizedPath) then
+  begin
+    Log('Refusing unsafe user-data deletion root: ' + NormalizedPath);
+    Exit;
+  end;
   for Index := 0 to UninstallPathCount - 1 do
     if IsSameOrChildPath(NormalizedPath, UninstallPaths[Index]) then
       Exit;
+
+  { If the parent is discovered after one or more children, replace all of those
+    children with the parent. This keeps every checkbox independent. }
+  WriteIndex := 0;
+  for Index := 0 to UninstallPathCount - 1 do
+  begin
+    if not IsSameOrChildPath(UninstallPaths[Index], NormalizedPath) then
+    begin
+      if WriteIndex <> Index then
+      begin
+        UninstallPaths[WriteIndex] := UninstallPaths[Index];
+        UninstallPathDescriptions[WriteIndex] := UninstallPathDescriptions[Index];
+        UninstallPathProtected[WriteIndex] := UninstallPathProtected[Index];
+      end;
+      WriteIndex := WriteIndex + 1;
+    end;
+  end;
+  UninstallPathCount := WriteIndex;
+
   if UninstallPathCount > 4 then
     Exit;
 
@@ -876,7 +899,6 @@ begin
   UninstallPathProtected[UninstallPathCount] := IsPathUsedByOtherInstallation(NormalizedPath);
   UninstallPathCount := UninstallPathCount + 1;
 end;
-
 
 procedure LoadUninstallPaths(const InstallDir, DataPath: String);
 var
@@ -891,11 +913,21 @@ begin
   AddUninstallPath(ReadRuntimePath(InstallDir, 'userSavePath', DataPath + '\saves'), ExpandConstant('{cm:SavesDirectory}'));
 end;
 
-
 // BOOL __stdcall IsCloudStoragePath(LPCWSTR)
-function IsCloudStoragePath(Path: string): BOOL;
+function PluginIsCloudStoragePath(Path: string): BOOL;
   external 'IsCloudStoragePath@files:installerPlugin.dll stdcall setuponly delayload';
 
+function IsCloudStoragePath(const Path: String): Boolean;
+begin
+  Result := False;
+  try
+    Result := PluginIsCloudStoragePath(Path);
+  except
+    // Cloud detection is advisory. A missing or incompatible plugin must not
+    // prevent setup from running on any supported Windows version.
+    Log('Cloud storage detection plugin is unavailable for: ' + Path);
+  end;
+end;
 
 procedure UpdateDataFolders(const Root: String);
 begin
@@ -903,7 +935,6 @@ begin
   VCMIDataFolder := Root + '\Data';
   VCMIMp3Folder := Root + '\Mp3';
 end;
-
 
 function IsUCRTNeeded: Boolean;
 var
@@ -919,8 +950,10 @@ begin
     // Check existence based on architecture
     if IsWin64 then
     begin
-      if ExpandConstant('{#InstallerArch}') = 'x64' then
-        // For 64-bit installer on 64-bit OS, check System32
+      if ExpandConstant('{#InstallerArch}') = 'arm64' then
+        // ARM64 uses an x86 bootstrapper, so bypass WOW64 redirection.
+        Result := not FileExists(ExpandConstant('{sysnative}\' + FileName))
+      else if ExpandConstant('{#InstallerArch}') = 'x64' then
         Result := not FileExists(ExpandConstant('{win}\System32\' + FileName))
       else
         // For 32-bit installer on 64-bit OS, check SysWOW64
@@ -932,7 +965,6 @@ begin
   end;
 end;
 
-
 function IsHeroes3Installed(): Boolean;
 begin
   Result := False;
@@ -942,14 +974,12 @@ begin
 
 end;
 
-
 function IsCopyFilesNeeded(): Boolean;
 begin
   // Check if any of the required folders are not valid
   Result := not (IsFolderValid(VCMIDataFolder) and IsFolderValid(VCMIMapsFolder) and IsFolderValid(VCMIMp3Folder));
 
 end;
-
 
 function IsPRInstaller(): Boolean;
 begin
@@ -958,18 +988,37 @@ begin
 
 end;
 
+function IsPortableInstall(): Boolean;
+begin
+  Result := CommandLinePortable
+    or (Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 2));
+end;
+
+function ExpandCommandLinePath(const Value: String): String;
+begin
+  Result := Value;
+  if CompareText(Copy(Value, 1, 7), 'expand:') = 0 then
+    Result := ExpandConstant(Copy(Value, 8, Length(Value)));
+end;
 
 function InitializeSetup(): Boolean;
 var
   InstallPath: String;
 begin
+  CommandLinePortable := CompareText(ExpandConstant('{param:PORTABLE|0}'), '1') = 0;
+
   // Check if the application is already installed
   IsUpgrade := ReadArchitectureInstallPath('{#InstallerArch}', InstallPath);
+  if CommandLinePortable then
+    IsUpgrade := False;
 
   // Initialize the global variable during setup
   GlobalUserName := GetCurrentSessionUserName();
   GlobalUserDocsFolder := GetUserDocsFolder();
   GlobalUserAppdataFolder := GetUserAppdataFolder();
+  HasCommandLineInstallDir := ExpandConstant('{param:DIR|}') <> '';
+  CommandLineUserDataDir := Trim(ExpandCommandLinePath(
+    ExpandConstant('{param:USERDATADIR|}')));
 
   // Cloud sync clients can temporarily lock files while VCMI is writing them.
   // Prefer Local AppData whenever Documents belongs to OneDrive or another registered provider.
@@ -977,6 +1026,11 @@ begin
     DefaultDataDir := GlobalUserAppdataFolder + '\VCMI'
   else
     DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+  if CommandLineUserDataDir <> '' then
+  begin
+    CommandLineUserDataDir := RemoveBackslashUnlessRoot(CommandLineUserDataDir);
+    DefaultDataDir := CommandLineUserDataDir;
+  end;
   SelectedDataDir := DefaultDataDir;
   UpdateDataFolders(SelectedDataDir);
 
@@ -1003,7 +1057,6 @@ begin
   Result := True;
 end;
 
-
 function InitializeUninstall(): Boolean;
 begin
   // Initialize the global variable during uninstall
@@ -1013,13 +1066,16 @@ begin
   DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
   SelectedDataDir := ReadUninstallUserDataPath(ExpandConstant('{app}'), DefaultDataDir);
   LoadUninstallPaths(ExpandConstant('{app}'), SelectedDataDir);
+  // Intended for unattended maintenance and CI. It is deliberately explicit;
+  // silent uninstall without this parameter always preserves user data.
+  DeleteAllUserData := UninstallSilent
+    and (CompareText(ExpandConstant('{param:DELETEUSERDATA|0}'), '1') = 0);
 
   Result := True;
 end;
 
-
 // BOOL __stdcall ModerFolderPicker(HWND, LPCWSTR, LPCWSTR, LPWSTR, DWORD)
-function ModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
+function PluginModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
   external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
 
 function PickFolderModern(const Title, Initial: string): string;
@@ -1030,8 +1086,18 @@ var
 begin
   // Large buffer (counted in UTF-16 code units)
   SetLength(buf, 32768);
-  ok := ModerFolderPicker(WizardForm.Handle, Title, Initial, buf, Length(buf));
-  if not ok then Exit;
+  try
+    ok := PluginModerFolderPicker(WizardForm.Handle, Title, Initial, buf, Length(buf));
+  except
+    // Keep setup usable when the optional modern picker cannot be loaded.
+    Log('Modern folder picker plugin is unavailable; using the standard picker.');
+    Result := Initial;
+    if not BrowseForFolder(Title, Result, True) then
+      Result := '';
+    Exit;
+  end;
+  if not ok then
+    Exit;
 
   // Trim at the first NUL (defensive; the DLL already writes a NUL)
   n := Pos(#0, buf);
@@ -1040,7 +1106,6 @@ begin
 
   Result := buf; // fully Unicode
 end;
-
 
 procedure BrowseDirClick(Sender: TObject);
 var
@@ -1056,7 +1121,6 @@ begin
     startPath := DataDirEdit.Text;
     title := ExpandConstant('{cm:DataFolderTitle}');
   end;
-
 
   picked := PickFolderModern(title, startPath);
   if picked <> '' then
@@ -1084,14 +1148,12 @@ begin
   end;
 end;
 
-
 procedure UpdateCloudDataNotice();
 begin
   CloudDataNotice.Visible := IsCloudStoragePath(Trim(DataDirEdit.Text));
   if not CloudDataNotice.Visible then
     ConfirmedCloudDataDir := '';
 end;
-
 
 procedure UpdateCloudInstallNotice();
 begin
@@ -1100,28 +1162,34 @@ begin
     ConfirmedCloudInstallDir := '';
 end;
 
-
 procedure InstallDirEditChange(Sender: TObject);
 begin
   UpdateCloudInstallNotice();
 end;
-
 
 procedure DataDirEditChange(Sender: TObject);
 begin
   UpdateCloudDataNotice();
 end;
 
-
 procedure ResetDirsClick(Sender: TObject);
 begin
-  if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1) then
+  if IsPortableInstall then
+  begin
+    if not HasCommandLineInstallDir then
+      InstallDirEdit.Text := ExpandConstant('{src}\VCMI');
+  end
+  else if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1) then
     InstallDirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}'
   else
     InstallDirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
-  DataDirEdit.Text := DefaultDataDir;
+  if CommandLineUserDataDir <> '' then
+    DataDirEdit.Text := CommandLineUserDataDir
+  else if IsPortableInstall then
+    DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data'
+  else
+    DataDirEdit.Text := DefaultDataDir;
 end;
-
 
 procedure InitializeWizard();
 var
@@ -1132,6 +1200,13 @@ var
   DiskSpaceLabel: TNewStaticText;
 
 begin
+  if (CompareText('{#InstallerArch}', 'x86') = 0) and not IsX86OS then
+  begin
+    Log('Installing the x86 VCMI package on a non-x86 Windows system.');
+    if not WizardSilent then
+      MsgBox(ExpandConstant('{cm:X86On64BitWarning}'), mbInformation, MB_OK);
+  end;
+
   // Check if the application is already installed
   if not IsUpgrade then
   begin
@@ -1144,12 +1219,13 @@ begin
       True, False
     );
 
-    // Option 0
     InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallForAllUsers}' + #13#10 + '   • {cm:InstallForAllUsers1}' + #13#10 + #13#10));
-    // Option 1
     InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallForMeOnly}' + #13#10  +  '   • {cm:InstallForMeOnly1}' + #13#10 + '   • {cm:InstallForMeOnly2}' + #13#10));
+    InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallPortable}' + #13#10 + '   • {cm:InstallPortable1}' + #13#10 + '   • {cm:InstallPortable2}' + #13#10));
 
-    if IsAdmin then
+    if CommandLinePortable then
+      InstallModePage.SelectedValueIndex := 2
+    else if IsAdminInstallMode then
     begin
       // Default to "All Users"
       InstallModePage.SelectedValueIndex := 0;
@@ -1167,37 +1243,8 @@ begin
     end;
   end;
 
-
-
-  // --- Decide visibility policy for this page --------------------------------
-  // Replace wpSelectDir entirely:
-  // - Hide for upgrades? (example below keeps it visible for full control)
-  ShowOurDirPage := True;
-  if IsUpgrade then
-  begin
-    // Example: hide page on upgrade (flip to False if you want to skip)
-    // ShowOurDirPage := False;
-  end;
-
-  // Example: show/hide the DATA picker per scenario
-  ShowDataPickerOnOurPage := True;
-  if IsPRInstaller then
-  begin
-    // For PR builds you might want to hide the data picker:
-    // ShowDataPickerOnOurPage := False;
-  end;
-
-  // If we don’t want to show our page, just exit (wpSelectDir will still be skipped below)
-  if not ShowOurDirPage then
-    Exit;
-
-  // --- Create custom page after License --------------------------------------
-  //TitleText := ExpandConstant('{cm:SelectSetupInstallModeTitle}'); // SelectDirLabel3
-
-  //SubTitleText := 'Choose where to install VCMI and where to store user data.';  //SelectDirBrowseLabel
-
-  TitleText := SetupMessage(msgWizardSelectDir);  // same title as wpSelectDir
-  SubTitleText := SetupMessage(msgSelectDirDesc); // same subtitle as wpSelectDir
+  TitleText := SetupMessage(msgWizardSelectDir);
+  SubTitleText := SetupMessage(msgSelectDirDesc);
 
   DirSelectPage := CreateCustomPage(
     wpLicense, // show right after License
@@ -1205,7 +1252,6 @@ begin
     SubTitleText
   );
 
-  // --- Layout metrics ---------------------------------------------------------
   LeftCol     := ScaleX(44);
   TopY        := ScaleY(6);
   ButtonWidth := ScaleX(85);
@@ -1248,7 +1294,6 @@ begin
   InstallDirEdit.Left := ScaleX(0);
   InstallDirEdit.Top  := TopY;
   InstallDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
-  // default like current logic (admin vs non-admin)
   InstallDirEdit.Text := WizardForm.DirEdit.Text;
 
   InstallDirBrowseBtn := TButton.Create(DirSelectPage);
@@ -1275,7 +1320,6 @@ begin
 
   TopY := CloudInstallNotice.Top + CloudInstallNotice.Height + RowGap;
 
-  // --- DATA FOLDER CONTROLS (user files: mods, maps, saves) ------------------
   DataDirBitmap := TBitmapImage.Create(DirSelectPage);
   DataDirBitmap.Parent := DirSelectPage.Surface;
   DataDirBitmap.Left := ScaleX(0);
@@ -1310,7 +1354,10 @@ begin
   DataDirEdit.Left := ScaleX(0);
   DataDirEdit.Top  := TopY;
   DataDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
-  DataDirEdit.Text := ReadUserDataPath(InstallDirEdit.Text, DefaultDataDir);
+  if CommandLineUserDataDir <> '' then
+    DataDirEdit.Text := CommandLineUserDataDir
+  else
+    DataDirEdit.Text := ReadUserDataPath(InstallDirEdit.Text, DefaultDataDir);
 
   DataDirBrowseBtn := TButton.Create(DirSelectPage);
   DataDirBrowseBtn.Parent := DirSelectPage.Surface;
@@ -1334,14 +1381,6 @@ begin
   DataDirEdit.OnChange := @DataDirEditChange;
   UpdateCloudDataNotice();
 
-  // Visibility per scenario
-  LabelData.Visible := ShowDataPickerOnOurPage;
-  LabelDataInfo.Visible := ShowDataPickerOnOurPage;
-  DataDirBitmap.Visible := ShowDataPickerOnOurPage;
-  DataDirEdit.Visible := ShowDataPickerOnOurPage;
-  DataDirBrowseBtn.Visible := ShowDataPickerOnOurPage;
-  CloudDataNotice.Visible := ShowDataPickerOnOurPage and CloudDataNotice.Visible;
-
   ResetDirsBtn := TButton.Create(DirSelectPage);
   ResetDirsBtn.Parent := DirSelectPage.Surface;
   ResetDirsBtn.Width := ScaleX(120);
@@ -1360,30 +1399,20 @@ begin
   DiskSpaceLabel.Top := DirSelectPage.SurfaceHeight - DiskSpaceLabel.Height - ScaleY(7);
   DiskSpaceLabel.Anchors := [akLeft, akBottom];
 
-    // Attach an OnClick event handler to the tasks list
   WizardForm.TasksList.OnClickCheck := @OnTaskCheck;
+  FirewallTaskPreviouslySelected := WizardIsTaskSelected('firewallrules');
 
-    // Enable word wrap for the ReadyMemo
-  WizardForm.ReadyMemo.ScrollBars := ssNone; // No scrollbars
+  WizardForm.ReadyMemo.ScrollBars := ssNone;
   WizardForm.ReadyMemo.WordWrap := True;
 
-  // Create a custom label for the footer message
   FooterLabel := TLabel.Create(WizardForm);
   FooterLabel.Parent := WizardForm;
   FooterLabel.Caption := '{#VCMIDisplayName} v' + '{#AppVersion}' + '.' + '{#AppBuild}';
-  // Padding from the left edge
   FooterLabel.Left := 10;
-  // Adjust to leave space for multiple lines
   FooterLabel.Top := WizardForm.ClientHeight - 30;
-  // Adjust for padding
   FooterLabel.Width := WizardForm.ClientWidth - 20;
-  // Adjust height to accommodate multiple lines
   FooterLabel.Height := 40;
 end;
-
-
-
-
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
@@ -1397,7 +1426,7 @@ begin
   end;
 
   // Skip Tasks page if this is a PR build
-  if IsPRInstaller and (PageID = wpSelectTasks) then
+  if (IsPRInstaller or IsPortableInstall) and (PageID = wpSelectTasks) then
   begin
     Result := True;
     Exit;
@@ -1413,13 +1442,11 @@ begin
   end;
 end;
 
-
 procedure CurPageChanged(CurPageID: Integer);
 begin
   // Ensure the footer message is visible on every page
   FooterLabel.Visible := True;
 end;
-
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
@@ -1433,13 +1460,28 @@ begin
   // Handle logic for the custom page if it exists
   if Assigned(InstallModePage) and (CurPageID = InstallModePage.ID) then
   begin
-    if (InstallModePage.SelectedValueIndex = 0) and not IsAdmin then
+    if (InstallModePage.SelectedValueIndex = 0) and not IsAdminInstallMode then
     begin
       Result := False;
       Exit;
     end;
 
-    if InstallModePage.SelectedValueIndex = 0 then
+    if InstallModePage.SelectedValueIndex = 2 then
+    begin
+      if not HasCommandLineInstallDir then
+      begin
+        WizardForm.DirEdit.Text := ExpandConstant('{src}\VCMI');
+        InstallDirEdit.Text := WizardForm.DirEdit.Text;
+      end;
+      if CommandLineUserDataDir = '' then
+        DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data';
+    end
+    else if HasCommandLineInstallDir then
+    begin
+      // /DIR is already expanded and validated by Inno Setup in DirEdit.
+      InstallDirEdit.Text := WizardForm.DirEdit.Text;
+    end
+    else if InstallModePage.SelectedValueIndex = 0 then
     begin
       WizardForm.DirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
       InstallDirEdit.Text := WizardForm.DirEdit.Text;
@@ -1450,8 +1492,6 @@ begin
       InstallDirEdit.Text := WizardForm.DirEdit.Text;
     end;
   end;
-
-
 
   if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
   begin
@@ -1472,7 +1512,10 @@ begin
       CloudInstallNotice.Visible := True;
       if CompareText(ConfirmedCloudInstallDir, InstallDirEdit.Text) <> 0 then
       begin
-        if MsgBox(ExpandConstant('{cm:CloudInstallWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
+        if WizardSilent and not IsCloudTargetAllowed() then
+          RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
+        if not WizardSilent
+          and (MsgBox(ExpandConstant('{cm:CloudInstallWarning}'), mbConfirmation, MB_YESNO) <> IDYES) then
         begin
           Result := False;
           Exit;
@@ -1486,11 +1529,7 @@ begin
       ConfirmedCloudInstallDir := '';
     end;
 
-    // Capture data dir (if visible) or fallback to default
-    if ShowDataPickerOnOurPage and DataDirEdit.Visible then
-      SelectedDataDir := RemoveBackslashUnlessRoot(Trim(DataDirEdit.Text))
-    else
-      SelectedDataDir := DefaultDataDir;
+    SelectedDataDir := RemoveBackslashUnlessRoot(Trim(DataDirEdit.Text));
 
     if Trim(SelectedDataDir) = '' then
       SelectedDataDir := DefaultDataDir;
@@ -1500,7 +1539,10 @@ begin
       CloudDataNotice.Visible := True;
       if CompareText(ConfirmedCloudDataDir, SelectedDataDir) <> 0 then
       begin
-        if MsgBox(ExpandConstant('{cm:CloudDataWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
+        if WizardSilent and not IsCloudTargetAllowed() then
+          RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
+        if not WizardSilent
+          and (MsgBox(ExpandConstant('{cm:CloudDataWarning}'), mbConfirmation, MB_YESNO) <> IDYES) then
         begin
           Result := False;
           Exit;
@@ -1520,12 +1562,12 @@ begin
     Log('Selected data dir: ' + SelectedDataDir);
   end;
 
-
   Result := True;
 end;
 
-
 function TryReadUninstallExeFromHKLM(const SubKey: String; var UninstallerPath: String): Boolean;
+var
+  ClosingQuote, Separator: Integer;
 begin
   Result := RegQueryStringValue(HKLM, SubKey, 'UninstallString', UninstallerPath);
   if (not Result) or (Trim(UninstallerPath) = '') then
@@ -1534,15 +1576,31 @@ begin
     Result := False;
   end;
 
-  UninstallerPath := RemoveQuotes(Trim(UninstallerPath));
+  UninstallerPath := Trim(UninstallerPath);
+  if Copy(UninstallerPath, 1, 1) = '"' then
+  begin
+    ClosingQuote := Pos('"', Copy(UninstallerPath, 2, Length(UninstallerPath)));
+    if ClosingQuote = 0 then
+    begin
+      UninstallerPath := '';
+      Result := False;
+      Exit;
+    end;
+    UninstallerPath := Copy(UninstallerPath, 2, ClosingQuote - 1);
+  end
+  else if not FileExists(UninstallerPath) then
+  begin
+    Separator := Pos(' ', UninstallerPath);
+    if Separator > 0 then
+      UninstallerPath := Copy(UninstallerPath, 1, Separator - 1);
+  end;
+  Result := FileExists(UninstallerPath);
 end;
-
 
 function GetLegacyUninstallerPath(var UninstallerPath: String): Boolean;
 begin
   Result := TryReadUninstallExeFromHKLM('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath) or TryReadUninstallExeFromHKLM('SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath);
 end;
-
 
 procedure RemoveLegacyInstaller();
 var
@@ -1553,84 +1611,96 @@ begin
   AppFolder := ExpandConstant('{app}');
   UninstallerPath := '';
 
-  // 1) Prefer uninstall path from registry (full path)
+  // A generic Uninstall.exe in a user-selected directory is not proof of a
+  // legacy VCMI installation. Only the VCMI uninstall registry entry is trusted.
   if not GetLegacyUninstallerPath(UninstallerPath) then
-  begin
-    // 2) Fallback: uninstall.exe in current target dir
-    UninstallerPath := AppFolder + '\Uninstall.exe';
-  end;
+    Exit;
 
   if (UninstallerPath <> '') and FileExists(UninstallerPath) then
   begin
-    Exec(UninstallerPath, '/S', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if not Exec(UninstallerPath, '/S', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    begin
+      Log('Failed to start legacy uninstaller: ' + UninstallerPath);
+      Exit;
+    end;
+    if ResultCode <> 0 then
+    begin
+      Log(Format('Legacy uninstaller failed with exit code %d; keeping its files.', [ResultCode]));
+      Exit;
+    end;
 
-    // Clean leftovers only if uninstall.exe is in current {app} folder
+    // Only a successfully completed uninstaller may leave safe-to-remove files.
     if DirExists(AppFolder) and (CompareText(ExtractFileDir(UninstallerPath), AppFolder) = 0) then
-      DelTree(AppFolder, True, True, False);
+      if not DelTree(AppFolder, True, True, False) then
+        Log('Failed to remove legacy installation leftovers: ' + AppFolder);
   end;
 end;
-
 
 procedure PerformHeroes3FileCopy();
 var
-  i: Integer;
+  OldMaximum, OldPosition: Integer;
+  OldStatus, OldFileName: String;
+  OldStyle: TNewProgressBarStyle;
+  SourceMapsValid, SourceDataValid, SourceMp3Valid: Boolean;
+  TargetMapsValid, TargetDataValid, TargetMp3Valid: Boolean;
 begin
-  // Loop through all tasks to find the "h3copyfiles" task
-  for i := 0 to WizardForm.TasksList.Items.Count - 1 do
+  if WizardIsTaskSelected('h3copyfiles') then
   begin
-    // Check if the current task is "h3copyfiles"
-    if WizardForm.TasksList.Items[i] = ExpandConstant('{cm:CopyH3Files}') then
+    OldStyle := WizardForm.ProgressGauge.Style;
+    OldStatus := WizardForm.StatusLabel.Caption;
+    WizardForm.ProgressGauge.Style := npbstMarquee;
+    WizardForm.StatusLabel.Caption := ExpandConstant('{cm:ScanningFiles}');
+    WizardForm.Update;
+    try
+      SourceMapsValid := IsFolderValid(Heroes3MapsFolder);
+      SourceDataValid := IsFolderValid(Heroes3DataFolder);
+      SourceMp3Valid := IsFolderValid(Heroes3Mp3Folder);
+      TargetMapsValid := IsFolderValid(VCMIMapsFolder);
+      TargetDataValid := IsFolderValid(VCMIDataFolder);
+      TargetMp3Valid := IsFolderValid(VCMIMp3Folder);
+      CustomProgressTotal := 0;
+      if SourceMapsValid and not TargetMapsValid then
+        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3MapsFolder);
+      if SourceDataValid and not TargetDataValid then
+        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3DataFolder);
+      if SourceMp3Valid and not TargetMp3Valid then
+        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3Mp3Folder);
+    finally
+      WizardForm.ProgressGauge.Style := OldStyle;
+      WizardForm.StatusLabel.Caption := OldStatus;
+    end;
+
+    if CustomProgressTotal > 0 then
     begin
-      // Check if the "h3copyfiles" task is checked
-      if WizardForm.TasksList.Checked[i] then
-      begin
+            OldMaximum := WizardForm.ProgressGauge.Max;
+            OldPosition := WizardForm.ProgressGauge.Position;
+            OldStatus := WizardForm.StatusLabel.Caption;
+            OldFileName := WizardForm.FilenameLabel.Caption;
+            CustomProgressPosition := 0;
+            WizardForm.ProgressGauge.Max := CustomProgressTotal;
+            WizardForm.ProgressGauge.Position := 0;
+            WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CopyingHeroes3Data}');
+            try
+              if (SourceMapsValid and not TargetMapsValid)
+                and not CopyFolderContents(Heroes3MapsFolder, VCMIMapsFolder, True) then
+                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Maps']));
 
-        if IsCopyFilesNeeded then
-        begin
-          // Copy folders if conditions are met
-          if (IsFolderValid(Heroes3MapsFolder) and not IsFolderValid(VCMIMapsFolder)) then
-            CopyFolderContents(Heroes3MapsFolder, VCMIMapsFolder, True);
+              if (SourceDataValid and not TargetDataValid)
+                and not CopyFolderContents(Heroes3DataFolder, VCMIDataFolder, True) then
+                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Data']));
 
-          if (IsFolderValid(Heroes3DataFolder) and not IsFolderValid(VCMIDataFolder)) then
-            CopyFolderContents(Heroes3DataFolder, VCMIDataFolder, True);
-
-          if (IsFolderValid(Heroes3Mp3Folder) and not IsFolderValid(VCMIMp3Folder)) then
-            CopyFolderContents(Heroes3Mp3Folder, VCMIMp3Folder, True);
-        end;
-      end;
-      Exit; // Task found, exit the loop
+              if (SourceMp3Valid and not TargetMp3Valid)
+                and not CopyFolderContents(Heroes3Mp3Folder, VCMIMp3Folder, True) then
+                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Mp3']));
+            finally
+              WizardForm.ProgressGauge.Max := OldMaximum;
+              WizardForm.ProgressGauge.Position := OldPosition;
+              WizardForm.StatusLabel.Caption := OldStatus;
+              WizardForm.FilenameLabel.Caption := OldFileName;
+            end;
     end;
   end;
 end;
-
-
-procedure CreateDefaultSettingsFile();
-var
-  ConfigDir, SettingsFile, Language, JSONContent: String;
-begin
-  ConfigDir := SelectedDataDir + '\config';
-  SettingsFile := ConfigDir + '\settings.json';
-
-  if not FileExists(SettingsFile) then
-  begin
-    Language := ActiveLanguage;
-    if Language = '' then
-      Language := 'english';
-
-      JSONContent :=
-        '{' + #13#10 +
-        Chr(9) + '"general" : {' + #13#10 +
-        Chr(9) + Chr(9) + '"language" : "' + Language + '"' + #13#10 +
-        Chr(9) + '}' + #13#10 +
-        '}';
-
-    if not DirExists(ConfigDir) then
-      ForceDirectories(ConfigDir);
-
-    SaveUTF8TextFile(SettingsFile, JSONContent);
-  end;
-end;
-
 
 procedure WriteDirectoriesConfig();
 var
@@ -1644,13 +1714,29 @@ begin
   InstallerRegistryKey := 'Software\VCMI\Installer\{#InstallerArch}';
   ValueUpdated := False;
 
-  if IsWin64 then
+  if not IsPortableInstall then
   begin
-    RegWriteStringValue(HKCU64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-    RegWriteStringValue(HKCU64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+    if IsAdminInstallMode then
+    begin
+      if IsWin64 then
+      begin
+        RegWriteStringValue(HKLM64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
+        RegWriteStringValue(HKLM64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+      end;
+      RegWriteStringValue(HKLM32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
+      RegWriteStringValue(HKLM32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+    end
+    else
+    begin
+      if IsWin64 then
+      begin
+        RegWriteStringValue(HKCU64, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
+        RegWriteStringValue(HKCU64, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+      end;
+      RegWriteStringValue(HKCU32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
+      RegWriteStringValue(HKCU32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
+    end;
   end;
-  RegWriteStringValue(HKCU32, InstallerRegistryKey, 'InstallPath', ExpandConstant('{app}'));
-  RegWriteStringValue(HKCU32, InstallerRegistryKey, 'userDataPath', SelectedDataDir);
 
   if LoadUTF8TextFile(ConfigFile, JSONContent) then
   begin
@@ -1705,16 +1791,22 @@ begin
 
   if not DirExists(ConfigDir) then
     ForceDirectories(ConfigDir);
-  if SaveUTF8TextFile(ConfigFile, JSONContent) then
+  if SaveUTF8TextFileAtomically(ConfigFile, JSONContent) then
   begin
-    if IsWin64 then
-      RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
-    RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
+    if not IsPortableInstall then
+    begin
+      if IsWin64 then
+        RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
+      RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
+    end;
   end
   else
   begin
     Log('Failed to write user data path to ' + ConfigFile);
-    if IsWin64 then
+    if IsPortableInstall
+      or (CompareText(GlobalUserName, GetUserNameString) <> 0) then
+      RaiseException(Format(ExpandConstant('{cm:DirectoryConfigWriteError}'), [ConfigFile]))
+    else if IsWin64 then
     begin
       if not RegWriteStringValue(HKCU64, 'Software\VCMI', 'userDataPath', SelectedDataDir) then
         RegWriteStringValue(HKCU32, 'Software\VCMI', 'userDataPath', SelectedDataDir);
@@ -1724,13 +1816,11 @@ begin
   end;
 end;
 
-
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
     WriteDirectoriesConfig();
 end;
-
 
 procedure RunPreInstallTasks();
 begin
@@ -1739,27 +1829,88 @@ begin
     Exit;
   PreInstallTasksDone := True;
 
-  // Remove Legacy installer when needed
-  RemoveLegacyInstaller();
+  // Portable setup must not alter any registered installation.
+  if not IsPortableInstall then
+    RemoveLegacyInstaller();
   // Copy H3 files when needed
   PerformHeroes3FileCopy();
-  // Create default language JSON - for future use
-  // CreateDefaultSettingsFile();
 end;
 
-
-/// Uninstall ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// Uninstall
 
 var
   DeleteUserDataLabel: TNewStaticText;
   DeleteUserDataDescriptionLabel: TNewStaticText;
 
+const
+  FILE_ATTRIBUTE_REPARSE_POINT_VALUE = $400;
+  INVALID_FILE_ATTRIBUTES = $FFFFFFFF;
 
-function DeleteFolderContents(const FolderPath: String): Boolean;
+function GetFileAttributes(FileName: String): Cardinal;
+  external 'GetFileAttributesW@kernel32.dll stdcall';
+
+function IsReparsePoint(const Path: String): Boolean;
+var
+  Attributes: Cardinal;
+begin
+  Attributes := GetFileAttributes(Path);
+  Result := (Attributes <> INVALID_FILE_ATTRIBUTES)
+    and ((Attributes and FILE_ATTRIBUTE_REPARSE_POINT_VALUE) <> 0);
+end;
+
+function RemoveReparsePoint(const Path: String; IsDirectory: Boolean): Boolean;
+begin
+  // Never follow links or junctions while deleting user data. Remove only the
+  // reparse point itself, leaving its target and all target contents untouched.
+  if IsDirectory then
+    Result := RemoveDir(Path)
+  else
+    Result := DeleteFile(Path);
+end;
+
+function CountDeletionEntries(const FolderPath: String): Integer;
 var
   FindResult: TFindRec;
   SubPath: String;
+begin
+  Result := 0;
+  if FindFirst(FolderPath + '\*', FindResult) then
+  begin
+    try
+      repeat
+        if (FindResult.Name <> '.') and (FindResult.Name <> '..') then
+        begin
+          Result := Result + 1;
+          if ((FindResult.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0)
+            and ((FindResult.Attributes and FILE_ATTRIBUTE_REPARSE_POINT_VALUE) = 0) then
+          begin
+            SubPath := FolderPath + '\' + FindResult.Name;
+            Result := Result + CountDeletionEntries(SubPath);
+          end;
+        end;
+      until not FindNext(FindResult);
+    finally
+      FindClose(FindResult);
+    end;
+  end;
+end;
+
+procedure UpdateUninstallDeletionProgress(const Path: String);
+var
+  DisplayPath: String;
+begin
+  CustomProgressPosition := CustomProgressPosition + 1;
+  UninstallProgressForm.ProgressBar.Position := CustomProgressPosition;
+  DisplayPath := MinimizePathName(Path, UninstallProgressForm.StatusLabel.Font,
+    UninstallProgressForm.StatusLabel.Width);
+  UninstallProgressForm.StatusLabel.Caption := CustomUninstallStatusText + ' ' + DisplayPath;
+  UninstallProgressForm.Update;
+end;
+
+function DeleteFolderContents(const FolderPath, CanonicalRoot: String): Boolean;
+var
+  FindResult: TFindRec;
+  SubPath, CanonicalSubPath: String;
 begin
   Result := True;
 
@@ -1770,10 +1921,31 @@ begin
         if (FindResult.Name <> '.') and (FindResult.Name <> '..') then
         begin
           SubPath := FolderPath + '\' + FindResult.Name;
+          CanonicalSubPath := RemoveBackslashUnlessRoot(ExpandFileName(SubPath));
 
-          if (FindResult.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+          // Re-check every entry before touching it. ExpandFileName resolves
+          // relative components; refusing anything outside the selected root
+          // also protects malformed or manually edited dirs.json paths.
+          if not IsSameOrChildPath(CanonicalSubPath, CanonicalRoot) then
           begin
-            if not DeleteFolderContents(SubPath) then
+            Log('Refusing to delete path outside user directory: ' + SubPath);
+            Result := False;
+            Exit;
+          end;
+
+          if (FindResult.Attributes and FILE_ATTRIBUTE_REPARSE_POINT_VALUE) <> 0 then
+          begin
+            if not RemoveReparsePoint(SubPath,
+              (FindResult.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0) then
+            begin
+              Result := False;
+              Exit;
+            end;
+            UpdateUninstallDeletionProgress(SubPath);
+          end
+          else if (FindResult.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+          begin
+            if not DeleteFolderContents(SubPath, CanonicalRoot) then
             begin
               Result := False;
               Exit;
@@ -1783,6 +1955,7 @@ begin
               Result := False;
               Exit;
             end;
+            UpdateUninstallDeletionProgress(SubPath);
           end
           else
           begin
@@ -1791,6 +1964,7 @@ begin
               Result := False;
               Exit;
             end;
+            UpdateUninstallDeletionProgress(SubPath);
           end;
         end;
       until not FindNext(FindResult);
@@ -1800,27 +1974,74 @@ begin
   end;
 end;
 
-
 procedure PerformFileDeletion;
 var
   Index: Integer;
-  FolderPath: String;
+  FolderPath, CanonicalRoot: String;
+  OldMaximum, OldPosition: Integer;
+  OldStatus: String;
+  OldStyle: TNewProgressBarStyle;
 begin
-  for Index := 0 to UninstallPathCount - 1 do
-  begin
-    if (DeletePathCheckboxes[Index] <> nil) and DeletePathCheckboxes[Index].Checked
-      and not UninstallPathProtected[Index] then
-    begin
-      FolderPath := UninstallPaths[Index];
-      if DirExists(FolderPath) and DeleteFolderContents(FolderPath) then
+  OldStyle := UninstallProgressForm.ProgressBar.Style;
+  OldStatus := UninstallProgressForm.StatusLabel.Caption;
+  UninstallProgressForm.ProgressBar.Style := npbstMarquee;
+  UninstallProgressForm.StatusLabel.Caption := ExpandConstant('{cm:ScanningFiles}');
+  UninstallProgressForm.Update;
+  try
+    CustomProgressTotal := 0;
+    for Index := 0 to UninstallPathCount - 1 do
+      if (DeleteAllUserData or (Assigned(DeletePathsList) and DeletePathsList.Checked[Index]))
+        and not UninstallPathProtected[Index] and DirExists(UninstallPaths[Index]) then
       begin
-        if not RemoveDir(FolderPath) then
-          Log('Failed to remove user directory: ' + FolderPath);
+        CustomProgressTotal := CustomProgressTotal + 1;
+        if not IsReparsePoint(UninstallPaths[Index]) then
+          CustomProgressTotal := CustomProgressTotal + CountDeletionEntries(UninstallPaths[Index]);
+      end;
+  finally
+    UninstallProgressForm.ProgressBar.Style := OldStyle;
+    UninstallProgressForm.StatusLabel.Caption := OldStatus;
+  end;
+
+  if CustomProgressTotal = 0 then
+    Exit;
+
+  OldMaximum := UninstallProgressForm.ProgressBar.Max;
+  OldPosition := UninstallProgressForm.ProgressBar.Position;
+  OldStatus := UninstallProgressForm.StatusLabel.Caption;
+  CustomProgressPosition := 0;
+  CustomUninstallStatusText := ExpandConstant('{cm:DeletingUserData}');
+  UninstallProgressForm.ProgressBar.Max := CustomProgressTotal;
+  UninstallProgressForm.ProgressBar.Position := 0;
+  try
+    for Index := 0 to UninstallPathCount - 1 do
+    begin
+      if (DeleteAllUserData or (Assigned(DeletePathsList) and DeletePathsList.Checked[Index]))
+        and not UninstallPathProtected[Index] then
+      begin
+        FolderPath := UninstallPaths[Index];
+        CanonicalRoot := RemoveBackslashUnlessRoot(ExpandFileName(FolderPath));
+        if DirExists(FolderPath) and IsReparsePoint(FolderPath) then
+        begin
+          if not RemoveReparsePoint(FolderPath, True) then
+            Log('Failed to remove user directory link: ' + FolderPath)
+          else
+            UpdateUninstallDeletionProgress(FolderPath);
+        end
+        else if DirExists(FolderPath) and DeleteFolderContents(FolderPath, CanonicalRoot) then
+        begin
+          if not RemoveDir(FolderPath) then
+            Log('Failed to remove user directory: ' + FolderPath)
+          else
+            UpdateUninstallDeletionProgress(FolderPath);
+        end;
       end;
     end;
+  finally
+    UninstallProgressForm.ProgressBar.Max := OldMaximum;
+    UninstallProgressForm.ProgressBar.Position := OldPosition;
+    UninstallProgressForm.StatusLabel.Caption := OldStatus;
   end;
 end;
-
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
@@ -1830,12 +2051,23 @@ begin
   if CurUninstallStep = usPostUninstall then
   begin
     PerformFileDeletion;
-    if IsWin64 then
-      RegDeleteKeyIncludingSubkeys(HKCU64, 'Software\VCMI\Installer\{#InstallerArch}');
-    RegDeleteKeyIncludingSubkeys(HKCU32, 'Software\VCMI\Installer\{#InstallerArch}');
+    MaintainFileAssociation('.vmap', 'VCMI.vmap', ExpandConstant('{cm:VMAPDescription}'));
+    MaintainFileAssociation('.vcmp', 'VCMI.vcmp', ExpandConstant('{cm:VCMPDescription}'));
+    MaintainFileAssociation('.h3m', 'VCMI.h3m', ExpandConstant('{cm:H3MDescription}'));
+    if IsAdminInstallMode then
+    begin
+      if IsWin64 then
+        RegDeleteKeyIncludingSubkeys(HKLM64, 'Software\VCMI\Installer\{#InstallerArch}');
+      RegDeleteKeyIncludingSubkeys(HKLM32, 'Software\VCMI\Installer\{#InstallerArch}');
+    end
+    else
+    begin
+      if IsWin64 then
+        RegDeleteKeyIncludingSubkeys(HKCU64, 'Software\VCMI\Installer\{#InstallerArch}');
+      RegDeleteKeyIncludingSubkeys(HKCU32, 'Software\VCMI\Installer\{#InstallerArch}');
+    end;
   end;
 end;
-
 
 procedure UninsNextButtonOnClick(Sender: TObject);
 begin
@@ -1850,19 +2082,21 @@ begin
   end;
 end;
 
-
 procedure UninsCancelButtonOnClick(Sender: TObject);
 begin
   // Optionally handle user cancellation
 end;
 
-
 procedure InitializeUninstallProgressForm();
 var
   Page: TNewNotebookPage;
   UninsNextButton: TButton;
-  Index, CheckboxTop: Integer;
+  Index, ListTop: Integer;
+  ItemDescription: String;
 begin
+  if UninstallSilent then
+    Exit;
+
   with UninstallProgressForm do
   begin
     // -- Create the "Uninstall" button
@@ -1918,26 +2152,26 @@ begin
       Caption := ExpandConstant('{cm:DeleteUserDataDescription}');
     end;
 
-    CheckboxTop := DeleteUserDataDescriptionLabel.Top + DeleteUserDataDescriptionLabel.Height + ScaleY(8);
+    ListTop := DeleteUserDataDescriptionLabel.Top + DeleteUserDataDescriptionLabel.Height + ScaleY(8);
+    DeletePathsList := TNewCheckListBox.Create(UninstallProgressForm);
+    with DeletePathsList do
+    begin
+      Parent := Page;
+      Top := ListTop;
+      Left := ScaleX(20);
+      Width := Page.Width - ScaleX(40);
+      Height := Page.Height - ListTop - ScaleY(12);
+      Anchors := [akLeft, akTop, akRight, akBottom];
+      BorderStyle := bsNone;
+    end;
+
     for Index := 0 to UninstallPathCount - 1 do
     begin
-      DeletePathCheckboxes[Index] := TNewCheckBox.Create(UninstallProgressForm);
-      with DeletePathCheckboxes[Index] do
-      begin
-        Parent := Page;
-        Top := CheckboxTop;
-        Left := ScaleX(20);
-        Width := Page.Width - ScaleX(40);
-        Height := ScaleY(42);
-        Checked := False;
-        Enabled := not UninstallPathProtected[Index];
-        if UninstallPathProtected[Index] then
-          Caption := UninstallPathDescriptions[Index] + #13#10 + UninstallPaths[Index] + #13#10 + ExpandConstant('{cm:SharedUserDataNotice}')
-        else
-          Caption := UninstallPathDescriptions[Index] + #13#10 + UninstallPaths[Index];
-        TabOrder := Index;
-      end;
-      CheckboxTop := CheckboxTop + DeletePathCheckboxes[Index].Height + ScaleY(3);
+      ItemDescription := UninstallPaths[Index];
+      if UninstallPathProtected[Index] then
+        ItemDescription := ItemDescription + ' — ' + ExpandConstant('{cm:SharedUserDataNotice}');
+      DeletePathsList.AddCheckBox(UninstallPathDescriptions[Index], ItemDescription,
+        0, False, not UninstallPathProtected[Index], False, False, nil);
     end;
 
     // -- Activate the first page

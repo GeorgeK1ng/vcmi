@@ -828,6 +828,10 @@ jobs:
         cmake -S CI/wininstaller/plugins -B CI/wininstaller/plugins/build -A $pluginArch
         cmake --build CI/wininstaller/plugins/build --config Release --target installerPlugin
 
+    - name: Validate installer translations
+      shell: pwsh
+      run: CI/wininstaller/validate_installer_languages.ps1
+
     - name: Build VCMI Installer
       run: >
         CI\wininstaller\build_installer.cmd
@@ -840,6 +844,61 @@ jobs:
         "${{ github.workspace }}\ucrt"
         "${{ github.workspace }}\CI\wininstaller\plugins\build\bin\Release"
       shell: cmd
+
+    - name: Smoke test Windows installer
+      shell: pwsh
+      run: |
+        $installer = Join-Path '${{ github.workspace }}\CI\wininstaller\Output' '${{ env.VCMI_PACKAGE_FILE_NAME }}.exe'
+        $testRoot = Join-Path $env:RUNNER_TEMP 'vcmi-installer-smoke'
+        $installDir = Join-Path $testRoot 'app'
+        $dataDir = Join-Path $testRoot 'user data Unicode-ž'
+        $outsideDir = Join-Path $testRoot 'must-survive'
+
+        New-Item -ItemType Directory -Force -Path $dataDir, $outsideDir | Out-Null
+        Set-Content -LiteralPath (Join-Path $outsideDir 'sentinel.txt') -Value 'keep'
+
+        & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER "/DIR=$installDir" "/USERDATADIR=$dataDir" /TASKS=""
+        if ($LASTEXITCODE -ne 0) { throw "Installer failed with exit code $LASTEXITCODE" }
+
+        $configFile = Join-Path $installDir 'config\dirs.json'
+        if (-not (Test-Path -LiteralPath (Join-Path $installDir 'VCMI_launcher.exe'))) { throw 'Launcher was not installed' }
+        if (-not (Test-Path -LiteralPath $configFile)) { throw 'dirs.json was not created' }
+        if (Test-Path -LiteralPath "$configFile.tmp") { throw 'Temporary dirs.json file was not cleaned up' }
+        $config = Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json
+        if ($config.userDataPath -ne $dataDir) { throw "Unexpected userDataPath: $($config.userDataPath)" }
+
+        Set-Content -LiteralPath (Join-Path $dataDir 'delete-me.txt') -Value 'delete'
+        New-Item -ItemType Junction -Path (Join-Path $dataDir 'external-link') -Target $outsideDir | Out-Null
+
+        $uninstaller = Join-Path $installDir 'unins000.exe'
+        & $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DELETEUSERDATA=1
+        if ($LASTEXITCODE -ne 0) { throw "Uninstaller failed with exit code $LASTEXITCODE" }
+        if (Test-Path -LiteralPath $installDir) { throw 'Installation directory was not removed' }
+        if (Test-Path -LiteralPath $dataDir) { throw 'Selected user data directory was not removed' }
+        if (-not (Test-Path -LiteralPath (Join-Path $outsideDir 'sentinel.txt'))) { throw 'Uninstaller followed a directory junction' }
+
+        $portableDir = Join-Path $testRoot 'portable app'
+        & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER /PORTABLE=1 "/DIR=$portableDir" /TASKS=""
+        if ($LASTEXITCODE -ne 0) { throw "Portable setup failed with exit code $LASTEXITCODE" }
+
+        $portableConfigFile = Join-Path $portableDir 'config\dirs.json'
+        if (-not (Test-Path -LiteralPath (Join-Path $portableDir 'VCMI_launcher.exe'))) { throw 'Portable launcher was not installed' }
+        if (-not (Test-Path -LiteralPath $portableConfigFile)) { throw 'Portable dirs.json was not created' }
+        if (Test-Path -LiteralPath "$portableConfigFile.tmp") { throw 'Portable temporary dirs.json file was not cleaned up' }
+        if (Get-ChildItem -LiteralPath $portableDir -Filter 'unins*.exe') { throw 'Portable setup created an uninstaller' }
+        $portableConfig = Get-Content -LiteralPath $portableConfigFile -Raw | ConvertFrom-Json
+        $expectedPortableData = Join-Path $portableDir 'VCMI-data'
+        if ($portableConfig.userDataPath -ne $expectedPortableData) { throw "Unexpected portable userDataPath: $($portableConfig.userDataPath)" }
+
+        $installerRegistryKey = "HKCU\Software\VCMI\Installer\${{ matrix.arch }}"
+        & reg.exe query $installerRegistryKey /reg:32 *> $null
+        if ($LASTEXITCODE -eq 0) { throw 'Portable setup wrote 32-bit installer registry metadata' }
+        if ([Environment]::Is64BitOperatingSystem) {
+          & reg.exe query $installerRegistryKey /reg:64 *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Portable setup wrote 64-bit installer registry metadata' }
+        }
+
+        Remove-Item -LiteralPath $portableDir -Recurse -Force
 
     - name: Upload VCMI Installer Artifacts
       id: upload_installer

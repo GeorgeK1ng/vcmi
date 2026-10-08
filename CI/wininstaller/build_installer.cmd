@@ -6,7 +6,7 @@ cls
 REM Define variables dynamically relative to the normalized base directory
 set "AppVersion=1.7.0"
 set "AppBuild=1122334455A"
-set "InstallerArch=x64compatible"
+set "InstallerArch=x64"
 set "VCMIFolder=VCMI"
 set "InstallerName=VCMI-Windows"
 
@@ -21,7 +21,8 @@ if not "%~7"=="" set "UCRTFilesPath=%~7"
 if not "%~8"=="" set "InstallerPluginPath=%~8"
 
 if "%InstallerArch%" == "x86" (
-    set "AllowedArch=x86os"
+    REM x86 payload runs natively on x86 and through Windows compatibility on x64/ARM64.
+    set "AllowedArch=x86compatible"
     set "SetupArch=x86"
 ) else if "%InstallerArch%" == "x64" (
     set "AllowedArch=x64os"
@@ -53,6 +54,7 @@ for %%i in ("%BaseDir%") do set "BaseDir=%%~fi"
 REM Define specific subdirectories relative to the base directory
 if not defined SourceFilesPath set "SourceFilesPath=%BaseDir%bin\Release"
 set "LangPath=%BaseDir%CI\wininstaller\lang"
+set "UnofficialLangPath=%TEMP%\vcmi-inno-languages-7.1.0"
 set "LicenseFile=%BaseDir%license.txt"
 set "IconFile=%BaseDir%clientapp\icons\vcmi.ico"
 set "SmallLogo=%BaseDir%CI\wininstaller\vcmismalllogo.bmp"
@@ -96,26 +98,34 @@ if not exist "%ISCC%" (
     echo ERROR: Inno Setup !InnoSetupVer! was not found in !ProgFiles!.
     echo Please install it or specify the correct path.
     echo.
-    pause
-    goto :eof
+    exit /b 1
 )
 
 REM Verify critical paths
 if not exist "%InstallerScript%" (
     echo ERROR: Installer script not found: !InstallerScript!
-    pause
-    goto :eof
+    exit /b 1
 )
 if not exist "%SourceFilesPath%" (
     echo ERROR: Source files path not found: !SourceFilesPath!
-    pause
-    goto :eof
+    exit /b 1
 )
 if not exist "%UCRTFilesPath%" (
     echo ERROR: UCRT files path not found: !UCRTFilesPath!
-    pause
-    goto :eof
+    exit /b 1
 )
+if not exist "%InstallerPluginPath%\installerPlugin.dll" (
+    echo ERROR: Installer plugin not found: !InstallerPluginPath!\installerPlugin.dll
+    exit /b 1
+)
+
+REM Fetch the pinned Inno Setup community translations which are not installed
+REM with the compiler. The script reuses files already present in the temp cache.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ScriptDir%download_inno_languages.ps1" -OutputDirectory "%UnofficialLangPath%"
+if errorlevel 1 exit /b %errorlevel%
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ScriptDir%validate_installer_languages.ps1"
+if errorlevel 1 exit /b %errorlevel%
 
 REM Print out installer settings
 echo.
@@ -130,6 +140,7 @@ echo SourceFilesPath:   %SourceFilesPath%
 echo UCRTFilesPath:     %UCRTFilesPath%
 echo InstallerScript:   %InstallerScript%
 echo InstallerPlugin:   %InstallerPluginPath%
+echo Inno Languages:    %UnofficialLangPath%
 echo.
 
 REM Call Inno Setup Compiler
@@ -145,9 +156,10 @@ REM Call Inno Setup Compiler
     /DInstallerPluginPath="%InstallerPluginPath%" ^
     /DUCRTFilesPath="%UCRTFilesPath%" ^
     /DLangPath="%LangPath%" ^
+    /DUnofficialLangPath="%UnofficialLangPath%" ^
     /DLicenseFile="%LicenseFile%" ^
     /DIconFile="%IconFile%" ^
     /DSmallLogo="%SmallLogo%" ^
     /DWizardLogo="%WizardLogo%"
 
-goto :eof
+exit /b %errorlevel%

@@ -32,13 +32,21 @@ To create translation mod for a new language,  easiest approach is to:
 VCMI uses an Inno Setup installer that supports multiple languages. To add a new translation to the installer, follow these steps:
 
 1. **Download the ISL file for your language:**
-   - Visit the Inno Setup repository to find the language file you need:  
-     [Inno Setup Languages](https://github.com/jrsoftware/issrc/tree/main/Files/Languages).
+   - Confirm that a matching base translation exists in the official or
+     `Unofficial` directory of [Inno Setup Languages](https://github.com/jrsoftware/issrc/tree/main/Files/Languages).
+   - Do not copy the complete upstream file into VCMI. Official translations
+     are loaded from the installed compiler and required community translations
+     are downloaded by `CI/wininstaller/download_inno_languages.ps1`.
 
 2. **Add custom VCMI messages:**
-   - Open the downloaded ISL file and include the necessary VCMI-specific custom messages.
-   - Refer to the `English.isl` file in the repository for examples of required custom messages.
-   - Ensure that all messages, such as `WindowsVersionNotSupported` and `ConfirmUninstall`, are correctly translated and match the functionality described in the English version.
+   - Copy `CI/wininstaller/lang/English.isl` to a new overlay file and translate
+     its values. These small overlay files are the translation sources intended
+     for Weblate.
+   - Keep placeholders such as `%1`, `%2`, and `%n` unchanged. `HelpTextNote`
+     is appended to the standard `/HELP` and `/?` output and must document all
+     VCMI-specific command-line parameters.
+   - Compare the complete `[CustomMessages]` key set with `English.isl`; do not
+     maintain a second hard-coded key list in the installer script.
 
 3. **Modify the `ConfirmUninstall` message:**
    - The VCMI installer uses a custom Uninstall Wizard. Ensure the `ConfirmUninstall` message is consistent with the English version and accurately reflects the intended functionality.
@@ -54,10 +62,25 @@ Example syntax for adding a language:
 
 ```text
 [Languages]
-Name: "english"; MessagesFile: "{#LangPath}\English.isl"
-Name: "czech"; MessagesFile: "{#LangPath}\Czech.isl"
-Name: "<your-language>"; MessagesFile: "{#LangPath}\<your-language>.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl,{#LangPath}\English.isl"
+Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl,{#LangPath}\Czech.isl"
+Name: "<your-language>"; MessagesFile: "compiler:Languages\<upstream-file>.isl,{#LangPath}\<overlay-file>.isl"
 ```
+
+List the upstream base first and the VCMI overlay second. Inno Setup reads the
+files in order, so the overlay replaces only the messages present in it:
+
+```text
+Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl,{#LangPath}\Dutch.isl"
+```
+
+If the base translation is in Inno Setup's `Unofficial` directory, add it to
+`download_inno_languages.ps1` and use `{#UnofficialLangPath}` instead.
+
+Run `CI\wininstaller\validate_installer_languages.ps1` after changing languages.
+It verifies parity with the launcher translations (except Filipino, for which
+Inno Setup has no base translation) and checks that every overlay has the same
+message keys as English.
 
 ### Addition of new mods to Weblate
 

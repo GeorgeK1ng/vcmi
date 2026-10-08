@@ -282,6 +282,105 @@ VCMI requires data files from an installed copy of Heroes of Might and Magic III
 
 Then run `build\bin\Debug\VCMI_launcher.exe`, or the launcher from the matching build configuration.
 
+## Building the Windows installer
+
+The installer is built with Inno Setup 7 after the VCMI Release payload and its
+small native helper plugin have been built. Install these prerequisites:
+
+- Inno Setup 7, including the `ISCC.exe` command-line compiler;
+- CMake 3.20 or newer and Visual Studio with the MSVC C++ tools;
+- a Windows 10 SDK containing the Universal CRT redistributable files.
+
+First build VCMI in the Release configuration. By default, the installer script
+expects the complete distributable payload in `bin\Release`. It must include
+`VCMI_launcher.exe` and all files which are to be installed.
+
+Build `installerPlugin.dll` for the architecture of the Setup executable:
+
+```batchfile
+cd /d C:\VCMI
+cmake -S CI\wininstaller\plugins -B CI\wininstaller\plugins\build -A x64
+cmake --build CI\wininstaller\plugins\build --config Release --target installerPlugin
+```
+
+Use `-A Win32` for an x86 installer. The ARM64 package also uses a Win32 Setup
+executable and therefore a Win32 plugin; only its VCMI payload is ARM64. The
+plugin is statically linked to the MSVC runtime and implements the modern folder
+picker and cloud-storage detection used by Setup.
+
+Run the wrapper from a regular Command Prompt:
+
+```batchfile
+CI\wininstaller\build_installer.cmd 1.7.0 local x64 VCMI VCMI-Windows
+```
+
+Its positional arguments are:
+
+1. application version;
+2. build identifier;
+3. payload architecture: `x86`, `x64`, or `arm64`;
+4. VCMI payload subdirectory name;
+5. output installer name;
+6. optional payload directory (defaults to `bin\Release`);
+7. optional UCRT redistributable directory;
+8. optional directory containing `installerPlugin.dll`.
+
+For example, an ARM64 package with explicit input paths can be built as follows
+after compiling a Win32 plugin:
+
+```batchfile
+CI\wininstaller\build_installer.cmd 1.7.0 local arm64 VCMI VCMI-Windows-ARM64 C:\VCMI\package C:\SDK\ucrt\DLLs C:\VCMI\CI\wininstaller\plugins\build\bin\Release
+```
+
+If argument 7 is omitted, the wrapper selects the newest UCRT directory found
+in the installed Windows 10 SDK. The generated executable is written to
+`CI\wininstaller\Output`.
+
+The wrapper also downloads the Inno Setup 7.1.0 community language files that
+are not shipped with the compiler. They are cached in
+`%TEMP%\vcmi-inno-languages-7.1.0`; standard official translations are read
+directly from the installed Inno Setup compiler. The files in
+`CI\wininstaller\lang` contain only VCMI-specific overrides and custom messages.
+
+### Installer command-line parameters
+
+Run the generated installer with `/HELP` or `/?` for the standard Inno Setup
+parameters and the localized VCMI-specific additions. `HelpTextNote` appends the
+VCMI section to Inno Setup's built-in help; it does not replace that help.
+
+VCMI adds these Setup parameters:
+
+- `/USERDATADIR=<path>` selects the VCMI user-data root. Prefix the value with
+  `expand:` to expand Inno Setup constants.
+- `/ALLOWCLOUDTARGET=1` explicitly permits a cloud-synchronized installation or
+  user-data directory during silent Setup. Without it, silent Setup rejects a
+  detected cloud target instead of waiting for confirmation that cannot be given.
+- `/PORTABLE=1` keeps the application and `VCMI-data` together and creates no
+  uninstaller, registry values, shortcuts, file associations, or firewall rules.
+- `/LAUNCH` launches VCMI after Setup, including after silent Setup.
+
+The standard `/DIR=<path>` parameter selects the application directory and is
+also honored by VCMI's combined directory page. The generated uninstaller adds
+`/DELETEUSERDATA=1`; for safety it is honored only together with `/SILENT` or
+`/VERYSILENT` and permanently removes all configured VCMI user directories.
+
+### Installer directory and architecture behavior
+
+The normal user-data default is `Documents\My Games\VCMI`. When Documents is
+cloud synchronized, Setup uses `Local AppData\VCMI` instead. A manually selected
+cloud directory remains allowed after an explicit warning.
+
+The x64 package uses x64 Setup and an x64 plugin. The x86 and ARM64 packages use
+x86 Setup and an x86 plugin. Older x64 packages used x86 Setup; their uninstall
+records are therefore searched in both registry views during upgrade and when
+protecting directories shared by multiple installed architectures.
+
+The selected directories are written to `{app}\config\dirs.json`. Values below
+`HKCU\Software\VCMI\Installer\<architecture>` provide per-installer fallback
+metadata. During uninstall, the data, cache, config, logs, and saves paths are
+loaded from this metadata, grouped by directory tree, and offered separately.
+Directories used by another installed VCMI architecture cannot be deleted.
+
 ## Troubleshooting MSVC builds
 
 ### Conan cannot find a compatible binary package
