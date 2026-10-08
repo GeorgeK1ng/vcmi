@@ -148,7 +148,9 @@ bool datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QStr
 #if defined(VCMI_WINDOWS)
 	const std::wstring nativeTarget = QDir::toNativeSeparators(target).toStdWString();
 	const bool isOneDrive = VCMI::Windows::isOneDrivePath(nativeTarget.c_str());
-	if(!isOneDrive && !VCMI::Windows::isCloudStoragePath(nativeTarget.c_str()))
+	const bool isCloudStorage = isOneDrive || VCMI::Windows::isCloudStoragePath(nativeTarget.c_str());
+	logGlobal->debug("User directory synchronization check for '%s': OneDrive=%d, cloud=%d", target.toStdString(), isOneDrive, isCloudStorage);
+	if(!isCloudStorage)
 		return true;
 
 	const QString synchronizationDescription = isOneDrive

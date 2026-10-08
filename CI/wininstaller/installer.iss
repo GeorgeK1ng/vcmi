@@ -1053,9 +1053,25 @@ begin
   if picked <> '' then
   begin
     if Sender = InstallDirBrowseBtn then
+    begin
+      if IsCloudStoragePath(picked) then
+      begin
+        if MsgBox(ExpandConstant('{cm:CloudInstallWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
+          Exit;
+        ConfirmedCloudInstallDir := picked;
+      end;
       InstallDirEdit.Text := picked
+    end
     else
+    begin
+      if IsCloudStoragePath(picked) then
+      begin
+        if MsgBox(ExpandConstant('{cm:CloudDataWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
+          Exit;
+        ConfirmedCloudDataDir := picked;
+      end;
       DataDirEdit.Text := picked;
+    end;
   end;
 end;
 
