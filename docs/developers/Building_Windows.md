@@ -342,27 +342,82 @@ are not shipped with the compiler. They are cached in
 directly from the installed Inno Setup compiler. The files in
 `CI\wininstaller\lang` contain only VCMI-specific overrides and custom messages.
 
-### Installer command-line parameters
+### Installer command-line interface
 
 Run the generated installer with `/HELP` or `/?` for the standard Inno Setup
 parameters and the localized VCMI-specific additions. `HelpTextNote` appends the
 VCMI section to Inno Setup's built-in help; it does not replace that help.
 
-VCMI adds these Setup parameters:
+VCMI adds the following Setup parameters. Parameter names are case-insensitive;
+quote values that contain spaces.
 
-- `/USERDATADIR=<path>` selects the VCMI user-data root. Prefix the value with
-  `expand:` to expand Inno Setup constants.
-- `/ALLOWCLOUDTARGET=1` explicitly permits a cloud-synchronized installation or
-  user-data directory during silent Setup. Without it, silent Setup rejects a
-  detected cloud target instead of waiting for confirmation that cannot be given.
-- `/PORTABLE=1` keeps the application and `VCMI-data` together and creates no
-  uninstaller, registry values, shortcuts, file associations, or firewall rules.
-- `/LAUNCH` launches VCMI after Setup, including after silent Setup.
+| Parameter | Accepted value | Behavior |
+| --- | --- | --- |
+| `/USERDATADIR=<path>` | Directory path | Selects the VCMI user-data root. Prefix the value with `expand:` to expand Inno Setup constants, for example `/USERDATADIR="expand:{localappdata}\\VCMI"`. |
+| `/ALLOWCLOUDTARGET=1` | `1` | Permits a cloud-synchronized installation or user-data directory during silent Setup. Without it, silent Setup rejects a detected cloud target because it cannot display the interactive confirmation. |
+| `/PORTABLE=1` | `1` | Selects Portable installation. The application and `VCMI-data` remain together; Setup creates no uninstaller, registry values, shortcuts, file associations, or firewall rules. |
+| `/LAUNCH[=1]` | no value or `1` | Launches VCMI after Setup. This is required to launch it after `/SILENT` or `/VERYSILENT`; interactive Setup instead displays the normal post-install checkbox. |
+| `/COPYH3DATA=0\|1` | `0` or `1` | Disables or enables copying automatically detected Heroes III files to the VCMI data directory. The default is `1` when a usable source was found. |
 
-The standard `/DIR=<path>` parameter selects the application directory and is
-also honored by VCMI's combined directory page. The generated uninstaller adds
-`/DELETEUSERDATA=1`; for safety it is honored only together with `/SILENT` or
-`/VERYSILENT` and permanently removes all configured VCMI user directories.
+The generated uninstaller additionally accepts `/DELETEUSERDATA=1`. This is a
+destructive option: it permanently removes all configured VCMI user directories
+and is deliberately honored only together with `/SILENT` or `/VERYSILENT`.
+
+The most relevant standard Inno Setup parameters are `/DIR=<path>`,
+`/CURRENTUSER`, `/ALLUSERS`, `/LANG=<id>`, `/TASKS=<list>`,
+`/MERGETASKS=<list>`, `/SILENT`, `/VERYSILENT`, `/SUPPRESSMSGBOXES`,
+`/NORESTART`, and `/LOG[=<file>]`. `/DIR` selects the application directory and
+is also honored by VCMI's combined directory page. Consult `/HELP` for the full
+standard parameter list.
+
+Supported `/LANG` IDs are `english`, `belarusian`, `bulgarian`, `czech`,
+`chinese`, `tchinese`, `dutch`, `finnish`, `french`, `german`, `greek`,
+`hungarian`, `italian`, `japanese`, `korean`, `latvian`, `norwegian`, `polish`,
+`portuguese`, `romanian`, `russian`, `serbian`, `spanish`, `swedish`, `turkish`,
+`ukrainian`, and `vietnamese`.
+
+#### Task IDs
+
+Use the following stable IDs with `/TASKS` and `/MERGETASKS`:
+
+| Task ID | Installer option | Default | Availability |
+| --- | --- | --- | --- |
+| `startmenu_launcher` | Start Menu shortcut: VCMI Launcher | Selected | Normal releases; non-portable |
+| `startmenu_mapeditor` | Start Menu shortcut: VCMI Map Editor | Selected | Normal releases; non-portable |
+| `startmenu_website` | Start Menu shortcut: VCMI Website | Selected | Normal releases; non-portable |
+| `startmenu_discord` | Start Menu shortcut: VCMI Discord | Selected | Normal releases; non-portable |
+| `desktop_launcher` | Desktop shortcut: VCMI Launcher | Selected | Normal releases; non-portable |
+| `desktop_mapeditor` | Desktop shortcut: VCMI Map Editor | Not selected | Normal releases; non-portable |
+| `fileassociation_vmap` | VCMI Map (`.vmap`) association | Selected | Normal releases; non-portable |
+| `fileassociation_vcmp` | VCMI Campaign (`.vcmp`) association | Selected | Normal releases; non-portable |
+| `fileassociation_h3m` | Heroes III Map (`.h3m`) association | Not selected | Normal releases; non-portable |
+| `fileassociation_h3c` | Heroes III Campaign (`.h3c`) association | Not selected | Normal releases; non-portable |
+| `firewallrules` | Multiplayer firewall rules | Selected | Normal releases; All users only; non-portable |
+
+`/TASKS="id1,id2"` replaces the default selection with the listed tasks.
+`/MERGETASKS="id1,!id2"` modifies the defaults: a plain ID selects a task and
+an ID prefixed with `!` clears it. Tasks unavailable for the selected build or
+installation mode are not performed even if their IDs are supplied.
+
+For example, this installs for all users, disables automatic Heroes III import,
+and selects only the two application shortcuts and the firewall rule:
+
+```batchfile
+VCMI-Windows.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /ALLUSERS /DIR="C:\Program Files\VCMI" /USERDATADIR="C:\Users\Public\Documents\VCMI" /COPYH3DATA=0 /TASKS="startmenu_launcher,desktop_launcher,firewallrules"
+```
+
+This keeps all defaults, adds the Map Editor desktop shortcut, and removes the
+Discord shortcut:
+
+```batchfile
+VCMI-Windows.exe /SILENT /MERGETASKS="desktop_mapeditor,!startmenu_discord"
+```
+
+A minimal unattended portable installation can be invoked as follows:
+
+```batchfile
+VCMI-Windows.exe /VERYSILENT /PORTABLE=1 /DIR="D:\Games\VCMI" /COPYH3DATA=0
+```
 
 ### Installer directory and architecture behavior
 
@@ -375,11 +430,135 @@ x86 Setup and an x86 plugin. Older x64 packages used x86 Setup; their uninstall
 records are therefore searched in both registry views during upgrade and when
 protecting directories shared by multiple installed architectures.
 
-The selected directories are written to `{app}\config\dirs.json`. Values below
-`HKCU\Software\VCMI\Installer\<architecture>` provide per-installer fallback
-metadata. During uninstall, the data, cache, config, logs, and saves paths are
-loaded from this metadata, grouped by directory tree, and offered separately.
+Fresh Setup writes the selected user-data directory to
+`{app}\config\dirs.json`. Values below
+`Software\VCMI\Installer\<architecture>` in the installation's per-user or
+machine registry hive provide ownership metadata. During uninstall, the data,
+cache, config, logs, and saves paths are
+loaded from the runtime configuration and installer metadata, grouped by
+directory tree, and offered separately.
 Directories used by another installed VCMI architecture cannot be deleted.
+
+### Setup modes and page flow
+
+Interactive fresh Setup offers three modes:
+
+- **All users** installs into Program Files, enables system integration, and
+  requires administrative privileges.
+- **Current user** installs below the interactive user's Local AppData and does
+  not require elevation. Paths are resolved for the user who started Setup even
+  when over-the-shoulder elevation uses another administrator account.
+- **Portable** keeps the application and `VCMI-data` below one application
+  directory. It creates no uninstaller, installer registry metadata, shortcuts,
+  file associations, or firewall rules.
+
+The combined directory page selects both the application directory and the
+user-data root. If usable Heroes III data were detected and are missing from the
+selected user-data root, this page also displays an optional copy checkbox.
+The checkbox is recalculated whenever the user-data path changes.
+
+The System Requirements Check is a deliberately informational, nostalgic page.
+It is shown for interactive fresh and portable installations, but skipped for
+upgrades, `/SILENT`, and `/VERYSILENT`. It reports Windows version and
+architecture, processor speed, physical memory, DirectX 11 runtime availability,
+internet connectivity, Heroes III data, directory writability/cloud status, and
+free disk space. PASS, WARN, FAIL, and INFO on this page never block Next by
+themselves; authoritative safety checks run separately as described below.
+
+Upgrades reuse the registered application and user-data directories, leave the
+existing `dirs.json` unchanged, and skip the mode, license, directory, task,
+requirements, and Ready pages that do not require another decision. Changing an
+upgrade's directories requires first uninstalling the previous version.
+
+### Authoritative validation and warnings
+
+Before payload copying, Setup validates the selected directories independently
+of the informational requirements table:
+
+- both paths must be non-empty and their nearest existing parents writable;
+- a filesystem root cannot be selected;
+- normal application and user-data trees cannot overlap;
+- portable user data may be below its application directory;
+- an application directory cannot overlap a registered x86, x64, or ARM64
+  installation;
+- selected Heroes III import data must fit on the destination volume;
+- import sources containing junctions or other reparse points are rejected.
+
+Cloud classification uses the dynamically loaded Windows Cloud Files API when
+available and OneDrive environment/registry locations as a specific fallback.
+Selecting a synchronized application or data directory shows a warning but the
+user may continue. Unattended Setup cannot answer that warning and therefore
+requires `/ALLOWCLOUDTARGET=1` for such a target.
+
+Low processor speed, low memory, missing DirectX 11, no detected internet
+connection, and missing Heroes III data are advisory only. Installation remains
+possible because data or runtime support may be supplied later and VCMI can be
+used offline.
+
+### Installation order and Heroes III import
+
+Setup performs state-changing operations in this order:
+
+1. validate mode, directories, architecture coexistence, and cloud consent;
+2. run a detected legacy VCMI uninstaller before writing the new payload;
+3. let Inno Setup copy the application and UCRT files when required, install the
+   cloud-detection helper, and apply the selected system-integration tasks;
+4. on a fresh installation, write a new `{app}\config\dirs.json` directly and
+   remove the obsolete global `userDataPath` registry value;
+5. optionally copy the detected Heroes III `Data`, `Maps`, and `Mp3` contents;
+6. optionally launch VCMI.
+
+Heroes III discovery checks known GOG and original CD registry entries, Ubisoft
+Connect, and Steam. Every candidate is validated before it is accepted, so a
+stale registry entry does not prevent later candidates from being considered.
+Import merges regular directories and files without following junctions or
+symbolic links. Invalid destination trees are repaired by copying with overwrite
+enabled; already valid Heroes III trees are left untouched. The source
+installation is never modified. Copy progress is included
+in Setup's progress page; a failure reports that a partial copy may remain and
+that retrying is safe.
+
+### Architecture coexistence and registry metadata
+
+The x86, x64, and ARM64 packages have separate AppIds and registry metadata
+below `Software\VCMI\Installer\<architecture>`. Installations may coexist only
+in non-overlapping application directories. The x86 package is allowed on x64
+and ARM64 Windows after an informational native-architecture recommendation.
+
+Per-architecture metadata stores the application path, user-data path, and a
+protected cloud root. The installer searches both 32-bit and 64-bit registry
+views where legacy packages may have written their uninstall data. File
+associations are repaired rather than blindly removed when another architecture
+still owns a usable installation.
+
+### Uninstall safety
+
+Interactive uninstall presents each distinct configured user-data tree as an
+unchecked option with a description. Silent uninstall preserves all user data
+unless `/DELETEUSERDATA=1` is explicitly supplied.
+
+Before deletion, every candidate is normalized and rejected if it is a drive
+root, Windows or Program Files tree, user-profile root, Documents, Desktop,
+AppData, Downloads, Music, Pictures, Videos, a detected cloud root, the
+application directory, or a directory used by another VCMI architecture.
+Nested configured paths are collapsed into independent parent trees. Recursive
+deletion verifies that every resolved child remains inside its selected root;
+junctions and symbolic links are removed as links and are never followed. The
+installed cloud helper is unloaded before Inno removes the application files.
+
+### Maintenance checks
+
+Before committing installer changes, run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File CI\wininstaller\validate_installer_languages.ps1
+```
+
+Then build all applicable x86, x64, and ARM64 packages with
+`build_installer.cmd`. Language validation requires every VCMI custom message to
+exist in all installer overlays. A local design-only package may use a minimal
+payload, but release validation must use the real packaged VCMI binaries, the
+matching architecture plugin, UCRT inputs, and Inno Setup 7.
 
 ## Troubleshooting MSVC builds
 

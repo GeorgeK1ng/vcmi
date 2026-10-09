@@ -71,17 +71,19 @@ UsePreviousTasks=yes
 UsePreviousGroup=yes
 DisableStartupPrompt=yes
 UsedUserAreasWarning=no
-WindowResizable=no
 CloseApplicationsFilter=*.exe
 CloseApplications=force
 Compression=lzma2/ultra64
 SolidCompression=yes
+SetupLogging=yes
 ArchitecturesAllowed={#AllowedArch}
 SetupArchitecture={#SetupArch}
 LicenseFile={#LicenseFile}
 SetupIconFile={#IconFile}
 WizardSmallImageFile={#SmallLogo}
 WizardImageFile={#WizardLogo}
+WizardSizePercent=125
+WizardResizable=yes
 
 ; Version information
 MinVersion=6.1sp1
@@ -123,59 +125,82 @@ Name: "vietnamese"; MessagesFile: "{#UnofficialLangPath}\Vietnamese.isl,{#LangPa
 
 [Files]
 Source: "{#InstallerPluginPath}\installerPlugin.dll"; Flags: dontcopy noencryption
-Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb"; BeforeInstall: RunPreInstallTasks
+Source: "install-mode-all-users.bmp"; Flags: dontcopy noencryption
+Source: "install-mode-current-user.bmp"; Flags: dontcopy noencryption
+Source: "install-mode-portable.bmp"; Flags: dontcopy noencryption
+Source: "folder-vcmi.bmp"; Flags: dontcopy noencryption
+Source: "folder-user.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-ok.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-ok-alternate.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-info.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-info-alternate.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-fail.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-fail-alternate.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-warn.bmp"; Flags: dontcopy noencryption
+Source: "requirement-status-warn-alternate.bmp"; Flags: dontcopy noencryption
+Source: "{#InstallerPluginPath}\installerPlugin.dll"; DestDir: "{app}"; DestName: "VCMI_installerPlugin.dll"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb,config\dirs.json"
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded
 
 [Icons]
-Name: "{group}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: startmenu; Check: not IsPortableInstall
-Name: "{group}\{cm:ShortcutMapEditor}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_mapeditor.exe"; Comment: "{cm:ShortcutMapEditorComment}{code:GetBranchSuffix}"; Tasks: startmenu; Check: not IsPortableInstall
-Name: "{group}\{cm:ShortcutWebPage}"; Filename: "{#VCMIHome}"; Comment: "{cm:ShortcutWebPageComment}"; Tasks: startmenu; Check: not IsPortableInstall
-Name: "{group}\{cm:ShortcutDiscord}"; Filename: "{#VCMIContact}"; Comment: "{cm:ShortcutDiscordComment}"; Tasks: startmenu; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: startmenu_launcher; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutMapEditor}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_mapeditor.exe"; Comment: "{cm:ShortcutMapEditorComment}{code:GetBranchSuffix}"; Tasks: startmenu_mapeditor; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutWebPage}"; Filename: "{#VCMIHome}"; Comment: "{cm:ShortcutWebPageComment}"; Tasks: startmenu_website; Check: not IsPortableInstall
+Name: "{group}\{cm:ShortcutDiscord}"; Filename: "{#VCMIContact}"; Comment: "{cm:ShortcutDiscordComment}"; Tasks: startmenu_discord; Check: not IsPortableInstall
 
-Name: "{code:GetUserDesktopFolder}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: desktop; Check: not IsPortableInstall
+Name: "{code:GetUserDesktopFolder}\{cm:ShortcutLauncher}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_launcher.exe"; Comment: "{cm:ShortcutLauncherComment}{code:GetBranchSuffix}"; Tasks: desktop_launcher; Check: not IsPortableInstall
+Name: "{code:GetUserDesktopFolder}\{cm:ShortcutMapEditor}{code:GetBranchSuffix}"; Filename: "{app}\VCMI_mapeditor.exe"; Comment: "{cm:ShortcutMapEditorComment}{code:GetBranchSuffix}"; Tasks: desktop_mapeditor; Check: not IsPortableInstall
 
 [Tasks]
-Name: "desktop"; Description: "{cm:CreateDesktopShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
-Name: "startmenu"; Description: "{cm:CreateStartMenuShortcuts}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
-Name: "fileassociation_h3m"; Description: "{cm:AssociateH3MFiles}"; GroupDescription: "{cm:SystemIntegration}"; Flags: unchecked; Check: not IsPRInstaller and not IsPortableInstall
-Name: "fileassociation_vcmimap"; Description: "{cm:AssociateVCMIMapFiles}"; GroupDescription: "{cm:SystemIntegration}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "startmenu_launcher"; Description: "{cm:ShortcutLauncher}"; GroupDescription: "{cm:StartMenuShortcuts}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "startmenu_mapeditor"; Description: "{cm:ShortcutMapEditor}"; GroupDescription: "{cm:StartMenuShortcuts}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "startmenu_website"; Description: "{cm:ShortcutWebPage}"; GroupDescription: "{cm:StartMenuShortcuts}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "startmenu_discord"; Description: "{cm:ShortcutDiscord}"; GroupDescription: "{cm:StartMenuShortcuts}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "desktop_launcher"; Description: "{cm:ShortcutLauncher}"; GroupDescription: "{cm:DesktopShortcuts}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "desktop_mapeditor"; Description: "{cm:ShortcutMapEditor}"; GroupDescription: "{cm:DesktopShortcuts}"; Flags: unchecked; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_vmap"; Description: "{cm:VMAPDescription}"; GroupDescription: "{cm:FileAssociations}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_vcmp"; Description: "{cm:VCMPDescription}"; GroupDescription: "{cm:FileAssociations}"; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_h3m"; Description: "{cm:H3MDescription}"; GroupDescription: "{cm:FileAssociations}"; Flags: unchecked; Check: not IsPRInstaller and not IsPortableInstall
+Name: "fileassociation_h3c"; Description: "{cm:H3CDescription}"; GroupDescription: "{cm:FileAssociations}"; Flags: unchecked; Check: not IsPRInstaller and not IsPortableInstall
 
 Name: "firewallrules"; Description: "{cm:AddFirewallRules}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsAdminInstallMode and not IsPortableInstall
-Name: "h3copyfiles"; Description: "{cm:CopyH3Files}"; GroupDescription: "{cm:VCMISettings}"; Check: not IsPRInstaller and IsHeroes3Installed and IsCopyFilesNeeded
 
 [Registry]
 Root: HKA; Subkey: "Software\VCMI\Installer\{#InstallerArch}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey; Check: not IsPortableInstall
 Root: HKA; Subkey: "Software\VCMI\Installer\{#InstallerArch}"; ValueType: string; ValueName: "userDataPath"; ValueData: "{code:GetSelectedDataDir}"; Flags: uninsdeletekey; Check: not IsPortableInstall
 
-Root: HKA; Subkey: "Software\Classes\.vmap"; ValueType: string; ValueName: ""; ValueData: "VCMI.vmap"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
-Root: HKA; Subkey: "Software\Classes\VCMI.vmap"; ValueType: string; ValueName: ""; ValueData: "{cm:VMAPDescription}"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
-Root: HKA; Subkey: "Software\Classes\VCMI.vmap\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\.vmap"; ValueType: string; ValueName: ""; ValueData: "VCMI.vmap"; Tasks: fileassociation_vmap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vmap"; ValueType: string; ValueName: ""; ValueData: "{cm:VMAPDescription}"; Tasks: fileassociation_vmap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vmap\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vmap; Check: not IsPortableInstall
 
-Root: HKA; Subkey: "Software\Classes\.vcmp"; ValueType: string; ValueName: ""; ValueData: "VCMI.vcmp"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
-Root: HKA; Subkey: "Software\Classes\VCMI.vcmp"; ValueType: string; ValueName: ""; ValueData: "{cm:VCMPDescription}"; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
-Root: HKA; Subkey: "Software\Classes\VCMI.vcmp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmimap; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\.vcmp"; ValueType: string; ValueName: ""; ValueData: "VCMI.vcmp"; Tasks: fileassociation_vcmp; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vcmp"; ValueType: string; ValueName: ""; ValueData: "{cm:VCMPDescription}"; Tasks: fileassociation_vcmp; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.vcmp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_vcmp; Check: not IsPortableInstall
 
 Root: HKA; Subkey: "Software\Classes\.h3m"; ValueType: string; ValueName: ""; ValueData: "VCMI.h3m"; Tasks: fileassociation_h3m; Check: not IsPortableInstall
 Root: HKA; Subkey: "Software\Classes\VCMI.h3m"; ValueType: string; ValueName: ""; ValueData: "{cm:H3MDescription}"; Tasks: fileassociation_h3m; Check: not IsPortableInstall
 Root: HKA; Subkey: "Software\Classes\VCMI.h3m\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_h3m; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\.h3c"; ValueType: string; ValueName: ""; ValueData: "VCMI.h3c"; Tasks: fileassociation_h3c; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.h3c"; ValueType: string; ValueName: ""; ValueData: "{cm:H3CDescription}"; Tasks: fileassociation_h3c; Check: not IsPortableInstall
+Root: HKA; Subkey: "Software\Classes\VCMI.h3c\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\VCMI_mapeditor.exe"" ""%1"""; Tasks: fileassociation_h3c; Check: not IsPortableInstall
 
 [Run]
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI server ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_server.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI client ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_client.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server - {#VCMIFolder} ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI server - {#VCMIFolder} ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_server.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client - {#VCMIFolder} ({#InstallerArch})"""; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
+Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""VCMI client - {#VCMIFolder} ({#InstallerArch})"" dir=in action=allow program=""{app}\vcmi_client.exe"" enable=yes profile=public,private"; Flags: runhidden; Tasks: firewallrules; Check: IsAdmin and not IsPortableInstall
 
 Filename: "{app}\VCMI_launcher.exe"; Description: "{cm:RunVCMILauncherAfterInstall}"; Flags: nowait postinstall; Check: ShouldRunLauncher
+Filename: "{log}"; Description: "{cm:OpenSetupLog}"; Flags: postinstall shellexec skipifsilent unchecked
 
 [UninstallRun]
 ; Remove firewall rules
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIServer"
-Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIClient"
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI server - {#VCMIFolder} ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIServer"
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""VCMI client - {#VCMIFolder} ({#InstallerArch})"""; Flags: runhidden; Check: IsAdmin; RunOnceId: "RemoveFirewallVCMIClient"
 
 [UninstallDelete]
 ; dirs.json is generated by [Code], so it is not tracked as an installed [Files] entry.
 Type: files; Name: "{app}\config\dirs.json"
-Type: files; Name: "{app}\config\dirs.json.tmp"
 Type: dirifempty; Name: "{app}\config"
 Type: dirifempty; Name: "{app}"
 
@@ -184,10 +209,21 @@ type
   TUninstallPathArray = array[0..4] of String;
   TUninstallPathDescriptionArray = array[0..4] of String;
   TUninstallPathProtectionArray = array[0..4] of Boolean;
+  TRequirementCellArray = array[0..14] of TPanel;
+  TRequirementIconArray = array[0..14] of TBitmapImage;
+  TMemoryStatusEx = record
+    Length: DWord;
+    MemoryLoad: DWord;
+    TotalPhysical: Int64;
+    AvailablePhysical: Int64;
+    TotalPageFile: Int64;
+    AvailablePageFile: Int64;
+    TotalVirtual: Int64;
+    AvailableVirtual: Int64;
+    AvailableExtendedVirtual: Int64;
+  end;
 
 const
-  MOVEFILE_REPLACE_EXISTING = 1;
-  MOVEFILE_WRITE_THROUGH = 8;
   WTS_CURRENT_SERVER_HANDLE = 0;
   WTS_CURRENT_SESSION = -1;
   WTSUserName = 5;
@@ -196,9 +232,16 @@ const
 
 var
   InstallModePage: TInputOptionWizardPage;
+  InstallModeRowPanels: array[0..2] of TPanel;
+  InstallModeRadioButtons: array[0..2] of TNewRadioButton;
+  InstallModeTitleLabels: array[0..2] of TNewStaticText;
+  InstallModeLabels: array[0..2] of TNewStaticText;
+  InstallModeIconPanels: array[0..2] of TPanel;
+  InstallModeBitmaps: array[0..2] of TBitmapImage;
+  WelcomeInstructionsLabel: TNewStaticText;
   FooterLabel: TLabel;
   IsUpgrade: Boolean;
-  PreInstallTasksDone: Boolean;
+  RegisteredInstallPath: String;
   UninstallPathCount: Integer;
   UninstallPaths: TUninstallPathArray;
   UninstallPathDescriptions: TUninstallPathDescriptionArray;
@@ -206,6 +249,8 @@ var
   DeletePathsList: TNewCheckListBox;
   DeleteAllUserData: Boolean;
   Heroes3Path: String;
+  Heroes3MapsSize, Heroes3DataSize, Heroes3Mp3Size: Int64;
+  Heroes3MapsFiles, Heroes3DataFiles, Heroes3Mp3Files: Integer;
   GlobalUserName: String;
   GlobalUserDocsFolder: String;
   GlobalUserAppdataFolder: String;
@@ -231,6 +276,17 @@ var
   DataDirEdit: TEdit;
   DataDirBrowseBtn: TButton;
   ResetDirsBtn: TButton;
+  CopyHeroes3DataCheck: TNewCheckBox;
+  CopyHeroes3DataSelected: Boolean;
+  RequirementsPage: TWizardPage;
+  RequirementsComponentLabels: TRequirementCellArray;
+  RequirementsRequiredLabels: TRequirementCellArray;
+  RequirementsDetailsLabels: TRequirementCellArray;
+  RequirementsStatusLabels: TRequirementCellArray;
+  RequirementsStatusIcons: TRequirementIconArray;
+  RequirementsRowCount: Integer;
+  DiskSpaceLabel: TNewStaticText;
+  BaseDiskSpaceCaption: String;
 
   SelectedDataDir: String;
   ConfirmedCloudInstallDir: String;
@@ -242,6 +298,18 @@ var
   HasCommandLineInstallDir: Boolean;
   CommandLinePortable: Boolean;
   FirewallTaskPreviouslySelected: Boolean;
+  Heroes3CopyWasAvailable: Boolean;
+  HoverPreviewTimerID: Integer;
+  InstallModePreviewPanel, TasksPreviewPanel: TPanel;
+  InstallModePreviewLabel, TasksPreviewLabel: TNewStaticText;
+  CustomTaskChecks: array[0..10] of TNewCheckBox;
+  CustomTaskNativeIndexes: array[0..10] of Integer;
+  CustomTaskGroupLabels: array[0..3] of TNewStaticText;
+  LastInstallModeHover, LastTasksHover: Integer;
+  ReadySummaryPanel: TPanel;
+  ReadyInstallCard, ReadyDataCard, ReadyModeCard, ReadyTasksCard: TPanel;
+  ReadyInstallValue, ReadyDataValue, ReadyModeValue, ReadyTasksValue: TNewStaticText;
+  ReadyTasksMemo: TNewMemo;
 
 // Keep all imported APIs before the first routine implementation. Pascal Script
 // does not allow new external declarations after routine bodies have started.
@@ -251,16 +319,30 @@ procedure WTSFreeMemory(pMemory: NativeUInt);
   external 'WTSFreeMemory@wtsapi32.dll stdcall';
 procedure RtlMoveMemoryAsString(Dest: string; Source: NativeUInt; Len: Integer);
   external 'RtlMoveMemory@kernel32.dll stdcall';
+function GlobalMemoryStatusEx(var Buffer: TMemoryStatusEx): Boolean;
+  external 'GlobalMemoryStatusEx@kernel32.dll stdcall';
+function InternetGetConnectedState(var Flags: DWord; Reserved: DWord): Boolean;
+  external 'InternetGetConnectedState@wininet.dll stdcall';
 function ExpandEnvironmentStrings(Source, Destination: String; Size: Cardinal): Cardinal;
   external 'ExpandEnvironmentStringsW@kernel32.dll stdcall';
-function MoveFileEx(ExistingFileName, NewFileName: String; Flags: Cardinal): Boolean;
-  external 'MoveFileExW@kernel32.dll stdcall';
 function PluginIsCloudStoragePath(Path: string): BOOL;
   external 'IsCloudStoragePath@files:installerPlugin.dll stdcall setuponly delayload';
+function InstalledPluginIsCloudStoragePath(Path: string): BOOL;
+  external 'IsCloudStoragePath@{app}\VCMI_installerPlugin.dll stdcall uninstallonly delayload';
 function PluginModerFolderPicker(Owner: HWND; Title, Initial: string; OutPath: string; OutCch: Cardinal): BOOL;
   external 'ModerFolderPicker@files:installerPlugin.dll stdcall setuponly delayload';
 function GetFileAttributes(FileName: String): Cardinal;
   external 'GetFileAttributesW@kernel32.dll stdcall';
+function GetTempFileName(PathName, PrefixString: String; Unique: Cardinal; TempFileName: String): Cardinal;
+  external 'GetTempFileNameW@kernel32.dll stdcall';
+function GetCursorPos(var Point: TPoint): Boolean;
+  external 'GetCursorPos@user32.dll stdcall';
+function ScreenToClient(Window: HWND; var Point: TPoint): Boolean;
+  external 'ScreenToClient@user32.dll stdcall';
+function SetTimer(Window, EventID, Interval, TimerCallback: LongWord): LongWord;
+  external 'SetTimer@user32.dll stdcall';
+function KillTimer(Window, EventID: LongWord): Boolean;
+  external 'KillTimer@user32.dll stdcall';
 
 function EnsureNonEmptyDir(const CaptionText, DirText: String): Boolean;
 begin
@@ -275,10 +357,10 @@ end;
 
 function RegistryQueryPath(Key, ValueName: String): String;
 begin
-  if RegQueryStringValue(HKLM, Key, ValueName, Result) then
-    Exit
-  else
-    Result := '';
+  Result := '';
+  if IsWin64 and RegQueryStringValue(HKLM64, Key, ValueName, Result) then
+    Exit;
+  RegQueryStringValue(HKLM32, Key, ValueName, Result);
 end;
 
 function HasCommandLineSwitch(const Name: String): Boolean;
@@ -300,9 +382,119 @@ begin
   end;
 end;
 
+procedure UpdateDiskSpaceLabel(); forward;
+function IsCloudStoragePath(const Path: String): Boolean; forward;
+function IsCloudStorageRoot(const Path: String): Boolean; forward;
+function IsPortableInstall(): Boolean; forward;
+function ExistingDirectoryForWriteTest(const Path: String): String; forward;
+function FindTopLevelJsonStringValue(const Content, Key: String;
+  var ValueStart, ValueEnd: Integer): Boolean; forward;
+
 function ShouldRunLauncher(): Boolean;
 begin
   Result := not WizardSilent or HasCommandLineSwitch('LAUNCH');
+end;
+
+function VdfValueAfter(const Content, Key: String; StartPosition: Integer;
+  var Value, NextContent: String): Boolean;
+var
+  KeyPosition, Position, ValueEnd: Integer;
+  SearchContent, SearchKey: String;
+begin
+  Result := False;
+  Value := '';
+  NextContent := '';
+  SearchContent := Copy(Content, StartPosition, Length(Content));
+  SearchKey := '"' + Key + '"';
+  KeyPosition := Pos(UpperCase(SearchKey), UpperCase(SearchContent));
+  if KeyPosition = 0 then
+    Exit;
+
+  Position := KeyPosition + Length(SearchKey);
+  while (Position <= Length(SearchContent)) and (SearchContent[Position] <> '"') do
+    Position := Position + 1;
+  if Position > Length(SearchContent) then
+    Exit;
+
+  ValueEnd := Position + 1;
+  while (ValueEnd <= Length(SearchContent)) and (SearchContent[ValueEnd] <> '"') do
+    ValueEnd := ValueEnd + 1;
+  if ValueEnd > Length(SearchContent) then
+    Exit;
+
+  Value := Copy(SearchContent, Position + 1, ValueEnd - Position - 1);
+  StringChangeEx(Value, '\\', '\', True);
+  NextContent := Copy(SearchContent, ValueEnd + 1, Length(SearchContent));
+  Result := Value <> '';
+end;
+
+function LoadTextLines(const FileName: String; var Content: String): Boolean;
+var
+  Lines: TArrayOfString;
+  Index: Integer;
+begin
+  Content := '';
+  Result := LoadStringsFromFile(FileName, Lines);
+  if not Result then
+    Exit;
+
+  for Index := 0 to GetArrayLength(Lines) - 1 do
+    Content := Content + Lines[Index] + #10;
+end;
+
+function FindSteamGameInLibrary(const LibraryPath, AppId,
+  FallbackInstallDir: String): String;
+var
+  Manifest, InstallDir, Remaining: String;
+begin
+  Result := '';
+  if not LoadTextLines(AddBackslash(LibraryPath) +
+    'steamapps\appmanifest_' + AppId + '.acf', Manifest) then
+    Exit;
+
+  InstallDir := FallbackInstallDir;
+  if VdfValueAfter(Manifest, 'installdir', 1, Result, Remaining) then
+    InstallDir := Result;
+
+  Result := AddBackslash(LibraryPath) + 'steamapps\common\' + InstallDir;
+  if not DirExists(Result) then
+    Result := '';
+end;
+
+function FindSteamGameInstallDir(const AppId, FallbackInstallDir: String): String;
+var
+  SteamPath, LibraryFolders, LibraryPath, Remaining, Candidate: String;
+begin
+  Result := '';
+  if IsWin64 then
+    RegQueryStringValue(HKCU64, 'Software\Valve\Steam', 'SteamPath', SteamPath);
+  if SteamPath = '' then
+    RegQueryStringValue(HKCU32, 'Software\Valve\Steam', 'SteamPath', SteamPath);
+  if (SteamPath = '') and IsWin64 then
+    RegQueryStringValue(HKLM64, 'SOFTWARE\Valve\Steam', 'InstallPath', SteamPath);
+  if SteamPath = '' then
+    RegQueryStringValue(HKLM32, 'SOFTWARE\Valve\Steam', 'InstallPath', SteamPath);
+  if SteamPath = '' then
+    Exit;
+
+  Result := FindSteamGameInLibrary(SteamPath, AppId, FallbackInstallDir);
+  if Result <> '' then
+    Exit;
+
+  if not LoadTextLines(AddBackslash(SteamPath) +
+    'steamapps\libraryfolders.vdf', LibraryFolders) then
+    Exit;
+
+  Remaining := LibraryFolders;
+  while VdfValueAfter(Remaining, 'path', 1, LibraryPath, Remaining) do
+  begin
+    Candidate := FindSteamGameInLibrary(LibraryPath, AppId, FallbackInstallDir);
+    if Candidate <> '' then
+    begin
+      Result := Candidate;
+      Exit;
+    end;
+  end;
 end;
 
 function IsCloudTargetAllowed(): Boolean;
@@ -310,12 +502,36 @@ begin
   Result := HasCommandLineSwitch('ALLOWCLOUDTARGET');
 end;
 
-function FolderSize(FolderPath: String): Int64;
+function ConfirmCloudTarget(const Path, WarningMessage: String;
+  var ConfirmedPath: String): Boolean;
+begin
+  Result := True;
+  if not IsCloudStoragePath(Path) then
+  begin
+    ConfirmedPath := '';
+    Exit;
+  end;
+  if CompareText(ConfirmedPath, Path) = 0 then
+    Exit;
+  if WizardSilent then
+  begin
+    if not IsCloudTargetAllowed() then
+      RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
+  end
+  else if MsgBox(WarningMessage, mbConfirmation, MB_YESNO) <> IDYES then
+  begin
+    Result := False;
+    Exit;
+  end;
+  ConfirmedPath := Path;
+end;
+
+procedure AddFolderStats(const FolderPath: String; var TotalSize: Int64;
+  var FileCount: Integer);
 var
   FindRec: TFindRec;
   FileSizeValue: Int64;
 begin
-  Result := 0;
   if FindFirst(FolderPath + '\*', FindRec) then
   begin
     try
@@ -325,10 +541,11 @@ begin
         else if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
         begin
           if FileSize64(FolderPath + '\' + FindRec.Name, FileSizeValue) then
-            Result := Result + FileSizeValue;
+            TotalSize := TotalSize + FileSizeValue;
+          FileCount := FileCount + 1;
         end
         else if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
-          Result := Result + FolderSize(FolderPath + '\' + FindRec.Name);
+          AddFolderStats(FolderPath + '\' + FindRec.Name, TotalSize, FileCount);
       until not FindNext(FindRec);
     finally
       FindClose(FindRec);
@@ -336,33 +553,61 @@ begin
   end;
 end;
 
-function IsFolderValid(FolderPath: String): Boolean;
+function FolderContains(const FolderPath, Pattern: String): Boolean;
+var
+  FindRecord: TFindRec;
 begin
-  Result := DirExists(FolderPath) and (FolderSize(FolderPath) > 1024 * 1024);
+  Result := FindFirst(AddBackslash(FolderPath) + Pattern, FindRecord);
+  if Result then
+    FindClose(FindRecord);
 end;
 
-function CountRegularFiles(const FolderPath: String): Integer;
-var
-  FindRec: TFindRec;
+procedure GetFolderStats(const FolderPath: String; var TotalSize: Int64;
+  var FileCount: Integer);
+begin
+  TotalSize := 0;
+  FileCount := 0;
+  AddFolderStats(FolderPath, TotalSize, FileCount);
+end;
+
+function IsMapsFolderValid(const FolderPath: String): Boolean;
+begin
+  Result := DirExists(FolderPath) and FolderContains(FolderPath, '*.h3m');
+end;
+
+function IsDataFolderValid(const FolderPath: String): Boolean;
+begin
+  Result := DirExists(FolderPath)
+    and FileExists(AddBackslash(FolderPath) + 'H3bitmap.lod')
+    and FileExists(AddBackslash(FolderPath) + 'H3sprite.lod');
+end;
+
+function IsMp3FolderValid(const FolderPath: String): Boolean;
+begin
+  Result := DirExists(FolderPath) and FolderContains(FolderPath, '*.mp3');
+end;
+
+function IsHeroes3PathValid(const Path: String): Boolean;
+begin
+  Result := IsDataFolderValid(AddBackslash(Path) + 'Data')
+    and IsMapsFolderValid(AddBackslash(Path) + 'Maps');
+end;
+
+procedure SetHeroes3PathIfValid(const Candidate: String);
+begin
+  if (Heroes3Path = '') and IsHeroes3PathValid(Candidate) then
+    Heroes3Path := RemoveBackslashUnlessRoot(Candidate);
+end;
+
+function Heroes3CopySize(): Int64;
 begin
   Result := 0;
-  if FindFirst(FolderPath + '\*', FindRec) then
-  begin
-    try
-      repeat
-        if (FindRec.Name <> '.') and (FindRec.Name <> '..')
-          and ((FindRec.Attributes and $400) = 0) then
-        begin
-          if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
-            Result := Result + CountRegularFiles(FolderPath + '\' + FindRec.Name)
-          else
-            Result := Result + 1;
-        end;
-      until not FindNext(FindRec);
-    finally
-      FindClose(FindRec);
-    end;
-  end;
+  if (Heroes3MapsSize > 0) and not IsMapsFolderValid(VCMIMapsFolder) then
+    Result := Result + Heroes3MapsSize;
+  if (Heroes3DataSize > 0) and not IsDataFolderValid(VCMIDataFolder) then
+    Result := Result + Heroes3DataSize;
+  if (Heroes3Mp3Size > 0) and not IsMp3FolderValid(VCMIMp3Folder) then
+    Result := Result + Heroes3Mp3Size;
 end;
 
 procedure UpdateInstallCopyProgress(const FileName: String);
@@ -378,16 +623,25 @@ function CopyFolderContents(SourceDir, DestDir: String; Overwrite: Boolean): Boo
 var
   FindRec: TFindRec;
   SourceFile, DestFile: String;
+  SourceSize, DestSize: Int64;
 begin
   Result := False;
+  if not DirExists(SourceDir) then
+  begin
+    Log('Heroes III source directory is unavailable: ' + SourceDir);
+    Exit;
+  end;
   if not DirExists(DestDir) then
     if not ForceDirectories(DestDir) then
       Exit;
 
-  if FindFirst(SourceDir + '\*.*', FindRec) then
+  if not FindFirst(SourceDir + '\*', FindRec) then
   begin
-    try
-      repeat
+    Log('Failed to enumerate Heroes III source directory: ' + SourceDir);
+    Exit;
+  end;
+  try
+    repeat
         SourceFile := SourceDir + '\' + FindRec.Name;
         DestFile := DestDir + '\' + FindRec.Name;
 
@@ -399,11 +653,18 @@ begin
         begin
           if Overwrite or not FileExists(DestFile) then
           begin
-            if not FileCopy(SourceFile, DestFile, not Overwrite) then
+            if not CopyFile(SourceFile, DestFile, not Overwrite) then
             begin
               Log('Failed to copy Heroes III file from ' + SourceFile + ' to ' + DestFile);
               Exit;
             end;
+          end;
+          if not FileSize64(SourceFile, SourceSize)
+            or not FileSize64(DestFile, DestSize)
+            or (SourceSize <> DestSize) then
+          begin
+            Log('Copied Heroes III file failed size verification: ' + DestFile);
+            Exit;
           end;
           UpdateInstallCopyProgress(SourceFile);
         end
@@ -412,10 +673,9 @@ begin
           if not CopyFolderContents(SourceFile, DestFile, Overwrite) then
             Exit;
         end;
-      until not FindNext(FindRec);
-    finally
-      FindClose(FindRec);
-    end;
+    until not FindNext(FindRec);
+  finally
+    FindClose(FindRec);
   end;
   Result := True;
 end;
@@ -429,15 +689,22 @@ var
   BytesReturned: DWord;
   QueryResult: Boolean;
 begin
-  Result := '';
+  Result := GetUserNameString;
+  Buffer := 0;
+  BytesReturned := 0;
   QueryResult := WTSQuerySessionInformation(
     WTS_CURRENT_SERVER_HANDLE, WTS_CURRENT_SESSION, WTSUserName, Buffer, BytesReturned);
-  if not QueryResult then
+  if not QueryResult or (Buffer = 0) then
     Exit;
 
   try
+    if BytesReturned < 2 then
+      Exit;
     SetLength(Result, (BytesReturned div 2) - 1);
-    RtlMoveMemoryAsString(Result, Buffer, BytesReturned - 2);
+    if Result <> '' then
+      RtlMoveMemoryAsString(Result, Buffer, BytesReturned - 2)
+    else
+      Result := GetUserNameString;
   finally
     WTSFreeMemory(Buffer);
   end;
@@ -517,6 +784,253 @@ begin
     MsgBox(ExpandConstant('{cm:Warning}') + '!' + #13#10 + #13#10 + ExpandConstant('{cm:InstallForMeOnly1}') + #13#10 + ExpandConstant('{cm:InstallForMeOnly2}'), mbError, MB_OK);
   end;
   FirewallTaskPreviouslySelected := FirewallSelected;
+  UpdateDiskSpaceLabel();
+end;
+
+function InstallModePreview(Index: Integer): String;
+begin
+  Result := '';
+  case Index of
+    0: Result := ExpandConstant('{cm:InstallForAllUsers}') + ' — ' +
+      ExpandConstant('{cm:InstallForAllUsers1}');
+    1: Result := ExpandConstant('{cm:InstallForMeOnly}') + ' — ' +
+      ExpandConstant('{cm:InstallForMeOnly1}') + ' ' +
+      ExpandConstant('{cm:InstallForMeOnly2}');
+    2: Result := ExpandConstant('{cm:InstallPortable}') + ' — ' +
+      ExpandConstant('{cm:InstallPortable1}') + ' ' +
+      ExpandConstant('{cm:InstallPortable2}') + ' ' +
+      ExpandConstant('{cm:InstallForMeOnly2}');
+  end;
+end;
+
+function TaskPreview(Index: Integer): String;
+var
+  CaptionText: String;
+begin
+  Result := '';
+  if (Index < 0) or (Index >= WizardForm.TasksList.Items.Count) then
+    Exit;
+  CaptionText := WizardForm.TasksList.ItemCaption[Index];
+  if CompareText(CaptionText, ExpandConstant('{cm:ShortcutLauncher}')) = 0 then
+    Result := CaptionText + ' — ' + ExpandConstant('{cm:ShortcutLauncherComment}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutMapEditor}')) = 0 then
+    Result := CaptionText + ' — ' + ExpandConstant('{cm:ShortcutMapEditorComment}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutWebPage}')) = 0 then
+    Result := CaptionText + ' — ' + ExpandConstant('{cm:ShortcutWebPageComment}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutDiscord}')) = 0 then
+    Result := CaptionText + ' — ' + ExpandConstant('{cm:ShortcutDiscordComment}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:H3MDescription}')) = 0 then
+    Result := CaptionText + ' (.h3m) — ' + ExpandConstant('{cm:AssociateH3MFiles}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:H3CDescription}')) = 0 then
+    Result := CaptionText + ' (.h3c) — ' + ExpandConstant('{cm:AssociateH3CFiles}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:VMAPDescription}')) = 0 then
+    Result := CaptionText + ' (.vmap) — ' + ExpandConstant('{cm:AssociateVCMIMapFiles}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:VCMPDescription}')) = 0 then
+    Result := CaptionText + ' (.vcmp) — ' + ExpandConstant('{cm:AssociateVCMIMapFiles}')
+  else if CompareText(CaptionText, ExpandConstant('{cm:AddFirewallRules}')) = 0 then
+    Result := CaptionText + ' — ' + ExpandConstant('{cm:InstallForMeOnly2}');
+end;
+
+procedure MapCustomTaskItems();
+var
+  Index, OptionIndex, LauncherCount, EditorCount: Integer;
+  CaptionText: String;
+begin
+  for OptionIndex := 0 to 10 do
+    CustomTaskNativeIndexes[OptionIndex] := -1;
+  LauncherCount := 0;
+  EditorCount := 0;
+  for Index := 0 to WizardForm.TasksList.Items.Count - 1 do
+  begin
+    CaptionText := WizardForm.TasksList.ItemCaption[Index];
+    if CompareText(CaptionText, ExpandConstant('{cm:ShortcutLauncher}')) = 0 then
+    begin
+      if LauncherCount = 0 then
+        CustomTaskNativeIndexes[0] := Index
+      else
+        CustomTaskNativeIndexes[4] := Index;
+      LauncherCount := LauncherCount + 1;
+    end
+    else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutMapEditor}')) = 0 then
+    begin
+      if EditorCount = 0 then
+        CustomTaskNativeIndexes[1] := Index
+      else
+        CustomTaskNativeIndexes[5] := Index;
+      EditorCount := EditorCount + 1;
+    end
+    else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutWebPage}')) = 0 then
+      CustomTaskNativeIndexes[2] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:ShortcutDiscord}')) = 0 then
+      CustomTaskNativeIndexes[3] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:VMAPDescription}')) = 0 then
+      CustomTaskNativeIndexes[6] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:VCMPDescription}')) = 0 then
+      CustomTaskNativeIndexes[7] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:H3MDescription}')) = 0 then
+      CustomTaskNativeIndexes[8] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:H3CDescription}')) = 0 then
+      CustomTaskNativeIndexes[9] := Index
+    else if CompareText(CaptionText, ExpandConstant('{cm:AddFirewallRules}')) = 0 then
+      CustomTaskNativeIndexes[10] := Index;
+  end;
+
+  for OptionIndex := 0 to 10 do
+  begin
+    CustomTaskChecks[OptionIndex].Visible :=
+      CustomTaskNativeIndexes[OptionIndex] >= 0;
+    if CustomTaskChecks[OptionIndex].Visible then
+    begin
+      CustomTaskChecks[OptionIndex].Checked :=
+        WizardForm.TasksList.Checked[CustomTaskNativeIndexes[OptionIndex]];
+      CustomTaskChecks[OptionIndex].Enabled :=
+        WizardForm.TasksList.ItemEnabled[CustomTaskNativeIndexes[OptionIndex]];
+    end;
+  end;
+  CustomTaskGroupLabels[3].Visible := CustomTaskNativeIndexes[10] >= 0;
+end;
+
+procedure CustomTaskCheckClick(Sender: TObject);
+var
+  OptionIndex, NativeIndex: Integer;
+begin
+  for OptionIndex := 0 to 10 do
+    if Sender = CustomTaskChecks[OptionIndex] then
+    begin
+      NativeIndex := CustomTaskNativeIndexes[OptionIndex];
+      if NativeIndex >= 0 then
+      begin
+        WizardForm.TasksList.Checked[NativeIndex] :=
+          CustomTaskChecks[OptionIndex].Checked;
+        OnTaskCheck(Sender);
+      end;
+      Exit;
+    end;
+end;
+
+function CreateCustomTaskGroup(const CaptionText: String;
+  LeftPos, TopPos, Width: Integer): TNewStaticText;
+begin
+  Result := TNewStaticText.Create(WizardForm.SelectTasksPage);
+  Result.Parent := WizardForm.TasksList.Parent;
+  Result.Left := LeftPos;
+  Result.Top := TopPos;
+  Result.Width := Width;
+  Result.Height := ScaleY(18);
+  Result.AutoSize := False;
+  Result.Caption := CaptionText;
+  Result.Font.Style := [fsBold];
+end;
+
+procedure CreateCustomTaskOption(Index: Integer; const CaptionText: String;
+  LeftPos, TopPos, Width: Integer);
+begin
+  CustomTaskChecks[Index] := TNewCheckBox.Create(WizardForm.SelectTasksPage);
+  CustomTaskChecks[Index].Parent := WizardForm.TasksList.Parent;
+  CustomTaskChecks[Index].Left := LeftPos;
+  CustomTaskChecks[Index].Top := TopPos;
+  CustomTaskChecks[Index].Width := Width;
+  CustomTaskChecks[Index].Height := ScaleY(19);
+  CustomTaskChecks[Index].Caption := CaptionText;
+  CustomTaskChecks[Index].OnClick := @CustomTaskCheckClick;
+end;
+
+function HoveredCustomTaskNativeIndex(): Integer;
+var
+  Cursor: TPoint;
+  OptionIndex: Integer;
+begin
+  Result := -1;
+  if not GetCursorPos(Cursor) or
+    not ScreenToClient(WizardForm.TasksList.Parent.Handle, Cursor) then
+    Exit;
+  for OptionIndex := 0 to 10 do
+    if CustomTaskChecks[OptionIndex].Visible and
+      (Cursor.X >= CustomTaskChecks[OptionIndex].Left) and
+      (Cursor.X < CustomTaskChecks[OptionIndex].Left + CustomTaskChecks[OptionIndex].Width) and
+      (Cursor.Y >= CustomTaskChecks[OptionIndex].Top) and
+      (Cursor.Y < CustomTaskChecks[OptionIndex].Top + CustomTaskChecks[OptionIndex].Height) then
+    begin
+      Result := CustomTaskNativeIndexes[OptionIndex];
+      Exit;
+    end;
+end;
+
+function HoveredCheckListItem(CheckList: TNewCheckListBox): Integer;
+var
+  Cursor: TPoint;
+  HitResult: Integer;
+begin
+  Result := -1;
+  if not GetCursorPos(Cursor) or not ScreenToClient(CheckList.Handle, Cursor) then
+    Exit;
+  if (Cursor.X < 0) or (Cursor.Y < 0) or
+    (Cursor.X >= CheckList.ClientWidth) or (Cursor.Y >= CheckList.ClientHeight) then
+    Exit;
+  HitResult := SendMessage(CheckList.Handle, $01A9, 0,
+    (Cursor.Y shl 16) or (Cursor.X and $FFFF));
+  if ((HitResult shr 16) and $FFFF) = 0 then
+    Result := HitResult and $FFFF;
+  if Result >= CheckList.Items.Count then
+    Result := -1;
+end;
+
+procedure HoverPreviewTimerTick(Arg1, Arg2, Arg3, Arg4: LongWord);
+var
+  Index: Integer;
+  PreviewText: String;
+  Cursor: TPoint;
+begin
+  if Assigned(InstallModePage) and (WizardForm.CurPageID = InstallModePage.ID) then
+  begin
+    Index := -1;
+    if GetCursorPos(Cursor) and ScreenToClient(InstallModePage.Surface.Handle, Cursor) then
+    begin
+      if (Cursor.X >= InstallModePage.CheckListBox.Left) and
+        (Cursor.X < InstallModeRowPanels[0].Left + InstallModeRowPanels[0].Width) then
+      begin
+        if (Cursor.Y >= InstallModeRowPanels[0].Top) and
+          (Cursor.Y < InstallModeRowPanels[0].Top + InstallModeRowPanels[0].Height) then
+          Index := 0
+        else if (Cursor.Y >= InstallModeRowPanels[1].Top) and
+          (Cursor.Y < InstallModeRowPanels[1].Top + InstallModeRowPanels[1].Height) then
+          Index := 1
+        else if (Cursor.Y >= InstallModeRowPanels[2].Top) and
+          (Cursor.Y < InstallModeRowPanels[2].Top + InstallModeRowPanels[2].Height) then
+          Index := 2;
+      end;
+    end;
+    if Index < 0 then
+      Index := InstallModePage.SelectedValueIndex;
+    if Index <> LastInstallModeHover then
+    begin
+      LastInstallModeHover := Index;
+      InstallModePreviewLabel.Caption := InstallModePreview(Index);
+    end;
+  end
+  else if WizardForm.CurPageID = wpSelectTasks then
+  begin
+    Index := HoveredCustomTaskNativeIndex();
+    if Index >= 0 then
+    begin
+      PreviewText := TaskPreview(Index);
+      if (PreviewText <> '') and (Index <> LastTasksHover) then
+      begin
+        LastTasksHover := Index;
+        TasksPreviewLabel.Caption := PreviewText;
+      end
+      else if PreviewText = '' then
+      begin
+        LastTasksHover := -1;
+        TasksPreviewLabel.Caption := '';
+      end;
+    end
+    else if LastTasksHover <> -1 then
+    begin
+      LastTasksHover := -1;
+      TasksPreviewLabel.Caption := '';
+    end;
+  end;
 end;
 
 // Specific functions for user folders
@@ -587,26 +1101,10 @@ begin
   SetLength(Result, ExpandedSize - 1);
 end;
 
-function SaveUTF8TextFileAtomically(const FileName, Content: String): Boolean;
-var
-  TemporaryFile: String;
-begin
-  TemporaryFile := FileName + '.tmp';
-  DeleteFile(TemporaryFile);
-  Result := SaveUTF8TextFile(TemporaryFile, Content);
-  if not Result then
-    Exit;
-
-  Result := MoveFileEx(TemporaryFile, FileName,
-    MOVEFILE_REPLACE_EXISTING or MOVEFILE_WRITE_THROUGH);
-  if not Result then
-    DeleteFile(TemporaryFile);
-end;
-
 function ReadPathFromConfig(const InstallDir, Key, Fallback: String): String;
 var
-  Content, ConfigFile, Value, SearchKey: String;
-  KeyPosition, ColonPosition, Position: Integer;
+  Content, ConfigFile, Value: String;
+  Position, ValueStart, ValueEnd: Integer;
   Escaped: Boolean;
 begin
   Result := Fallback;
@@ -614,23 +1112,12 @@ begin
   if not LoadUTF8TextFile(ConfigFile, Content) then
     Exit;
 
-  SearchKey := '"' + Key + '"';
-  KeyPosition := Pos(SearchKey, Content);
-  if KeyPosition = 0 then
+  if not FindTopLevelJsonStringValue(Content, Key, ValueStart, ValueEnd) then
     Exit;
 
-  ColonPosition := Pos(':', Copy(Content, KeyPosition + Length(SearchKey), Length(Content)));
-  if ColonPosition = 0 then
-    Exit;
-  Position := KeyPosition + Length(SearchKey) - 1 + ColonPosition;
-  while (Position <= Length(Content)) and (Content[Position] <> '"') do
-    Position := Position + 1;
-  if Position > Length(Content) then
-    Exit;
-
-  Position := Position + 1;
+  Position := ValueStart;
   Escaped := False;
-  while Position <= Length(Content) do
+  while Position < ValueEnd do
   begin
     if Escaped then
     begin
@@ -639,15 +1126,11 @@ begin
     end
     else if Content[Position] = '\' then
       Escaped := True
-    else if Content[Position] = '"' then
-    begin
-      Result := ExpandEnvironmentPath(Value);
-      Exit;
-    end
     else
       Value := Value + Content[Position];
     Position := Position + 1;
   end;
+  Result := ExpandEnvironmentPath(Value);
 end;
 
 function GetSelectedDataDir(Default: String): String;
@@ -657,9 +1140,8 @@ end;
 
 function ReadUserDataPath(const InstallDir, Fallback: String): String;
 begin
-  // Keep the same precedence as VCMIDirsWIN32: the per-user registry is the
-  // write fallback when dirs.json cannot be replaced, followed by this
-  // installation's config file and finally the platform default.
+  // Preserve the path of legacy upgrades. New installations write dirs.json
+  // directly and never create this registry fallback.
   if IsWin64 then
     if RegQueryStringValue(HKCU64, 'Software\VCMI', 'userDataPath', Result) then
       Exit;
@@ -817,6 +1299,26 @@ begin
   Result := IsSameOrChildPath(First, Second) or IsSameOrChildPath(Second, First);
 end;
 
+function IsProtectedUserFolder(const Path: String): Boolean;
+var
+  NormalizedPath, UserProfile: String;
+begin
+  NormalizedPath := RemoveBackslashUnlessRoot(ExpandFileName(Path));
+  UserProfile := RemoveBackslashUnlessRoot(
+    ExtractFileDir(ExtractFileDir(GlobalUserAppdataFolder)));
+  Result := (CompareText(NormalizedPath, UserProfile) = 0)
+    or (CompareText(NormalizedPath, RemoveBackslashUnlessRoot(GlobalUserDocsFolder)) = 0)
+    or (CompareText(NormalizedPath, RemoveBackslashUnlessRoot(GetUserDesktopFolder(''))) = 0)
+    or (CompareText(NormalizedPath, RemoveBackslashUnlessRoot(GlobalUserAppdataFolder)) = 0)
+    or (CompareText(NormalizedPath,
+      RemoveBackslashUnlessRoot(GetUserFolderPath('{localappdata}'))) = 0)
+    or (CompareText(NormalizedPath, UserProfile + '\Downloads') = 0)
+    or (CompareText(NormalizedPath, UserProfile + '\Music') = 0)
+    or (CompareText(NormalizedPath, UserProfile + '\Pictures') = 0)
+    or (CompareText(NormalizedPath, UserProfile + '\Videos') = 0)
+    or IsCloudStorageRoot(NormalizedPath);
+end;
+
 function IsSafeUninstallRoot(const Path: String): Boolean;
 var
   NormalizedPath, UserProfile: String;
@@ -831,6 +1333,7 @@ begin
   Result := not PathsOverlap(NormalizedPath, ExpandConstant('{win}'))
     and not PathsOverlap(NormalizedPath, ExpandConstant('{commonpf32}'))
     and not IsSameOrChildPath(UserProfile, NormalizedPath)
+    and not IsProtectedUserFolder(NormalizedPath)
     and not PathsOverlap(NormalizedPath, ExpandConstant('{app}'));
   if Result and IsWin64 then
     Result := not PathsOverlap(NormalizedPath, ExpandConstant('{commonpf64}'));
@@ -866,6 +1369,27 @@ begin
   Result := ArchitectureUsesPath('x86', Path)
     or ArchitectureUsesPath('x64', Path)
     or ArchitectureUsesPath('arm64', Path);
+end;
+
+function ArchitectureInstallPathOverlaps(const Architecture, Path: String): Boolean;
+var
+  OtherInstallPath: String;
+begin
+  Result := False;
+  { A normal setup may update its own architecture in place. Portable setup has
+    no ownership metadata and must not overwrite any registered installation. }
+  if not IsPortableInstall
+    and (CompareText(Architecture, '{#InstallerArch}') = 0) then
+    Exit;
+  if ReadArchitectureInstallPath(Architecture, OtherInstallPath) then
+    Result := PathsOverlap(Path, OtherInstallPath);
+end;
+
+function IsInstallPathUsedByRegisteredInstallation(const Path: String): Boolean;
+begin
+  Result := ArchitectureInstallPathOverlaps('x86', Path)
+    or ArchitectureInstallPathOverlaps('x64', Path)
+    or ArchitectureInstallPathOverlaps('arm64', Path);
 end;
 
 procedure AddUninstallPath(const Path, Description: String);
@@ -931,9 +1455,13 @@ begin
   try
     Result := PluginIsCloudStoragePath(Path);
   except
-    // Cloud detection is advisory. A missing or incompatible plugin must not
-    // prevent setup from running on any supported Windows version.
-    Log('Cloud storage detection plugin is unavailable for: ' + Path);
+    try
+      Result := InstalledPluginIsCloudStoragePath(Path);
+    except
+      // Cloud detection is advisory. A missing or incompatible plugin must not
+      // prevent setup or uninstall from running on supported Windows versions.
+      Log('Cloud storage detection plugin is unavailable for: ' + Path);
+    end;
   end;
 end;
 
@@ -984,8 +1512,8 @@ end;
 
 function IsCopyFilesNeeded(): Boolean;
 begin
-  // Check if any of the required folders are not valid
-  Result := not (IsFolderValid(VCMIDataFolder) and IsFolderValid(VCMIMapsFolder) and IsFolderValid(VCMIMp3Folder));
+  Result := not (IsDataFolderValid(VCMIDataFolder)
+    and IsMapsFolderValid(VCMIMapsFolder) and IsMp3FolderValid(VCMIMp3Folder));
 
 end;
 
@@ -1009,6 +1537,217 @@ begin
     Result := ExpandConstant(Copy(Value, 8, Length(Value)));
 end;
 
+function FormatByteSize(const Bytes: Int64): String;
+var
+  Divisor, WholeValue, TenthsValue: Int64;
+  DecimalSeparator, UnitName: String;
+begin
+  if Bytes >= Int64(1024) * 1024 * 1024 * 1024 then
+  begin
+    Divisor := Int64(1024) * 1024 * 1024 * 1024;
+    UnitName := 'TB';
+  end
+  else if Bytes >= Int64(1024) * 1024 * 1024 then
+  begin
+    Divisor := Int64(1024) * 1024 * 1024;
+    UnitName := 'GB';
+  end
+  else if Bytes >= Int64(1024) * 1024 then
+  begin
+    Divisor := Int64(1024) * 1024;
+    UnitName := 'MB';
+  end
+  else if Bytes >= 1024 then
+  begin
+    Divisor := 1024;
+    UnitName := 'KB';
+  end
+  else
+  begin
+    Result := IntToStr(Bytes) + ' B';
+    Exit;
+  end;
+
+  WholeValue := Bytes div Divisor;
+  TenthsValue := (((Bytes mod Divisor) * 10) + (Divisor div 2)) div Divisor;
+  if TenthsValue = 10 then
+  begin
+    WholeValue := WholeValue + 1;
+    TenthsValue := 0;
+  end;
+  DecimalSeparator := Copy(FloatToStr(1.5), 2, 1);
+  Result := IntToStr(WholeValue) + DecimalSeparator +
+    IntToStr(TenthsValue) + ' ' + UnitName;
+end;
+
+function FormatLocalizedByteMessage(const MessageTemplate: String;
+  const Bytes: Int64): String;
+begin
+  { Existing translations include a hard-coded MB after %s. Remove that unit
+    around a marker, then substitute the adaptively formatted size. }
+  Result := Format(MessageTemplate, ['{SIZE}']);
+  StringChangeEx(Result, ' MB', '', False);
+  StringChangeEx(Result, 'MB ', '', False);
+  StringChangeEx(Result, ' МБ', '', False);
+  StringChangeEx(Result, 'МБ ', '', False);
+  StringChangeEx(Result, '{SIZE}', FormatByteSize(Bytes), False);
+end;
+
+procedure UpdateDiskSpaceLabel();
+var
+  ImportSize: Int64;
+begin
+  if not Assigned(DiskSpaceLabel) then
+    Exit;
+
+  DiskSpaceLabel.Caption := BaseDiskSpaceCaption;
+  if IsHeroes3Installed and IsCopyFilesNeeded and CopyHeroes3DataSelected then
+  begin
+    ImportSize := Heroes3CopySize();
+    DiskSpaceLabel.Caption := DiskSpaceLabel.Caption + #13#10 +
+      FormatLocalizedByteMessage(
+        ExpandConstant('{cm:RequirementRequiredSpaceValue}'), ImportSize);
+  end;
+  DiskSpaceLabel.Top := DiskSpaceLabel.Parent.Height -
+    DiskSpaceLabel.Height - ScaleY(7);
+end;
+
+function HasSpaceForHeroes3Import(): Boolean;
+var
+  FreeSpace, TotalSpace, RequiredSpace: Int64;
+  ProbeDirectory: String;
+begin
+  Result := True;
+  if not (CopyHeroes3DataSelected and IsCopyFilesNeeded) then
+    Exit;
+  RequiredSpace := Heroes3CopySize();
+  if RequiredSpace <= 0 then
+    Exit;
+  ProbeDirectory := ExistingDirectoryForWriteTest(Trim(DataDirEdit.Text));
+  Result := (ProbeDirectory <> '') and
+    GetSpaceOnDisk64(ProbeDirectory, FreeSpace, TotalSpace) and
+    (FreeSpace >= RequiredSpace);
+end;
+
+function ExistingDirectoryForWriteTest(const Path: String): String;
+var
+  ParentPath: String;
+begin
+  Result := RemoveBackslashUnlessRoot(ExpandFileName(Path));
+  while (Result <> '') and not DirExists(Result) do
+  begin
+    ParentPath := RemoveBackslashUnlessRoot(ExtractFileDir(Result));
+    if CompareText(ParentPath, Result) = 0 then
+    begin
+      Result := '';
+      Exit;
+    end;
+    Result := ParentPath;
+  end;
+end;
+
+function IsCloudStorageRoot(const Path: String): Boolean;
+var
+  NormalizedPath, ParentPath: String;
+begin
+  NormalizedPath := RemoveBackslashUnlessRoot(ExpandFileName(Path));
+  ParentPath := RemoveBackslashUnlessRoot(ExtractFileDir(NormalizedPath));
+  Result := (NormalizedPath <> '') and IsCloudStoragePath(NormalizedPath)
+    and ((ParentPath = '') or not IsCloudStoragePath(ParentPath));
+end;
+
+function IsDirectoryWritable(const Path: String): Boolean;
+var
+  ProbeDirectory, TestFile: String;
+  NullPosition: Integer;
+begin
+  Result := False;
+  if FileExists(Path) then
+    Exit;
+
+  ProbeDirectory := ExistingDirectoryForWriteTest(Path);
+  if ProbeDirectory = '' then
+    Exit;
+
+  SetLength(TestFile, 32768);
+  try
+    if GetTempFileName(ProbeDirectory, 'vcm', 0, TestFile) = 0 then
+      Exit;
+    NullPosition := Pos(#0, TestFile);
+    if NullPosition > 0 then
+      SetLength(TestFile, NullPosition - 1);
+    Result := SaveStringToFile(TestFile, 'VCMI write test', False);
+  except
+    Result := False;
+  end;
+  if TestFile <> '' then
+    DeleteFile(TestFile);
+end;
+
+function ReportInvalidDirectory(const MessageText: String): Boolean;
+begin
+  Log(MessageText);
+  if WizardSilent then
+    RaiseException(MessageText)
+  else
+    MsgBox(MessageText, mbError, MB_OK);
+  Result := False;
+end;
+
+function ValidateDirectorySelection(const Path, Description: String): Boolean;
+var
+  NormalizedPath: String;
+begin
+  NormalizedPath := RemoveBackslashUnlessRoot(ExpandFileName(Trim(Path)));
+  if NormalizedPath = '' then
+  begin
+    Result := ReportInvalidDirectory(Format(
+      ExpandConstant('{cm:DirectoryNotWritable}'), [Description, Path]));
+    Exit;
+  end;
+
+  if CompareText(NormalizedPath, AddBackslash(ExtractFileDrive(NormalizedPath))) = 0 then
+  begin
+    Result := ReportInvalidDirectory(Format(
+      ExpandConstant('{cm:DirectoryRootNotAllowed}'), [Description, NormalizedPath]));
+    Exit;
+  end;
+
+  if not IsDirectoryWritable(NormalizedPath) then
+  begin
+    Result := ReportInvalidDirectory(Format(
+      ExpandConstant('{cm:DirectoryNotWritable}'), [Description, NormalizedPath]));
+    Exit;
+  end;
+
+  Result := True;
+end;
+
+function DirectoryPairIsSafe(const InstallPath, DataPath: String): Boolean;
+var
+  NormalizedInstallPath, NormalizedDataPath: String;
+begin
+  NormalizedInstallPath := RemoveBackslashUnlessRoot(ExpandFileName(InstallPath));
+  NormalizedDataPath := RemoveBackslashUnlessRoot(ExpandFileName(DataPath));
+
+  // Portable data normally lives below the application directory. In every
+  // other mode the trees must be independent; the application must never be
+  // nested below user data because data cleanup could then remove the app.
+  Result := not ((CompareText(NormalizedInstallPath, NormalizedDataPath) = 0)
+    or IsSameOrChildPath(NormalizedInstallPath, NormalizedDataPath)
+    or (not IsPortableInstall and IsSameOrChildPath(NormalizedDataPath, NormalizedInstallPath)));
+end;
+
+function ValidateDirectoryPair(const InstallPath, DataPath: String): Boolean;
+begin
+  Result := DirectoryPairIsSafe(InstallPath, DataPath);
+  if not Result then
+  begin
+    Result := ReportInvalidDirectory(ExpandConstant('{cm:DirectoryOverlapError}'));
+    Exit;
+  end;
+end;
+
 function InitializeSetup(): Boolean;
 var
   InstallPath: String;
@@ -1017,8 +1756,15 @@ begin
 
   // Check if the application is already installed
   IsUpgrade := ReadArchitectureInstallPath('{#InstallerArch}', InstallPath);
+  if IsUpgrade then
+    RegisteredInstallPath := RemoveBackslashUnlessRoot(ExpandFileName(InstallPath))
+  else
+    RegisteredInstallPath := '';
   if CommandLinePortable then
+  begin
     IsUpgrade := False;
+    RegisteredInstallPath := '';
+  end;
 
   // Initialize the global variable during setup
   GlobalUserName := GetCurrentSessionUserName();
@@ -1039,28 +1785,37 @@ begin
     CommandLineUserDataDir := RemoveBackslashUnlessRoot(CommandLineUserDataDir);
     DefaultDataDir := CommandLineUserDataDir;
   end;
-  SelectedDataDir := DefaultDataDir;
+  if IsUpgrade then
+    SelectedDataDir := ReadUserDataPath(RegisteredInstallPath, DefaultDataDir)
+  else
+    SelectedDataDir := DefaultDataDir;
   UpdateDataFolders(SelectedDataDir);
 
-  // Check for Heroes 3 installation paths
-  Heroes3Path := RegistryQueryPath('SOFTWARE\GOG.com\Games\1207658787', 'path');
-  if Heroes3Path = '' then
-    Heroes3Path := RegistryQueryPath('SOFTWARE\WOW6432Node\GOG.com\Games\1207658787', 'path');
-  if Heroes3Path = '' then
-    Heroes3Path := RegistryQueryPath('SOFTWARE\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath');
-  if Heroes3Path = '' then
-    Heroes3Path := RegistryQueryPath('SOFTWARE\WOW6432Node\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath');
-  if Heroes3Path = '' then
-    Heroes3Path := RegistryQueryPath('SOFTWARE\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath');
-  if Heroes3Path = '' then
-    Heroes3Path := RegistryQueryPath('SOFTWARE\WOW6432Node\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath');
+  // Validate every candidate before accepting it. Stale registry entries must
+  // not prevent detection from continuing with Ubisoft Connect or Steam.
+  Heroes3Path := '';
+  SetHeroes3PathIfValid(RegistryQueryPath(
+    'SOFTWARE\GOG.com\Games\1207658787', 'path'));
+  SetHeroes3PathIfValid(RegistryQueryPath(
+    'SOFTWARE\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath'));
+  SetHeroes3PathIfValid(RegistryQueryPath(
+    'SOFTWARE\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath'));
+  SetHeroes3PathIfValid(RegistryQueryPath(
+    'SOFTWARE\Ubisoft\Launcher\Installs\353', 'InstallDir'));
+  SetHeroes3PathIfValid(FindSteamGameInstallDir(
+    '4921760', 'Heroes of Might and Magic III'));
 
   if (Heroes3Path <> '') then
   begin
     Heroes3MapsFolder := Heroes3Path + '\Maps';
     Heroes3DataFolder := Heroes3Path + '\Data';
     Heroes3Mp3Folder := Heroes3Path + '\Mp3';
+    GetFolderStats(Heroes3MapsFolder, Heroes3MapsSize, Heroes3MapsFiles);
+    GetFolderStats(Heroes3DataFolder, Heroes3DataSize, Heroes3DataFiles);
+    GetFolderStats(Heroes3Mp3Folder, Heroes3Mp3Size, Heroes3Mp3Files);
   end;
+  CopyHeroes3DataSelected := (Heroes3Path <> '')
+    and (CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0);
 
   Result := True;
 end;
@@ -1073,7 +1828,13 @@ begin
   GlobalUserAppdataFolder := GetUserAppdataFolder();
   DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
   SelectedDataDir := ReadUninstallUserDataPath(ExpandConstant('{app}'), DefaultDataDir);
+  { Classify every candidate against the provider's current sync-root
+    registration. Do not persist cloud roots: providers can move or unregister
+    them between installation and uninstall. }
   LoadUninstallPaths(ExpandConstant('{app}'), SelectedDataDir);
+  { Cloud classification is complete. Release the installed helper before the
+    uninstall phase so Windows does not keep the DLL locked in the app folder. }
+  UnloadDLL(ExpandConstant('{app}\VCMI_installerPlugin.dll'));
   // Intended for unattended maintenance and CI. It is deliberately explicit;
   // silent uninstall without this parameter always preserves user data.
   DeleteAllUserData := UninstallSilent
@@ -1129,24 +1890,27 @@ begin
   picked := PickFolderModern(title, startPath);
   if picked <> '' then
   begin
+    picked := RemoveBackslashUnlessRoot(ExpandFileName(picked));
+    if not ValidateDirectorySelection(picked, title) then
+      Exit;
+
     if Sender = InstallDirBrowseBtn then
     begin
-      if IsCloudStoragePath(picked) then
-      begin
-        if MsgBox(ExpandConstant('{cm:CloudInstallWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
-          Exit;
-        ConfirmedCloudInstallDir := picked;
-      end;
+      if (Trim(DataDirEdit.Text) <> '')
+        and not ValidateDirectoryPair(picked, DataDirEdit.Text) then
+        Exit;
+      if not ConfirmCloudTarget(picked, ExpandConstant('{cm:CloudInstallWarning}'),
+        ConfirmedCloudInstallDir) then
+        Exit;
       InstallDirEdit.Text := picked
     end
     else
     begin
-      if IsCloudStoragePath(picked) then
-      begin
-        if MsgBox(ExpandConstant('{cm:CloudDataWarning}'), mbConfirmation, MB_YESNO) <> IDYES then
-          Exit;
-        ConfirmedCloudDataDir := picked;
-      end;
+      if not ValidateDirectoryPair(InstallDirEdit.Text, picked) then
+        Exit;
+      if not ConfirmCloudTarget(picked, ExpandConstant('{cm:CloudDataWarning}'),
+        ConfirmedCloudDataDir) then
+        Exit;
       DataDirEdit.Text := picked;
     end;
   end;
@@ -1171,9 +1935,35 @@ begin
   UpdateCloudInstallNotice();
 end;
 
+procedure CopyHeroes3DataClick(Sender: TObject);
+begin
+  CopyHeroes3DataSelected := CopyHeroes3DataCheck.Checked;
+  UpdateDiskSpaceLabel();
+end;
+
+procedure UpdateHeroes3CopyCheckbox();
+var
+  Available: Boolean;
+begin
+  if not Assigned(CopyHeroes3DataCheck) then
+    Exit;
+  Available := IsHeroes3Installed and IsCopyFilesNeeded;
+  if Available and not Heroes3CopyWasAvailable then
+    CopyHeroes3DataSelected := True;
+  CopyHeroes3DataCheck.Visible := Available;
+  if Available then
+    CopyHeroes3DataCheck.Checked := CopyHeroes3DataSelected
+  else
+    CopyHeroes3DataCheck.Checked := False;
+  Heroes3CopyWasAvailable := Available;
+end;
+
 procedure DataDirEditChange(Sender: TObject);
 begin
   UpdateCloudDataNotice();
+  UpdateDataFolders(Trim(DataDirEdit.Text));
+  UpdateHeroes3CopyCheckbox();
+  UpdateDiskSpaceLabel();
 end;
 
 procedure ResetDirsClick(Sender: TObject);
@@ -1195,20 +1985,744 @@ begin
     DataDirEdit.Text := DefaultDataDir;
 end;
 
+function GetDetectedWindowsVersion(Default: String): String;
+var
+  ProductName, DisplayVersion, BuildNumber: String;
+begin
+  ProductName := '';
+  DisplayVersion := '';
+  BuildNumber := '';
+  RegQueryStringValue(HKLM,
+    'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName', ProductName);
+  RegQueryStringValue(HKLM,
+    'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'DisplayVersion', DisplayVersion);
+  RegQueryStringValue(HKLM,
+    'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'CurrentBuildNumber', BuildNumber);
+  Result := Trim(ProductName);
+  if DisplayVersion <> '' then
+    Result := Result + ' ' + DisplayVersion;
+  if BuildNumber <> '' then
+    Result := Result + ' (build ' + BuildNumber + ')';
+  if Result = '' then
+    Result := Default;
+end;
+
+function GetProcessorInfo(var ProcessorName: String; var ProcessorMHz: Cardinal): Boolean;
+begin
+  ProcessorName := '';
+  ProcessorMHz := 0;
+  RegQueryStringValue(HKLM,
+    'HARDWARE\DESCRIPTION\System\CentralProcessor\0',
+    'ProcessorNameString', ProcessorName);
+  RegQueryDWordValue(HKLM,
+    'HARDWARE\DESCRIPTION\System\CentralProcessor\0',
+    '~MHz', ProcessorMHz);
+  ProcessorName := Trim(ProcessorName);
+  Result := ProcessorMHz > 0;
+end;
+
+function GetPhysicalMemoryMB(var MemoryMB: Int64): Boolean;
+var
+  MemoryStatus: TMemoryStatusEx;
+begin
+  MemoryStatus.Length := 64;
+  Result := GlobalMemoryStatusEx(MemoryStatus);
+  if Result then
+    MemoryMB := MemoryStatus.TotalPhysical div (1024 * 1024)
+  else
+    MemoryMB := 0;
+end;
+
+function CompactDiskSpaceRequirement(const Caption: String): String;
+var
+  StartPosition, EndPosition: Integer;
+  Character: Char;
+begin
+  StartPosition := 1;
+  while (StartPosition <= Length(Caption))
+    and not ((Caption[StartPosition] >= '0') and (Caption[StartPosition] <= '9')) do
+    StartPosition := StartPosition + 1;
+  if StartPosition > Length(Caption) then
+  begin
+    Result := Caption;
+    Exit;
+  end;
+
+  EndPosition := StartPosition;
+  while EndPosition <= Length(Caption) do
+  begin
+    Character := Caption[EndPosition];
+    if not (((Character >= '0') and (Character <= '9'))
+      or (Character = '.') or (Character = ',') or (Character = ' ')
+      or (Character = 'K') or (Character = 'M') or (Character = 'G')
+      or (Character = 'T') or (Character = 'B')) then
+      Break;
+    EndPosition := EndPosition + 1;
+  end;
+  Result := Trim(Copy(Caption, StartPosition, EndPosition - StartPosition));
+end;
+
+procedure AddRequirementLine(const Status, Name, RequiredValue, DetectedValue: String);
+var
+  StatusBitmap: String;
+begin
+  if RequirementsRowCount > 14 then
+    Exit;
+  RequirementsComponentLabels[RequirementsRowCount].Caption := '  ' + Name;
+  RequirementsRequiredLabels[RequirementsRowCount].Caption := '  ' + RequiredValue;
+  RequirementsDetailsLabels[RequirementsRowCount].Caption := '  ' + DetectedValue;
+  RequirementsStatusLabels[RequirementsRowCount].Caption := '';
+  if CompareText(Status, ExpandConstant('{cm:RequirementFailed}')) = 0 then
+  begin
+    StatusBitmap := 'requirement-status-fail'
+  end
+  else if CompareText(Status, ExpandConstant('{cm:RequirementWarning}')) = 0 then
+  begin
+    StatusBitmap := 'requirement-status-warn'
+  end
+  else if CompareText(Status, ExpandConstant('{cm:RequirementPassed}')) = 0 then
+  begin
+    StatusBitmap := 'requirement-status-ok'
+  end
+  else
+  begin
+    StatusBitmap := 'requirement-status-info';
+  end;
+  if (RequirementsRowCount mod 2) <> 0 then
+    StatusBitmap := StatusBitmap + '-alternate';
+  StatusBitmap := StatusBitmap + '.bmp';
+  RequirementsStatusIcons[RequirementsRowCount].Bitmap.LoadFromFile(
+    ExpandConstant('{tmp}\' + StatusBitmap));
+  RequirementsStatusIcons[RequirementsRowCount].Hint := Status;
+  RequirementsStatusIcons[RequirementsRowCount].ShowHint := True;
+  RequirementsStatusIcons[RequirementsRowCount].Visible := True;
+  RequirementsComponentLabels[RequirementsRowCount].Visible := True;
+  RequirementsRequiredLabels[RequirementsRowCount].Visible := True;
+  RequirementsDetailsLabels[RequirementsRowCount].Visible := True;
+  RequirementsStatusLabels[RequirementsRowCount].Visible := True;
+  RequirementsRowCount := RequirementsRowCount + 1;
+end;
+
+procedure UpdateRequirementsCheck();
+var
+  SystemArchitecture, ProbeDirectory, ProcessorName: String;
+  Row: Integer;
+  InternetFlags: DWord;
+  FreeSpace, TotalSpace, HeroesDataSize, MemoryMB: Int64;
+  ProcessorMHz: Cardinal;
+  InstallWritable, DataWritable, LayoutSafe: Boolean;
+begin
+  if not Assigned(RequirementsComponentLabels[0]) then
+    Exit;
+
+  RequirementsRowCount := 0;
+  for Row := 0 to 14 do
+  begin
+    RequirementsComponentLabels[Row].Visible := False;
+    RequirementsRequiredLabels[Row].Visible := False;
+    RequirementsDetailsLabels[Row].Visible := False;
+    RequirementsStatusLabels[Row].Visible := False;
+    RequirementsStatusIcons[Row].Visible := False;
+  end;
+
+    AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+      ExpandConstant('{cm:RequirementOperatingSystem}'),
+      ExpandConstant('{cm:RequirementOperatingSystemShortValue}'),
+      GetDetectedWindowsVersion(ExpandConstant('{cm:RequirementDetectedWindows}')));
+
+    if IsARM64 then
+      SystemArchitecture := 'ARM64'
+    else if IsWin64 then
+      SystemArchitecture := 'x64'
+    else
+      SystemArchitecture := 'x86';
+    AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+      ExpandConstant('{cm:RequirementArchitecture}'),
+      '{#InstallerArch}',
+      Format('Windows %s', [SystemArchitecture]));
+
+    if GetProcessorInfo(ProcessorName, ProcessorMHz) then
+    begin
+      if ProcessorMHz >= 1000 then
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementProcessor}'), '1 GHz',
+          Format('%s (%d MHz)', [ProcessorName, ProcessorMHz]))
+      else
+      begin
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementProcessor}'), '1 GHz',
+          Format('%s (%d MHz)', [ProcessorName, ProcessorMHz]));
+      end;
+    end
+    else
+      AddRequirementLine(ExpandConstant('{cm:RequirementInfo}'),
+        ExpandConstant('{cm:RequirementProcessor}'), '1 GHz',
+        ExpandConstant('{cm:RequirementDetectionUnavailable}'));
+
+    if GetPhysicalMemoryMB(MemoryMB) then
+    begin
+      if MemoryMB >= 1024 then
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementMemory}'), '1 GB',
+          FormatLocalizedByteMessage(
+            ExpandConstant('{cm:RequirementMemoryDetected}'),
+            MemoryMB * 1024 * 1024))
+      else
+      begin
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementMemory}'), '1 GB',
+          FormatLocalizedByteMessage(
+            ExpandConstant('{cm:RequirementMemoryDetected}'),
+            MemoryMB * 1024 * 1024));
+      end;
+    end
+    else
+      AddRequirementLine(ExpandConstant('{cm:RequirementInfo}'),
+        ExpandConstant('{cm:RequirementMemory}'), '1 GB',
+        ExpandConstant('{cm:RequirementDetectionUnavailable}'));
+
+    if FileExists(ExpandConstant('{sys}\d3d11.dll')) then
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+        ExpandConstant('{cm:RequirementDirectX}'), '11',
+        ExpandConstant('{cm:RequirementDirectXDetected}'))
+    else
+    begin
+      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+        ExpandConstant('{cm:RequirementDirectX}'), '11',
+        ExpandConstant('{cm:RequirementDirectXMissing}'));
+    end;
+
+    { Show the combined installation/import disk requirement with the other
+      hardware requirements, before network-related checks. }
+    if CopyHeroes3DataSelected and IsCopyFilesNeeded then
+    begin
+      HeroesDataSize := Heroes3CopySize();
+      ProbeDirectory := ExistingDirectoryForWriteTest(DataDirEdit.Text);
+      if (ProbeDirectory = '') or
+        not GetSpaceOnDisk64(ProbeDirectory, FreeSpace, TotalSpace) then
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementDiskSpace}'), FormatByteSize(HeroesDataSize),
+          ExpandConstant('{cm:RequirementDetectionUnavailable}'))
+      else if FreeSpace < HeroesDataSize then
+        AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
+          ExpandConstant('{cm:RequirementDiskSpace}'), FormatByteSize(HeroesDataSize),
+          FormatLocalizedByteMessage(
+            ExpandConstant('{cm:RequirementFreeSpaceShortValue}'), FreeSpace))
+      else
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementDiskSpace}'), FormatByteSize(HeroesDataSize),
+          FormatLocalizedByteMessage(
+            ExpandConstant('{cm:RequirementFreeSpaceShortValue}'), FreeSpace));
+    end
+    else
+    begin
+      ProbeDirectory := ExistingDirectoryForWriteTest(InstallDirEdit.Text);
+      if (ProbeDirectory <> '') and GetSpaceOnDisk64(ProbeDirectory, FreeSpace, TotalSpace) then
+      begin
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementDiskSpace}'),
+          CompactDiskSpaceRequirement(BaseDiskSpaceCaption),
+          FormatLocalizedByteMessage(
+            ExpandConstant('{cm:RequirementFreeSpaceShortValue}'), FreeSpace));
+      end;
+    end;
+
+    InternetFlags := 0;
+    if InternetGetConnectedState(InternetFlags, 0) then
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+        ExpandConstant('{cm:RequirementInternet}'),
+        ExpandConstant('{cm:RequirementRecommended}'),
+        ExpandConstant('{cm:RequirementInternetAvailable}'))
+    else
+      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+        ExpandConstant('{cm:RequirementInternet}'),
+        ExpandConstant('{cm:RequirementRecommended}'),
+        ExpandConstant('{cm:RequirementInternetUnavailable}'));
+
+    if not IsPRInstaller and IsAdminInstallMode and not IsPortableInstall then
+    begin
+      if WizardIsTaskSelected('firewallrules') then
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementFirewall}'),
+          ExpandConstant('{cm:RequirementMultiplayerGames}'),
+          ExpandConstant('{cm:RequirementSelected}'))
+      else
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementFirewall}'),
+          ExpandConstant('{cm:RequirementMultiplayerGames}'),
+          ExpandConstant('{cm:RequirementNotSelected}'));
+    end;
+
+    if not IsCopyFilesNeeded then
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+        ExpandConstant('{cm:RequirementHeroesData}'),
+        ExpandConstant('{cm:RequirementRequiredToPlay}'),
+        ExpandConstant('{cm:RequirementHeroesDataAvailable}'))
+    else if Heroes3Path <> '' then
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+        ExpandConstant('{cm:RequirementHeroesData}'),
+        ExpandConstant('{cm:RequirementRequiredToPlay}'), Heroes3Path)
+    else
+      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+        ExpandConstant('{cm:RequirementHeroesData}'),
+        ExpandConstant('{cm:RequirementRequiredToPlay}'),
+        ExpandConstant('{cm:RequirementHeroesDataMissing}'));
+
+    InstallWritable := IsDirectoryWritable(InstallDirEdit.Text);
+    if InstallWritable then
+    begin
+      if IsCloudStoragePath(InstallDirEdit.Text) then
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementInstallFolder}'),
+          ExpandConstant('{cm:RequirementWritableValue}'),
+          ExpandConstant('{cm:RequirementWritableAndSynced}'))
+      else
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementInstallFolder}'),
+          ExpandConstant('{cm:RequirementWritableValue}'),
+          ExpandConstant('{cm:RequirementWritableValue}'));
+    end
+    else
+    begin
+      AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
+        ExpandConstant('{cm:RequirementInstallFolder}'),
+        ExpandConstant('{cm:RequirementWritableValue}'),
+        ExpandConstant('{cm:RequirementNotWritable}'));
+    end;
+
+    DataWritable := IsDirectoryWritable(DataDirEdit.Text);
+    if DataWritable then
+    begin
+      if IsCloudStoragePath(DataDirEdit.Text) then
+        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+          ExpandConstant('{cm:RequirementUserDataFolder}'),
+          ExpandConstant('{cm:RequirementWritableValue}'),
+          ExpandConstant('{cm:RequirementWritableAndSynced}'))
+      else
+        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+          ExpandConstant('{cm:RequirementUserDataFolder}'),
+          ExpandConstant('{cm:RequirementWritableValue}'),
+          ExpandConstant('{cm:RequirementWritableValue}'));
+    end
+    else
+    begin
+      AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
+        ExpandConstant('{cm:RequirementUserDataFolder}'),
+        ExpandConstant('{cm:RequirementWritableValue}'),
+        ExpandConstant('{cm:RequirementNotWritable}'));
+    end;
+
+    LayoutSafe := DirectoryPairIsSafe(InstallDirEdit.Text, DataDirEdit.Text);
+    if not LayoutSafe then
+    begin
+      AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
+        ExpandConstant('{cm:RequirementDirectoryLayout}'),
+        ExpandConstant('{cm:RequirementDirectoryLayoutValue}'),
+        ExpandConstant('{cm:DirectoryOverlapError}'));
+    end;
+
+end;
+
+function CreateRequirementsPanel(const CaptionText: String;
+  LeftPos, TopPos, PanelWidth, PanelHeight, AnchorMode: Integer;
+  CenterText, BoldText, Header: Boolean): TPanel;
+begin
+  Result := TPanel.Create(RequirementsPage);
+  Result.Parent := RequirementsPage.Surface;
+  Result.Left := LeftPos;
+  Result.Top := TopPos;
+  Result.Width := PanelWidth;
+  Result.Height := PanelHeight;
+  Result.Caption := CaptionText;
+  Result.BevelOuter := bvNone;
+  Result.ParentBackground := False;
+  if CenterText then
+    Result.Alignment := taCenter
+  else
+    Result.Alignment := taLeftJustify;
+  if BoldText then
+    Result.Font.Style := [fsBold];
+  if Header then
+  begin
+    Result.Color := clGray;
+    Result.Font.Color := clWhite;
+    Result.Font.Size := 8;
+  end
+  else
+    Result.Color := clWhite;
+  if AnchorMode = 1 then
+    Result.Anchors := [akLeft, akTop, akRight]
+  else if AnchorMode = 2 then
+    Result.Anchors := [akTop, akRight]
+  else
+    Result.Anchors := [akLeft, akTop];
+end;
+
+function CreateReadyCard(const CaptionText: String; TopPos, CardHeight: Integer;
+  var ValueLabel: TNewStaticText): TPanel;
+var
+  Accent: TPanel;
+  CaptionLabel: TNewStaticText;
+begin
+  Result := TPanel.Create(ReadySummaryPanel);
+  Result.Parent := ReadySummaryPanel;
+  Result.Left := 0;
+  Result.Top := TopPos;
+  Result.Width := ReadySummaryPanel.ClientWidth;
+  Result.Height := CardHeight;
+  Result.BevelOuter := bvNone;
+  Result.Color := clWhite;
+  Result.Anchors := [akLeft, akTop, akRight];
+
+  Accent := TPanel.Create(Result);
+  Accent.Parent := Result;
+  Accent.Left := 0;
+  Accent.Top := 0;
+  Accent.Width := ScaleX(4);
+  Accent.Height := Result.ClientHeight;
+  Accent.BevelOuter := bvNone;
+  Accent.Color := $004A8CC7;
+  Accent.Anchors := [akLeft, akTop, akBottom];
+
+  CaptionLabel := TNewStaticText.Create(Result);
+  CaptionLabel.Parent := Result;
+  CaptionLabel.Left := ScaleX(14);
+  CaptionLabel.Top := ScaleY(4);
+  CaptionLabel.Width := Result.ClientWidth - ScaleX(24);
+  CaptionLabel.Height := ScaleY(14);
+  CaptionLabel.AutoSize := False;
+  CaptionLabel.Caption := CaptionText;
+  CaptionLabel.Font.Style := [fsBold];
+  CaptionLabel.Font.Color := $00383838;
+  CaptionLabel.Anchors := [akLeft, akTop, akRight];
+
+  ValueLabel := TNewStaticText.Create(Result);
+  ValueLabel.Parent := Result;
+  ValueLabel.Left := CaptionLabel.Left;
+  ValueLabel.Top := ScaleY(18);
+  ValueLabel.Width := CaptionLabel.Width;
+  ValueLabel.Height := Result.ClientHeight - ValueLabel.Top - ScaleY(2);
+  ValueLabel.AutoSize := False;
+  ValueLabel.WordWrap := True;
+  ValueLabel.Font.Color := $00282828;
+  ValueLabel.Anchors := [akLeft, akTop, akRight, akBottom];
+end;
+
+procedure InitializeReadySummary();
+var
+  Gap, PathCardHeight, ModeCardHeight, SummaryOffset, TasksTop: Integer;
+begin
+  WizardForm.ReadyMemo.Visible := False;
+  WizardForm.ReadyLabel.AutoSize := False;
+  WizardForm.ReadyLabel.Height := WizardForm.ReadyLabel.Height + ScaleY(4);
+  SummaryOffset := ScaleY(7);
+
+  ReadySummaryPanel := TPanel.Create(WizardForm.ReadyPage);
+  ReadySummaryPanel.Parent := WizardForm.ReadyPage;
+  ReadySummaryPanel.Left := WizardForm.ReadyMemo.Left;
+  ReadySummaryPanel.Top := WizardForm.ReadyMemo.Top + SummaryOffset;
+  ReadySummaryPanel.Width := WizardForm.ReadyMemo.Width;
+  ReadySummaryPanel.Height := WizardForm.ReadyMemo.Height - SummaryOffset;
+  ReadySummaryPanel.BevelOuter := bvNone;
+  ReadySummaryPanel.Color := $00F0F0F0;
+  ReadySummaryPanel.Anchors := [akLeft, akTop, akRight, akBottom];
+
+  Gap := ScaleY(2);
+  PathCardHeight := ScaleY(35);
+  ModeCardHeight := ScaleY(35);
+  ReadyModeCard := CreateReadyCard(
+    ExpandConstant('{cm:RequirementInstallationMode}'), 0,
+    ModeCardHeight, ReadyModeValue);
+  ReadyModeValue.Font.Style := [fsBold];
+  ReadyModeValue.Font.Color := clBlue;
+  ReadyInstallCard := CreateReadyCard(
+    ExpandConstant('{cm:InstallFolderTitle}'), ReadyModeCard.Height + Gap,
+    PathCardHeight, ReadyInstallValue);
+  ReadyDataCard := CreateReadyCard(
+    ExpandConstant('{cm:DataFolderTitle}'),
+    ReadyInstallCard.Top + ReadyInstallCard.Height + Gap,
+    PathCardHeight, ReadyDataValue);
+  TasksTop := ReadyDataCard.Top + ReadyDataCard.Height + Gap;
+  ReadyTasksCard := CreateReadyCard(
+    SetupMessage(msgReadyMemoTasks), TasksTop,
+    ReadySummaryPanel.ClientHeight - TasksTop, ReadyTasksValue);
+  ReadyTasksCard.Anchors := [akLeft, akTop, akRight, akBottom];
+  ReadyTasksValue.Visible := False;
+  ReadyTasksMemo := TNewMemo.Create(ReadyTasksCard);
+  ReadyTasksMemo.Parent := ReadyTasksCard;
+  ReadyTasksMemo.Left := ReadyTasksValue.Left;
+  ReadyTasksMemo.Top := ReadyTasksValue.Top;
+  ReadyTasksMemo.Width := ReadyTasksValue.Width;
+  ReadyTasksMemo.Height := ReadyTasksValue.Height;
+  ReadyTasksMemo.ReadOnly := True;
+  ReadyTasksMemo.WordWrap := True;
+  ReadyTasksMemo.ScrollBars := ssNone;
+  ReadyTasksMemo.BorderStyle := bsNone;
+  ReadyTasksMemo.Color := clWhite;
+  ReadyTasksMemo.Anchors := [akLeft, akTop, akRight, akBottom];
+end;
+
+procedure CreateInstallModeBitmap(Index: Integer; const FileName: String);
+begin
+  ExtractTemporaryFile(FileName);
+  { Use a windowed panel as the image host. The native checklist repaints
+    non-windowed graphic children whenever selection or hover changes. }
+  InstallModeIconPanels[Index] := TPanel.Create(InstallModePage);
+  InstallModeIconPanels[Index].Parent := InstallModeRowPanels[Index];
+  InstallModeIconPanels[Index].Left := ScaleX(18);
+  InstallModeIconPanels[Index].Top := ScaleY(8);
+  InstallModeIconPanels[Index].Width := ScaleX(40);
+  InstallModeIconPanels[Index].Height := ScaleY(40);
+  InstallModeIconPanels[Index].BevelOuter := bvNone;
+  InstallModeIconPanels[Index].Color := clWindow;
+  InstallModeBitmaps[Index] := TBitmapImage.Create(InstallModePage);
+  InstallModeBitmaps[Index].Parent := InstallModeIconPanels[Index];
+  InstallModeBitmaps[Index].Left := 0;
+  InstallModeBitmaps[Index].Top := 0;
+  InstallModeBitmaps[Index].Width := ScaleX(40);
+  InstallModeBitmaps[Index].Height := ScaleY(40);
+  InstallModeBitmaps[Index].Stretch := True;
+  InstallModeBitmaps[Index].Bitmap.LoadFromFile(
+    ExpandConstant('{tmp}\') + FileName);
+  InstallModeIconPanels[Index].BringToFront();
+end;
+
+procedure SelectInstallMode(Index: Integer);
+var
+  Choice: Integer;
+begin
+  if (Index = 0) and not IsAdminInstallMode then
+    Exit;
+  InstallModePage.SelectedValueIndex := Index;
+  for Choice := 0 to 2 do
+    InstallModeRadioButtons[Choice].Checked := Choice = Index;
+  InstallModePreviewLabel.Caption := InstallModePreview(Index);
+end;
+
+procedure InstallModeRadioClick(Sender: TObject);
+var
+  Choice: Integer;
+begin
+  for Choice := 0 to 2 do
+    if (Sender = InstallModeRowPanels[Choice]) or
+      (Sender = InstallModeRadioButtons[Choice]) or
+      (Sender = InstallModeIconPanels[Choice]) or
+      (Sender = InstallModeBitmaps[Choice]) or
+      (Sender = InstallModeTitleLabels[Choice]) or
+      (Sender = InstallModeLabels[Choice]) then
+    begin
+      SelectInstallMode(Choice);
+      Exit;
+    end;
+end;
+
+procedure CreateInstallModeChoice(Index, TopPos: Integer;
+  const TitleText, DetailText, FileName: String);
+begin
+  InstallModeRowPanels[Index] := TPanel.Create(InstallModePage);
+  InstallModeRowPanels[Index].Parent := InstallModePage.Surface;
+  InstallModeRowPanels[Index].Left := InstallModePage.CheckListBox.Left;
+  InstallModeRowPanels[Index].Top := TopPos;
+  InstallModeRowPanels[Index].Width := InstallModePage.Surface.ClientWidth -
+    InstallModeRowPanels[Index].Left - ScaleX(8);
+  InstallModeRowPanels[Index].Height := ScaleY(64);
+  InstallModeRowPanels[Index].BevelOuter := bvNone;
+  InstallModeRowPanels[Index].Color := InstallModePage.Surface.Color;
+  InstallModeRowPanels[Index].OnClick := @InstallModeRadioClick;
+  InstallModeRowPanels[Index].Anchors := [akLeft, akTop, akRight];
+
+  InstallModeRadioButtons[Index] := TNewRadioButton.Create(InstallModePage);
+  InstallModeRadioButtons[Index].Parent := InstallModeRowPanels[Index];
+  InstallModeRadioButtons[Index].Left := ScaleX(4);
+  InstallModeRadioButtons[Index].Top := ScaleY(19);
+  InstallModeRadioButtons[Index].Width := ScaleX(18);
+  InstallModeRadioButtons[Index].Height := ScaleY(18);
+  InstallModeRadioButtons[Index].OnClick := @InstallModeRadioClick;
+
+  CreateInstallModeBitmap(Index, FileName);
+  InstallModeIconPanels[Index].OnClick := @InstallModeRadioClick;
+  InstallModeBitmaps[Index].OnClick := @InstallModeRadioClick;
+
+  InstallModeTitleLabels[Index] := TNewStaticText.Create(InstallModePage);
+  InstallModeTitleLabels[Index].Parent := InstallModeRowPanels[Index];
+  InstallModeTitleLabels[Index].AutoSize := False;
+  InstallModeTitleLabels[Index].Left := ScaleX(60);
+  InstallModeTitleLabels[Index].Top := ScaleY(3);
+  InstallModeTitleLabels[Index].Width := InstallModeRowPanels[Index].Width - ScaleX(64);
+  InstallModeTitleLabels[Index].Height := ScaleY(16);
+  InstallModeTitleLabels[Index].Caption := TitleText;
+  InstallModeTitleLabels[Index].Font.Style := [fsBold];
+  InstallModeTitleLabels[Index].OnClick := @InstallModeRadioClick;
+  InstallModeTitleLabels[Index].Anchors := [akLeft, akTop, akRight];
+
+  InstallModeLabels[Index] := TNewStaticText.Create(InstallModePage);
+  InstallModeLabels[Index].Parent := InstallModeRowPanels[Index];
+  InstallModeLabels[Index].AutoSize := False;
+  InstallModeLabels[Index].Left := ScaleX(60);
+  InstallModeLabels[Index].Top := ScaleY(19);
+  InstallModeLabels[Index].Width := InstallModeRowPanels[Index].Width - ScaleX(64);
+  InstallModeLabels[Index].Height := ScaleY(42);
+  InstallModeLabels[Index].WordWrap := True;
+  InstallModeLabels[Index].Caption := DetailText;
+  InstallModeLabels[Index].OnClick := @InstallModeRadioClick;
+  InstallModeLabels[Index].Anchors := [akLeft, akTop, akRight];
+end;
+
+procedure UpdateInstallModeLayout();
+var
+  Index: Integer;
+begin
+  if not Assigned(InstallModePage) then
+    Exit;
+  for Index := 0 to 2 do
+  begin
+    InstallModeRowPanels[Index].Width := InstallModePage.Surface.ClientWidth -
+      InstallModeRowPanels[Index].Left - ScaleX(8);
+    InstallModeTitleLabels[Index].Width := InstallModeRowPanels[Index].ClientWidth -
+      InstallModeTitleLabels[Index].Left - ScaleX(4);
+    InstallModeLabels[Index].Width := InstallModeRowPanels[Index].ClientWidth -
+      InstallModeLabels[Index].Left - ScaleX(4);
+  end;
+end;
+
+procedure AppendReadyTask(var Tasks: String; const TaskCaption: String);
+begin
+  if Tasks <> '' then
+    Tasks := Tasks + #13#10;
+  Tasks := Tasks + #$2022 + '  ' + TaskCaption;
+end;
+
+procedure AppendReadyGroupItem(var Items: String; const ItemCaption: String);
+begin
+  if Items <> '' then
+    Items := Items + #13#10;
+  Items := Items + '   ' + #$2022 + ' ' + ItemCaption;
+end;
+
+procedure AppendReadyGroup(var Tasks: String; const GroupCaption, Items: String);
+begin
+  if Items = '' then
+    Exit;
+  if Tasks <> '' then
+    Tasks := Tasks + #13#10#13#10;
+  Tasks := Tasks + GroupCaption + ':' + #13#10 + Items;
+end;
+
+procedure UpdateReadySummary();
+var
+  Tasks, DataPath, DesktopItems, StartMenuItems, AssociationItems,
+    ConfigurationItems: String;
+  TaskLineCount: Integer;
+begin
+  { Inno refreshes and may show its native ReadyMemo again whenever this page
+    is entered. Keep only the custom summary visible and above native controls. }
+  WizardForm.ReadyMemo.Visible := False;
+  ReadySummaryPanel.Visible := True;
+  ReadySummaryPanel.BringToFront;
+
+  ReadyInstallValue.Caption := MinimizePathName(
+    WizardDirValue, ReadyInstallValue.Font, ReadyInstallValue.Width);
+
+  DataPath := SelectedDataDir;
+  if (DataPath = '') and Assigned(DataDirEdit) then
+    DataPath := DataDirEdit.Text;
+  ReadyDataValue.Caption := MinimizePathName(
+    DataPath, ReadyDataValue.Font, ReadyDataValue.Width);
+
+  if IsPortableInstall then
+    ReadyModeValue.Caption := ExpandConstant('{cm:InstallPortable}')
+  else if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 0) then
+    ReadyModeValue.Caption := ExpandConstant('{cm:InstallForAllUsers}')
+  else
+    ReadyModeValue.Caption := ExpandConstant('{cm:InstallForMeOnly}');
+
+  Tasks := '';
+  DesktopItems := '';
+  StartMenuItems := '';
+  AssociationItems := '';
+  ConfigurationItems := '';
+  if WizardIsTaskSelected('desktop_launcher') then
+    AppendReadyGroupItem(DesktopItems, ExpandConstant('{cm:ShortcutLauncher}'));
+  if WizardIsTaskSelected('desktop_mapeditor') then
+    AppendReadyGroupItem(DesktopItems, ExpandConstant('{cm:ShortcutMapEditor}'));
+  if WizardIsTaskSelected('startmenu_launcher') then
+    AppendReadyGroupItem(StartMenuItems, ExpandConstant('{cm:ShortcutLauncher}'));
+  if WizardIsTaskSelected('startmenu_mapeditor') then
+    AppendReadyGroupItem(StartMenuItems, ExpandConstant('{cm:ShortcutMapEditor}'));
+  if WizardIsTaskSelected('startmenu_website') then
+    AppendReadyGroupItem(StartMenuItems, ExpandConstant('{cm:ShortcutWebPage}'));
+  if WizardIsTaskSelected('startmenu_discord') then
+    AppendReadyGroupItem(StartMenuItems, ExpandConstant('{cm:ShortcutDiscord}'));
+  if WizardIsTaskSelected('fileassociation_vmap') then
+    AppendReadyGroupItem(AssociationItems, ExpandConstant('{cm:VMAPDescription}'));
+  if WizardIsTaskSelected('fileassociation_vcmp') then
+    AppendReadyGroupItem(AssociationItems, ExpandConstant('{cm:VCMPDescription}'));
+  if WizardIsTaskSelected('fileassociation_h3m') then
+    AppendReadyGroupItem(AssociationItems, ExpandConstant('{cm:H3MDescription}'));
+  if WizardIsTaskSelected('fileassociation_h3c') then
+    AppendReadyGroupItem(AssociationItems, ExpandConstant('{cm:H3CDescription}'));
+  if WizardIsTaskSelected('firewallrules') then
+    AppendReadyGroupItem(ConfigurationItems, ExpandConstant('{cm:AddFirewallRules}'));
+  AppendReadyGroup(Tasks, ExpandConstant('{cm:DesktopShortcuts}'), DesktopItems);
+  AppendReadyGroup(Tasks, ExpandConstant('{cm:StartMenuShortcuts}'), StartMenuItems);
+  AppendReadyGroup(Tasks, ExpandConstant('{cm:FileAssociations}'), AssociationItems);
+  AppendReadyGroup(Tasks, ExpandConstant('{cm:VCMISettings}'), ConfigurationItems);
+  if CopyHeroes3DataSelected and IsCopyFilesNeeded then
+    AppendReadyTask(Tasks, ExpandConstant('{cm:CopyH3Files}'));
+
+  ReadyTasksMemo.Text := Tasks;
+  { EM_GETLINECOUNT includes lines created by word wrapping. Only reserve space
+    for a scrollbar when the rendered text is taller than the memo. }
+  ReadyTasksMemo.ScrollBars := ssNone;
+  TaskLineCount := SendMessage(ReadyTasksMemo.Handle, $00BA, 0, 0);
+  if (TaskLineCount * ScaleY(14) + ScaleY(2)) > ReadyTasksMemo.ClientHeight then
+    ReadyTasksMemo.ScrollBars := ssVertical;
+  ReadyTasksCard.Visible := Tasks <> '';
+end;
+
 procedure InitializeWizard();
 var
-  TitleText, SubTitleText, InfoText: String;
-  LeftCol, TopY, ButtonWidth, RowGap: Integer;
-
-  // Disk space line (same wording as the original page)
-  DiskSpaceLabel: TNewStaticText;
+  TitleText, SubTitleText, InfoText, WelcomeText, WelcomeSeparator: String;
+  LeftCol, TopY, ButtonWidth, RowGap, Row, WelcomeSeparatorPos,
+    ContentWidth, DetailsWidth, RequiredWidth, StatusWidth: Integer;
+  HeaderComponent, HeaderRequired, HeaderDetails, HeaderStatus: TPanel;
+  RequirementMeasureLabel: TNewStaticText;
 
 begin
+  WelcomeText := ExpandConstant('{cm:WelcomeDescription}');
+  WelcomeSeparator := #13#10#13#10;
+  WelcomeSeparatorPos := Pos(WelcomeSeparator, WelcomeText);
+  if WelcomeSeparatorPos > 0 then
+  begin
+    WizardForm.WelcomeLabel2.Caption := Copy(WelcomeText, 1,
+      WelcomeSeparatorPos - 1);
+    WelcomeInstructionsLabel := TNewStaticText.Create(WizardForm.WelcomePage);
+    WelcomeInstructionsLabel.Parent := WizardForm.WelcomePage;
+    WelcomeInstructionsLabel.AutoSize := False;
+    WelcomeInstructionsLabel.WordWrap := True;
+    WelcomeInstructionsLabel.Left := WizardForm.WelcomeLabel2.Left;
+    WelcomeInstructionsLabel.Top := WizardForm.WelcomeLabel2.Top + ScaleY(72);
+    WelcomeInstructionsLabel.Width := WizardForm.WelcomeLabel2.Width;
+    WelcomeInstructionsLabel.Height := ScaleY(110);
+    WelcomeInstructionsLabel.Caption := Copy(WelcomeText,
+      WelcomeSeparatorPos + Length(WelcomeSeparator), Length(WelcomeText));
+  end
+  else
+    WizardForm.WelcomeLabel2.Caption := WelcomeText;
+  WizardForm.WelcomeLabel2.AutoSize := False;
+  WizardForm.WelcomeLabel2.WordWrap := True;
+  WizardForm.WelcomeLabel2.Height := ScaleY(52);
+
   if (CompareText('{#InstallerArch}', 'x86') = 0) and not IsX86OS then
   begin
     Log('Installing the x86 VCMI package on a non-x86 Windows system.');
     if not WizardSilent then
-      MsgBox(ExpandConstant('{cm:X86On64BitWarning}'), mbInformation, MB_OK);
+    begin
+      if IsARM64 then
+        MsgBox(ExpandConstant('{cm:X86OnARM64Warning}'), mbInformation, MB_OK)
+      else
+        MsgBox(ExpandConstant('{cm:X86On64BitWarning}'), mbInformation, MB_OK);
+    end;
   end;
 
   // Check if the application is already installed
@@ -1223,9 +2737,24 @@ begin
       True, False
     );
 
-    InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallForAllUsers}' + #13#10 + '   • {cm:InstallForAllUsers1}' + #13#10 + #13#10));
-    InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallForMeOnly}' + #13#10  +  '   • {cm:InstallForMeOnly1}' + #13#10 + '   • {cm:InstallForMeOnly2}' + #13#10));
-    InstallModePage.Add(ExpandConstant(#13#10 + '  {cm:InstallPortable}' + #13#10 + '   • {cm:InstallPortable1}' + #13#10 + '   • {cm:InstallPortable2}' + #13#10));
+    InstallModePage.Add(ExpandConstant(#13#10 + '                  {cm:InstallForAllUsers}' + #13#10 + '                   • {cm:InstallForAllUsers1}' + #13#10 + #13#10));
+    InstallModePage.Add(ExpandConstant(#13#10 + '                  {cm:InstallForMeOnly}' + #13#10  +  '                   • {cm:InstallForMeOnly1}' + #13#10 + '                   • {cm:InstallForMeOnly2}' + #13#10));
+    InstallModePage.Add(ExpandConstant(#13#10 + '                  {cm:InstallPortable}' + #13#10 + '                   • {cm:InstallPortable1}' + #13#10 + '                   • {cm:InstallPortable2}' + #13#10));
+    InstallModePage.CheckListBox.Visible := False;
+    CreateInstallModeChoice(0, InstallModePage.CheckListBox.Top + ScaleY(4),
+      ExpandConstant('{cm:InstallForAllUsers}'),
+      ExpandConstant('• {cm:InstallForAllUsers1}'),
+      'install-mode-all-users.bmp');
+    CreateInstallModeChoice(1, InstallModePage.CheckListBox.Top + ScaleY(68),
+      ExpandConstant('{cm:InstallForMeOnly}'),
+      ExpandConstant('• {cm:InstallForMeOnly1}' + #13#10 + '• {cm:InstallForMeOnly2}'),
+      'install-mode-current-user.bmp');
+    CreateInstallModeChoice(2, InstallModePage.CheckListBox.Top + ScaleY(136),
+      ExpandConstant('{cm:InstallPortable}'),
+      ExpandConstant('• {cm:InstallPortable1} {cm:InstallPortable2}' + #13#10 +
+        '• {cm:InstallForMeOnly1}' + #13#10 +
+        '• {cm:InstallForMeOnly2}'),
+      'install-mode-portable.bmp');
 
     if CommandLinePortable then
       InstallModePage.SelectedValueIndex := 2
@@ -1241,10 +2770,33 @@ begin
 
       // Disable the first option ("Install for All Users") for non-admins
       InstallModePage.CheckListBox.ItemEnabled[0] := False;
-
-      // Force a redraw of the CheckListBox to fix appearance
-      InstallModePage.CheckListBox.Invalidate();
+      InstallModeRadioButtons[0].Enabled := False;
+      InstallModeTitleLabels[0].Enabled := False;
+      InstallModeLabels[0].Enabled := False;
     end;
+
+    InstallModePreviewPanel := TPanel.Create(InstallModePage);
+    InstallModePreviewPanel.Parent := InstallModePage.Surface;
+    InstallModePreviewPanel.Left := 0;
+    InstallModePreviewPanel.Top := InstallModePage.SurfaceHeight - ScaleY(62);
+    InstallModePreviewPanel.Width := InstallModePage.SurfaceWidth;
+    InstallModePreviewPanel.Height := ScaleY(58);
+    InstallModePreviewPanel.BevelOuter := bvNone;
+    InstallModePreviewPanel.Color := $00F3F3F3;
+    InstallModePreviewPanel.Anchors := [akLeft, akRight, akBottom];
+
+    InstallModePreviewLabel := TNewStaticText.Create(InstallModePreviewPanel);
+    InstallModePreviewLabel.Parent := InstallModePreviewPanel;
+    InstallModePreviewLabel.Left := ScaleX(12);
+    InstallModePreviewLabel.Top := ScaleY(9);
+    InstallModePreviewLabel.Width := InstallModePreviewPanel.ClientWidth - ScaleX(24);
+    InstallModePreviewLabel.Height := InstallModePreviewPanel.ClientHeight - ScaleY(16);
+    InstallModePreviewLabel.AutoSize := False;
+    InstallModePreviewLabel.WordWrap := True;
+    InstallModePreviewLabel.Caption :=
+      InstallModePreview(InstallModePage.SelectedValueIndex);
+    InstallModePreviewLabel.Anchors := [akLeft, akTop, akRight, akBottom];
+    SelectInstallMode(InstallModePage.SelectedValueIndex);
   end;
 
   TitleText := SetupMessage(msgWizardSelectDir);
@@ -1256,20 +2808,21 @@ begin
     SubTitleText
   );
 
-  LeftCol     := ScaleX(44);
+  LeftCol     := ScaleX(50);
   TopY        := ScaleY(6);
   ButtonWidth := ScaleX(85);
   RowGap      := ScaleY(8);
 
-  // Both sections use the same small folder icon and text layout as the standard page.
+  // Keep each icon visually aligned with the title and the full three-line description.
   InstallDirBitmap := TBitmapImage.Create(DirSelectPage);
   InstallDirBitmap.Parent := DirSelectPage.Surface;
   InstallDirBitmap.Left := ScaleX(0);
   InstallDirBitmap.Top := TopY;
-  InstallDirBitmap.Width := ScaleX(32);
-  InstallDirBitmap.Height := ScaleY(32);
+  InstallDirBitmap.Width := ScaleX(40);
+  InstallDirBitmap.Height := ScaleY(40);
   InstallDirBitmap.Stretch := True;
-  InstallDirBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
+  ExtractTemporaryFile('folder-vcmi.bmp');
+  InstallDirBitmap.Bitmap.LoadFromFile(ExpandConstant('{tmp}\folder-vcmi.bmp'));
 
   LabelInstall := TNewStaticText.Create(DirSelectPage);
   LabelInstall.Parent := DirSelectPage.Surface;
@@ -1283,10 +2836,11 @@ begin
   LabelInstallInfo1.Parent := DirSelectPage.Surface;
   LabelInstallInfo1.Left := LeftCol;
   LabelInstallInfo1.Top := LabelInstall.Top + LabelInstall.Height + ScaleY(2);
-  LabelInstallInfo1.Width := DirSelectPage.SurfaceWidth - LeftCol;
-  LabelInstallInfo1.Height := ScaleY(28);
+  LabelInstallInfo1.Width := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(4);
+  LabelInstallInfo1.Height := ScaleY(30);
   LabelInstallInfo1.AutoSize := False;
   LabelInstallInfo1.WordWrap := True;
+  LabelInstallInfo1.Anchors := [akLeft, akTop, akRight];
   InfoText := SetupMessage(msgSelectDirLabel3);
   StringChangeEx(InfoText, '[name]', '{#VCMIDisplayName}', True);
   LabelInstallInfo1.Caption := InfoText;
@@ -1298,6 +2852,7 @@ begin
   InstallDirEdit.Left := ScaleX(0);
   InstallDirEdit.Top  := TopY;
   InstallDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
+  InstallDirEdit.Anchors := [akLeft, akTop, akRight];
   InstallDirEdit.Text := WizardForm.DirEdit.Text;
 
   InstallDirBrowseBtn := TButton.Create(DirSelectPage);
@@ -1306,6 +2861,7 @@ begin
   InstallDirBrowseBtn.Top  := InstallDirEdit.Top - ScaleY(1);
   InstallDirBrowseBtn.Width := ButtonWidth;
   InstallDirBrowseBtn.Height := ScaleY(23);
+  InstallDirBrowseBtn.Anchors := [akTop, akRight];
   InstallDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
   InstallDirBrowseBtn.OnClick := @BrowseDirClick;
 
@@ -1314,9 +2870,10 @@ begin
   CloudInstallNotice.Left := InstallDirEdit.Left;
   CloudInstallNotice.Top := InstallDirEdit.Top + InstallDirEdit.Height + ScaleY(4);
   CloudInstallNotice.Width := InstallDirEdit.Width + ScaleX(91);
-  CloudInstallNotice.Height := ScaleY(32);
+  CloudInstallNotice.Height := ScaleY(24);
   CloudInstallNotice.AutoSize := False;
   CloudInstallNotice.WordWrap := True;
+  CloudInstallNotice.Anchors := [akLeft, akTop, akRight];
   CloudInstallNotice.Font.Color := clMaroon;
   CloudInstallNotice.Caption := ExpandConstant('{cm:CloudInstallNotice}');
   InstallDirEdit.OnChange := @InstallDirEditChange;
@@ -1328,10 +2885,11 @@ begin
   DataDirBitmap.Parent := DirSelectPage.Surface;
   DataDirBitmap.Left := ScaleX(0);
   DataDirBitmap.Top := TopY;
-  DataDirBitmap.Width := ScaleX(32);
-  DataDirBitmap.Height := ScaleY(32);
+  DataDirBitmap.Width := ScaleX(40);
+  DataDirBitmap.Height := ScaleY(40);
   DataDirBitmap.Stretch := True;
-  DataDirBitmap.Bitmap.Assign(WizardForm.SelectDirBitmapImage.Bitmap);
+  ExtractTemporaryFile('folder-user.bmp');
+  DataDirBitmap.Bitmap.LoadFromFile(ExpandConstant('{tmp}\folder-user.bmp'));
 
   LabelData := TNewStaticText.Create(DirSelectPage);
   LabelData.Parent := DirSelectPage.Surface;
@@ -1345,10 +2903,11 @@ begin
   LabelDataInfo.Parent := DirSelectPage.Surface;
   LabelDataInfo.Left := LeftCol;
   LabelDataInfo.Top := LabelData.Top + LabelData.Height + ScaleY(2);
-  LabelDataInfo.Width := DirSelectPage.SurfaceWidth - LeftCol;
-  LabelDataInfo.Height := ScaleY(28);
+  LabelDataInfo.Width := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(4);
+  LabelDataInfo.Height := ScaleY(30);
   LabelDataInfo.AutoSize := False;
   LabelDataInfo.WordWrap := True;
+  LabelDataInfo.Anchors := [akLeft, akTop, akRight];
   LabelDataInfo.Caption := ExpandConstant('{cm:DataFolderDescription}');
 
   TopY := LabelDataInfo.Top + LabelDataInfo.Height + ScaleY(4);
@@ -1358,6 +2917,7 @@ begin
   DataDirEdit.Left := ScaleX(0);
   DataDirEdit.Top  := TopY;
   DataDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
+  DataDirEdit.Anchors := [akLeft, akTop, akRight];
   if CommandLineUserDataDir <> '' then
     DataDirEdit.Text := CommandLineUserDataDir
   else
@@ -1369,6 +2929,7 @@ begin
   DataDirBrowseBtn.Top  := DataDirEdit.Top - ScaleY(1);
   DataDirBrowseBtn.Width := ButtonWidth;
   DataDirBrowseBtn.Height := ScaleY(23);
+  DataDirBrowseBtn.Anchors := [akTop, akRight];
   DataDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
   DataDirBrowseBtn.OnClick := @BrowseDirClick;
 
@@ -1377,20 +2938,34 @@ begin
   CloudDataNotice.Left := DataDirEdit.Left;
   CloudDataNotice.Top := DataDirEdit.Top + DataDirEdit.Height + ScaleY(4);
   CloudDataNotice.Width := DataDirEdit.Width + ScaleX(91);
-  CloudDataNotice.Height := ScaleY(32);
+  CloudDataNotice.Height := ScaleY(24);
   CloudDataNotice.AutoSize := False;
   CloudDataNotice.WordWrap := True;
+  CloudDataNotice.Anchors := [akLeft, akTop, akRight];
   CloudDataNotice.Font.Color := clMaroon;
   CloudDataNotice.Caption := ExpandConstant('{cm:CloudDataNotice}');
   DataDirEdit.OnChange := @DataDirEditChange;
   UpdateCloudDataNotice();
+
+  CopyHeroes3DataCheck := TNewCheckBox.Create(DirSelectPage);
+  CopyHeroes3DataCheck.Parent := DirSelectPage.Surface;
+  CopyHeroes3DataCheck.Left := DataDirEdit.Left;
+  CopyHeroes3DataCheck.Top := CloudDataNotice.Top + CloudDataNotice.Height + ScaleY(4);
+  CopyHeroes3DataCheck.Width := DirSelectPage.SurfaceWidth - ScaleX(4);
+  CopyHeroes3DataCheck.Height := ScaleY(20);
+  CopyHeroes3DataCheck.Anchors := [akLeft, akTop, akRight];
+  CopyHeroes3DataCheck.Caption := ExpandConstant('{cm:CopyH3Files}');
+  CopyHeroes3DataCheck.Checked := CopyHeroes3DataSelected;
+  CopyHeroes3DataCheck.OnClick := @CopyHeroes3DataClick;
+  UpdateHeroes3CopyCheckbox();
 
   ResetDirsBtn := TButton.Create(DirSelectPage);
   ResetDirsBtn.Parent := DirSelectPage.Surface;
   ResetDirsBtn.Width := ScaleX(120);
   ResetDirsBtn.Height := ScaleY(23);
   ResetDirsBtn.Left := DirSelectPage.SurfaceWidth - ResetDirsBtn.Width;
-  ResetDirsBtn.Top := CloudDataNotice.Top + CloudDataNotice.Height + ScaleY(2);
+  ResetDirsBtn.Top := CopyHeroes3DataCheck.Top + CopyHeroes3DataCheck.Height + ScaleY(4);
+  ResetDirsBtn.Anchors := [akTop, akRight];
   ResetDirsBtn.Caption := ExpandConstant('{cm:ResetFoldersToDefault}');
   ResetDirsBtn.OnClick := @ResetDirsClick;
 
@@ -1398,16 +2973,175 @@ begin
   DiskSpaceLabel.Parent := DirSelectPage.Surface;
   DiskSpaceLabel.AutoSize := True;
   // Inno has already calculated the installed size; CI source paths do not exist at runtime.
-  DiskSpaceLabel.Caption := WizardForm.DiskSpaceLabel.Caption;
+  BaseDiskSpaceCaption := WizardForm.DiskSpaceLabel.Caption;
+  DiskSpaceLabel.Caption := BaseDiskSpaceCaption;
   DiskSpaceLabel.Left := 0; // align with original left margin
   DiskSpaceLabel.Top := DirSelectPage.SurfaceHeight - DiskSpaceLabel.Height - ScaleY(7);
   DiskSpaceLabel.Anchors := [akLeft, akBottom];
+  UpdateDiskSpaceLabel();
+
+  RequirementsPage := CreateCustomPage(
+    wpSelectTasks,
+    ExpandConstant('{cm:RequirementsCheckTitle}'),
+    ExpandConstant('{cm:RequirementsCheckDescription}'));
+
+  { Keep the original Component and Status widths. Required is sized from its
+    longest normal localized value; Your system receives the remaining width. }
+  RequirementMeasureLabel := TNewStaticText.Create(RequirementsPage);
+  RequirementMeasureLabel.Parent := RequirementsPage.Surface;
+  RequirementMeasureLabel.AutoSize := True;
+  RequiredWidth := 0;
+  RequirementMeasureLabel.Caption := ExpandConstant('{cm:RequirementOperatingSystemShortValue}');
+  if RequirementMeasureLabel.Width > RequiredWidth then RequiredWidth := RequirementMeasureLabel.Width;
+  RequirementMeasureLabel.Caption := ExpandConstant('{cm:RequirementRecommended}');
+  if RequirementMeasureLabel.Width > RequiredWidth then RequiredWidth := RequirementMeasureLabel.Width;
+  RequirementMeasureLabel.Caption := ExpandConstant('{cm:RequirementMultiplayerGames}');
+  if RequirementMeasureLabel.Width > RequiredWidth then RequiredWidth := RequirementMeasureLabel.Width;
+  RequirementMeasureLabel.Caption := ExpandConstant('{cm:RequirementRequiredToPlay}');
+  if RequirementMeasureLabel.Width > RequiredWidth then RequiredWidth := RequirementMeasureLabel.Width;
+  RequirementMeasureLabel.Caption := ExpandConstant('{cm:RequirementWritableValue}');
+  if RequirementMeasureLabel.Width > RequiredWidth then RequiredWidth := RequirementMeasureLabel.Width;
+  RequirementMeasureLabel.Free;
+  RequiredWidth := RequiredWidth + ScaleX(16);
+  { This is the exact residual width used by the original 22/28/36 layout. }
+  StatusWidth := RequirementsPage.SurfaceWidth - ScaleX(8) -
+    ((RequirementsPage.SurfaceWidth * 22) div 100) -
+    ((RequirementsPage.SurfaceWidth * 28) div 100) -
+    ((RequirementsPage.SurfaceWidth * 36) div 100);
+  DetailsWidth := RequirementsPage.SurfaceWidth - ScaleX(8) -
+    ((RequirementsPage.SurfaceWidth * 22) div 100) - RequiredWidth - StatusWidth;
+
+  ExtractTemporaryFile('requirement-status-ok.bmp');
+  ExtractTemporaryFile('requirement-status-ok-alternate.bmp');
+  ExtractTemporaryFile('requirement-status-info.bmp');
+  ExtractTemporaryFile('requirement-status-info-alternate.bmp');
+  ExtractTemporaryFile('requirement-status-fail.bmp');
+  ExtractTemporaryFile('requirement-status-fail-alternate.bmp');
+  ExtractTemporaryFile('requirement-status-warn.bmp');
+  ExtractTemporaryFile('requirement-status-warn-alternate.bmp');
+
+  HeaderComponent := CreateRequirementsPanel(
+    ExpandConstant('{cm:RequirementsColumnComponent}'), ScaleX(4), ScaleY(8),
+    (RequirementsPage.SurfaceWidth * 22) div 100, ScaleY(28), 0, True, True, True);
+  HeaderRequired := CreateRequirementsPanel(
+    ExpandConstant('{cm:RequirementsColumnDetails}'),
+    HeaderComponent.Left + HeaderComponent.Width, HeaderComponent.Top,
+    RequiredWidth, HeaderComponent.Height,
+    0, True, True, True);
+  HeaderDetails := CreateRequirementsPanel(
+    ExpandConstant('{cm:RequirementsColumnDetected}'),
+    HeaderRequired.Left + HeaderRequired.Width, HeaderComponent.Top,
+    DetailsWidth, HeaderComponent.Height,
+    1, True, True, True);
+  HeaderStatus := CreateRequirementsPanel(
+    ExpandConstant('{cm:RequirementsColumnStatus}'),
+    RequirementsPage.SurfaceWidth - StatusWidth - ScaleX(4), HeaderComponent.Top,
+    StatusWidth,
+    HeaderComponent.Height, 2, True, True, True);
+
+  for Row := 0 to 14 do
+  begin
+    TopY := HeaderComponent.Top + HeaderComponent.Height + ScaleY(2) + Row * ScaleY(24);
+    RequirementsComponentLabels[Row] := CreateRequirementsPanel('',
+      HeaderComponent.Left, TopY, HeaderComponent.Width, ScaleY(23), 0, False, False, False);
+    RequirementsRequiredLabels[Row] := CreateRequirementsPanel('',
+      HeaderRequired.Left, TopY, HeaderRequired.Width, ScaleY(23), 0, False, False, False);
+    RequirementsDetailsLabels[Row] := CreateRequirementsPanel('',
+      HeaderDetails.Left, TopY, HeaderDetails.Width, ScaleY(23), 1, False, False, False);
+    RequirementsStatusLabels[Row] := CreateRequirementsPanel('',
+      HeaderStatus.Left, TopY, HeaderStatus.Width, ScaleY(23), 2, True, True, False);
+    RequirementsStatusIcons[Row] := TBitmapImage.Create(RequirementsStatusLabels[Row]);
+    RequirementsStatusIcons[Row].Parent := RequirementsStatusLabels[Row];
+    RequirementsStatusIcons[Row].Width := ScaleX(18);
+    RequirementsStatusIcons[Row].Height := ScaleY(18);
+    RequirementsStatusIcons[Row].Left :=
+      (RequirementsStatusLabels[Row].ClientWidth - RequirementsStatusIcons[Row].Width) div 2;
+    RequirementsStatusIcons[Row].Top := ScaleY(2);
+    RequirementsStatusIcons[Row].Stretch := True;
+    RequirementsStatusIcons[Row].Visible := False;
+    if (Row mod 2) <> 0 then
+    begin
+      RequirementsComponentLabels[Row].Color := $00F5F5F5;
+      RequirementsRequiredLabels[Row].Color := $00F5F5F5;
+      RequirementsDetailsLabels[Row].Color := $00F5F5F5;
+      RequirementsStatusLabels[Row].Color := $00F5F5F5;
+    end;
+  end;
 
   WizardForm.TasksList.OnClickCheck := @OnTaskCheck;
+  WizardForm.TasksList.Visible := False;
+  LeftCol := WizardForm.TasksList.Left;
+  TopY := WizardForm.TasksList.Top;
+  ContentWidth := WizardForm.SelectTasksPage.ClientWidth - (2 * LeftCol);
+  ButtonWidth := (ContentWidth - ScaleX(18)) div 2;
+
+  CustomTaskGroupLabels[0] := CreateCustomTaskGroup(
+    ExpandConstant('{cm:StartMenuShortcuts}'), LeftCol, TopY, ButtonWidth);
+  CreateCustomTaskOption(0, ExpandConstant('{cm:ShortcutLauncher}'),
+    LeftCol, TopY + ScaleY(19), ButtonWidth);
+  CreateCustomTaskOption(1, ExpandConstant('{cm:ShortcutMapEditor}'),
+    LeftCol, TopY + ScaleY(39), ButtonWidth);
+  CreateCustomTaskOption(2, ExpandConstant('{cm:ShortcutWebPage}'),
+    LeftCol, TopY + ScaleY(59), ButtonWidth);
+  CreateCustomTaskOption(3, ExpandConstant('{cm:ShortcutDiscord}'),
+    LeftCol, TopY + ScaleY(79), ButtonWidth);
+
+  CustomTaskGroupLabels[1] := CreateCustomTaskGroup(
+    ExpandConstant('{cm:DesktopShortcuts}'),
+    LeftCol + ButtonWidth + ScaleX(18), TopY, ButtonWidth);
+  CreateCustomTaskOption(4, ExpandConstant('{cm:ShortcutLauncher}'),
+    CustomTaskGroupLabels[1].Left, TopY + ScaleY(19), ButtonWidth);
+  CreateCustomTaskOption(5, ExpandConstant('{cm:ShortcutMapEditor}'),
+    CustomTaskGroupLabels[1].Left, TopY + ScaleY(39), ButtonWidth);
+
+  CustomTaskGroupLabels[2] := CreateCustomTaskGroup(
+    ExpandConstant('{cm:FileAssociations}'), LeftCol,
+    TopY + ScaleY(105), ButtonWidth);
+  CreateCustomTaskOption(6, ExpandConstant('{cm:VMAPDescription}'),
+    LeftCol, TopY + ScaleY(124), ButtonWidth);
+  CreateCustomTaskOption(7, ExpandConstant('{cm:VCMPDescription}'),
+    LeftCol, TopY + ScaleY(144), ButtonWidth);
+  CreateCustomTaskOption(8, ExpandConstant('{cm:H3MDescription}'),
+    LeftCol, TopY + ScaleY(164), ButtonWidth);
+  CreateCustomTaskOption(9, ExpandConstant('{cm:H3CDescription}'),
+    LeftCol, TopY + ScaleY(184), ButtonWidth);
+
+  CustomTaskGroupLabels[3] := CreateCustomTaskGroup(
+    ExpandConstant('{cm:VCMISettings}'), CustomTaskGroupLabels[1].Left,
+    TopY + ScaleY(105), ButtonWidth);
+  CreateCustomTaskOption(10, ExpandConstant('{cm:AddFirewallRules}'),
+    CustomTaskGroupLabels[1].Left, TopY + ScaleY(124), ButtonWidth);
+
+  TasksPreviewPanel := TPanel.Create(WizardForm.SelectTasksPage);
+  TasksPreviewPanel.Parent := WizardForm.TasksList.Parent;
+  TasksPreviewPanel.Left := LeftCol;
+  TasksPreviewPanel.Top := WizardForm.TasksList.Parent.ClientHeight - ScaleY(62);
+  TasksPreviewPanel.Width := ContentWidth;
+  TasksPreviewPanel.Height := ScaleY(58);
+  TasksPreviewPanel.BevelOuter := bvNone;
+  TasksPreviewPanel.Color := $00F3F3F3;
+  TasksPreviewPanel.Anchors := [akLeft, akRight, akBottom];
+
+  TasksPreviewLabel := TNewStaticText.Create(TasksPreviewPanel);
+  TasksPreviewLabel.Parent := TasksPreviewPanel;
+  TasksPreviewLabel.Left := ScaleX(12);
+  TasksPreviewLabel.Top := ScaleY(9);
+  TasksPreviewLabel.Width := TasksPreviewPanel.ClientWidth - ScaleX(24);
+  TasksPreviewLabel.Height := TasksPreviewPanel.ClientHeight - ScaleY(16);
+  TasksPreviewLabel.AutoSize := False;
+  TasksPreviewLabel.WordWrap := True;
+  TasksPreviewLabel.Caption := '';
+  TasksPreviewLabel.Anchors := [akLeft, akTop, akRight, akBottom];
   FirewallTaskPreviouslySelected := WizardIsTaskSelected('firewallrules');
+
+  LastInstallModeHover := -1;
+  LastTasksHover := -1;
+  HoverPreviewTimerID := SetTimer(0, 0, 100,
+    CreateCallback(@HoverPreviewTimerTick));
 
   WizardForm.ReadyMemo.ScrollBars := ssNone;
   WizardForm.ReadyMemo.WordWrap := True;
+  InitializeReadySummary();
 
   FooterLabel := TLabel.Create(WizardForm);
   FooterLabel.Parent := WizardForm;
@@ -1416,6 +3150,7 @@ begin
   FooterLabel.Top := WizardForm.ClientHeight - 30;
   FooterLabel.Width := WizardForm.ClientWidth - 20;
   FooterLabel.Height := 40;
+
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -1429,7 +3164,22 @@ begin
     Exit;
   end;
 
-  // Skip Tasks page if this is a PR build
+  // An upgrade keeps both paths and the existing dirs.json unchanged.
+  if IsUpgrade and Assigned(DirSelectPage) and (PageID = DirSelectPage.ID) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  if (WizardSilent or IsUpgrade) and Assigned(RequirementsPage)
+    and (PageID = RequirementsPage.ID) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // PR and portable setups have no system-integration tasks, but still expose
+  // the optional Heroes III import when a usable source was detected.
   if (IsPRInstaller or IsPortableInstall) and (PageID = wpSelectTasks) then
   begin
     Result := True;
@@ -1446,10 +3196,24 @@ begin
   end;
 end;
 
+procedure DeinitializeSetup();
+begin
+  if HoverPreviewTimerID <> 0 then
+    KillTimer(0, HoverPreviewTimerID);
+end;
+
 procedure CurPageChanged(CurPageID: Integer);
 begin
   // Ensure the footer message is visible on every page
   FooterLabel.Visible := True;
+  if Assigned(InstallModePage) and (CurPageID = InstallModePage.ID) then
+    UpdateInstallModeLayout();
+  if Assigned(RequirementsPage) and (CurPageID = RequirementsPage.ID) then
+    UpdateRequirementsCheck();
+  if CurPageID = wpSelectTasks then
+    MapCustomTaskItems();
+  if CurPageID = wpReady then
+    UpdateReadySummary();
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -1477,8 +3241,6 @@ begin
         WizardForm.DirEdit.Text := ExpandConstant('{src}\VCMI');
         InstallDirEdit.Text := WizardForm.DirEdit.Text;
       end;
-      if CommandLineUserDataDir = '' then
-        DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data';
     end
     else if HasCommandLineInstallDir then
     begin
@@ -1495,6 +3257,16 @@ begin
       WizardForm.DirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}';
       InstallDirEdit.Text := WizardForm.DirEdit.Text;
     end;
+
+    // Recalculate both fields when the installation mode changes. Previously
+    // only the portable mode updated user data, leaving the prior mode's path
+    // in place until Reset to default was clicked.
+    if CommandLineUserDataDir <> '' then
+      DataDirEdit.Text := CommandLineUserDataDir
+    else if IsPortableInstall then
+      DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data'
+    else
+      DataDirEdit.Text := DefaultDataDir;
   end;
 
   if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
@@ -1506,59 +3278,59 @@ begin
       Exit;
     end;
 
-    InstallDirEdit.Text := RemoveBackslashUnlessRoot(Trim(InstallDirEdit.Text));
+    InstallDirEdit.Text := RemoveBackslashUnlessRoot(ExpandFileName(Trim(InstallDirEdit.Text)));
+
+    if not ValidateDirectorySelection(
+      InstallDirEdit.Text, ExpandConstant('{cm:InstallFolderTitle}')) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    if IsInstallPathUsedByRegisteredInstallation(InstallDirEdit.Text) then
+    begin
+      Result := ReportInvalidDirectory(Format(
+        ExpandConstant('{cm:InstallDirectoryUsedByOtherInstallation}'), [InstallDirEdit.Text]));
+      Exit;
+    end;
 
     // Push the chosen install dir into the installer (this is what wpSelectDir would do)
     WizardForm.DirEdit.Text := InstallDirEdit.Text;
 
-    if IsCloudStoragePath(InstallDirEdit.Text) then
+    if not ConfirmCloudTarget(InstallDirEdit.Text,
+      ExpandConstant('{cm:CloudInstallWarning}'), ConfirmedCloudInstallDir) then
     begin
-      CloudInstallNotice.Visible := True;
-      if CompareText(ConfirmedCloudInstallDir, InstallDirEdit.Text) <> 0 then
-      begin
-        if WizardSilent and not IsCloudTargetAllowed() then
-          RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
-        if not WizardSilent
-          and (MsgBox(ExpandConstant('{cm:CloudInstallWarning}'), mbConfirmation, MB_YESNO) <> IDYES) then
-        begin
-          Result := False;
-          Exit;
-        end;
-        ConfirmedCloudInstallDir := InstallDirEdit.Text;
-      end;
-    end
-    else
-    begin
-      CloudInstallNotice.Visible := False;
-      ConfirmedCloudInstallDir := '';
+      Result := False;
+      Exit;
     end;
+    CloudInstallNotice.Visible := ConfirmedCloudInstallDir <> '';
 
-    SelectedDataDir := RemoveBackslashUnlessRoot(Trim(DataDirEdit.Text));
-
-    if Trim(SelectedDataDir) = '' then
+    SelectedDataDir := Trim(DataDirEdit.Text);
+    if SelectedDataDir = '' then
       SelectedDataDir := DefaultDataDir;
+    SelectedDataDir := RemoveBackslashUnlessRoot(ExpandFileName(SelectedDataDir));
 
-    if IsCloudStoragePath(SelectedDataDir) then
+    DataDirEdit.Text := SelectedDataDir;
+    if not ValidateDirectorySelection(
+      SelectedDataDir, ExpandConstant('{cm:DataFolderTitle}')) then
     begin
-      CloudDataNotice.Visible := True;
-      if CompareText(ConfirmedCloudDataDir, SelectedDataDir) <> 0 then
-      begin
-        if WizardSilent and not IsCloudTargetAllowed() then
-          RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
-        if not WizardSilent
-          and (MsgBox(ExpandConstant('{cm:CloudDataWarning}'), mbConfirmation, MB_YESNO) <> IDYES) then
-        begin
-          Result := False;
-          Exit;
-        end;
-        ConfirmedCloudDataDir := SelectedDataDir;
-      end;
-    end
-    else
-    begin
-      CloudDataNotice.Visible := False;
-      ConfirmedCloudDataDir := '';
+      Result := False;
+      Exit;
     end;
+
+    if not ValidateDirectoryPair(InstallDirEdit.Text, SelectedDataDir) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    if not ConfirmCloudTarget(SelectedDataDir,
+      ExpandConstant('{cm:CloudDataWarning}'), ConfirmedCloudDataDir) then
+    begin
+      Result := False;
+      Exit;
+    end;
+    CloudDataNotice.Visible := ConfirmedCloudDataDir <> '';
 
     UpdateDataFolders(SelectedDataDir);
 
@@ -1566,14 +3338,52 @@ begin
     Log('Selected data dir: ' + SelectedDataDir);
   end;
 
+  if Assigned(RequirementsPage) and (CurPageID = RequirementsPage.ID) then
+  begin
+    UpdateRequirementsCheck();
+    if not HasSpaceForHeroes3Import() then
+    begin
+      if MsgBox(ExpandConstant('{cm:RequirementInsufficientSpace}') + '.' +
+        ''#13#10#13#10 + ExpandConstant('{cm:RequirementImportSpaceHelp}') +
+        ''#13#10#13#10 + ExpandConstant('{cm:RequirementDisableImportQuestion}'),
+        mbConfirmation, MB_YESNO) = IDYES then
+      begin
+        CopyHeroes3DataSelected := False;
+        CopyHeroes3DataCheck.Checked := False;
+        UpdateDiskSpaceLabel();
+        UpdateRequirementsCheck();
+      end
+      else
+      begin
+        Result := False;
+        Exit;
+      end;
+    end;
+  end;
+
   Result := True;
 end;
 
-function TryReadUninstallExeFromHKLM(const SubKey: String; var UninstallerPath: String): Boolean;
+function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo,
+  MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;
+begin
+  Result := MemoUserInfoInfo + MemoDirInfo;
+  if SelectedDataDir <> '' then
+    Result := Result + NewLine + NewLine
+      + ExpandConstant('{cm:ReadyUserDataLocation}')
+      + NewLine + Space + SelectedDataDir + NewLine + NewLine;
+  if CopyHeroes3DataSelected and IsCopyFilesNeeded then
+    Result := Result + ExpandConstant('{cm:ReadyHeroes3Import}')
+      + NewLine + Space + ExpandConstant('{cm:CopyH3Files}') + NewLine + NewLine;
+  Result := Result + MemoTypeInfo + MemoComponentsInfo + MemoGroupInfo + MemoTasksInfo;
+end;
+
+function TryReadUninstallExeFromRegistry(RootKey: Integer;
+  const SubKey: String; var UninstallerPath: String): Boolean;
 var
   ClosingQuote, Separator: Integer;
 begin
-  Result := RegQueryStringValue(HKLM, SubKey, 'UninstallString', UninstallerPath);
+  Result := RegQueryStringValue(RootKey, SubKey, 'UninstallString', UninstallerPath);
   if (not Result) or (Trim(UninstallerPath) = '') then
   begin
     UninstallerPath := '';
@@ -1602,34 +3412,54 @@ begin
 end;
 
 function GetLegacyUninstallerPath(var UninstallerPath: String): Boolean;
+var
+  SubKey: String;
 begin
-  Result := TryReadUninstallExeFromHKLM('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath) or TryReadUninstallExeFromHKLM('SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\VCMI', UninstallerPath);
+  SubKey := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\VCMI';
+  Result := False;
+  if IsWin64 then
+    Result := TryReadUninstallExeFromRegistry(HKLM64, SubKey, UninstallerPath);
+  if not Result then
+    Result := TryReadUninstallExeFromRegistry(HKLM32, SubKey, UninstallerPath);
 end;
 
-procedure RemoveLegacyInstaller();
+function RemoveLegacyInstaller(): Boolean;
 var
   AppFolder: String;
-  UninstallerPath: String;
-  ResultCode: Integer;
+  UninstallerPath, FailureText: String;
+  ResultCode, Choice: Integer;
 begin
+  Result := False;
   AppFolder := ExpandConstant('{app}');
-  UninstallerPath := '';
-
-  // A generic Uninstall.exe in a user-selected directory is not proof of a
-  // legacy VCMI installation. Only the VCMI uninstall registry entry is trusted.
-  if not GetLegacyUninstallerPath(UninstallerPath) then
-    Exit;
-
-  if (UninstallerPath <> '') and FileExists(UninstallerPath) then
+  while True do
   begin
-    if not Exec(UninstallerPath, '/S', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    UninstallerPath := '';
+    // A generic Uninstall.exe in a user-selected directory is not proof of a
+    // legacy VCMI installation. Only the VCMI uninstall registry entry is trusted.
+    if not GetLegacyUninstallerPath(UninstallerPath) then
     begin
-      Log('Failed to start legacy uninstaller: ' + UninstallerPath);
+      Result := True;
       Exit;
     end;
-    if ResultCode <> 0 then
+
+    FailureText := '';
+    if not Exec(UninstallerPath, '/S', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      FailureText := Format(ExpandConstant('{cm:LegacyUninstallStartFailed}'), [UninstallerPath])
+    else if ResultCode <> 0 then
+      FailureText := Format(ExpandConstant('{cm:LegacyUninstallExitFailed}'), [IntToStr(ResultCode)]);
+
+    if FailureText <> '' then
     begin
-      Log(Format('Legacy uninstaller failed with exit code %d; keeping its files.', [ResultCode]));
+      Log(FailureText);
+      if WizardSilent then
+        Exit;
+      Choice := MsgBox(FailureText + #13#10#13#10 +
+        ExpandConstant('{cm:LegacyUninstallFailureChoice}'), mbError,
+        MB_ABORTRETRYIGNORE);
+      if Choice = IDRETRY then
+        Continue;
+      if Choice = IDIGNORE then
+        Result := True;
       Exit;
     end;
 
@@ -1637,6 +3467,39 @@ begin
     if DirExists(AppFolder) and (CompareText(ExtractFileDir(UninstallerPath), AppFolder) = 0) then
       if not DelTree(AppFolder, True, True, False) then
         Log('Failed to remove legacy installation leftovers: ' + AppFolder);
+    Result := True;
+    Exit;
+  end;
+end;
+
+function ContainsReparsePoint(const FolderPath: String): Boolean;
+var
+  FindRecord: TFindRec;
+  EntryPath: String;
+begin
+  Result := False;
+  if not FindFirst(AddBackslash(FolderPath) + '*', FindRecord) then
+    Exit;
+  try
+    repeat
+      if (FindRecord.Name <> '.') and (FindRecord.Name <> '..') then
+      begin
+        EntryPath := AddBackslash(FolderPath) + FindRecord.Name;
+        if (FindRecord.Attributes and FILE_ATTRIBUTE_REPARSE_POINT_VALUE) <> 0 then
+        begin
+          Result := True;
+          Exit;
+        end;
+        if ((FindRecord.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0)
+          and ContainsReparsePoint(EntryPath) then
+        begin
+          Result := True;
+          Exit;
+        end;
+      end;
+    until not FindNext(FindRecord);
+  finally
+    FindClose(FindRecord);
   end;
 end;
 
@@ -1645,30 +3508,49 @@ var
   OldMaximum, OldPosition: Integer;
   OldStatus, OldFileName: String;
   OldStyle: TNewProgressBarStyle;
+  FreeSpace, TotalSpace, RequiredCopySize: Int64;
+  SpaceProbe: String;
   SourceMapsValid, SourceDataValid, SourceMp3Valid: Boolean;
   TargetMapsValid, TargetDataValid, TargetMp3Valid: Boolean;
 begin
-  if WizardIsTaskSelected('h3copyfiles') then
+  if CopyHeroes3DataSelected and IsCopyFilesNeeded then
   begin
+    // The application payload has already been installed. Checking again here
+    // therefore accounts correctly for application and imported data sharing
+    // the same volume.
+    RequiredCopySize := Heroes3CopySize();
+    SpaceProbe := ExistingDirectoryForWriteTest(SelectedDataDir);
+    if (RequiredCopySize > 0) and ((SpaceProbe = '')
+      or not GetSpaceOnDisk64(SpaceProbe, FreeSpace, TotalSpace)
+      or (FreeSpace < RequiredCopySize)) then
+      RaiseException(ExpandConstant('{cm:RequirementInsufficientSpace}'));
+
     OldStyle := WizardForm.ProgressGauge.Style;
     OldStatus := WizardForm.StatusLabel.Caption;
     WizardForm.ProgressGauge.Style := npbstMarquee;
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:ScanningFiles}');
     WizardForm.Update;
     try
-      SourceMapsValid := IsFolderValid(Heroes3MapsFolder);
-      SourceDataValid := IsFolderValid(Heroes3DataFolder);
-      SourceMp3Valid := IsFolderValid(Heroes3Mp3Folder);
-      TargetMapsValid := IsFolderValid(VCMIMapsFolder);
-      TargetDataValid := IsFolderValid(VCMIDataFolder);
-      TargetMp3Valid := IsFolderValid(VCMIMp3Folder);
+      SourceMapsValid := IsMapsFolderValid(Heroes3MapsFolder);
+      SourceDataValid := IsDataFolderValid(Heroes3DataFolder);
+      SourceMp3Valid := IsMp3FolderValid(Heroes3Mp3Folder);
+      TargetMapsValid := IsMapsFolderValid(VCMIMapsFolder);
+      TargetDataValid := IsDataFolderValid(VCMIDataFolder);
+      TargetMp3Valid := IsMp3FolderValid(VCMIMp3Folder);
+      if (SourceMapsValid and not TargetMapsValid and DirExists(VCMIMapsFolder)
+          and ContainsReparsePoint(VCMIMapsFolder))
+        or (SourceDataValid and not TargetDataValid and DirExists(VCMIDataFolder)
+          and ContainsReparsePoint(VCMIDataFolder))
+        or (SourceMp3Valid and not TargetMp3Valid and DirExists(VCMIMp3Folder)
+          and ContainsReparsePoint(VCMIMp3Folder)) then
+        RaiseException(ExpandConstant('{cm:Heroes3ImportReparsePoint}'));
       CustomProgressTotal := 0;
       if SourceMapsValid and not TargetMapsValid then
-        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3MapsFolder);
+        CustomProgressTotal := CustomProgressTotal + Heroes3MapsFiles;
       if SourceDataValid and not TargetDataValid then
-        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3DataFolder);
+        CustomProgressTotal := CustomProgressTotal + Heroes3DataFiles;
       if SourceMp3Valid and not TargetMp3Valid then
-        CustomProgressTotal := CustomProgressTotal + CountRegularFiles(Heroes3Mp3Folder);
+        CustomProgressTotal := CustomProgressTotal + Heroes3Mp3Files;
     finally
       WizardForm.ProgressGauge.Style := OldStyle;
       WizardForm.StatusLabel.Caption := OldStatus;
@@ -1676,143 +3558,188 @@ begin
 
     if CustomProgressTotal > 0 then
     begin
-            OldMaximum := WizardForm.ProgressGauge.Max;
-            OldPosition := WizardForm.ProgressGauge.Position;
-            OldStatus := WizardForm.StatusLabel.Caption;
-            OldFileName := WizardForm.FilenameLabel.Caption;
-            CustomProgressPosition := 0;
-            WizardForm.ProgressGauge.Max := CustomProgressTotal;
-            WizardForm.ProgressGauge.Position := 0;
-            WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CopyingHeroes3Data}');
-            try
-              if (SourceMapsValid and not TargetMapsValid)
-                and not CopyFolderContents(Heroes3MapsFolder, VCMIMapsFolder, True) then
-                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Maps']));
+      OldMaximum := WizardForm.ProgressGauge.Max;
+      OldPosition := WizardForm.ProgressGauge.Position;
+      OldStatus := WizardForm.StatusLabel.Caption;
+      OldFileName := WizardForm.FilenameLabel.Caption;
+      CustomProgressPosition := 0;
+      WizardForm.ProgressGauge.Max := CustomProgressTotal;
+      WizardForm.ProgressGauge.Position := 0;
+      WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CopyingHeroes3Data}');
+      try
+        if (SourceMapsValid and not TargetMapsValid)
+          and not CopyFolderContents(Heroes3MapsFolder, VCMIMapsFolder, True) then
+          RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Maps']));
 
-              if (SourceDataValid and not TargetDataValid)
-                and not CopyFolderContents(Heroes3DataFolder, VCMIDataFolder, True) then
-                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Data']));
+        if (SourceDataValid and not TargetDataValid)
+          and not CopyFolderContents(Heroes3DataFolder, VCMIDataFolder, True) then
+          RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Data']));
 
-              if (SourceMp3Valid and not TargetMp3Valid)
-                and not CopyFolderContents(Heroes3Mp3Folder, VCMIMp3Folder, True) then
-                RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Mp3']));
-            finally
-              WizardForm.ProgressGauge.Max := OldMaximum;
-              WizardForm.ProgressGauge.Position := OldPosition;
-              WizardForm.StatusLabel.Caption := OldStatus;
-              WizardForm.FilenameLabel.Caption := OldFileName;
-            end;
+        if (SourceMp3Valid and not TargetMp3Valid)
+          and not CopyFolderContents(Heroes3Mp3Folder, VCMIMp3Folder, True) then
+          RaiseException(Format(ExpandConstant('{cm:CopyH3FilesError}'), ['Mp3']));
+      finally
+        WizardForm.ProgressGauge.Max := OldMaximum;
+        WizardForm.ProgressGauge.Position := OldPosition;
+        WizardForm.StatusLabel.Caption := OldStatus;
+        WizardForm.FilenameLabel.Caption := OldFileName;
+      end;
     end;
+  end;
+end;
+
+procedure SkipJsonTrivia(const Content: String; var Position: Integer);
+begin
+  while Position <= Length(Content) do
+  begin
+    if Content[Position] <= ' ' then
+      Position := Position + 1
+    else if (Content[Position] = '/') and (Position < Length(Content))
+      and (Content[Position + 1] = '/') then
+    begin
+      Position := Position + 2;
+      while (Position <= Length(Content)) and (Content[Position] <> #10) do
+        Position := Position + 1;
+    end
+    else
+      Exit;
+  end;
+end;
+
+function FindTopLevelJsonStringValue(const Content, Key: String;
+  var ValueStart, ValueEnd: Integer): Boolean;
+var
+  Position, Depth, ArrayDepth, KeyStart: Integer;
+  Quote: Char;
+  Escaped: Boolean;
+  ParsedKey: String;
+begin
+  Result := False;
+  Position := 1;
+  Depth := 0;
+  ArrayDepth := 0;
+  while Position <= Length(Content) do
+  begin
+    if (Content[Position] = '/') and (Position < Length(Content))
+      and (Content[Position + 1] = '/') then
+    begin
+      Position := Position + 2;
+      while (Position <= Length(Content)) and (Content[Position] <> #10) do
+        Position := Position + 1;
+      Continue;
+    end;
+
+    if (Content[Position] = '"') or (Content[Position] = '''') then
+    begin
+      Quote := Content[Position];
+      KeyStart := Position + 1;
+      Position := KeyStart;
+      Escaped := False;
+      while Position <= Length(Content) do
+      begin
+        if Escaped then
+          Escaped := False
+        else if Content[Position] = '\' then
+          Escaped := True
+        else if Content[Position] = Quote then
+          Break;
+        Position := Position + 1;
+      end;
+      if Position > Length(Content) then
+        Exit;
+
+      if (Depth = 1) and (ArrayDepth = 0) then
+      begin
+        ParsedKey := Copy(Content, KeyStart, Position - KeyStart);
+        if CompareText(ParsedKey, Key) = 0 then
+        begin
+          Position := Position + 1;
+          SkipJsonTrivia(Content, Position);
+          if (Position <= Length(Content)) and (Content[Position] = ':') then
+          begin
+            Position := Position + 1;
+            SkipJsonTrivia(Content, Position);
+            if (Position <= Length(Content)) and (Content[Position] = '"') then
+            begin
+              ValueStart := Position + 1;
+              Position := ValueStart;
+              Escaped := False;
+              while Position <= Length(Content) do
+              begin
+                if Escaped then
+                  Escaped := False
+                else if Content[Position] = '\' then
+                  Escaped := True
+                else if Content[Position] = '"' then
+                begin
+                  ValueEnd := Position;
+                  Result := True;
+                  Exit;
+                end;
+                Position := Position + 1;
+              end;
+              Exit;
+            end;
+          end;
+        end;
+      end;
+    end
+    else if Content[Position] = '{' then
+      Depth := Depth + 1
+    else if Content[Position] = '}' then
+      Depth := Depth - 1
+    else if Content[Position] = '[' then
+      ArrayDepth := ArrayDepth + 1
+    else if Content[Position] = ']' then
+      ArrayDepth := ArrayDepth - 1;
+    Position := Position + 1;
   end;
 end;
 
 procedure WriteDirectoriesConfig();
 var
-  ConfigDir, ConfigFile, JSONContent, EscapedPath: String;
-  KeyPosition, ColonPosition, Position, ValueStart, ClosingBrace: Integer;
-  Escaped, ValueUpdated: Boolean;
+  ConfigDir, ConfigFile, JSONContent: String;
 begin
+  if IsUpgrade then
+    Exit;
+
   ConfigDir := ExpandConstant('{app}\config');
   ConfigFile := ConfigDir + '\dirs.json';
-  EscapedPath := EscapeJsonString(SelectedDataDir);
-  ValueUpdated := False;
+  JSONContent :=
+    '{' + #13#10 +
+    '  "userDataPath" : "' + EscapeJsonString(SelectedDataDir) + '"' + #13#10 +
+    '}' + #13#10;
 
-  if LoadUTF8TextFile(ConfigFile, JSONContent) then
-  begin
-    KeyPosition := Pos('"userDataPath"', JSONContent);
-    if KeyPosition > 0 then
-    begin
-      ColonPosition := Pos(':', Copy(JSONContent, KeyPosition + 14, Length(JSONContent)));
-      if ColonPosition > 0 then
-      begin
-        Position := KeyPosition + 13 + ColonPosition;
-        while (Position <= Length(JSONContent)) and (JSONContent[Position] <> '"') do
-          Position := Position + 1;
-        ValueStart := Position + 1;
-        Position := ValueStart;
-        Escaped := False;
-        while Position <= Length(JSONContent) do
-        begin
-          if Escaped then
-            Escaped := False
-          else if JSONContent[Position] = '\' then
-            Escaped := True
-          else if JSONContent[Position] = '"' then
-          begin
-            Delete(JSONContent, ValueStart, Position - ValueStart);
-            Insert(EscapedPath, JSONContent, ValueStart);
-            ValueUpdated := True;
-            Break;
-          end;
-          Position := Position + 1;
-        end;
-      end;
-    end;
-    if not ValueUpdated then
-    begin
-      ClosingBrace := Length(JSONContent);
-      while (ClosingBrace > 0) and (JSONContent[ClosingBrace] <> '}') do
-        ClosingBrace := ClosingBrace - 1;
-      if ClosingBrace > 0 then
-      begin
-        if Pos(':', JSONContent) > 0 then
-          Insert(',' + #13#10 + '  "userDataPath" : "' + EscapedPath + '"' + #13#10, JSONContent, ClosingBrace)
-        else
-          Insert(#13#10 + '  "userDataPath" : "' + EscapedPath + '"' + #13#10, JSONContent, ClosingBrace);
-      end;
-    end;
-  end
-  else
-    JSONContent :=
-      '{' + #13#10 +
-      '  "userDataPath" : "' + EscapedPath + '"' + #13#10 +
-      '}' + #13#10;
+  if (not DirExists(ConfigDir)) and not ForceDirectories(ConfigDir) then
+    RaiseException(Format(ExpandConstant('{cm:DirectoryConfigWriteError}'), [ConfigFile]));
+  if not SaveUTF8TextFile(ConfigFile, JSONContent) then
+    RaiseException(Format(ExpandConstant('{cm:DirectoryConfigWriteError}'), [ConfigFile]));
 
-  if not DirExists(ConfigDir) then
-    ForceDirectories(ConfigDir);
-  if SaveUTF8TextFileAtomically(ConfigFile, JSONContent) then
+  if not IsPortableInstall then
   begin
-    if not IsPortableInstall then
-    begin
-      if IsWin64 then
-        RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
-      RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
-    end;
-  end
-  else
-  begin
-    Log('Failed to write user data path to ' + ConfigFile);
-    if IsPortableInstall
-      or (CompareText(GlobalUserName, GetUserNameString) <> 0) then
-      RaiseException(Format(ExpandConstant('{cm:DirectoryConfigWriteError}'), [ConfigFile]))
-    else if IsWin64 then
-    begin
-      if not RegWriteStringValue(HKCU64, 'Software\VCMI', 'userDataPath', SelectedDataDir) then
-        RegWriteStringValue(HKCU32, 'Software\VCMI', 'userDataPath', SelectedDataDir);
-    end
-    else
-      RegWriteStringValue(HKCU32, 'Software\VCMI', 'userDataPath', SelectedDataDir);
+    if IsWin64 then
+      RegDeleteValue(HKCU64, 'Software\VCMI', 'userDataPath');
+    RegDeleteValue(HKCU32, 'Software\VCMI', 'userDataPath');
   end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
+  begin
     WriteDirectoriesConfig();
+    PerformHeroes3FileCopy();
+  end;
 end;
 
-procedure RunPreInstallTasks();
+function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
-  // A wildcard [Files] entry invokes BeforeInstall once per matched file.
-  if PreInstallTasksDone then
-    Exit;
-  PreInstallTasksDone := True;
-
-  // Portable setup must not alter any registered installation.
-  if not IsPortableInstall then
-    RemoveLegacyInstaller();
-  // Copy H3 files when needed
-  PerformHeroes3FileCopy();
+  Result := '';
+  { PrepareToInstall runs before Inno starts copying the new payload. Running a
+    legacy uninstaller from a [Files] callback is too late: it may delete files
+    or metadata already created by this installation. }
+  if not IsPortableInstall and not RemoveLegacyInstaller() then
+    Result := ExpandConstant('{cm:LegacyUninstallRequired}');
 end;
 
 // Uninstall
@@ -2026,6 +3953,7 @@ begin
     MaintainFileAssociation('.vmap', 'VCMI.vmap', ExpandConstant('{cm:VMAPDescription}'));
     MaintainFileAssociation('.vcmp', 'VCMI.vcmp', ExpandConstant('{cm:VCMPDescription}'));
     MaintainFileAssociation('.h3m', 'VCMI.h3m', ExpandConstant('{cm:H3MDescription}'));
+    MaintainFileAssociation('.h3c', 'VCMI.h3c', ExpandConstant('{cm:H3CDescription}'));
   end;
 end;
 
@@ -2123,6 +4051,8 @@ begin
       Height := Page.Height - ListTop - ScaleY(12);
       Anchors := [akLeft, akTop, akRight, akBottom];
       BorderStyle := bsNone;
+      ShowHint := True;
+      Hint := ExpandConstant('{cm:UninstallCheckboxesTooltip}');
     end;
 
     for Index := 0 to UninstallPathCount - 1 do

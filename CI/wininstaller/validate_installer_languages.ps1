@@ -63,7 +63,7 @@ foreach($languageFile in Get-ChildItem (Join-Path $languageDirectory '*.isl'))
     $messages = Read-MessageKeys $languageFile.FullName
     foreach($section in @('Messages', 'CustomMessages'))
     {
-        $difference = Compare-Object $reference[$section] $messages[$section]
+        $difference = Compare-Object @($reference[$section]) @($messages[$section])
         if($difference)
         {
             throw "$($languageFile.Name) has a different [$section] key set:`n$($difference | Out-String)"

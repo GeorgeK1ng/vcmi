@@ -39,6 +39,13 @@ private:
 		SELECT_ANOTHER
 	};
 
+	enum class ETargetConfirmation
+	{
+		ACCEPT,
+		SELECT_ANOTHER,
+		CANCEL
+	};
+
 	EChangeResult changeDirectoryOnce(EUserDirectory directory, const QString & title) const;
 
 	QString normalizedPath(const QString & path) const;
@@ -48,7 +55,7 @@ private:
 	bool isDirectoryWritable(const QString & path) const;
 	bool containsActiveUserDirectory(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & path) const;
 	bool validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const;
-	bool confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const;
+	ETargetConfirmation confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const;
 
 	bool removePath(const QString & path) const;
 	qint64 directorySize(const QString & path) const;

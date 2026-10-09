@@ -143,7 +143,7 @@ bool datamanager::reportPermissionError(const QString & message) const
 	return false;
 }
 
-bool datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const
+datamanager::ETargetConfirmation datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QString & target) const
 {
 #if defined(VCMI_WINDOWS)
 	const std::wstring nativeTarget = QDir::toNativeSeparators(target).toStdWString();
@@ -151,7 +151,7 @@ bool datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QStr
 	const bool isCloudStorage = isOneDrive || VCMI::Windows::isCloudStoragePath(nativeTarget.c_str());
 	logGlobal->debug("User directory synchronization check for '%s': OneDrive=%d, cloud=%d", target.toStdString(), isOneDrive, isCloudStorage);
 	if(!isCloudStorage)
-		return true;
+		return ETargetConfirmation::ACCEPT;
 
 	const QString synchronizationDescription = isOneDrive
 		? tr("The selected directory is synchronized by OneDrive:")
@@ -161,27 +161,35 @@ bool datamanager::confirmSynchronizedTarget(EUserDirectory directory, const QStr
 	{
 		QMessageBox information(QMessageBox::Information, tr("Synchronized save directory selected"), tr("%1\n%2\n\nSynchronizing saved games can be useful across multiple devices. Avoid running VCMI on multiple devices at the same time because synchronization conflicts may duplicate or overwrite saves.").arg(synchronizationDescription, QDir::toNativeSeparators(target)), QMessageBox::NoButton, parent);
 		auto * continueButton = information.addButton(tr("Use synchronized directory"), QMessageBox::AcceptRole);
-		information.addButton(tr("Select another location"), QMessageBox::RejectRole);
+		auto * selectButton = information.addButton(tr("Select another location"), QMessageBox::ActionRole);
+		information.addButton(QMessageBox::Cancel);
 		information.setDefaultButton(continueButton);
 		information.exec();
-		return information.clickedButton() == continueButton;
+		if(information.clickedButton() == continueButton)
+			return ETargetConfirmation::ACCEPT;
+		if(information.clickedButton() == selectButton)
+			return ETargetConfirmation::SELECT_ANOTHER;
+		return ETargetConfirmation::CANCEL;
 	}
 
 	QMessageBox warning(QMessageBox::Warning, tr("Synchronized directory selected"), tr("%1\n%2\n\nThe synchronization service may lock files while processing them. This can prevent VCMI from writing data and may cause mod installation, game startup, saving, or other operations to fail.").arg(synchronizationDescription, QDir::toNativeSeparators(target)), QMessageBox::NoButton, parent);
 	auto * continueButton = warning.addButton(tr("Continue anyway"), QMessageBox::DestructiveRole);
-	auto * selectButton = warning.addButton(tr("Select another location"), QMessageBox::RejectRole);
+	auto * selectButton = warning.addButton(tr("Select another location"), QMessageBox::ActionRole);
+	warning.addButton(QMessageBox::Cancel);
 	warning.setDefaultButton(selectButton);
 	warning.exec();
 
+	if(warning.clickedButton() == selectButton)
+		return ETargetConfirmation::SELECT_ANOTHER;
 	if(warning.clickedButton() != continueButton)
-		return false;
+		return ETargetConfirmation::CANCEL;
 
 	const auto confirmation = QMessageBox::warning(parent, tr("Confirm synchronized directory"), tr("Using a synchronized directory can make VCMI unreliable and may cause data-writing operations to fail.\n\nDo you really want to use this directory?"), QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
-	return confirmation == QMessageBox::Yes;
+	return confirmation == QMessageBox::Yes ? ETargetConfirmation::ACCEPT : ETargetConfirmation::CANCEL;
 #else
 	Q_UNUSED(directory);
 	Q_UNUSED(target);
-	return true;
+	return ETargetConfirmation::ACCEPT;
 #endif
 }
 
@@ -237,9 +245,10 @@ bool datamanager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedD
 		return false;
 	}
 
-	if(!confirmSynchronizedTarget(changedDirectory, target))
+	const auto synchronizationConfirmation = confirmSynchronizedTarget(changedDirectory, target);
+	if(synchronizationConfirmation != ETargetConfirmation::ACCEPT)
 	{
-		selectAnother = true;
+		selectAnother = synchronizationConfirmation == ETargetConfirmation::SELECT_ANOTHER;
 		return false;
 	}
 
