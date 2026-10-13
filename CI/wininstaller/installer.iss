@@ -254,6 +254,7 @@ var
   GlobalUserName: String;
   GlobalUserDocsFolder: String;
   GlobalUserAppdataFolder: String;
+  GlobalUserLocalAppdataFolder: String;
   DefaultDataDir: String;
 
   VCMIMapsFolder, VCMIDataFolder, VCMIMp3Folder: String;
@@ -518,7 +519,7 @@ begin
     if not IsCloudTargetAllowed() then
       RaiseException(ExpandConstant('{cm:CloudTargetSilentError}'));
   end
-  else if MsgBox(WarningMessage, mbConfirmation, MB_YESNO) <> IDYES then
+  else if MsgBox(WarningMessage, mbError, MB_YESNO) <> IDYES then
   begin
     Result := False;
     Exit;
@@ -759,8 +760,9 @@ begin
     // Default to Program Files for admins
     Result := GetCommonProgramFilesDir + '\{#VCMIFolder}'
   else
-    // Default to User AppData for non-admin users
-    Result := GlobalUserAppdataFolder + '\{#VCMIFolder}';
+    // Keep per-user application binaries local to this computer. Roaming
+    // AppData is intended for small settings that can follow a user profile.
+    Result := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}';
 end;
 
 function GetUserFolderPath(Constant: String): String;
@@ -1042,6 +1044,11 @@ end;
 function GetUserAppdataFolder: String;
 begin
   Result := GetUserFolderPath('{userappdata}');
+end;
+
+function GetUserLocalAppdataFolder: String;
+begin
+  Result := GetUserFolderPath('{localappdata}');
 end;
 
 function GetUserDesktopFolder(Default: String): String;
@@ -1770,6 +1777,7 @@ begin
   GlobalUserName := GetCurrentSessionUserName();
   GlobalUserDocsFolder := GetUserDocsFolder();
   GlobalUserAppdataFolder := GetUserAppdataFolder();
+  GlobalUserLocalAppdataFolder := GetUserLocalAppdataFolder();
   HasCommandLineInstallDir := ExpandConstant('{param:DIR|}') <> '';
   CommandLineUserDataDir := Trim(ExpandCommandLinePath(
     ExpandConstant('{param:USERDATADIR|}')));
@@ -1826,6 +1834,7 @@ begin
   GlobalUserName := GetCurrentSessionUserName();
   GlobalUserDocsFolder := GetUserDocsFolder();
   GlobalUserAppdataFolder := GetUserAppdataFolder();
+  GlobalUserLocalAppdataFolder := GetUserLocalAppdataFolder();
   DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
   SelectedDataDir := ReadUninstallUserDataPath(ExpandConstant('{app}'), DefaultDataDir);
   { Classify every candidate against the provider's current sync-root
@@ -1974,7 +1983,7 @@ begin
       InstallDirEdit.Text := ExpandConstant('{src}\VCMI');
   end
   else if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1) then
-    InstallDirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}'
+    InstallDirEdit.Text := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}'
   else
     InstallDirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
   if CommandLineUserDataDir <> '' then
@@ -2585,13 +2594,6 @@ begin
   end;
 end;
 
-procedure AppendReadyTask(var Tasks: String; const TaskCaption: String);
-begin
-  if Tasks <> '' then
-    Tasks := Tasks + #13#10;
-  Tasks := Tasks + #$2022 + '  ' + TaskCaption;
-end;
-
 procedure AppendReadyGroupItem(var Items: String; const ItemCaption: String);
 begin
   if Items <> '' then
@@ -2611,7 +2613,7 @@ end;
 procedure UpdateReadySummary();
 var
   Tasks, DataPath, DesktopItems, StartMenuItems, AssociationItems,
-    ConfigurationItems: String;
+    ConfigurationItems, ImportItems: String;
   TaskLineCount: Integer;
 begin
   { Inno refreshes and may show its native ReadyMemo again whenever this page
@@ -2641,6 +2643,7 @@ begin
   StartMenuItems := '';
   AssociationItems := '';
   ConfigurationItems := '';
+  ImportItems := '';
   if WizardIsTaskSelected('desktop_launcher') then
     AppendReadyGroupItem(DesktopItems, ExpandConstant('{cm:ShortcutLauncher}'));
   if WizardIsTaskSelected('desktop_mapeditor') then
@@ -2663,12 +2666,13 @@ begin
     AppendReadyGroupItem(AssociationItems, ExpandConstant('{cm:H3CDescription}'));
   if WizardIsTaskSelected('firewallrules') then
     AppendReadyGroupItem(ConfigurationItems, ExpandConstant('{cm:AddFirewallRules}'));
+  if CopyHeroes3DataSelected and IsCopyFilesNeeded then
+    AppendReadyGroupItem(ImportItems, ExpandConstant('{cm:CopyH3Files}'));
   AppendReadyGroup(Tasks, ExpandConstant('{cm:DesktopShortcuts}'), DesktopItems);
   AppendReadyGroup(Tasks, ExpandConstant('{cm:StartMenuShortcuts}'), StartMenuItems);
   AppendReadyGroup(Tasks, ExpandConstant('{cm:FileAssociations}'), AssociationItems);
   AppendReadyGroup(Tasks, ExpandConstant('{cm:VCMISettings}'), ConfigurationItems);
-  if CopyHeroes3DataSelected and IsCopyFilesNeeded then
-    AppendReadyTask(Tasks, ExpandConstant('{cm:CopyH3Files}'));
+  AppendReadyGroup(Tasks, ExpandConstant('{cm:ReadyHeroes3Import}'), ImportItems);
 
   ReadyTasksMemo.Text := Tasks;
   { EM_GETLINECOUNT includes lines created by word wrapping. Only reserve space
@@ -3254,7 +3258,7 @@ begin
     end
     else
     begin
-      WizardForm.DirEdit.Text := GlobalUserAppdataFolder + '\{#VCMIFolder}';
+      WizardForm.DirEdit.Text := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}';
       InstallDirEdit.Text := WizardForm.DirEdit.Text;
     end;
 

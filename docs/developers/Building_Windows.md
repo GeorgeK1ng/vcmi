@@ -445,7 +445,8 @@ Interactive fresh Setup offers three modes:
 
 - **All users** installs into Program Files, enables system integration, and
   requires administrative privileges.
-- **Current user** installs below the interactive user's Local AppData and does
+- **Current user** installs below the interactive user's
+  `Local AppData\Programs` directory and does
   not require elevation. Paths are resolved for the user who started Setup even
   when over-the-shoulder elevation uses another administrator account.
 - **Portable** keeps the application and `VCMI-data` below one application

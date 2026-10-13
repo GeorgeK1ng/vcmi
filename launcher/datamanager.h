@@ -52,6 +52,7 @@ private:
 	Qt::CaseSensitivity pathCaseSensitivity() const;
 	bool isSameOrChildPath(const QString & path, const QString & parentPath) const;
 	bool pathsOverlap(const QString & first, const QString & second) const;
+	bool isProtectedTargetRoot(const QString & path) const;
 	bool isDirectoryWritable(const QString & path) const;
 	bool containsActiveUserDirectory(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & path) const;
 	bool validateTarget(const IVCMIDirs & dirs, EUserDirectory changedDirectory, const QString & source, const QString & target, bool & selectAnother) const;
