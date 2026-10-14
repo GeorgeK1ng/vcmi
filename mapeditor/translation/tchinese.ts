@@ -409,7 +409,7 @@
     <name>EditorMainWindow</name>
     <message>
         <location filename="../mainwindow.ui" line="14"/>
-        <location filename="../mainwindow.cpp" line="530"/>
+        <location filename="../mainwindow.cpp" line="538"/>
         <source>VCMI Map Editor</source>
         <translation>VCMI地圖編輯器</translation>
     </message>
@@ -715,7 +715,7 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1257"/>
-        <location filename="../mainwindow.cpp" line="1592"/>
+        <location filename="../mainwindow.cpp" line="1601"/>
         <source>Select map layer type</source>
         <translation>選擇地圖層級類型</translation>
     </message>
@@ -727,16 +727,16 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1268"/>
-        <location filename="../mainwindow.cpp" line="1532"/>
-        <location filename="../mainwindow.cpp" line="1547"/>
+        <location filename="../mainwindow.cpp" line="1541"/>
+        <location filename="../mainwindow.cpp" line="1556"/>
         <source>Add level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1276"/>
-        <location filename="../mainwindow.cpp" line="1441"/>
-        <location filename="../mainwindow.cpp" line="1445"/>
-        <location filename="../mainwindow.cpp" line="1503"/>
+        <location filename="../mainwindow.cpp" line="1450"/>
+        <location filename="../mainwindow.cpp" line="1454"/>
+        <location filename="../mainwindow.cpp" line="1512"/>
         <source>Update appearance</source>
         <translation>更新外觀</translation>
     </message>
@@ -947,308 +947,308 @@ For the best experience, we recommend using the map editor on a tablet (or with 
 為獲得最佳體驗，建議在平板裝置上使用地圖編輯器（或搭配滑鼠/手寫筆）。</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="496"/>
+        <location filename="../mainwindow.cpp" line="504"/>
         <source>Confirmation</source>
         <translation>確認</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="496"/>
+        <location filename="../mainwindow.cpp" line="504"/>
         <source>Unsaved changes will be lost, are you sure?</source>
         <translation>未儲存的變更將會遺失，您確定要這麼做嗎？</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1520"/>
-        <location filename="../mainwindow.cpp" line="1609"/>
+        <location filename="../mainwindow.cpp" line="1529"/>
+        <location filename="../mainwindow.cpp" line="1618"/>
         <source>Level %1: %2</source>
         <translation>層級%1：%2</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="589"/>
+        <location filename="../mainwindow.cpp" line="597"/>
         <source>Mods are required</source>
         <translation>需要模組</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="597"/>
-        <location filename="../mainwindow.cpp" line="603"/>
+        <location filename="../mainwindow.cpp" line="605"/>
+        <location filename="../mainwindow.cpp" line="611"/>
         <source>Failed to open map</source>
         <translation>開啟地圖失敗</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="634"/>
+        <location filename="../mainwindow.cpp" line="642"/>
         <source>Open map</source>
         <translation>開啟地圖</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="636"/>
+        <location filename="../mainwindow.cpp" line="644"/>
         <source>All supported maps (*.vmap *.h3m);;VCMI maps(*.vmap);;HoMM3 maps(*.h3m)</source>
         <translation>所有支援的地圖類型(*.vmap *.h3m);;VCMI地圖(*.vmap);;英雄無敵3地圖(*.h3m)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="691"/>
+        <location filename="../mainwindow.cpp" line="699"/>
         <source>Recently Opened Files</source>
         <translation>最近開啟檔案</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="744"/>
+        <location filename="../mainwindow.cpp" line="752"/>
         <source>Map validation</source>
         <translation>地圖驗證</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="746"/>
+        <location filename="../mainwindow.cpp" line="754"/>
         <source>Map has critical problems and most probably will not be playable. Open Validator from the Map menu to see issues found</source>
         <translation>地圖有致命問題，很可能無法遊玩。開啟地圖選單的驗證功能以定位問題</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="748"/>
+        <location filename="../mainwindow.cpp" line="756"/>
         <source>Map has some errors. Open Validator from the Map menu to see issues found</source>
         <translation>地圖有一些錯誤，開啟地圖選單的驗證功能以定位問題</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="775"/>
+        <location filename="../mainwindow.cpp" line="783"/>
         <source>Failed to save map</source>
         <translation>儲存地圖失敗</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="788"/>
+        <location filename="../mainwindow.cpp" line="796"/>
         <source>Save map</source>
         <translation>儲存地圖</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="789"/>
+        <location filename="../mainwindow.cpp" line="797"/>
         <source>VCMI maps (*.vmap)</source>
         <translation>VCMI地圖(*.vmap)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1004"/>
+        <location filename="../mainwindow.cpp" line="1013"/>
         <source>Type</source>
         <translation>類型</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1017"/>
+        <location filename="../mainwindow.cpp" line="1026"/>
         <source>Towns</source>
         <translation>城鎮</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1018"/>
+        <location filename="../mainwindow.cpp" line="1027"/>
         <source>Objects</source>
         <translation>物體</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1019"/>
+        <location filename="../mainwindow.cpp" line="1028"/>
         <source>Heroes</source>
         <translation>英雄</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1020"/>
+        <location filename="../mainwindow.cpp" line="1029"/>
         <source>Artifacts</source>
         <translation>寶物</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1021"/>
+        <location filename="../mainwindow.cpp" line="1030"/>
         <source>Resources</source>
         <translation>資源</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1022"/>
+        <location filename="../mainwindow.cpp" line="1031"/>
         <source>Banks</source>
         <translation>寶屋</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1023"/>
+        <location filename="../mainwindow.cpp" line="1032"/>
         <source>Dwellings</source>
         <translation>巢穴</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1024"/>
+        <location filename="../mainwindow.cpp" line="1033"/>
         <source>Grounds</source>
         <translation>地面</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1025"/>
+        <location filename="../mainwindow.cpp" line="1034"/>
         <source>Teleports</source>
         <translation>傳送門</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1026"/>
+        <location filename="../mainwindow.cpp" line="1035"/>
         <source>Mines</source>
         <translation>礦井</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1027"/>
+        <location filename="../mainwindow.cpp" line="1036"/>
         <source>Triggers</source>
         <translation>觸發器</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1028"/>
+        <location filename="../mainwindow.cpp" line="1037"/>
         <source>Monsters</source>
         <translation>怪物</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1029"/>
+        <location filename="../mainwindow.cpp" line="1038"/>
         <source>Quests</source>
         <translation>任務</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1030"/>
+        <location filename="../mainwindow.cpp" line="1039"/>
         <source>Wog Objects</source>
         <translation>Wog物體</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1031"/>
+        <location filename="../mainwindow.cpp" line="1040"/>
         <source>Obstacles</source>
         <translation>障礙物</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1032"/>
+        <location filename="../mainwindow.cpp" line="1041"/>
         <source>Other</source>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1169"/>
+        <location filename="../mainwindow.cpp" line="1178"/>
         <source>Mods loading problem</source>
         <translation>模組載入遇到問題</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1169"/>
+        <location filename="../mainwindow.cpp" line="1178"/>
         <source>Critical error during Mods loading. Disable invalid mods and restart.</source>
         <translation>載入模組時遇到致命錯誤，請停用無效模組後重新啟動。</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1175"/>
+        <location filename="../mainwindow.cpp" line="1184"/>
         <source>Undo clicked</source>
         <translation>已復原</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1186"/>
+        <location filename="../mainwindow.cpp" line="1195"/>
         <source>Redo clicked</source>
         <translation>已重做</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1197"/>
+        <location filename="../mainwindow.cpp" line="1206"/>
         <source>Passability clicked</source>
         <translation>開關通行性</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1210"/>
+        <location filename="../mainwindow.cpp" line="1219"/>
         <source>Grid clicked</source>
         <translation>觸發網格</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1291"/>
+        <location filename="../mainwindow.cpp" line="1300"/>
         <source>Fill clicked</source>
         <translation>觸發填充</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1441"/>
+        <location filename="../mainwindow.cpp" line="1450"/>
         <source>No objects selected</source>
         <translation>未選擇任何物體</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1445"/>
+        <location filename="../mainwindow.cpp" line="1454"/>
         <source>This operation is irreversible. Do you want to continue?</source>
         <translation>此操作無法被復原，您確定要繼續嗎？</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1503"/>
+        <location filename="../mainwindow.cpp" line="1512"/>
         <source>Errors occurred. %1 objects were not updated</source>
         <translation>發生錯誤！%1 個物體未完成更新</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1532"/>
+        <location filename="../mainwindow.cpp" line="1541"/>
         <source>This map already has the maximum number of levels supported by the editor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1548"/>
+        <location filename="../mainwindow.cpp" line="1557"/>
         <source>Select the type of the new level.
 
 Warning: levels cannot be removed once added.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1593"/>
+        <location filename="../mainwindow.cpp" line="1602"/>
         <source>Type:</source>
         <translation>類型：</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1654"/>
+        <location filename="../mainwindow.cpp" line="1663"/>
         <source>Image format</source>
         <translation>圖像格式</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1655"/>
+        <location filename="../mainwindow.cpp" line="1664"/>
         <source>Select image format:</source>
         <translation>選擇圖像格式：</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1669"/>
-        <location filename="../mainwindow.cpp" line="1673"/>
+        <location filename="../mainwindow.cpp" line="1678"/>
+        <location filename="../mainwindow.cpp" line="1682"/>
         <source>Save to image</source>
         <translation>儲存為圖片</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1715"/>
+        <location filename="../mainwindow.cpp" line="1724"/>
         <source>Failed to save image</source>
         <translation>未能儲存圖像</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1715"/>
+        <location filename="../mainwindow.cpp" line="1724"/>
         <source>Cannot save image to %1.</source>
         <translation>無法儲存圖像至%1。</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1735"/>
+        <location filename="../mainwindow.cpp" line="1744"/>
         <source>Select maps to convert</source>
         <translation>選擇待轉換的地圖</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1737"/>
+        <location filename="../mainwindow.cpp" line="1746"/>
         <source>HoMM3 maps(*.h3m)</source>
         <translation>英雄無敵3地圖檔案(*.h3m)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1743"/>
-        <location filename="../mainwindow.cpp" line="1750"/>
+        <location filename="../mainwindow.cpp" line="1752"/>
+        <location filename="../mainwindow.cpp" line="1759"/>
         <source>Choose directory to save converted maps</source>
         <translation>選擇儲存轉換地圖的目錄</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1745"/>
+        <location filename="../mainwindow.cpp" line="1754"/>
         <source>Directory</source>
         <translation>目錄</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1766"/>
+        <location filename="../mainwindow.cpp" line="1775"/>
         <source>Operation completed</source>
         <translation>操作完成</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1766"/>
+        <location filename="../mainwindow.cpp" line="1775"/>
         <source>Successfully converted %1 maps</source>
         <translation>成功轉換 %1 張地圖</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1770"/>
+        <location filename="../mainwindow.cpp" line="1779"/>
         <source>Failed to convert the map. Abort operation</source>
         <translation>轉換地圖失敗，操作終止</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1778"/>
+        <location filename="../mainwindow.cpp" line="1787"/>
         <source>Select campaign to convert</source>
         <translation>選擇待轉換的戰役</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1779"/>
+        <location filename="../mainwindow.cpp" line="1788"/>
         <source>HoMM3 campaigns (*.h3c)</source>
         <translation>英雄無敵3戰役檔案(*.h3c)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1785"/>
+        <location filename="../mainwindow.cpp" line="1794"/>
         <source>Select destination file</source>
         <translation>選擇目標檔案</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="1786"/>
+        <location filename="../mainwindow.cpp" line="1795"/>
         <source>VCMI campaigns (*.vcmp)</source>
         <translation>VCMI戰役檔案(*.vcmp)</translation>
     </message>
@@ -1523,27 +1523,27 @@ Warning: levels cannot be removed once added.</source>
         <translation>參數</translation>
     </message>
     <message>
-        <location filename="../mapsettings/loseconditions.cpp" line="38"/>
+        <location filename="../mapsettings/loseconditions.cpp" line="39"/>
         <source>No special loss</source>
         <translation>沒有特殊失敗條件</translation>
     </message>
     <message>
-        <location filename="../mapsettings/loseconditions.cpp" line="39"/>
+        <location filename="../mapsettings/loseconditions.cpp" line="40"/>
         <source>Lose castle</source>
         <translation>失去城鎮</translation>
     </message>
     <message>
-        <location filename="../mapsettings/loseconditions.cpp" line="40"/>
+        <location filename="../mapsettings/loseconditions.cpp" line="41"/>
         <source>Lose hero</source>
         <translation>失去英雄</translation>
     </message>
     <message>
-        <location filename="../mapsettings/loseconditions.cpp" line="41"/>
+        <location filename="../mapsettings/loseconditions.cpp" line="42"/>
         <source>Time expired</source>
         <translation>超過時限</translation>
     </message>
     <message>
-        <location filename="../mapsettings/loseconditions.cpp" line="42"/>
+        <location filename="../mapsettings/loseconditions.cpp" line="43"/>
         <source>Days without town</source>
         <translation>無城鎮超過特定天數</translation>
     </message>
@@ -1551,17 +1551,17 @@ Warning: levels cannot be removed once added.</source>
 <context>
     <name>MapController</name>
     <message>
-        <location filename="../mapcontroller.cpp" line="640"/>
+        <location filename="../mapcontroller.cpp" line="650"/>
         <source>Hero %1 cannot be created as NEUTRAL.</source>
         <translation>英雄 %1 無法在中立陣營被建立。</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="654"/>
+        <location filename="../mapcontroller.cpp" line="664"/>
         <source>Missing Required Mod</source>
         <translation>缺少必需的模組</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="654"/>
+        <location filename="../mapcontroller.cpp" line="664"/>
         <source>
 
 Do you want to do that now ?</source>
@@ -1570,7 +1570,7 @@ Do you want to do that now ?</source>
 您現在要這麼做嗎？</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="664"/>
+        <location filename="../mapcontroller.cpp" line="674"/>
         <source>This object&apos;s mod is mandatory for map to remain valid.</source>
         <translation>該物件依賴的模組是地圖保持有效所必需的。</translation>
     </message>
@@ -2097,7 +2097,7 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="253"/>
-        <location filename="../inspector/inspector.cpp" line="451"/>
+        <location filename="../inspector/inspector.cpp" line="462"/>
         <source>Army</source>
         <translation>部隊</translation>
     </message>
@@ -2109,20 +2109,20 @@ Do you want to do that now ?</source>
         <location filename="../inspector/inspector.cpp" line="295"/>
         <location filename="../inspector/inspector.cpp" line="326"/>
         <location filename="../inspector/inspector.cpp" line="417"/>
-        <location filename="../inspector/inspector.cpp" line="547"/>
-        <location filename="../inspector/inspector.cpp" line="594"/>
+        <location filename="../inspector/inspector.cpp" line="551"/>
+        <location filename="../inspector/inspector.cpp" line="598"/>
         <source>Owner</source>
         <translation>所有者</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="265"/>
-        <location filename="../inspector/inspector.cpp" line="719"/>
+        <location filename="../inspector/inspector.cpp" line="723"/>
         <source>Same as town</source>
         <translation>與城鎮相同</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="281"/>
-        <location filename="../inspector/inspector.cpp" line="734"/>
+        <location filename="../inspector/inspector.cpp" line="738"/>
         <source>Removable units</source>
         <translation>可移除單位</translation>
     </message>
@@ -2138,27 +2138,27 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="306"/>
-        <location filename="../inspector/inspector.cpp" line="742"/>
+        <location filename="../inspector/inspector.cpp" line="746"/>
         <source>Placeholder type</source>
         <translation>佔位符類型</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="309"/>
-        <location filename="../inspector/inspector.cpp" line="760"/>
+        <location filename="../inspector/inspector.cpp" line="764"/>
         <source>Power rank</source>
         <translation>實力排行</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="317"/>
         <location filename="../inspector/inspector.cpp" line="357"/>
-        <location filename="../inspector/inspector.cpp" line="763"/>
-        <location filename="../inspector/inspector.cpp" line="787"/>
+        <location filename="../inspector/inspector.cpp" line="767"/>
+        <location filename="../inspector/inspector.cpp" line="791"/>
         <source>Hero type</source>
         <translation>英雄類型</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="327"/>
-        <location filename="../inspector/inspector.cpp" line="784"/>
+        <location filename="../inspector/inspector.cpp" line="788"/>
         <source>Experience</source>
         <translation>經驗值</translation>
     </message>
@@ -2181,19 +2181,19 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="333"/>
-        <location filename="../inspector/inspector.cpp" line="773"/>
+        <location filename="../inspector/inspector.cpp" line="777"/>
         <source>Gender</source>
         <translation>性別</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="335"/>
-        <location filename="../inspector/inspector.cpp" line="776"/>
+        <location filename="../inspector/inspector.cpp" line="780"/>
         <source>Name</source>
         <translation>名字</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="336"/>
-        <location filename="../inspector/inspector.cpp" line="780"/>
+        <location filename="../inspector/inspector.cpp" line="784"/>
         <source>Biography</source>
         <translation>傳記</translation>
     </message>
@@ -2234,13 +2234,13 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="366"/>
-        <location filename="../inspector/inspector.cpp" line="799"/>
+        <location filename="../inspector/inspector.cpp" line="803"/>
         <source>Patrol radius</source>
         <translation>巡邏半徑</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="374"/>
-        <location filename="../inspector/inspector.cpp" line="676"/>
+        <location filename="../inspector/inspector.cpp" line="680"/>
         <source>Town name</source>
         <translation>城鎮名</translation>
     </message>
@@ -2256,7 +2256,7 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="381"/>
-        <location filename="../inspector/inspector.cpp" line="680"/>
+        <location filename="../inspector/inspector.cpp" line="684"/>
         <source>Same as player</source>
         <translation>與玩家相同</translation>
     </message>
@@ -2265,17 +2265,17 @@ Do you want to do that now ?</source>
         <location filename="../inspector/inspector.cpp" line="428"/>
         <location filename="../inspector/inspector.cpp" line="435"/>
         <location filename="../inspector/inspector.cpp" line="442"/>
-        <location filename="../inspector/inspector.cpp" line="492"/>
-        <location filename="../inspector/inspector.cpp" line="636"/>
-        <location filename="../inspector/inspector.cpp" line="688"/>
-        <location filename="../inspector/inspector.cpp" line="705"/>
-        <location filename="../inspector/inspector.cpp" line="824"/>
+        <location filename="../inspector/inspector.cpp" line="503"/>
+        <location filename="../inspector/inspector.cpp" line="640"/>
+        <location filename="../inspector/inspector.cpp" line="692"/>
+        <location filename="../inspector/inspector.cpp" line="709"/>
+        <location filename="../inspector/inspector.cpp" line="828"/>
         <source>Message</source>
         <translation>訊息</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="408"/>
-        <location filename="../inspector/inspector.cpp" line="709"/>
+        <location filename="../inspector/inspector.cpp" line="713"/>
         <source>Spell</source>
         <translation>魔法</translation>
     </message>
@@ -2286,133 +2286,163 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="420"/>
-        <location filename="../inspector/inspector.cpp" line="697"/>
+        <location filename="../inspector/inspector.cpp" line="701"/>
         <source>Productivity</source>
         <translation>產量</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="427"/>
-        <location filename="../inspector/inspector.cpp" line="452"/>
-        <location filename="../inspector/inspector.cpp" line="816"/>
-        <location filename="../inspector/inspector.cpp" line="833"/>
+        <location filename="../inspector/inspector.cpp" line="463"/>
+        <location filename="../inspector/inspector.cpp" line="820"/>
+        <location filename="../inspector/inspector.cpp" line="837"/>
         <source>Amount</source>
         <translation>數量</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="446"/>
-        <location filename="../inspector/inspector.cpp" line="827"/>
+        <location filename="../inspector/inspector.cpp" line="831"/>
         <source>Character</source>
         <translation>角色</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="448"/>
-        <location filename="../inspector/inspector.cpp" line="829"/>
+        <location filename="../inspector/inspector.cpp" line="833"/>
         <source>Never flees</source>
         <translation>從不撤退</translation>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="449"/>
-        <location filename="../inspector/inspector.cpp" line="831"/>
+        <location filename="../inspector/inspector.cpp" line="835"/>
         <source>Not growing</source>
         <translation>不增長</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="450"/>
+        <location filename="../inspector/inspector.cpp" line="452"/>
+        <location filename="../inspector/inspector.cpp" line="839"/>
+        <source>Aggression</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="453"/>
+        <location filename="../inspector/inspector.cpp" line="841"/>
+        <source>Join only for money</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="454"/>
+        <location filename="../inspector/inspector.cpp" line="843"/>
+        <source>Joining percentage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="458"/>
+        <location filename="../inspector/inspector.cpp" line="845"/>
+        <source>Upgraded stack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="460"/>
+        <location filename="../inspector/inspector.cpp" line="847"/>
+        <source>Stacks count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="461"/>
         <source>Artifact reward</source>
         <translation>寶物獎勵</translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="1038"/>
+        <source>Never</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/inspector.cpp" line="1039"/>
+        <source>Always</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Abilities</source>
         <translation type="vanished">能力</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="485"/>
-        <location filename="../inspector/inspector.cpp" line="526"/>
+        <location filename="../inspector/inspector.cpp" line="496"/>
+        <location filename="../inspector/inspector.cpp" line="530"/>
         <source>Reward</source>
         <translation>獎勵</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="499"/>
-        <location filename="../inspector/inspector.cpp" line="645"/>
+        <location filename="../inspector/inspector.cpp" line="510"/>
+        <location filename="../inspector/inspector.cpp" line="649"/>
         <source>Remove after</source>
         <translation>訪問後移除</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="500"/>
-        <location filename="../inspector/inspector.cpp" line="648"/>
+        <location filename="../inspector/inspector.cpp" line="511"/>
+        <location filename="../inspector/inspector.cpp" line="652"/>
         <source>Human trigger</source>
         <translation>人類觸發</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="501"/>
-        <location filename="../inspector/inspector.cpp" line="651"/>
+        <location filename="../inspector/inspector.cpp" line="512"/>
+        <location filename="../inspector/inspector.cpp" line="655"/>
         <source>Cpu trigger</source>
         <translation>電腦觸發</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="503"/>
-        <location filename="../inspector/inspector.cpp" line="654"/>
+        <location filename="../inspector/inspector.cpp" line="514"/>
+        <location filename="../inspector/inspector.cpp" line="658"/>
         <source>Available for</source>
         <translation>適用於</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="510"/>
-        <location filename="../inspector/inspector.cpp" line="841"/>
         <source>First visit text</source>
-        <translation>首次訪問文字</translation>
+        <translation type="vanished">首次訪問文字</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="511"/>
-        <location filename="../inspector/inspector.cpp" line="844"/>
         <source>Next visit text</source>
-        <translation>後續訪問文字</translation>
+        <translation type="vanished">後續訪問文字</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="512"/>
-        <location filename="../inspector/inspector.cpp" line="847"/>
         <source>Completed text</source>
-        <translation>完成後文字</translation>
+        <translation type="vanished">完成後文字</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="513"/>
-        <location filename="../inspector/inspector.cpp" line="527"/>
-        <location filename="../inspector/inspector.cpp" line="850"/>
+        <location filename="../inspector/inspector.cpp" line="531"/>
         <source>Repeat quest</source>
         <translation>重複任務</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="514"/>
-        <location filename="../inspector/inspector.cpp" line="852"/>
         <source>Time limit</source>
-        <translation>時間限制</translation>
+        <translation type="vanished">時間限制</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="518"/>
+        <location filename="../inspector/inspector.cpp" line="522"/>
         <source>Quest</source>
         <translation>任務</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="536"/>
+        <location filename="../inspector/inspector.cpp" line="540"/>
         <source>Identifier</source>
         <translation>識別碼</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="537"/>
+        <location filename="../inspector/inspector.cpp" line="541"/>
         <source>ID</source>
         <translation>識別碼</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="538"/>
+        <location filename="../inspector/inspector.cpp" line="542"/>
         <source>SubID</source>
         <translation>子識別碼</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="539"/>
+        <location filename="../inspector/inspector.cpp" line="543"/>
         <source>InstanceName</source>
         <translation>實例名稱</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="544"/>
+        <location filename="../inspector/inspector.cpp" line="548"/>
         <source>IsStatic</source>
         <translation>是否靜態</translation>
     </message>
@@ -2423,17 +2453,17 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/inspector.cpp" line="935"/>
-        <location filename="../inspector/inspector.cpp" line="1063"/>
+        <location filename="../inspector/inspector.cpp" line="1089"/>
         <source>neutral</source>
         <translation>中立</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="978"/>
+        <location filename="../inspector/inspector.cpp" line="996"/>
         <source>Select town</source>
         <translation>選擇城鎮</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="989"/>
+        <location filename="../inspector/inspector.cpp" line="1007"/>
         <location filename="../inspector/playerselectionwidget.cpp" line="104"/>
         <source>Available for:
 </source>
@@ -2441,27 +2471,27 @@ Do you want to do that now ?</source>
 </translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="1009"/>
+        <location filename="../inspector/inspector.cpp" line="1027"/>
         <source>Compliant</source>
         <translation>屈服的</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="1010"/>
+        <location filename="../inspector/inspector.cpp" line="1028"/>
         <source>Friendly</source>
         <translation>友善的</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="1011"/>
+        <location filename="../inspector/inspector.cpp" line="1029"/>
         <source>Aggressive</source>
         <translation>好鬥的</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="1012"/>
+        <location filename="../inspector/inspector.cpp" line="1030"/>
         <source>Hostile</source>
         <translation>有敵意的</translation>
     </message>
     <message>
-        <location filename="../inspector/inspector.cpp" line="1013"/>
+        <location filename="../inspector/inspector.cpp" line="1031"/>
         <source>Savage</source>
         <translation>野蠻的</translation>
     </message>
@@ -2474,97 +2504,83 @@ Do you want to do that now ?</source>
     </message>
     <message>
         <location filename="../inspector/abilitieswidget.cpp" line="218"/>
+        <location filename="../inspector/inspector.cpp" line="1033"/>
         <source>Custom</source>
         <translation>自訂</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="452"/>
+        <location filename="../inspector/questwidget.cpp" line="675"/>
         <source>Quest:</source>
         <translation>任務：</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="453"/>
         <source>Day of Week: %1</source>
-        <translation>每週天數：%1</translation>
+        <translation type="vanished">每週天數：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="454"/>
         <source>Days Passed: %1</source>
-        <translation>起始天數：%1</translation>
+        <translation type="vanished">起始天數：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="455"/>
         <location filename="../inspector/rewardswidget.cpp" line="795"/>
         <source>Hero Level: %1</source>
         <translation>英雄等級：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="456"/>
         <location filename="../inspector/rewardswidget.cpp" line="796"/>
         <source>Hero Experience: %1</source>
         <translation>英雄經驗值：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="457"/>
         <source>Mana Points: %1</source>
-        <translation>魔法值：%1</translation>
+        <translation type="vanished">魔法值：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="458"/>
         <location filename="../inspector/rewardswidget.cpp" line="798"/>
         <source>Mana Percentage: %1</source>
         <translation>魔法值百分比：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="459"/>
         <location filename="../inspector/rewardswidget.cpp" line="801"/>
         <source>Primary Skills: %1/%2/%3/%4</source>
         <translation>主屬性：%1/%2/%3/%4</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="470"/>
         <location filename="../inspector/rewardswidget.cpp" line="811"/>
         <source>Resources: %1</source>
         <translation>資源：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="477"/>
         <location filename="../inspector/rewardswidget.cpp" line="817"/>
         <source>Artifacts: %1</source>
         <translation>寶物：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="484"/>
         <location filename="../inspector/rewardswidget.cpp" line="823"/>
         <source>Spells: %1</source>
         <translation>魔法：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="491"/>
         <location filename="../inspector/rewardswidget.cpp" line="829"/>
         <source>Secondary Skills: %1</source>
         <translation>輔助技能：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="498"/>
         <location filename="../inspector/rewardswidget.cpp" line="835"/>
         <source>Creatures: %1</source>
         <translation>生物：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="505"/>
         <source>Heroes: %1</source>
-        <translation>英雄：%1</translation>
+        <translation type="vanished">英雄：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="512"/>
         <source>Hero Classes: %1</source>
-        <translation>英雄職業：%1</translation>
+        <translation type="vanished">英雄職業：%1</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.cpp" line="521"/>
         <source>Players: %1</source>
-        <translation>玩家：%1</translation>
+        <translation type="vanished">玩家：%1</translation>
     </message>
     <message>
         <location filename="../inspector/rewardswidget.cpp" line="791"/>
@@ -2627,22 +2643,22 @@ Do you want to do that now ?</source>
         <translation>可選：</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="445"/>
+        <location filename="../mapcontroller.cpp" line="446"/>
         <source>Can&apos;t place object</source>
         <translation>無法放置物體</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="622"/>
+        <location filename="../mapcontroller.cpp" line="632"/>
         <source>There can only be one grail object on the map.</source>
         <translation>只能放置一個神器在地圖上。</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="677"/>
+        <location filename="../mapcontroller.cpp" line="687"/>
         <source> (submod of %1)</source>
         <translation> （子模組%1）</translation>
     </message>
     <message>
-        <location filename="../mapcontroller.cpp" line="679"/>
+        <location filename="../mapcontroller.cpp" line="689"/>
         <source>The mod &apos;%1&apos;%2, is required by an object on the map.
 Add it to the map&apos;s required mods in Map-&gt;General settings.</source>
         <comment>should be consistent with Map-&gt;General menu entry translation</comment>
@@ -2682,14 +2698,30 @@ Add it to the map&apos;s required mods in Map-&gt;General settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mapsettings/abstractsettings.cpp" line="116"/>
+        <location filename="../mapsettings/abstractsettings.cpp" line="77"/>
         <source>Hero placeholder (power rank %1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../inspector/inspector.cpp" line="1037"/>
         <location filename="../inspector/shrinewidget.cpp" line="188"/>
         <source>Random</source>
         <translation type="unfinished">隨機</translation>
+    </message>
+    <message>
+        <location filename="../mapsettings/loseconditions.cpp" line="293"/>
+        <source>Day</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mapsettings/loseconditions.cpp" line="298"/>
+        <source>Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mapsettings/loseconditions.cpp" line="303"/>
+        <source>Month</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2700,117 +2732,148 @@ Add it to the map&apos;s required mods in Map-&gt;General settings.</source>
         <translation>任務目標</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="28"/>
+        <location filename="../inspector/questwidget.ui" line="37"/>
+        <source>Delete</source>
+        <translation type="unfinished">刪除</translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="66"/>
+        <source>First Visit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="94"/>
+        <source>Next Visit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="116"/>
+        <source>Completed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="148"/>
+        <source>Repeatable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="158"/>
+        <source>Set Deadline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.ui" line="179"/>
         <source>Day of week</source>
         <translation>每週天數</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="45"/>
+        <location filename="../inspector/questwidget.ui" line="196"/>
         <source>Days passed</source>
         <translation>起始天數</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="79"/>
+        <location filename="../inspector/questwidget.ui" line="230"/>
         <source>Hero level</source>
         <translation>英雄等級</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="96"/>
+        <location filename="../inspector/questwidget.ui" line="247"/>
         <source>Hero experience</source>
         <translation>英雄經驗</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="136"/>
+        <location filename="../inspector/questwidget.ui" line="287"/>
         <source>Spell points</source>
         <translation>魔法值</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="156"/>
+        <location filename="../inspector/questwidget.ui" line="307"/>
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="183"/>
+        <location filename="../inspector/questwidget.ui" line="334"/>
         <source>Kill hero/monster</source>
         <translation>擊敗英雄/怪物</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="197"/>
+        <location filename="../inspector/questwidget.ui" line="348"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="206"/>
+        <location filename="../inspector/questwidget.ui" line="357"/>
         <source>Primary skills</source>
         <translation>主屬性</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="221"/>
+        <location filename="../inspector/questwidget.ui" line="372"/>
         <source>Attack</source>
         <translation>攻擊力</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="231"/>
+        <location filename="../inspector/questwidget.ui" line="382"/>
         <source>Defence</source>
         <translation>防禦力</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="241"/>
+        <location filename="../inspector/questwidget.ui" line="392"/>
         <source>Spell power</source>
         <translation>力量</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="251"/>
+        <location filename="../inspector/questwidget.ui" line="402"/>
         <source>Knowledge</source>
         <translation>知識</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="289"/>
+        <location filename="../inspector/questwidget.ui" line="440"/>
         <source>Resources</source>
         <translation>資源</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="338"/>
+        <location filename="../inspector/questwidget.ui" line="489"/>
         <source>Artifacts</source>
         <translation>寶物</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="370"/>
+        <location filename="../inspector/questwidget.ui" line="521"/>
         <source>Spells</source>
         <translation>魔法</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="402"/>
+        <location filename="../inspector/questwidget.ui" line="553"/>
         <source>Skills</source>
         <translation>技能</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="442"/>
+        <location filename="../inspector/questwidget.ui" line="593"/>
         <source>Creatures</source>
         <translation>生物</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="491"/>
+        <location filename="../inspector/questwidget.ui" line="30"/>
+        <location filename="../inspector/questwidget.ui" line="642"/>
         <source>Add</source>
         <translation>新增</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="498"/>
+        <location filename="../inspector/questwidget.ui" line="649"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="538"/>
+        <location filename="../inspector/questwidget.ui" line="689"/>
         <source>Heroes</source>
         <translation>英雄</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="570"/>
+        <location filename="../inspector/questwidget.ui" line="721"/>
         <source>Hero classes</source>
         <translation>英雄職業</translation>
     </message>
     <message>
-        <location filename="../inspector/questwidget.ui" line="602"/>
+        <location filename="../inspector/questwidget.ui" line="753"/>
         <source>Players</source>
         <translation>玩家</translation>
     </message>
@@ -2823,6 +2886,11 @@ Add it to the map&apos;s required mods in Map-&gt;General settings.</source>
         <location filename="../inspector/questwidget.cpp" line="45"/>
         <source>Day %1</source>
         <translation>第 %1 日</translation>
+    </message>
+    <message>
+        <location filename="../inspector/questwidget.cpp" line="303"/>
+        <source>%1 quest on position %2</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

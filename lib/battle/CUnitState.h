@@ -209,6 +209,8 @@ public:
 	int32_t getFirstHPleft() const override;
 	int64_t getAvailableHealth() const override;
 	int64_t getTotalHealth() const override;
+	uint64_t estimateCombatValue() const override;
+	uint64_t estimateCombatValue(const CombatValueContext & context) const override;
 	uint32_t getMaxHealth() const override;
 
 	BattleHex getPosition() const override;
@@ -266,6 +268,7 @@ private:
 	BonusCachePerTurn immobilizedPerTurn;
 	BonusCachePerTurn stackSpeedPerTurn;
 	UnitBonusValuesProxy bonusCache;
+	BonusDerivedValueCache combatValue;
 
 	void reset();
 };
@@ -273,7 +276,7 @@ private:
 class CUnitStateDetached final : public CUnitState
 {
 public:
-	explicit CUnitStateDetached(const IUnitInfo * unit_, const IBonusBearer * bonus_);
+	explicit CUnitStateDetached(const IUnitInfo * unit_, const IBonusBearer * bonus_, bool snapshotBonuses = false);
 
 	CUnitStateDetached & operator= (const CUnitState & other);
 
@@ -296,6 +299,8 @@ public:
 private:
 	const IUnitInfo * unit;
 	const IBonusBearer * bonus;
+	TConstBonusListPtr bonusSnapshot;
+	int32_t bonusTreeVersion;
 };
 
 }

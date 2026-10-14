@@ -115,7 +115,7 @@ int CUniversityWindow::getUniversityItemPosX(size_t itemIndex, size_t skillCount
 
 CRecruitmentWindow::CCreatureCard::CCreatureCard(CRecruitmentWindow * window, const CCreature * crea, int totalAmount)
 	: CIntObject(LCLICK | SHOW_POPUP),
-	parent(window),
+	owner(window),
 	selected(false),
 	creature(crea),
 	amount(totalAmount)
@@ -135,7 +135,7 @@ void CRecruitmentWindow::CCreatureCard::select(bool on)
 
 void CRecruitmentWindow::CCreatureCard::clickPressed(const Point & cursorPosition)
 {
-	parent->select(this->shared_from_this());
+	owner->select(this->shared_from_this());
 }
 
 void CRecruitmentWindow::CCreatureCard::showPopupWindow(const Point & cursorPosition)
@@ -479,24 +479,26 @@ void CSplitWindow::sliderMoved(int to)
 	setAmount(rightMin + to, false);
 }
 
-CLevelWindow::CLevelWindow(const CGHeroInstance * hero, PrimarySkill pskill, std::vector<SecondarySkill> & skills, std::function<void(ui32)> callback)
+CLevelWindow::CLevelWindow(CPlayerInterface * askedInterface, const CGHeroInstance * hero, PrimarySkill pskill, const std::vector<SecondarySkill> & skills, bool moreLevels, QuestionID question)
 	: CWindowObject(PLAYER_COLORED, ImagePath::builtin("LVLUPBKG")),
 	skillViewOffset(0)
 {
 	OBJECT_CONSTRUCTION;
 
-	initLevelUpData(hero, skills, callback);
+	initLevelUpData(askedInterface, hero, skills, moreLevels, question);
 	createLevelUpControls(pskill);
 	setRedrawParent(true);
 	redraw();
 }
 
-void CLevelWindow::initLevelUpData(const CGHeroInstance * heroInstance, const std::vector<SecondarySkill> & availableSkills, const std::function<void(ui32)> & callback)
+void CLevelWindow::initLevelUpData(CPlayerInterface * askedInterface, const CGHeroInstance * heroInstance, const std::vector<SecondarySkill> & availableSkills, bool moreLevels, QuestionID question)
 {
-	GAME->interface()->showingDialog->setBusy();
+	owner = askedInterface;
+	moreLevelsFollow = moreLevels;
+	owner->showingDialog->setBusy();
 	selectionSubmitted = false;
 	hero = heroInstance;
-	cb = callback;
+	questionID = question;
 	skills = availableSkills;
 	skillViewOffset = 0;
 	sortedSkills = availableSkills;
@@ -566,11 +568,11 @@ void CLevelWindow::createLevelUpControls(PrimarySkill pskill)
 	skillValue = std::make_shared<CLabel>(192, 253, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, skillValueText.toString(&GAME->translator()));
 }
 
-void CLevelWindow::updateLevelUpData(const CGHeroInstance * heroInstance, PrimarySkill pskill, const std::vector<SecondarySkill> & availableSkills, const std::function<void(ui32)> & callback)
+void CLevelWindow::updateLevelUpData(CPlayerInterface * askedInterface, const CGHeroInstance * heroInstance, PrimarySkill pskill, const std::vector<SecondarySkill> & availableSkills, bool moreLevels, QuestionID question)
 {
 	OBJECT_CONSTRUCTION;
 
-	initLevelUpData(heroInstance, availableSkills, callback);
+	initLevelUpData(askedInterface, heroInstance, availableSkills, moreLevels, question);
 	createLevelUpControls(pskill);
 	setRedrawParent(true);
 	redraw();
@@ -617,11 +619,6 @@ void CLevelWindow::createSkillBox()
 	redraw();
 }
 
-void CLevelWindow::setCloseOnSelection(bool value)
-{
-	closeOnSelection = value;
-}
-
 void CLevelWindow::submitSelection()
 {
 	if(!selectionSubmitted)
@@ -635,7 +632,7 @@ void CLevelWindow::submitSelection()
 		// For a single available option, auto-pick it
 		if(skills.empty())
 		{
-			cb(0);
+			answer(0);
 		}
 		else
 		{
@@ -650,15 +647,23 @@ void CLevelWindow::submitSelection()
 			const auto & chosen = sortedSkills[(idx + skillViewOffset) % skills.size()];
 			auto it = std::find(skills.begin(), skills.end(), chosen);
 
-			cb(std::distance(skills.begin(), it));
+			answer(std::distance(skills.begin(), it));
 		}
 
 		selectionSubmitted = true;
-		GAME->interface()->showingDialog->setFree();
+		owner->showingDialog->setFree();
 	}
 
-	if(closeOnSelection)
+	// Before a further level the window stays open, so that the chain reuses it instead of flickering.
+	// The last one closes at once: a window pushed above it, e.g. a conquered garrison, would block it
+	if(!questionID.hasValue() || !moreLevelsFollow)
 		close();
+}
+
+void CLevelWindow::answer(ui32 selection)
+{
+	if(questionID.hasValue())
+		owner->cb->selectionMade(selection, questionID);
 }
 
 void CLevelWindow::close()
@@ -1034,19 +1039,19 @@ void CTransformerWindow::CItem::move()
 void CTransformerWindow::CItem::clickPressed(const Point & cursorPosition)
 {
 	move();
-	parent->redraw();
+	owner->redraw();
 }
 
 void CTransformerWindow::CItem::update()
 {
-	icon->setFrame(parent->army->getCreature(SlotID(id))->getId() + 2);
+	icon->setFrame(owner->army->getCreature(SlotID(id))->getId() + 2);
 }
 
 CTransformerWindow::CItem::CItem(CTransformerWindow * parent_, int size_, int id_)
 	: CIntObject(LCLICK),
 	id(id_),
 	size(size_),
-	parent(parent_)
+	owner(parent_)
 {
 	OBJECT_CONSTRUCTION;
 	left = true;
@@ -1055,7 +1060,7 @@ CTransformerWindow::CItem::CItem(CTransformerWindow * parent_, int size_, int id
 
 	pos.x += 45  + (id%3)*83 + id/6*83;
 	pos.y += 109 + (id/3)*98;
-	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("TWCRPORT"), parent->army->getCreature(SlotID(id))->getId() + 2);
+	icon = std::make_shared<CAnimImage>(AnimationPath::builtin("TWCRPORT"), owner->army->getCreature(SlotID(id))->getId() + 2);
 	count = std::make_shared<CLabel>(28, 76,FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, std::to_string(size));
 }
 
@@ -1137,7 +1142,7 @@ void CTransformerWindow::close()
 CUniversityWindow::CItem::CItem(CUniversityWindow * _parent, int _ID, int X, int Y)
 	: CIntObject(LCLICK | SHOW_POPUP | HOVER),
 	ID(_ID),
-	parent(_parent)
+	owner(_parent)
 {
 	OBJECT_CONSTRUCTION;
 	pos.x += X;
@@ -1146,14 +1151,14 @@ CUniversityWindow::CItem::CItem(CUniversityWindow * _parent, int _ID, int X, int
 	skill = std::make_shared<CSecSkillPlace>(Point(), CSecSkillPlace::ImageSize::MEDIUM, _ID, 1);
 	skill->setClickPressedCallback([this](const CComponentHolder&, const Point& cursorPosition)
 		{
-			bool skillKnown = parent->hero->getSecSkillLevel(ID);
-			bool canLearn = parent->hero->canLearnSkill(ID);
+			bool skillKnown = owner->hero->getSecSkillLevel(ID);
+			bool canLearn = owner->hero->canLearnSkill(ID);
 
 			if(!skillKnown && canLearn)
 			{
 				int goldAmount = GAME->interface()->cb->getResourceAmount(EGameResID::GOLD);
 				int goldNeeded = GAME->interface()->cb->getSettings().getInteger(EGameSettings::MARKETS_UNIVERSITY_GOLD_COST);
-				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(parent, ID, goldAmount >= goldNeeded);
+				ENGINE->windows().createAndPushWindow<CUnivConfirmWindow>(owner, ID, goldAmount >= goldNeeded);
 			}
 		});
 	update();
@@ -1161,8 +1166,8 @@ CUniversityWindow::CItem::CItem(CUniversityWindow * _parent, int _ID, int X, int
 
 void CUniversityWindow::CItem::update()
 {
-	bool skillKnown = parent->hero->getSecSkillLevel(ID);
-	bool canLearn =	parent->hero->canLearnSkill(ID);
+	bool skillKnown = owner->hero->getSecSkillLevel(ID);
+	bool canLearn =	owner->hero->canLearnSkill(ID);
 
 	ImagePath image;
 
@@ -1761,17 +1766,17 @@ CThievesGuildWindow::CThievesGuildWindow(const CGObjectInstance * _owner):
 
 CObjectListWindow::CItem::CItem(CObjectListWindow * _parent, size_t _id, std::string _text)
 	: CIntObject(LCLICK | DOUBLECLICK | RCLICK_POPUP),
-	parent(_parent),
+	owner(_parent),
 	index(_id)
 {
 	OBJECT_CONSTRUCTION;
 
-	auto it = std::find(parent->items.begin(), parent->items.end(), parent->itemsVisible[index]);
-	int imgIndex = (it != parent->items.end()) ? std::distance(parent->items.begin(), it) : -1;
+	auto it = std::find(owner->items.begin(), owner->items.end(), owner->itemsVisible[index]);
+	int imgIndex = (it != owner->items.end()) ? std::distance(owner->items.begin(), it) : -1;
 
 	std::shared_ptr<IImage> image;
-	if(parent->imageLoader && imgIndex >= 0)
-		image = parent->imageLoader(imgIndex);
+	if(owner->imageLoader && imgIndex >= 0)
+		image = owner->imageLoader(imgIndex);
 
 	if(image)
 		icon = std::make_shared<CPicture>(image, Point(1,1));
@@ -1782,7 +1787,7 @@ CObjectListWindow::CItem::CItem(CObjectListWindow * _parent, size_t _id, std::st
 	setRedrawParent(true);
 
 	text = std::make_shared<CLabel>(pos.w/2, pos.h/2, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, _text, 256);
-	select(index == parent->selected);
+	select(index == owner->selected);
 }
 
 void CObjectListWindow::CItem::select(bool on)
@@ -1797,31 +1802,31 @@ void CObjectListWindow::CItem::select(bool on)
 
 void CObjectListWindow::CItem::clickPressed(const Point & cursorPosition)
 {
-	parent->changeSelection(index);
+	owner->changeSelection(index);
 
-	if(parent->onClicked)
-		parent->onClicked(index);
+	if(owner->onClicked)
+		owner->onClicked(index);
 }
 
 void CObjectListWindow::CItem::clickDouble(const Point & cursorPosition)
 {
-	if (parent->selected != index)
+	if (owner->selected != index)
 	{
 		clickPressed(cursorPosition);
 		return;
 	}
 
-	parent->elementSelected();
+	owner->elementSelected();
 }
 
 void CObjectListWindow::CItem::showPopupWindow(const Point & cursorPosition)
 {
-	int where = parent->itemsVisible[index].first;
-	if(parent->onPopup)
-		parent->onPopup(where);
+	int where = owner->itemsVisible[index].first;
+	if(owner->onPopup)
+		owner->onPopup(where);
 }
 
-CObjectListWindow::CObjectListWindow(const std::vector<int> & _items, std::shared_ptr<CIntObject> titleWidget_, std::string _title, std::string _descr, std::function<void(int)> Callback, size_t initialSelection, std::vector<std::shared_ptr<IImage>> images, bool searchBoxEnabled, bool blue)
+CObjectListWindow::CObjectListWindow(const std::vector<int> & _items, std::shared_ptr<CIntObject> titleWidget_, const std::string & _title, const std::string & _descr, const std::function<void(int)> & Callback, size_t initialSelection, std::vector<std::shared_ptr<IImage>> images, bool searchBoxEnabled, bool blue)
 	: CWindowObject(PLAYER_COLORED, ImagePath::builtin(blue ? "TownPortalBackgroundBlue" : "TPGATE")),
 	onSelect(Callback),
 	selected(initialSelection),
@@ -1845,14 +1850,14 @@ CObjectListWindow::CObjectListWindow(const std::vector<int> & _items, std::share
 	list->scrollTo(std::min(static_cast<int>(initialSelection + 4), static_cast<int>(items.size() - 1))); // 4 is for centering (list have 9 elements)
 }
 
-CObjectListWindow::CObjectListWindow(const std::vector<std::string> & _items, std::shared_ptr<CIntObject> titleWidget_, std::string _title, std::string _descr, std::function<void(int)> Callback, size_t initialSelection, std::vector<std::shared_ptr<IImage>> images, bool searchBoxEnabled, bool blue)
+CObjectListWindow::CObjectListWindow(const std::vector<std::string> & _items, std::shared_ptr<CIntObject> titleWidget_, const std::string & _title, const std::string & _descr, const std::function<void(int)> & Callback, size_t initialSelection, std::vector<std::shared_ptr<IImage>> images, bool searchBoxEnabled, bool blue)
 	: CObjectListWindow(_items, titleWidget_, _title, _descr, Callback, initialSelection,
 		[images](size_t index) { return index < images.size() ? images[index] : std::shared_ptr<IImage>(); },
 		searchBoxEnabled, blue)
 {
 }
 
-CObjectListWindow::CObjectListWindow(const std::vector<std::string> & _items, std::shared_ptr<CIntObject> titleWidget_, std::string _title, std::string _descr, std::function<void(int)> Callback, size_t initialSelection, const std::function<std::shared_ptr<IImage>(size_t)> & _imageLoader, bool searchBoxEnabled, bool blue)
+CObjectListWindow::CObjectListWindow(const std::vector<std::string> & _items, std::shared_ptr<CIntObject> titleWidget_, const std::string & _title, const std::string & _descr, const std::function<void(int)> & Callback, size_t initialSelection, const std::function<std::shared_ptr<IImage>(size_t)> & _imageLoader, bool searchBoxEnabled, bool blue)
 	: CWindowObject(PLAYER_COLORED, ImagePath::builtin(blue ? "TownPortalBackgroundBlue" : "TPGATE")),
 	onSelect(Callback),
 	selected(initialSelection),
@@ -1876,7 +1881,7 @@ CObjectListWindow::CObjectListWindow(const std::vector<std::string> & _items, st
 	list->scrollTo(std::min(static_cast<int>(initialSelection + 4), static_cast<int>(items.size() - 1))); // 4 is for centering (list have 9 elements)
 }
 
-void CObjectListWindow::init(std::shared_ptr<CIntObject> titleWidget_, std::string _title, std::string _descr, bool searchBoxEnabled, bool blue)
+void CObjectListWindow::init(std::shared_ptr<CIntObject> titleWidget_, const std::string & _title, const std::string & _descr, bool searchBoxEnabled, bool blue)
 {
 	titleWidget = titleWidget_;
 

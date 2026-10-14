@@ -25,6 +25,7 @@ class QScreen;
 class QTableWidgetItem;
 class CModList;
 class CModListView;
+class CSettingsView;
 
 enum class ETranslationStatus : int8_t
 {
@@ -74,6 +75,7 @@ public:
 	~MainWindow() override;
 
 	CModListView * getModView();
+	CSettingsView * getSettingsView();
 
 	void updateTranslation();
 	void computeSidePanelSizes();
