@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <QSet>
 #include <QSharedPointer>
 #include <QtNetwork/QNetworkReply>
 
@@ -39,15 +38,12 @@ class CDownloadManager : public QObject
 	};
 
 	QStringList encounteredErrors;
-	QSet<QNetworkReply *> ignoredReplies;
 
 	QNetworkAccessManager manager;
 
 	QList<FileEntry> currentDownloads;
-	bool downloadsPaused = false;
 
 	FileEntry & getEntry(QNetworkReply * reply);
-	bool openDownloadFile(FileEntry & entry);
 	void startDownload(FileEntry & entry);
 	void startNextDownload();
 	bool hasDownloadInProgress() const;
@@ -58,8 +54,6 @@ public:
 	// returns true if download with such URL is in progress/queued
 	// FIXME: not sure what's right place for "mod download in progress" check
 	bool downloadInProgress(const QUrl & url) const;
-	void pauseDownloads();
-	void resumeDownloads();
 
 	// returns network reply so caller can connect to required signals
 	void downloadFile(const QUrl & url, const QString & file, qint64 bytesTotal = 0);
