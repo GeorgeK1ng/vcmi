@@ -70,8 +70,9 @@ jobs:
             conan_prebuilts: dependencies-ios
             conan_options: --profile=dependencies/conan_profiles/base/apple-system
 
-          - platform: msvc-x64
+          - platform: msvc-x64-qt5
             arch: x64
+            qt_version: 5.15.19
             toolset: '14.29'
             os: windows-2025-vs2026
             pack: 1
@@ -80,12 +81,43 @@ jobs:
             extension: zip
             preset: windows-msvc-ninja-release
             conan_profile: msvc-x64
-            conan_prebuilts: dependencies-windows-x64
+            conan_prebuilts: dependencies-windows-x64-qt5
             conan_options: -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
-            artifact_platform: x64
+            artifact_platform: x64-qt5
 
-          - platform: msvc-x86
+          - platform: msvc-x64-qt6.8.3
+            arch: x64
+            qt_version: 6.8.3
+            toolset: '14.29'
+            os: windows-2025-vs2026
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release
+            conan_profile: msvc-x64
+            conan_prebuilts: dependencies-windows-x64-qt6-8-3
+            conan_options: --profile=CI/conan_profiles/qt6-8-3 -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
+            artifact_platform: x64-qt6.8.3
+
+          - platform: msvc-x64-qt6.11.1
+            arch: x64
+            qt_version: 6.11.1
+            toolset: '14.29'
+            os: windows-2025-vs2026
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release
+            conan_profile: msvc-x64
+            conan_prebuilts: dependencies-windows-x64-qt6-11-1
+            conan_options: --profile=CI/conan_profiles/qt6-11-1 -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
+            artifact_platform: x64-qt6.11.1
+
+          - platform: msvc-x86-qt5
             arch: amd64_x86
+            qt_version: 5.15.19
             toolset: '14.29'
             os: windows-2025-vs2026
             pack: 1
@@ -94,12 +126,43 @@ jobs:
             extension: zip
             preset: windows-msvc-ninja-release-x86
             conan_profile: msvc-x86
-            conan_prebuilts: dependencies-windows-x86
+            conan_prebuilts: dependencies-windows-x86-qt5
             conan_options: -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
-            artifact_platform: x86
+            artifact_platform: x86-qt5
 
-          - platform: msvc-arm64
+          - platform: msvc-x86-qt6.8.3
+            arch: amd64_x86
+            qt_version: 6.8.3
+            toolset: '14.29'
+            os: windows-2025-vs2026
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release-x86
+            conan_profile: msvc-x86
+            conan_prebuilts: dependencies-windows-x86-qt6-8-3
+            conan_options: --profile=CI/conan_profiles/qt6-8-3 -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
+            artifact_platform: x86-qt6.8.3
+
+          - platform: msvc-x86-qt6.11.1
+            arch: amd64_x86
+            qt_version: 6.11.1
+            toolset: '14.29'
+            os: windows-2025-vs2026
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release-x86
+            conan_profile: msvc-x86
+            conan_prebuilts: dependencies-windows-x86-qt6-11-1
+            conan_options: --profile=CI/conan_profiles/qt6-11-1 -s "&:build_type=RelWithDebInfo" -o "&:target_pre_windows10=True"
+            artifact_platform: x86-qt6.11.1
+
+          - platform: msvc-arm64-qt5
             arch: arm64
+            qt_version: 5.15.19
             os: windows-11-vs2026-arm
             pack: 1
             upload: 0
@@ -109,7 +172,35 @@ jobs:
             conan_profile: msvc-arm64
             conan_prebuilts: dependencies-windows-arm64
             conan_options: -s "&:build_type=RelWithDebInfo"
-            artifact_platform: arm64
+            artifact_platform: arm64-qt5
+
+          - platform: msvc-arm64-qt6.8.3
+            arch: arm64
+            qt_version: 6.8.3
+            os: windows-11-vs2026-arm
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release-arm64
+            conan_profile: msvc-arm64
+            conan_prebuilts: dependencies-windows-arm64-qt6-8-3
+            conan_options: --profile=CI/conan_profiles/qt6-8-3 -s "&:build_type=RelWithDebInfo"
+            artifact_platform: arm64-qt6.8.3
+
+          - platform: msvc-arm64-qt6.11.1
+            arch: arm64
+            qt_version: 6.11.1
+            os: windows-11-vs2026-arm
+            pack: 1
+            upload: 0
+            pack_type: RelWithDebInfo
+            extension: zip
+            preset: windows-msvc-ninja-release-arm64
+            conan_profile: msvc-arm64
+            conan_prebuilts: dependencies-windows-arm64-qt6-11-1
+            conan_options: --profile=CI/conan_profiles/qt6-11-1 -s "&:build_type=RelWithDebInfo"
+            artifact_platform: arm64-qt6.11.1
 
           - platform: android-32
             os: ubuntu-24.04
@@ -752,16 +843,49 @@ jobs:
     strategy:
       matrix:
         include:
-          - platform: msvc-x64
+          - platform: msvc-x64-qt5
             arch: x64
+            artifact_platform: x64-qt5
             os: windows-2025
 
-          - platform: msvc-x86
+          - platform: msvc-x64-qt6.8.3
+            arch: x64
+            artifact_platform: x64-qt6.8.3
+            os: windows-2025
+
+          - platform: msvc-x64-qt6.11.1
+            arch: x64
+            artifact_platform: x64-qt6.11.1
+            os: windows-2025
+
+          - platform: msvc-x86-qt5
             arch: x86
+            artifact_platform: x86-qt5
             os: windows-2025
 
-          - platform: msvc-arm64
+          - platform: msvc-x86-qt6.8.3
+            arch: x86
+            artifact_platform: x86-qt6.8.3
+            os: windows-2025
+
+          - platform: msvc-x86-qt6.11.1
+            arch: x86
+            artifact_platform: x86-qt6.11.1
+            os: windows-2025
+
+          - platform: msvc-arm64-qt5
             arch: arm64
+            artifact_platform: arm64-qt5
+            os: windows-11-arm
+
+          - platform: msvc-arm64-qt6.8.3
+            arch: arm64
+            artifact_platform: arm64-qt6.8.3
+            os: windows-11-arm
+
+          - platform: msvc-arm64-qt6.11.1
+            arch: arm64
+            artifact_platform: arm64-qt6.11.1
             os: windows-11-arm
 
     runs-on: ${{ matrix.os }}
@@ -796,7 +920,7 @@ jobs:
     - name: Build Number
       run: |
         source '${{github.workspace}}/CI/get_package_name.sh'
-        VCMI_PACKAGE_FILE_NAME+="-${{ matrix.arch }}"
+        VCMI_PACKAGE_FILE_NAME+="-${{ matrix.artifact_platform }}"
         echo VCMI_PACKAGE_FILE_NAME="$VCMI_PACKAGE_FILE_NAME" >> $GITHUB_ENV
         echo VCMI_PACKAGE_BUILD="$VCMI_PACKAGE_BUILD" >> $GITHUB_ENV
         echo VCMI_PACKAGE_NAME_SUFFIX="$VCMI_PACKAGE_NAME_SUFFIX" >> $GITHUB_ENV
@@ -959,9 +1083,7 @@ jobs:
             name=$(basename "$d")
             case "$name" in
               partial-json-*) continue ;;
-              *-msvc-x64-symbols)   (cd "$d" && zip -qr9 "$GITHUB_WORKSPACE/release/VCMI-Windows-x64-symbols.zip" .) ;;
-              *-msvc-x86-symbols)   (cd "$d" && zip -qr9 "$GITHUB_WORKSPACE/release/VCMI-Windows-x86-symbols.zip" .) ;;
-              *-msvc-arm64-symbols) (cd "$d" && zip -qr9 "$GITHUB_WORKSPACE/release/VCMI-Windows-arm64-symbols.zip" .) ;;
+              *-msvc-*-symbols)     (cd "$d" && zip -qr9 "$GITHUB_WORKSPACE/release/VCMI-Windows-${name#*-msvc-}.zip" .) ;;
               *)
                 for f in "$d"*; do
                   [ -f "$f" ] || continue
@@ -969,10 +1091,24 @@ jobs:
                     *-intel.dmg)       mv "$f" release/VCMI-macOS-intel.dmg ;;
                     *-arm.dmg)         mv "$f" release/VCMI-macOS-arm.dmg ;;
                     *.ipa)             mv "$f" release/VCMI-iOS.ipa ;;
-                    *-x64.zip)         mv "$f" release/VCMI-Windows.zip ;;
-                    *-x64.exe)         mv "$f" release/VCMI-Windows-x64.exe ;;
-                    *-x86.exe)         mv "$f" release/VCMI-Windows-x86.exe ;;
-                    *-arm64.exe)       mv "$f" release/VCMI-Windows-arm64.exe ;;
+                    *-x64-qt5.zip)         mv "$f" release/VCMI-Windows-x64-Qt5.zip ;;
+                    *-x64-qt6.8.3.zip)    mv "$f" release/VCMI-Windows-x64-Qt6.8.3.zip ;;
+                    *-x64-qt6.11.1.zip)   mv "$f" release/VCMI-Windows-x64-Qt6.11.1.zip ;;
+                    *-x86-qt5.zip)         mv "$f" release/VCMI-Windows-x86-Qt5.zip ;;
+                    *-x86-qt6.8.3.zip)    mv "$f" release/VCMI-Windows-x86-Qt6.8.3.zip ;;
+                    *-x86-qt6.11.1.zip)   mv "$f" release/VCMI-Windows-x86-Qt6.11.1.zip ;;
+                    *-arm64-qt5.zip)       mv "$f" release/VCMI-Windows-arm64-Qt5.zip ;;
+                    *-arm64-qt6.8.3.zip)  mv "$f" release/VCMI-Windows-arm64-Qt6.8.3.zip ;;
+                    *-arm64-qt6.11.1.zip) mv "$f" release/VCMI-Windows-arm64-Qt6.11.1.zip ;;
+                    *-x64-qt5.exe)         mv "$f" release/VCMI-Windows-x64-Qt5.exe ;;
+                    *-x64-qt6.8.3.exe)    mv "$f" release/VCMI-Windows-x64-Qt6.8.3.exe ;;
+                    *-x64-qt6.11.1.exe)   mv "$f" release/VCMI-Windows-x64-Qt6.11.1.exe ;;
+                    *-x86-qt5.exe)         mv "$f" release/VCMI-Windows-x86-Qt5.exe ;;
+                    *-x86-qt6.8.3.exe)    mv "$f" release/VCMI-Windows-x86-Qt6.8.3.exe ;;
+                    *-x86-qt6.11.1.exe)   mv "$f" release/VCMI-Windows-x86-Qt6.11.1.exe ;;
+                    *-arm64-qt5.exe)       mv "$f" release/VCMI-Windows-arm64-Qt5.exe ;;
+                    *-arm64-qt6.8.3.exe)  mv "$f" release/VCMI-Windows-arm64-Qt6.8.3.exe ;;
+                    *-arm64-qt6.11.1.exe) mv "$f" release/VCMI-Windows-arm64-Qt6.11.1.exe ;;
                     *-armeabi-v7a.apk) mv "$f" release/VCMI-Android-armeabi-v7a.apk ;;
                     *-arm64-v8a.apk)   mv "$f" release/VCMI-Android-arm64-v8a.apk ;;
                     *-x64.apk)         mv "$f" release/VCMI-Android-x86_64.apk ;;
