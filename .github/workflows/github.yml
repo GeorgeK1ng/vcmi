@@ -151,7 +151,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release",
                   "conan_profile": "msvc-x64",
                   "conan_prebuilts": "dependencies-windows-x64-qt6-8-3",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-8-3 -s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\" -o \"&:qt_version=6.8.3\"",
                   "artifact_platform": "x64-qt6.8.3",
                   "group": "windows"
                 },
@@ -168,7 +168,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release",
                   "conan_profile": "msvc-x64",
                   "conan_prebuilts": "dependencies-windows-x64-qt6-11-1",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-11-1 -s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\" -o \"&:qt_version=6.11.1\"",
                   "artifact_platform": "x64-qt6.11.1",
                   "group": "windows"
                 },
@@ -202,7 +202,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release-x86",
                   "conan_profile": "msvc-x86",
                   "conan_prebuilts": "dependencies-windows-x86-qt6-8-3",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-8-3 -s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\" -o \"&:qt_version=6.8.3\"",
                   "artifact_platform": "x86-qt6.8.3",
                   "group": "windows"
                 },
@@ -219,7 +219,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release-x86",
                   "conan_profile": "msvc-x86",
                   "conan_prebuilts": "dependencies-windows-x86-qt6-11-1",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-11-1 -s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:target_pre_windows10=True\" -o \"&:qt_version=6.11.1\"",
                   "artifact_platform": "x86-qt6.11.1",
                   "group": "windows"
                 },
@@ -251,7 +251,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release-arm64",
                   "conan_profile": "msvc-arm64",
                   "conan_prebuilts": "dependencies-windows-arm64-qt6-8-3",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-8-3 -s \"&:build_type=RelWithDebInfo\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:qt_version=6.8.3\"",
                   "artifact_platform": "arm64-qt6.8.3",
                   "group": "windows"
                 },
@@ -267,7 +267,7 @@ jobs:
                   "preset": "windows-msvc-ninja-release-arm64",
                   "conan_profile": "msvc-arm64",
                   "conan_prebuilts": "dependencies-windows-arm64-qt6-11-1",
-                  "conan_options": "--profile=CI/conan_profiles/qt6-11-1 -s \"&:build_type=RelWithDebInfo\"",
+                  "conan_options": "-s \"&:build_type=RelWithDebInfo\" -o \"&:qt_version=6.11.1\"",
                   "artifact_platform": "arm64-qt6.11.1",
                   "group": "windows"
                 },
