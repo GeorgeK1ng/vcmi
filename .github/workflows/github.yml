@@ -13,6 +13,10 @@ on:
         description: 'Build Windows'
         type: boolean
         default: true
+      build_windows_installers:
+        description: 'Build Windows installers'
+        type: boolean
+        default: true
       build_linux:
         description: 'Build Linux'
         type: boolean
@@ -27,6 +31,10 @@ on:
         default: true
       build_android:
         description: 'Build Android'
+        type: boolean
+        default: true
+      run_tests:
+        description: 'Run tests'
         type: boolean
         default: true
       enable_lto:
@@ -736,8 +744,8 @@ jobs:
             path: .summary/source.json
 
   test:
-    name: Build+Test (${{ matrix.platform }})
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_linux }}
+    name: ${{ github.event_name == 'workflow_dispatch' && !inputs.run_tests && 'Build+Test' || format('Build+Test ({0})', matrix.platform) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests }}
     strategy:
       fail-fast: false
       matrix:
@@ -921,7 +929,7 @@ jobs:
 
   windows-installer:
     needs: build
-    if: ${{ needs.build.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.build_windows) }}
+    if: ${{ needs.build.result == 'success' && (github.event_name != 'workflow_dispatch' || (inputs.build_windows && inputs.build_windows_installers)) }}
     name: Create Windows Installer (${{ matrix.arch }})
     strategy:
       matrix:
