@@ -57,8 +57,6 @@
 #include "../../lib/json/JsonUtils.h"
 #include "../../lib/json/JsonNode.h"
 
-#include <widgets/GraphicalPrimitiveCanvas.h>
-
 class ScenarioTabConfigurable : public InterfaceObjectConfigurable
 {
 public:
@@ -213,6 +211,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 	, currentMapSizeFilter(0)
 	, showRandom(false)
 	, deleteMode(false)
+	, searchMode(false)
 	, positionsToShow(0)
 	, enableUiEnhancements(settings["general"]["enableUiEnhancements"].Bool())
 	, campaignSets(JsonUtils::assembleFromFiles("config/campaignSets.json"))
@@ -258,7 +257,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		}
 	}
 
-	positionsToShow = enableUiEnhancements ? 17 : 18;
+	positionsToShow = 18;
 	std::string tabTitle;
 	std::string tabTitleDelete;
 	switch(tabType)
@@ -272,7 +271,7 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		tabTitleDelete = "{red|" + LIBRARY->generaltexth->translate("vcmi.lobby.deleteSaveGameTitle") + "}";
 		break;
 	case ESelectionScreen::saveGame:
-		positionsToShow = enableUiEnhancements ? 15 : 16;
+		positionsToShow = 16;
 		tabTitle = "{" + LIBRARY->generaltexth->translate("core.arraytxt.231") + "}";
 		break;
 	case ESelectionScreen::campaignList:
@@ -297,32 +296,80 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 		sortByDate->setOverlay(std::make_shared<CPicture>(ImagePath::builtin("lobby/selectionTabSortDate")));
 		buttonsSortBy.push_back(sortByDate);
 
-		Rect searchWidgetArea(22, 115, 366, 26);
-		Rect searchTextInputArea(87, 115, 301, 26);
+		const int roeOffset = ENGINE->isRoeData() ? 36 : 0;
+		const Rect searchRect(49, 18, 312 - roeOffset, 20);
+		searchDescription = std::make_shared<CLabel>(searchRect.center().x, searchRect.center().y, FONT_MEDIUM, ETextAlignment::CENTER, ColorRGBA(105, 127, 159), LIBRARY->generaltexth->translate("vcmi.spellBook.search"));
+		searchDescription->disable();
 
-		searchWidgetBackground = std::make_shared<FilledTexturePlayerColored>(searchWidgetArea);
-		searchWidgetBackground->setPlayerColor(PlayerColor(1));
+		searchInput = std::make_shared<CTextInput>(searchRect, FONT_MEDIUM, ETextAlignment::CENTER, false);
+		searchInput->setColor(Colors::WHITE);
+		searchInput->setCallback([this](const std::string &)
+		{
+			buttonClearSearch->setEnabled(!searchInput->getText().empty());
+			auto selectedMap = getSelectedMapInfo();
+			const bool hideSelectedElement = !selectedMap || !matchesSearch(*selectedMap);
+			filter(-1, hideSelectedElement);
+			if(!hideSelectedElement)
+			{
+				auto it = std::ranges::find(curItems, selectedMap);
+				if(it != curItems.end())
+					selectAbs(it - curItems.begin());
+			}
+		});
+		searchInput->disable();
 
-		searchBoxLabel = std::make_shared<CLabel>(55, 128, FONT_MEDIUM, ETextAlignment::CENTER, Colors::YELLOW, "Filter:");
-		searchInputRectangle = std::make_shared<TransparentFilledRectangle>(searchTextInputArea, ColorRGBA(0, 0, 0, 128));
+		buttonClearSearch = std::make_shared<CButton>(Point(336 - roeOffset, 15), AnimationPath::builtin("lobbyCloseChannel"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.clearSearch")), [this]()
+		{
+			searchInput->setText("");
+			searchInput->giveFocus();
+		});
+		buttonClearSearch->setOverlay(std::make_shared<CPicture>(ImagePath::builtin("lobby/closeChannel")));
+		buttonClearSearch->disable();
 
-		searchInput = std::make_shared<CTextInput>(searchTextInputArea, FONT_SMALL, ETextAlignment::CENTER, true);
-		searchInput->setCallback([this](const std::string & text) {
-									 std::shared_ptr<ElementInfo> selectedMap = getSelectedMapInfo();
-									 bool hideSelectedElement = !selectedMap || !checkNameFilter(getSelectedMapInfo()->name);
-									 filter(-1, hideSelectedElement);
-									 if (!hideSelectedElement)
-									 {
-										 auto it = find(curItems.begin(), curItems.end(), selectedMap);
-										 if (it != curItems.end())
-											 selectAbs(it - curItems.begin());
-									 }
-								 });
+		std::string searchTooltipKey = "vcmi.lobby.search.scenarios";
+		if(tabType == ESelectionScreen::campaignList)
+			searchTooltipKey = "vcmi.lobby.search.campaigns";
+		else if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::saveGame)
+			searchTooltipKey = "vcmi.lobby.search.savedGames";
+
+		const std::string searchTooltip = LIBRARY->generaltexth->translate(searchTooltipKey);
+		buttonSearch = std::make_shared<CButton>(Point(18, 12), AnimationPath::builtin("lobby/searchButton"), CButton::tooltip("", searchTooltip), [this, tabTitle]()
+		{
+			if(deleteMode)
+			{
+				deleteMode = false;
+				labelTabTitle->setText(tabTitle);
+			}
+			searchMode = !searchMode;
+			toggleSearch(searchMode);
+		});
 
 
 		if(tabType == ESelectionScreen::loadGame || tabType == ESelectionScreen::newGame)
 		{
 			buttonDeleteMode = std::make_shared<CButton>(Point(367 - (ENGINE->isRoeData() ? 36 : 0), 18), AnimationPath::builtin("lobby/deleteButton"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.deleteMode")), [this, tabTitle, tabTitleDelete](){
+				if(searchMode)
+				{
+					deleteMode = !deleteMode;
+					if(deleteMode)
+					{
+						searchInput->disable();
+						searchDescription->disable();
+						buttonClearSearch->disable();
+						labelTabTitle->setText(tabTitleDelete);
+						labelTabTitle->enable();
+					}
+					else
+					{
+						labelTabTitle->disable();
+						searchInput->enable();
+						searchDescription->setEnabled(searchInput->getText().empty());
+						buttonClearSearch->setEnabled(!searchInput->getText().empty());
+						searchInput->giveFocus();
+					}
+					return;
+				}
+
 				deleteMode = !deleteMode;
 				if(deleteMode)
 					labelTabTitle->setText(tabTitleDelete);
@@ -374,10 +421,10 @@ SelectionTab::SelectionTab(ESelectionScreen Type)
 	}
 
 	for(int i = 0; i < positionsToShow; i++)
-		listItems.push_back(std::make_shared<ListItem>(Point(30, (enableUiEnhancements ? 154 : 129) + i * 25)));
+		listItems.push_back(std::make_shared<ListItem>(Point(30, 129 + i * 25)));
 
 	labelTabTitle = std::make_shared<CLabel>(205 - (ENGINE->isRoeData() ? 18 : 0), 28, FONT_MEDIUM, ETextAlignment::CENTER, Colors::WHITE, tabTitle);
-	slider = std::make_shared<CSlider>(Point(372 - (ENGINE->isRoeData() ? 36 : 0), 86 + (enableUiEnhancements ? 54 : 0)), (tabType != ESelectionScreen::saveGame ? 480 : 430) - (enableUiEnhancements ? 54 : 0), std::bind(&SelectionTab::sliderMove, this, _1), positionsToShow, (int)curItems.size(), 0, Orientation::VERTICAL, CSlider::BLUE);
+	slider = std::make_shared<CSlider>(Point(372 - (ENGINE->isRoeData() ? 36 : 0), 86), tabType != ESelectionScreen::saveGame ? 480 : 430, std::bind(&SelectionTab::sliderMove, this, _1), positionsToShow, (int)curItems.size(), 0, Orientation::VERTICAL, CSlider::BLUE);
 	slider->setPanningStep(24);
 	slider->setInertiaEnabled(true);
 
@@ -509,6 +556,16 @@ void SelectionTab::clickReleased(const Point & cursorPosition)
 
 void SelectionTab::keyPressed(EShortcut key)
 {
+	if(key == EShortcut::ADVENTURE_SEARCH && buttonSearch)
+	{
+		if(deleteMode)
+			return;
+
+		searchMode = !searchMode;
+		toggleSearch(searchMode);
+		return;
+	}
+
 	int moveBy = 0;
 	switch(key)
 	{
@@ -690,7 +747,7 @@ void SelectionTab::filter(int size, bool selectFirst)
 				continue;
 			}
 
-			if(!enableUiEnhancements || checkNameFilter(elem->name))
+			if(matchesSearch(*elem))
 				curItems.push_back(elem);
 		}
 	}
@@ -707,18 +764,45 @@ void SelectionTab::filter(int size, bool selectFirst)
 			if(firstPos < curItems.size())
 			{
 				slider->scrollTo(firstPos);
-				callOnSelect(curItems[firstPos]);
 				selectAbs(firstPos);
 			}
 		}
 	}
 	else
 	{
+		selectionPos = 0;
+		slider->setAmount(0);
 		updateListItems();
 		redraw();
 		slider->block(true);
 		if(callOnSelect)
 			callOnSelect(nullptr);
+	}
+}
+
+bool SelectionTab::matchesSearch(const ElementInfo & info) const
+{
+	return !searchInput || searchInput->getText().empty() || boost::icontains(info.name, searchInput->getText());
+}
+
+void SelectionTab::toggleSearch(bool enabled)
+{
+	if(enabled)
+	{
+		labelTabTitle->disable();
+		searchInput->enable();
+		searchDescription->setEnabled(searchInput->getText().empty());
+		buttonClearSearch->setEnabled(!searchInput->getText().empty());
+		searchInput->giveFocus();
+	}
+	else
+	{
+		searchInput->setText("");
+		searchInput->disable();
+		searchDescription->disable();
+		buttonClearSearch->disable();
+		labelTabTitle->enable();
+		filter(-1, true);
 	}
 }
 
@@ -1114,13 +1198,6 @@ void SelectionTab::restoreLastSelection()
 	case ESelectionScreen::saveGame:
 		selectNewestFile(true);
 	}
-}
-
-bool SelectionTab::checkNameFilter(const std::string & fullstring) const
-{
-	std::string filter = searchInput->getText();
-	return std::search(fullstring.begin(), fullstring.end(), filter.begin(), filter.end(),
-					   [](char a, char b) -> bool {return std::tolower(a) == std::tolower(b);}) != fullstring.end();
 }
 
 bool SelectionTab::isMapSupported(const CMapInfo & info)

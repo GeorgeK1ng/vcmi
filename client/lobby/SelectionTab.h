@@ -128,24 +128,23 @@ public:
 	static void rememberSave(const std::string & savePath);
 	void rememberCurrentSelection();
 	void restoreLastSelection();
-	bool checkNameFilter(const std::string & fullstring) const;
-
 private:
 	std::shared_ptr<CPicture> background;
 	std::shared_ptr<CSlider> slider;
 	std::vector<std::shared_ptr<CButton>> buttonsSortBy;
 	std::shared_ptr<CLabel> labelTabTitle;
 	std::shared_ptr<CTextInput> searchInput;
-	std::shared_ptr<CLabel> searchBoxLabel;
-	std::shared_ptr<FilledTexturePlayerColored> searchWidgetBackground;
-	std::shared_ptr<TransparentFilledRectangle> searchInputRectangle;
+	std::shared_ptr<CLabel> searchDescription;
 	ESelectionScreen tabType;
 	Rect inputNameRect;
 	int positionsToShow;
 
 	std::shared_ptr<CButton> buttonDeleteMode;
+	std::shared_ptr<CButton> buttonSearch;
+	std::shared_ptr<CButton> buttonClearSearch;
 	std::shared_ptr<ScenarioTabConfigurable> scenarioTabConfigurable;
 	bool deleteMode;
+	bool searchMode;
 
 	bool enableUiEnhancements;
 	std::shared_ptr<CButton> buttonCampaignSet;
@@ -155,6 +154,8 @@ private:
 	auto checkSubfolder(std::string path);
 	size_t getRequiredHumanPlayers() const;
 	bool isMapCompatibleWithLobbyPlayerCount(const ElementInfo & info) const;
+	bool matchesSearch(const ElementInfo & info) const;
+	void toggleSearch(bool enabled);
 	bool isSaveCompatible(const CMapInfo & info, ELoadMode loadMode) const;
 	std::optional<bool> isFolderCompatible(const std::string & folderName, const std::vector<ResourcePath> & files);
 	static std::string getLastSaveSettingName();
