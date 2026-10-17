@@ -5,7 +5,8 @@
  */
 #pragma once
 
-namespace WindowsCloud
+class WindowsCloud
 {
-	bool isCloudStoragePath(const wchar_t * path);
-}
+public:
+	static bool isCloudStoragePath(const wchar_t * path);
+};
