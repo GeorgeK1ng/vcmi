@@ -4,7 +4,11 @@
  * License: GNU General Public License v2.0 or later
  */
 
+#ifdef VCMI_WINDOWS_CLOUD_STANDALONE
+#include <string>
+#else
 #include "StdInc.h"
+#endif
 #include "CloudStorageDetection.h"
 
 #include <windows.h>

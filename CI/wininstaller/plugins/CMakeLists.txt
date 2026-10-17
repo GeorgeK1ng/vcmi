@@ -3,10 +3,15 @@ project(installerPlugin LANGUAGES CXX)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_library(installerPlugin SHARED installerPlugin.cpp)
+add_library(installerPlugin SHARED
+    installerPlugin.cpp
+    ../../../lib/platform/windows/CloudStorageDetection.cpp
+    ../../../lib/platform/windows/CloudStorageDetection.h
+)
 
 target_compile_definitions(installerPlugin PRIVATE
     UNICODE _UNICODE
+    VCMI_WINDOWS_CLOUD_STANDALONE "DLL_LINKAGE="
     _WIN32_WINNT=0x0601 WINVER=0x0601
 )
 
