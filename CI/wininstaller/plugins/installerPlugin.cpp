@@ -73,5 +73,5 @@ extern "C" __declspec(dllexport) BOOL __stdcall ModerFolderPicker(
 
 extern "C" __declspec(dllexport) BOOL __stdcall IsCloudStoragePath(LPCWSTR path)
 {
-	return VCMI::Windows::isCloudStoragePath(path) ? TRUE : FALSE;
+	return WindowsCloud::isCloudStoragePath(path) ? TRUE : FALSE;
 }
