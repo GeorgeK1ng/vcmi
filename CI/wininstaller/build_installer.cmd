@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 cls
 
 REM Define variables dynamically relative to the normalized base directory
-set "AppVersion=1.7.0"
+set "AppVersion=1.8.0"
 set "AppBuild=1122334455A"
 set "InstallerArch=x64"
 set "VCMIFolder=VCMI"

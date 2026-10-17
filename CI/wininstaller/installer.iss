@@ -21,7 +21,7 @@
 ; is the payload architecture (x86, x64, or arm64); SetupArch is the architecture
 ; of Setup and installerPlugin.dll and is limited to x86 or x64.
 
-; #define AppVersion "1.7.0"
+; #define AppVersion "1.8.0"
 ; #define AppBuild "1122334455A"
 ; #define InstallerArch "x64"
 ; #define AllowedArch "x64os"
