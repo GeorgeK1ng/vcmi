@@ -683,9 +683,11 @@ begin
   Result := True;
 end;
 
-// Setup may be elevated with credentials of a different administrator. Resolve
-// the interactive session user so user-facing paths still belong to the person
-// who launched Setup. NativeUInt keeps returned pointers safe in 32/64-bit Setup.
+// Over-the-shoulder UAC elevation changes the process account, but keeps Setup
+// in the initiating user's Windows session. Query that session via WTS instead
+// of using the elevated account name to select user-facing folders. Fall back
+// to the process account only when WTS cannot supply a name.
+// NativeUInt keeps the returned buffer pointer safe in 32/64-bit Setup.
 function GetCurrentSessionUserName: String;
 var
   Buffer: NativeUInt;
@@ -767,6 +769,10 @@ begin
     Result := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}';
 end;
 
+// Inno expands user constants in the Setup account's context. Retarget only
+// the complete username path component to the WTS session user; when both
+// accounts are the same this is a no-op. This substitution assumes the profile
+// paths differ by that component; WTS itself supplies a name, not folder paths.
 function GetUserFolderPath(Constant: String): String;
 var
   FolderPath, OriginalUserName, CurrentSessionUserName: String;
@@ -1205,6 +1211,8 @@ var
   Key: String;
 begin
   Key := 'Software\VCMI\Installer\' + Architecture;
+  // Prefer per-user ownership in either registry view before machine-wide
+  // metadata. View order within each scope is intentionally 64-bit, then 32-bit.
   Result := False;
   if IsWin64 then
     Result := RegQueryStringValue(HKCU64, Key, ValueName, Value);
@@ -1856,6 +1864,9 @@ begin
     CommandLineUserDataDir := RemoveBackslashUnlessRoot(CommandLineUserDataDir);
     DefaultDataDir := CommandLineUserDataDir;
   end;
+  // A new cloud-safe default must not silently relocate existing player data.
+  // Keep the configured upgrade path; the launcher's migration wizard handles
+  // moving existing data and reloading it before source cleanup.
   if IsUpgrade then
     SelectedDataDir := ReadUserDataPath(RegisteredInstallPath, DefaultDataDir)
   else
@@ -3195,6 +3206,8 @@ begin
     end;
 
     // Preserve /DIR; portable mode also keeps the current edit unchanged.
+    // This page follows the selected radio option. IsPortableInstall additionally
+    // honors /PORTABLE, so it is not interchangeable with the index checks here.
     if not HasCommandLineInstallDir then
       WizardForm.DirEdit.Text := DefaultInstallDirectory(
         InstallModePage.SelectedValueIndex = 2, InstallModePage.SelectedValueIndex <> 0);
@@ -3437,6 +3450,9 @@ begin
   end;
 end;
 
+// This imports original Heroes III assets, not VCMI player-data migration.
+// Valid destination groups are skipped; missing or incomplete groups may have
+// files overwritten. Source files are copied and never removed by this import.
 procedure PerformHeroes3FileCopy();
 var
   OldMaximum, OldPosition: Integer;
