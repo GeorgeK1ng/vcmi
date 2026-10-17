@@ -269,7 +269,10 @@ var
   VCMIMapsFolder, VCMIDataFolder, VCMIMp3Folder: String;
   Heroes3MapsFolder, Heroes3DataFolder, Heroes3Mp3Folder: String;
 
-  DirSelectPage: TWizardPage;
+  DirSelectPage, LoadingPage: TWizardPage;
+  LoadingLabels, LoadingStatusLabels: array[0..2] of TNewStaticText;
+  LoadingStep: Integer;
+  LoadingBusy, LoadingFailed: Boolean;
 
   CloudInstallNotice: TNewStaticText;
   InstallDirEdit: TEdit;
@@ -385,6 +388,7 @@ begin
   end;
 end;
 
+procedure ProcessInstallerLoading(); forward;
 procedure UpdateDiskSpaceLabel(); forward;
 function IsCloudStoragePath(const Path: String): Boolean; forward;
 function IsCloudStorageRoot(const Path: String): Boolean; forward;
@@ -973,6 +977,7 @@ var
   PreviewText: String;
   Cursor: TPoint;
 begin
+  ProcessInstallerLoading();
   if Assigned(InstallModePage) and (WizardForm.CurPageID = InstallModePage.ID) then
   begin
     Index := -1;
@@ -1853,51 +1858,13 @@ begin
   CommandLineUserDataDir := Trim(ExpandCommandLinePath(
     ExpandConstant('{param:USERDATADIR|}')));
 
-  // Cloud sync clients can temporarily lock files while VCMI is writing them.
-  // Prefer Local AppData whenever Documents belongs to OneDrive or another registered provider.
-  if IsCloudStoragePath(GlobalUserDocsFolder) then
-    DefaultDataDir := GlobalUserLocalAppdataFolder + '\VCMI'
-  else
-    DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+  // Cheap placeholders for creating controls. Cloud checks, source discovery
+  // and recursive statistics are deferred until the loading page is visible.
+  DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
   if CommandLineUserDataDir <> '' then
-  begin
-    CommandLineUserDataDir := RemoveBackslashUnlessRoot(CommandLineUserDataDir);
     DefaultDataDir := CommandLineUserDataDir;
-  end;
-  // A new cloud-safe default must not silently relocate existing player data.
-  // Keep the configured upgrade path; the launcher's migration wizard handles
-  // moving existing data and reloading it before source cleanup.
-  if IsUpgrade then
-    SelectedDataDir := ReadUserDataPath(RegisteredInstallPath, DefaultDataDir)
-  else
-    SelectedDataDir := DefaultDataDir;
+  SelectedDataDir := DefaultDataDir;
   UpdateDataFolders(SelectedDataDir);
-
-  // Validate every candidate before accepting it. Stale registry entries must
-  // not prevent detection from continuing with Ubisoft Connect or Steam.
-  Heroes3Path := '';
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\GOG.com\Games\1207658787', 'path'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\Ubisoft\Launcher\Installs\353', 'InstallDir'));
-  SetHeroes3PathIfValid(FindSteamGameInstallDir(
-    '4921760', 'Heroes of Might and Magic III'));
-
-  if (Heroes3Path <> '') then
-  begin
-    Heroes3MapsFolder := Heroes3Path + '\Maps';
-    Heroes3DataFolder := Heroes3Path + '\Data';
-    Heroes3Mp3Folder := Heroes3Path + '\Mp3';
-    GetFolderStats(Heroes3MapsFolder, Heroes3MapsSize, Heroes3MapsFiles);
-    GetFolderStats(Heroes3DataFolder, Heroes3DataSize, Heroes3DataFiles);
-    GetFolderStats(Heroes3Mp3Folder, Heroes3Mp3Size, Heroes3Mp3Files);
-  end;
-  CopyHeroes3DataSelected := (Heroes3Path <> '')
-    and (CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0);
 
   Result := True;
 end;
@@ -2001,6 +1968,11 @@ end;
 
 procedure UpdateCloudDataNotice();
 begin
+  if LoadingStep < 3 then
+  begin
+    CloudDataNotice.Visible := False;
+    Exit;
+  end;
   CloudDataNotice.Visible := IsCloudStoragePath(Trim(DataDirEdit.Text));
   if not CloudDataNotice.Visible then
     ConfirmedCloudDataDir := '';
@@ -2008,6 +1980,11 @@ end;
 
 procedure UpdateCloudInstallNotice();
 begin
+  if LoadingStep < 3 then
+  begin
+    CloudInstallNotice.Visible := False;
+    Exit;
+  end;
   CloudInstallNotice.Visible := IsCloudStoragePath(Trim(InstallDirEdit.Text));
   if not CloudInstallNotice.Visible then
     ConfirmedCloudInstallDir := '';
@@ -2032,7 +2009,7 @@ begin
     Exit;
   Available := IsHeroes3Installed and IsCopyFilesNeeded;
   if Available and not Heroes3CopyWasAvailable then
-    CopyHeroes3DataSelected := True;
+    CopyHeroes3DataSelected := CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0;
   CopyHeroes3DataCheck.Visible := Available;
   if Available then
     CopyHeroes3DataCheck.Checked := CopyHeroes3DataSelected
@@ -2075,6 +2052,119 @@ begin
     InstallDirEdit.Text := DefaultInstallDirectory(IsPortableInstall,
       Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1));
   ResetDataDirectory();
+end;
+
+// No threads or nested message loops: the existing UI timer runs one stage per
+// tick. Repaint the active row before synchronous work; a slow individual stage
+// can still delay input. Re-entry is guarded and completed work is never repeated.
+procedure RunInstallerLoadingStep();
+begin
+  case LoadingStep of
+    0:
+    begin
+      // Cloud sync clients can temporarily lock files while VCMI is writing them.
+      // Prefer Local AppData whenever Documents belongs to OneDrive or another registered provider.
+      if IsCloudStoragePath(GlobalUserDocsFolder) then
+        DefaultDataDir := GlobalUserLocalAppdataFolder + '\VCMI'
+      else
+        DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
+      if CommandLineUserDataDir <> '' then
+      begin
+        CommandLineUserDataDir := RemoveBackslashUnlessRoot(CommandLineUserDataDir);
+        DefaultDataDir := CommandLineUserDataDir;
+      end;
+      // A new cloud-safe default must not silently relocate existing player data.
+      // Keep the configured upgrade path; the launcher's migration wizard handles
+      // moving existing data and reloading it before source cleanup.
+      if IsUpgrade then
+        DataDirEdit.Text := ReadUserDataPath(RegisteredInstallPath, DefaultDataDir)
+      else
+        ResetDataDirectory();
+      SelectedDataDir := DataDirEdit.Text;
+      UpdateDataFolders(SelectedDataDir);
+    end;
+    1:
+    begin
+      // Validate every candidate before accepting it. Stale registry entries must
+      // not prevent detection from continuing with Ubisoft Connect or Steam.
+      Heroes3Path := '';
+      SetHeroes3PathIfValid(RegistryQueryPath(
+        'SOFTWARE\GOG.com\Games\1207658787', 'path'));
+      SetHeroes3PathIfValid(RegistryQueryPath(
+        'SOFTWARE\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath'));
+      SetHeroes3PathIfValid(RegistryQueryPath(
+        'SOFTWARE\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath'));
+      SetHeroes3PathIfValid(RegistryQueryPath(
+        'SOFTWARE\Ubisoft\Launcher\Installs\353', 'InstallDir'));
+      if Heroes3Path = '' then
+        SetHeroes3PathIfValid(FindSteamGameInstallDir(
+          '4921760', 'Heroes of Might and Magic III'));
+    end;
+    2:
+    begin
+      if (Heroes3Path <> '') then
+      begin
+        Heroes3MapsFolder := Heroes3Path + '\Maps';
+        Heroes3DataFolder := Heroes3Path + '\Data';
+        Heroes3Mp3Folder := Heroes3Path + '\Mp3';
+        GetFolderStats(Heroes3MapsFolder, Heroes3MapsSize, Heroes3MapsFiles);
+        GetFolderStats(Heroes3DataFolder, Heroes3DataSize, Heroes3DataFiles);
+        GetFolderStats(Heroes3Mp3Folder, Heroes3Mp3Size, Heroes3Mp3Files);
+      end;
+      CopyHeroes3DataSelected := (Heroes3Path <> '')
+        and (CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0);
+    end;
+  end;
+  LoadingStep := LoadingStep + 1;
+  if LoadingStep = 3 then
+  begin
+    UpdateHeroes3CopyCheckbox();
+    UpdateDiskSpaceLabel();
+    UpdateCloudInstallNotice();
+    UpdateCloudDataNotice();
+  end;
+end;
+
+procedure ProcessInstallerLoading();
+var
+  Index: Integer;
+begin
+  if not Assigned(LoadingPage) or (WizardForm.CurPageID <> LoadingPage.ID)
+    or LoadingBusy or LoadingFailed then
+    Exit;
+  LoadingBusy := True;
+  try
+    if LoadingStep < 3 then
+    begin
+      Index := LoadingStep;
+      LoadingStatusLabels[Index].Caption := '...';
+      LoadingLabels[Index].Font.Style := [fsBold];
+      LoadingStatusLabels[Index].Update;
+      LoadingLabels[Index].Update;
+      try
+        RunInstallerLoadingStep();
+        LoadingStatusLabels[Index].Caption := #$2713;
+        LoadingStatusLabels[Index].Font.Color := clGreen;
+        LoadingLabels[Index].Font.Style := [];
+        LoadingStatusLabels[Index].Update;
+        LoadingLabels[Index].Update;
+      except
+        LoadingFailed := True;
+        LoadingStatusLabels[Index].Caption := '!';
+        LoadingStatusLabels[Index].Font.Color := clRed;
+        Log('Installer preparation failed: ' + GetExceptionMessage);
+        MsgBox(GetExceptionMessage, mbError, MB_OK);
+      end;
+    end
+    else
+    begin
+      // Advance on the following tick so the final checkmark can be painted.
+      WizardForm.NextButton.Enabled := True;
+      WizardForm.NextButton.OnClick(WizardForm.NextButton);
+    end;
+  finally
+    LoadingBusy := False;
+  end;
 end;
 
 function GetDetectedWindowsVersion(Default: String): String;
@@ -2910,7 +3000,35 @@ begin
     SelectInstallMode(InstallModePage.SelectedValueIndex);
   end;
 
-  DirSelectPage := CreateCustomPage(wpLicense,
+  // Checkmarks mean each preparation step finished, not that a requirement passed.
+  LoadingPage := CreateCustomPage(wpLicense,
+    SetupMessage(msgWizardPreparing), ExpandConstant('{cm:ScanningFiles}'));
+  for Row := 0 to 2 do
+  begin
+    LoadingStatusLabels[Row] := TNewStaticText.Create(LoadingPage);
+    LoadingStatusLabels[Row].Parent := LoadingPage.Surface;
+    LoadingStatusLabels[Row].Left := ScaleX(12);
+    LoadingStatusLabels[Row].Top := ScaleY(28 + Row * 42);
+    LoadingStatusLabels[Row].Width := ScaleX(32);
+    LoadingStatusLabels[Row].Height := ScaleY(28);
+    LoadingStatusLabels[Row].AutoSize := False;
+    LoadingStatusLabels[Row].Font.Name := 'Segoe UI Symbol';
+    LoadingStatusLabels[Row].Font.Size := 14;
+    LoadingLabels[Row] := TNewStaticText.Create(LoadingPage);
+    LoadingLabels[Row].Parent := LoadingPage.Surface;
+    LoadingLabels[Row].Left := ScaleX(56);
+    LoadingLabels[Row].Top := LoadingStatusLabels[Row].Top + ScaleY(4);
+    LoadingLabels[Row].Width := LoadingPage.SurfaceWidth - ScaleX(68);
+    LoadingLabels[Row].Height := ScaleY(32);
+    LoadingLabels[Row].AutoSize := False;
+    LoadingLabels[Row].WordWrap := True;
+    LoadingLabels[Row].Anchors := [akLeft, akTop, akRight];
+  end;
+  LoadingLabels[0].Caption := ExpandConstant('{cm:RequirementDirectoryLayout}');
+  LoadingLabels[1].Caption := ExpandConstant('{cm:RequirementHeroesData}');
+  LoadingLabels[2].Caption := ExpandConstant('{cm:ScanningFiles}');
+
+  DirSelectPage := CreateCustomPage(LoadingPage.ID,
     SetupMessage(msgWizardSelectDir), SetupMessage(msgSelectDirDesc));
 
   TopY := ScaleY(6);
@@ -3128,6 +3246,14 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False; // Default is not to skip the page
 
+  // Returning from the directory page must not repeat completed scans. Silent
+  // setup runs these stages before directory validation or payload installation.
+  if Assigned(LoadingPage) and (PageID = LoadingPage.ID) then
+  begin
+    Result := WizardSilent or (LoadingStep = 3);
+    Exit;
+  end;
+
   // The custom page handles both application and user-data locations.
   if PageID = wpSelectDir then
   begin
@@ -3177,6 +3303,19 @@ procedure CurPageChanged(CurPageID: Integer);
 begin
   // Ensure the footer message is visible on every page
   FooterLabel.Visible := True;
+  if Assigned(LoadingPage) and (CurPageID = LoadingPage.ID) then
+  begin
+    WizardForm.BackButton.Enabled := False;
+    WizardForm.NextButton.Enabled := False;
+    // A timer failure must not leave preparation waiting forever. Complete the
+    // same stages with repainting and allow manual navigation in that rare case.
+    if HoverPreviewTimerID = 0 then
+    begin
+      while (LoadingStep < 3) and not LoadingFailed do
+        ProcessInstallerLoading();
+      WizardForm.NextButton.Enabled := not LoadingFailed;
+    end;
+  end;
   if Assigned(InstallModePage) and (CurPageID = InstallModePage.ID) then
     UpdateInstallModeLayout();
   if Assigned(RequirementsPage) and (CurPageID = RequirementsPage.ID) then
@@ -3189,6 +3328,12 @@ end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
+  if Assigned(LoadingPage) and (CurPageID = LoadingPage.ID) then
+  begin
+    Result := (LoadingStep = 3) and not LoadingFailed;
+    Exit;
+  end;
+
   // Skip the custom page on upgrade
   if IsUpgrade and Assigned(InstallModePage) and (CurPageID = InstallModePage.ID) then
   begin
@@ -3218,6 +3363,9 @@ begin
 
   if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
   begin
+    // Silent mode does not display the loading page, but needs the same results.
+    while LoadingStep < 3 do
+      RunInstallerLoadingStep();
     // Validate install dir
     if not EnsureNonEmptyDir(SetupMessage(msgSelectDirLabel3), InstallDirEdit.Text) then
     begin
@@ -3684,6 +3832,9 @@ end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
+  // Upgrades skip directory selection; silent upgrades still need preparation.
+  while LoadingStep < 3 do
+    RunInstallerLoadingStep();
   Result := '';
   { PrepareToInstall runs before Inno starts copying the new payload. Running a
     legacy uninstaller from a [Files] callback is too late: it may delete files

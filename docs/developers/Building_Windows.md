@@ -512,6 +512,13 @@ Setup performs state-changing operations in this order:
 Heroes III discovery checks known GOG and original CD registry entries, Ubisoft
 Connect, and Steam. Every candidate is validated before it is accepted, so a
 stale registry entry does not prevent later candidates from being considered.
+A preparation page before directory selection runs three stages: directory/cloud
+setup, Heroes III discovery, and source file statistics. The existing UI timer
+starts one synchronous stage per tick after the page is visible. Each completed
+stage receives a checkmark, then Setup advances automatically; completed stages
+are skipped when navigating back. A slow individual stage can still delay input:
+this is deferred initialization, not a background thread. Silent setup performs
+the same stages before directory validation or, for upgrades, before installation.
 Import merges regular directories and files without following junctions or
 symbolic links. Invalid destination trees are repaired by copying with overwrite
 enabled; already valid Heroes III trees are left untouched. The source
