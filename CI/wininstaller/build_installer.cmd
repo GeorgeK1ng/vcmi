@@ -120,9 +120,9 @@ if not exist "%InstallerPluginPath%\installerPlugin.dll" (
 )
 
 REM Fetch the pinned Inno Setup community translations not bundled with ISCC.
-where curl.exe >nul 2>&1
+where bitsadmin.exe >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: curl.exe is required to download Inno Setup translations.
+    echo ERROR: bitsadmin.exe is required to download Inno Setup translations.
     exit /b 1
 )
 if not exist "%UnofficialLangPath%\" (
@@ -132,7 +132,7 @@ if not exist "%UnofficialLangPath%\" (
 set "InnoLanguageTag=is-7_1_0"
 for %%L in (Belarusian.isl Greek.isl Latvian.isl Romanian.isl SerbianCyrillic.isl Vietnamese.isl) do (
     echo Downloading Inno Setup language: %%L
-    curl.exe --fail --location --retry 2 --silent --show-error --output "!UnofficialLangPath!\%%L.download" "https://raw.githubusercontent.com/jrsoftware/issrc/!InnoLanguageTag!/Files/Languages/Unofficial/%%L"
+    bitsadmin.exe /transfer "VCMI-Inno-!RANDOM!" /download /priority foreground "https://raw.githubusercontent.com/jrsoftware/issrc/!InnoLanguageTag!/Files/Languages/Unofficial/%%L" "!UnofficialLangPath!\%%L.download"
     if errorlevel 1 exit /b 1
     move /y "!UnofficialLangPath!\%%L.download" "!UnofficialLangPath!\%%L" >nul
     if errorlevel 1 exit /b 1

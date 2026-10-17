@@ -36,7 +36,7 @@ VCMI uses an Inno Setup installer that supports multiple languages. To add a new
      `Unofficial` directory of [Inno Setup Languages](https://github.com/jrsoftware/issrc/tree/main/Files/Languages).
    - Do not copy the complete upstream file into VCMI. Official translations
      are loaded from the installed compiler and required community translations
-     are downloaded with `curl.exe` by `CI/wininstaller/build_installer.cmd`.
+     are downloaded with `bitsadmin.exe` by `CI/wininstaller/build_installer.cmd`.
 
 2. **Add custom VCMI messages:**
    - Copy `CI/wininstaller/lang/English.isl` to a new overlay file and translate
