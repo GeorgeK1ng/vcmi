@@ -37,6 +37,16 @@ AboutProjectView::AboutProjectView(QWidget * parent)
 	, ui(std::make_unique<Ui::AboutProjectView>())
 {
 	ui->setupUi(this);
+	dataManager = std::make_unique<datamanager>(this, [this](const QString & changedLogPath)
+	{
+		directoriesChanged(changedLogPath);
+	});
+	connect(ui->migrationWizard, &QPushButton::clicked, this, [this] { migrateUserData(false); });
+	connect(ui->migrationStartupPrompt, &QCheckBox::toggled, this, [this](bool enabled)
+	{
+		dataManager->setMigrationPromptEnabled(enabled);
+		refreshDirectoryPaths();
+	});
 
 	refreshDirectoryPaths();
 	ui->lineEditGameDir->setText(pathToQString(boost::filesystem::absolute(VCMIDirs::get().binaryPath())));
@@ -66,13 +76,10 @@ AboutProjectView::AboutProjectView(QWidget * parent)
 
 AboutProjectView::~AboutProjectView() = default;
 
-void AboutProjectView::migrateUserData()
+void AboutProjectView::migrateUserData(bool automatic)
 {
-	datamanager manager(this, [this](const QString & changedLogPath)
-	{
-		directoriesChanged(changedLogPath);
-	});
-	manager.migrateUserData();
+	dataManager->migrateUserData(automatic);
+	refreshDirectoryPaths();
 }
 
 void AboutProjectView::refreshDirectoryPaths()
@@ -83,6 +90,17 @@ void AboutProjectView::refreshDirectoryPaths()
 	ui->lineEditConfigDir->setText(pathToQString(dirs.userConfigPath()));
 	ui->lineEditLogsDir->setText(pathToQString(dirs.userLogsPath()));
 	ui->lineEditSaveDir->setText(pathToQString(dirs.userSavePath()));
+	const bool migrationAvailable = !dirs.userDataMigrationPath().empty();
+	ui->migrationStatus->setVisible(dirs.supportsUserPathChange());
+	ui->migrationWizard->setVisible(dirs.supportsUserPathChange());
+	ui->migrationStartupPrompt->setVisible(dirs.supportsUserPathChange());
+	ui->migrationWizard->setEnabled(migrationAvailable);
+	ui->migrationStartupPrompt->setEnabled(migrationAvailable);
+	const QSignalBlocker blocker(ui->migrationStartupPrompt);
+	ui->migrationStartupPrompt->setChecked(dataManager->migrationPromptEnabled());
+	ui->migrationStatus->setText(migrationAvailable
+		? tr("Your data is in cloud storage. The migration wizard can copy it to a local directory without deleting the originals.")
+		: tr("You can change the current data location at any time using the Change buttons."));
 }
 
 void AboutProjectView::changeEvent(QEvent * event)
@@ -120,11 +138,7 @@ void AboutProjectView::on_openConfigDir_clicked()
 
 void AboutProjectView::changeDirectory(EUserDirectory directory, const QString & title)
 {
-	datamanager manager(this, [this](const QString & changedLogPath)
-	{
-		directoriesChanged(changedLogPath);
-	});
-	manager.changeDirectory(directory, title);
+	dataManager->changeDirectory(directory, title);
 }
 
 void AboutProjectView::directoriesChanged(const QString & changedLogPath)

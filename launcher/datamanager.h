@@ -21,7 +21,9 @@ class datamanager final : public QObject
 public:
 	datamanager(QWidget * parent, std::function<void(const QString &)> onDirectoriesChanged);
 	void changeDirectory(EUserDirectory directory, const QString & title) const;
-	void migrateUserData() const;
+	void migrateUserData(bool automatic = true) const;
+	bool migrationPromptEnabled() const;
+	bool setMigrationPromptEnabled(bool enabled) const;
 
 private:
 	QWidget * parent;

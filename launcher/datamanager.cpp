@@ -15,6 +15,8 @@
 #include <QStorageInfo>
 #include <QTemporaryFile>
 #include <QUuid>
+#include <QWizard>
+#include <QWizardPage>
 
 #if defined(VCMI_WINDOWS)
 #include <shellapi.h>
@@ -29,6 +31,7 @@
 
 #include "../lib/ScopeGuard.h"
 #include "../lib/VCMIDirs.h"
+#include "../vcmiqt/launcherdirs.h"
 
 datamanager::datamanager(QWidget * parent, std::function<void(const QString &)> onDirectoriesChanged)
 	: QObject(parent)
@@ -697,6 +700,11 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			copyDialog.setIcon(QMessageBox::Warning);
 			copyDialog.setInformativeText(tr("There is not enough free space to copy the existing data."));
 			copyDialog.button(QMessageBox::Yes)->setEnabled(false);
+			if(!migrationTarget.isEmpty())
+			{
+				QMessageBox::critical(parent, tr("Not enough free space"), spaceDetails);
+				return EChangeResult::SELECT_ANOTHER;
+			}
 		}
 
 		QCheckBox moveCheckBox(tr("Move existing data (remove the original files after a successful reload)"));
@@ -704,7 +712,9 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 		if(migrationTarget.isEmpty())
 			copyDialog.setCheckBox(&moveCheckBox);
 
-		const auto answer = static_cast<QMessageBox::StandardButton>(copyDialog.exec());
+		const auto answer = migrationTarget.isEmpty()
+			? static_cast<QMessageBox::StandardButton>(copyDialog.exec())
+			: QMessageBox::Yes;
 
 		if(answer == QMessageBox::Cancel)
 			return EChangeResult::DONE;
@@ -985,34 +995,101 @@ void datamanager::changeDirectory(EUserDirectory directory, const QString & titl
 	}
 }
 
-void datamanager::migrateUserData() const
+bool datamanager::migrationPromptEnabled() const
 {
-	auto & dirs = VCMIDirs::get();
-	QString target = pathToQString(dirs.userDataMigrationPath());
-	if(target.isEmpty())
-		return;
+	const auto preferences = CLauncherDirs::getSettings(Ui::appName);
+	const QStringList ignoredSources = preferences.value(QStringLiteral("dataMigration/ignoredSources")).toStringList();
+	return !ignoredSources.contains(normalizedPath(pathToQString(VCMIDirs::get().userDataPath())), pathCaseSensitivity());
+}
 
-	const QString source = pathToQString(dirs.userDataPath());
-	QMessageBox dialog(QMessageBox::Question, tr("Existing VCMI data found"),
-		tr("VCMI is using your existing data in a cloud-synchronized Documents directory:\n%1\n\n"
-			"Copy it to a local directory to avoid synchronization conflicts:\n%2\n\n"
-			"Your game data, mods, settings, and saved games will be copied. The original files will be kept. "
-			"Directories you configured separately will keep their current locations.")
-			.arg(QDir::toNativeSeparators(source), QDir::toNativeSeparators(target)),
-		QMessageBox::NoButton, parent);
-	auto * copyButton = dialog.addButton(tr("Copy to local directory"), QMessageBox::AcceptRole);
-	auto * keepButton = dialog.addButton(tr("Keep current directory"), QMessageBox::ActionRole);
-	dialog.addButton(QMessageBox::Cancel);
-	dialog.setDefaultButton(copyButton);
-	dialog.exec();
-
-	if(dialog.clickedButton() == keepButton)
+bool datamanager::setMigrationPromptEnabled(bool enabled) const
+{
+	auto preferences = CLauncherDirs::getSettings(Ui::appName);
+	const auto key = QStringLiteral("dataMigration/ignoredSources");
+	QStringList ignoredSources = preferences.value(key).toStringList();
+	const QString source = normalizedPath(pathToQString(VCMIDirs::get().userDataPath()));
+	ignoredSources.erase(std::remove_if(ignoredSources.begin(), ignoredSources.end(), [&](const QString & path)
 	{
-		if(!dirs.setUserPath(EUserDirectory::DATA, qstringToPath(source)))
-			QMessageBox::critical(parent, tr("Error"), tr("Failed to save the directory setting."));
+		return path.compare(source, pathCaseSensitivity()) == 0;
+	}), ignoredSources.end());
+	if(!enabled)
+		ignoredSources.push_back(source);
+	preferences.setValue(key, ignoredSources);
+	preferences.sync();
+	if(preferences.status() == QSettings::NoError)
+		return true;
+
+	QMessageBox::warning(parent, tr("Preferences not saved"), tr("The launcher could not save your migration preference. The wizard may appear again at the next startup."));
+	return false;
+}
+
+void datamanager::migrateUserData(bool automatic) const
+{
+	const auto & dirs = VCMIDirs::get();
+	QString target = pathToQString(dirs.userDataMigrationPath());
+	if(target.isEmpty() || (automatic && !migrationPromptEnabled()))
 		return;
-	}
-	if(dialog.clickedButton() != copyButton)
+
+	QWizard wizard(parent);
+	wizard.setWindowTitle(tr("VCMI data migration"));
+	wizard.setWizardStyle(QWizard::ModernStyle);
+	wizard.setOption(QWizard::NoBackButtonOnStartPage);
+	wizard.setOption(QWizard::HaveCustomButton1);
+	wizard.setButtonText(QWizard::CancelButton, tr("Remind me next time"));
+	wizard.setButtonText(QWizard::CustomButton1, tr("Don't ask again"));
+	wizard.setButtonText(QWizard::FinishButton, tr("Copy data"));
+	wizard.setButtonLayout({QWizard::BackButton, QWizard::Stretch, QWizard::CustomButton1,
+		QWizard::CancelButton, QWizard::NextButton, QWizard::FinishButton});
+	connect(&wizard, &QWizard::customButtonClicked, &wizard, [this, &wizard](int button)
+	{
+		if(button == QWizard::CustomButton1 && setMigrationPromptEnabled(false))
+			wizard.reject();
+	});
+
+	auto * introduction = new QWizardPage(&wizard);
+	introduction->setTitle(tr("Keep your VCMI data available"));
+	introduction->setSubTitle(tr("Your current data directory is synchronized with cloud storage."));
+	auto * introductionLayout = new QVBoxLayout(introduction);
+	auto * explanation = new QLabel(tr("Cloud synchronization can lock files or create conflicts while you install mods, play, or save a game. "
+		"This wizard can copy your existing VCMI data to a local directory.\n\n"
+		"Your current files remain in use until copying finishes, and the originals will not be deleted. "
+		"Directories you configured separately keep their current locations.\n\n"
+		"You can postpone migration or stop automatic reminders. You can always reopen this wizard under About → Data Directories."), introduction);
+	explanation->setWordWrap(true);
+	introductionLayout->addWidget(explanation);
+	wizard.addPage(introduction);
+
+	auto * review = new QWizardPage(&wizard);
+	review->setTitle(tr("Review the copy destination"));
+	review->setSubTitle(tr("Game data, mods, settings, and saved games in the current directory will be copied."));
+	auto * reviewLayout = new QFormLayout(review);
+	auto * source = new QLineEdit(QDir::toNativeSeparators(pathToQString(dirs.userDataPath())), review);
+	source->setReadOnly(true);
+	reviewLayout->addRow(tr("Current directory:"), source);
+	auto * destination = new QLineEdit(QDir::toNativeSeparators(target), review);
+	destination->setReadOnly(true);
+	auto * destinationLayout = new QHBoxLayout();
+	destinationLayout->addWidget(destination);
+	auto * browse = new QPushButton(tr("Browse..."), review);
+	destinationLayout->addWidget(browse);
+	reviewLayout->addRow(tr("Local directory:"), destinationLayout);
+	connect(browse, &QPushButton::clicked, &wizard, [&]()
+	{
+		const QString selected = QFileDialog::getExistingDirectory(&wizard, tr("Select user data directory"), target);
+		if(!selected.isEmpty())
+		{
+			target = selected;
+			destination->setText(QDir::toNativeSeparators(target));
+		}
+	});
+	auto * details = new QLabel(tr("Free space and directory permissions will be checked before copying. "
+		"If the destination already contains files, you will choose how to handle them. "
+		"The launcher will reload the copied data before using the new location."), review);
+	details->setWordWrap(true);
+	reviewLayout->addRow(details);
+	wizard.addPage(review);
+
+	if(wizard.exec() != QDialog::Accepted)
 		return;
 
 	const QString title = tr("Select user data directory");

@@ -353,12 +353,12 @@ bfs::path VCMIDirsWIN32::userDataPath() const
 
 bfs::path VCMIDirsWIN32::userDataMigrationPath() const
 {
-	const auto configuredPath = getPathFromConfigOrDefault("userDataPath", [] { return bfs::path(); });
-	if(!configuredPath.empty())
+	const auto source = userDataPath();
+	if(!WindowsCloud::isCloudStoragePath(source.c_str()))
 		return {};
 
 	const auto target = getDefaultUserDataPath();
-	if(!target.is_absolute() || _wcsicmp(userDataPath().c_str(), target.c_str()) == 0)
+	if(!target.is_absolute() || _wcsicmp(source.c_str(), target.c_str()) == 0 || WindowsCloud::isCloudStoragePath(target.c_str()))
 		return {};
 
 	return target;

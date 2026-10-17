@@ -16,6 +16,7 @@ class AboutProjectView;
 }
 
 enum class EUserDirectory;
+class datamanager;
 
 class AboutProjectView : public QWidget
 {
@@ -24,7 +25,7 @@ class AboutProjectView : public QWidget
 public:
 	explicit AboutProjectView(QWidget * parent = nullptr);
 	~AboutProjectView() override;
-	void migrateUserData();
+	void migrateUserData(bool automatic = true);
 
 signals:
 	void logDirectoryChanged(const QString & path);
@@ -77,4 +78,5 @@ private:
 	void directoriesChanged(const QString & changedLogPath);
 
 	std::unique_ptr<Ui::AboutProjectView> ui;
+	std::unique_ptr<datamanager> dataManager;
 };

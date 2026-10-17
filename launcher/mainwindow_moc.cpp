@@ -152,7 +152,7 @@ MainWindow::MainWindow(QWidget * parent)
 		UpdateDialog::showUpdateDialog(false);
 
 #ifdef VCMI_WINDOWS
-	QTimer::singleShot(0, ui->aboutView, &AboutProjectView::migrateUserData);
+	QTimer::singleShot(0, this, [this] { ui->aboutView->migrateUserData(); });
 #endif
 }
 

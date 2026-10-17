@@ -328,6 +328,30 @@
        </property>
       </widget>
      </item>
+     <item row="10" column="0" colspan="4">
+      <widget class="QLabel" name="migrationStatus">
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0" colspan="2">
+      <widget class="QCheckBox" name="migrationStartupPrompt">
+       <property name="text">
+        <string>Offer data migration at startup for this directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="2" colspan="2">
+      <widget class="QPushButton" name="migrationWizard">
+       <property name="text">
+        <string>Migration wizard...</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
