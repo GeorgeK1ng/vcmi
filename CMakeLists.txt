@@ -92,6 +92,9 @@ endif()
 
 if(MSVC)
 	option(ENABLE_MULTI_PROCESS_BUILDS "Enable /MP flag for MSVS solution" ON)
+endif()
+
+if(WIN32)
 	option(ENABLE_COPY_CONAN_RUNTIME_DLLS "Copy Conan runtime DLLs to target output (and run windeployqt for Qt apps) on Windows" ON)
 endif()
 

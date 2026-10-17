@@ -160,7 +160,7 @@ function(vcmi_deploy_qt deployQtToolName deployQtOptions)
 endfunction()
 
 function(vcmi_deploy_qt_runtime targetBinary)
-	if(NOT WIN32)
+	if(NOT WIN32 OR NOT ENABLE_COPY_CONAN_RUNTIME_DLLS)
 		return()
 	endif()
 
@@ -168,10 +168,10 @@ function(vcmi_deploy_qt_runtime targetBinary)
 	if(TOOL_WINDEPLOYQT)
 		add_custom_command(TARGET ${targetBinary} POST_BUILD
 			COMMAND ${CMAKE_COMMAND}
-				"-DLOCK_FILE=${CMAKE_BINARY_DIR}/windeployqt.lock"
+				"-DLOCK_FILE=${CMAKE_BINARY_DIR}/runtime-deploy.lock"
 				"-DWINDEPLOYQT=${TOOL_WINDEPLOYQT}"
 				"-DTARGET_FILE=$<TARGET_FILE:${targetBinary}>"
-				-P "${CMAKE_SOURCE_DIR}/cmake_modules/RunWinDeployQtLocked.cmake"
+				-P "${CMAKE_SOURCE_DIR}/cmake_modules/DeployWindowsRuntime.cmake"
 			VERBATIM
 		)
 	else()
@@ -181,12 +181,15 @@ endfunction()
 
 # Copy runtime dependencies from CONAN_RUNTIME_LIBS_FILE to target output directory
 function(vcmi_copy_conan_runtime_deps tgt)
-	if(WIN32 AND USING_CONAN AND EXISTS "${CONAN_RUNTIME_LIBS_FILE}")
+	if(WIN32 AND ENABLE_COPY_CONAN_RUNTIME_DLLS AND USING_CONAN AND EXISTS "${CONAN_RUNTIME_LIBS_FILE}")
 		file(STRINGS "${CONAN_RUNTIME_LIBS_FILE}" runtimeLibs)
 		if(runtimeLibs)
 			add_custom_command(TARGET ${tgt} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different ${runtimeLibs} "$<TARGET_FILE_DIR:${tgt}>"
-				COMMAND_EXPAND_LISTS
+				COMMAND ${CMAKE_COMMAND}
+					"-DLOCK_FILE=${CMAKE_BINARY_DIR}/runtime-deploy.lock"
+					"-DRUNTIME_LIBS_FILE=${CONAN_RUNTIME_LIBS_FILE}"
+					"-DTARGET_FILE=$<TARGET_FILE:${tgt}>"
+					-P "${CMAKE_SOURCE_DIR}/cmake_modules/DeployWindowsRuntime.cmake"
 				VERBATIM
 			)
 		endif()
