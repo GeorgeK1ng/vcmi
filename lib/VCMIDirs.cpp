@@ -154,9 +154,6 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 		bool setPathInRegistry(const std::string & key, const bfs::path & path) const;
 		void removePathFromRegistry(const std::string & key) const;
 		bfs::path getDefaultUserDataPath() const;
-
-		std::wstring utf8ToWstring(const std::string & str) const;
-		std::string pathToUtf8(const bfs::path & path) const;
 };
 
 
@@ -185,7 +182,7 @@ VCMIDirsWIN32::VCMIDirsWIN32()
 		return;
 
 	std::string buffer((std::istreambuf_iterator<char>(in)), {});
-	dirsConfig = std::make_unique<JsonNode>(buffer.data(), buffer.size(), pathToUtf8(dirsConfigPath));
+	dirsConfig = std::make_unique<JsonNode>(buffer.data(), buffer.size(), TextOperations::filesystemPathToUtf8(dirsConfigPath));
 }
 
 bool VCMIDirsWIN32::setPathInConfig(const std::string & key, const bfs::path & path)
@@ -195,7 +192,7 @@ bool VCMIDirsWIN32::setPathInConfig(const std::string & key, const bfs::path & p
 		JsonNode updatedConfig = dirsConfig ? *dirsConfig : JsonNode(JsonMap{});
 		bfs::path preferredPath = path;
 		preferredPath.make_preferred();
-		updatedConfig[key].String() = pathToUtf8(preferredPath);
+		updatedConfig[key].String() = TextOperations::filesystemPathToUtf8(preferredPath);
 		bfs::create_directories(dirsConfigPath.parent_path());
 
 		bfs::path temporaryPath = dirsConfigPath;
@@ -224,7 +221,8 @@ bool VCMIDirsWIN32::setPathInConfig(const std::string & key, const bfs::path & p
 	}
 	catch(const bfs::filesystem_error & e)
 	{
-		logGlobal->warn("Failed to save user directory '%s' to %s: %s. Falling back to the current user's registry.", key, pathToUtf8(dirsConfigPath), e.what());
+		logGlobal->warn("Failed to save user directory '%s' to %s: %s. Falling back to the current user's registry.",
+			key, TextOperations::filesystemPathToUtf8(dirsConfigPath), e.what());
 		if(!setPathInRegistry(key, path))
 			return false;
 
@@ -235,8 +233,8 @@ bool VCMIDirsWIN32::setPathInConfig(const std::string & key, const bfs::path & p
 
 std::optional<bfs::path> VCMIDirsWIN32::getPathFromRegistry(const std::string & key) const
 {
-	const std::wstring valueName = utf8ToWstring(key);
-	if(const auto path = readCurrentUserRegistryString(L"Software\\VCMI", valueName))
+	const std::wstring valueName = TextOperations::Utf8TofilesystemPath(key).wstring();
+	if(const auto path = WindowsRegistry::readCurrentUserRegistryString(L"Software\\VCMI", valueName))
 		return bfs::path(*path);
 	return std::nullopt;
 }
@@ -245,9 +243,9 @@ bool VCMIDirsWIN32::setPathInRegistry(const std::string & key, const bfs::path &
 {
 	bfs::path preferredPath = path;
 	preferredPath.make_preferred();
-	const std::wstring valueName = utf8ToWstring(key);
+	const std::wstring valueName = TextOperations::Utf8TofilesystemPath(key).wstring();
 	const std::wstring value = preferredPath.wstring();
-	if(!writeCurrentUserRegistryString(L"Software\\VCMI", valueName, value))
+	if(!WindowsRegistry::writeCurrentUserRegistryString(L"Software\\VCMI", valueName, value))
 		return false;
 
 	const auto savedPath = getPathFromRegistry(key);
@@ -256,7 +254,7 @@ bool VCMIDirsWIN32::setPathInRegistry(const std::string & key, const bfs::path &
 
 void VCMIDirsWIN32::removePathFromRegistry(const std::string & key) const
 {
-	removeCurrentUserRegistryValue(L"Software\\VCMI", utf8ToWstring(key));
+	WindowsRegistry::removeCurrentUserRegistryValue(L"Software\\VCMI", TextOperations::Utf8TofilesystemPath(key).wstring());
 }
 
 bool VCMIDirsWIN32::setUserPath(EUserDirectory directory, const bfs::path & path)
@@ -282,27 +280,6 @@ bool VCMIDirsWIN32::supportsUserPathChange() const
 	return true;
 }
 
-std::string VCMIDirsWIN32::pathToUtf8(const bfs::path & path) const
-{
-	return TextOperations::filesystemPathToUtf8(path);
-}
-
-std::wstring VCMIDirsWIN32::utf8ToWstring(const std::string & str) const
-{
-	if(str.empty())
-		return {};
-
-	const int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.data(), static_cast<int>(str.size()), nullptr, 0);
-	if(size <= 0)
-		return {};
-
-	std::wstring result(size, L'\0');
-	if(MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.data(), static_cast<int>(str.size()), result.data(), size) != size)
-		return {};
-
-	return result;
-}
-
 template<typename Fallback>
 bfs::path VCMIDirsWIN32::getPathFromConfigOrDefault(
 	const std::string & key, Fallback && fallbackFunc) const
@@ -317,7 +294,7 @@ bfs::path VCMIDirsWIN32::getPathFromConfigOrDefault(
 	if (!node.isString())
 		return fallbackFunc();
 
-	const std::wstring raw = utf8ToWstring(node.String());
+	const std::wstring raw = TextOperations::Utf8TofilesystemPath(node.String()).wstring();
 	if(raw.empty())
 		return fallbackFunc();
 
@@ -340,7 +317,7 @@ bfs::path VCMIDirsWIN32::getDefaultUserDataPath() const
 	if(SHGetSpecialFolderPathW(nullptr, profileDir, CSIDL_MYDOCUMENTS, FALSE) != FALSE)
 	{
 		const bfs::path documentsPath(profileDir);
-		if(!VCMI::Windows::isCloudStoragePath(documentsPath.c_str()))
+		if(!WindowsCloud::isCloudStoragePath(documentsPath.c_str()))
 			return documentsPath / userDataParentDirectoryName / applicationName;
 	}
 

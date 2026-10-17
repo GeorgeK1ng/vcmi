@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include <optional>
-#include <string>
-
-std::optional<std::wstring> readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName);
-bool writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value);
-void removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName);
+namespace WindowsRegistry
+{
+	std::optional<std::wstring> readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName);
+	bool writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value);
+	void removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName);
+}

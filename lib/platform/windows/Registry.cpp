@@ -59,7 +59,7 @@ std::optional<std::wstring> readString(const std::wstring & subKey, const std::w
 }
 }
 
-std::optional<std::wstring> readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName)
+std::optional<std::wstring> WindowsRegistry::readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName)
 {
 	if(const auto value = readString(subKey, valueName, KEY_WOW64_64KEY))
 		return value;
@@ -67,7 +67,7 @@ std::optional<std::wstring> readCurrentUserRegistryString(const std::wstring & s
 	return readString(subKey, valueName, KEY_WOW64_32KEY);
 }
 
-bool writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value)
+bool WindowsRegistry::writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value)
 {
 	HKEY registryKey = nullptr;
 	if(RegCreateKeyExW(HKEY_CURRENT_USER, subKey.c_str(), 0, nullptr, 0, KEY_SET_VALUE | KEY_WOW64_64KEY, nullptr, &registryKey, nullptr) != ERROR_SUCCESS
@@ -80,7 +80,7 @@ bool writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstr
 	return RegSetKeyValueW(registryKey, nullptr, valueName.c_str(), REG_SZ, value.c_str(), valueSize) == ERROR_SUCCESS;
 }
 
-void removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName)
+void WindowsRegistry::removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName)
 {
 	for(const REGSAM registryView : { KEY_WOW64_64KEY, KEY_WOW64_32KEY })
 	{
