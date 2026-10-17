@@ -3305,7 +3305,9 @@ begin
   FooterLabel.Visible := True;
   if Assigned(LoadingPage) and (CurPageID = LoadingPage.ID) then
   begin
-    WizardForm.BackButton.Enabled := False;
+    // Inno restores BackButton.Visible on page changes, but not its Enabled
+    // state. Hide it here so navigation works again on the directory page.
+    WizardForm.BackButton.Visible := False;
     WizardForm.NextButton.Enabled := False;
     // A timer failure must not leave preparation waiting forever. Complete the
     // same stages with repainting and allow manual navigation in that rare case.
