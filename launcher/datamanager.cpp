@@ -173,8 +173,8 @@ datamanager::ETargetConfirmation datamanager::confirmSynchronizedTarget(EUserDir
 {
 #if defined(VCMI_WINDOWS)
 	const std::wstring nativeTarget = QDir::toNativeSeparators(target).toStdWString();
-	const bool isOneDrive = VCMI::Windows::isOneDrivePath(nativeTarget.c_str());
-	const bool isCloudStorage = isOneDrive || VCMI::Windows::isCloudStoragePath(nativeTarget.c_str());
+	const bool isOneDrive = WindowsCloud::isOneDrivePath(nativeTarget.c_str());
+	const bool isCloudStorage = isOneDrive || WindowsCloud::isCloudStoragePath(nativeTarget.c_str());
 	logGlobal->debug("User directory synchronization check for '%s': OneDrive=%d, cloud=%d", target.toStdString(), isOneDrive, isCloudStorage);
 	if(!isCloudStorage)
 		return ETargetConfirmation::ACCEPT;
@@ -292,7 +292,7 @@ bool datamanager::validateTarget(const IVCMIDirs & dirs, EUserDirectory changedD
 qint64 datamanager::directorySize(const QString & path) const
 {
 	qint64 result = 0;
-	QDirIterator iterator(path, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+	QDirIterator iterator(path, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDirIterator::Subdirectories);
 
 	while(iterator.hasNext())
 	{
@@ -338,9 +338,14 @@ bool datamanager::containsActiveUserDirectory(const IVCMIDirs & dirs, EUserDirec
 bool datamanager::copyDirectoryContents(const QString & source, const QString & destination, ProgressOverlay & progress, QString & error, bool overwrite, const QString & excludedPath) const
 {
 	QDir sourceDir(source);
+	if(!sourceDir.exists() || !sourceDir.isReadable())
+	{
+		error = tr("Failed to read directory: %1").arg(source);
+		return false;
+	}
 	int totalFiles = 0;
 
-	QDirIterator counter(source, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+	QDirIterator counter(source, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDirIterator::Subdirectories);
 	while(counter.hasNext())
 	{
 		const QString sourcePath = counter.next();
@@ -357,7 +362,7 @@ bool datamanager::copyDirectoryContents(const QString & source, const QString & 
 	progress.setRange(totalFiles);
 
 	int copiedFiles = 0;
-	QDirIterator iterator(source, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories);
+	QDirIterator iterator(source, QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System, QDirIterator::Subdirectories);
 	while(iterator.hasNext())
 	{
 		const QString sourcePath = iterator.next();
@@ -383,6 +388,12 @@ bool datamanager::copyDirectoryContents(const QString & source, const QString & 
 
 		if(sourceInfo.isDir())
 		{
+			if(!QDir(sourcePath).isReadable())
+			{
+				error = tr("Failed to read directory: %1").arg(sourcePath);
+				return false;
+			}
+
 			if(overwrite && QFileInfo(destinationPath).isFile() && !removePath(destinationPath))
 			{
 				error = tr("Failed to replace file with directory: %1").arg(destinationPath);
@@ -575,7 +586,7 @@ bool datamanager::restoreDisplacedDirectory(const QString & target, const QStrin
 	return true;
 }
 
-datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory directory, const QString & title) const
+datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory directory, const QString & title, const QString & migrationTarget) const
 {
 	auto * mainWindow = qobject_cast<MainWindow *>(parent->window());
 	auto & dirs = VCMIDirs::get();
@@ -587,13 +598,28 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 	}
 
 	const QString source = pathToQString(dirs.userPath(directory));
-	QString selected;
+	if(!migrationTarget.isEmpty() && (!QDir(source).exists() || !QDir(source).isReadable()))
+	{
+		QMessageBox::critical(parent, tr("Copy failed"), tr("Failed to read directory: %1").arg(source));
+		return EChangeResult::DONE;
+	}
+	QString selected = migrationTarget;
+	bool useMigrationTarget = !migrationTarget.isEmpty();
 	const QString binaryPath = QCoreApplication::applicationDirPath();
 	while(true)
 	{
-		selected = QFileDialog::getExistingDirectory(parent, title, selected.isEmpty() ? source : selected);
+		if(!useMigrationTarget)
+			selected = QFileDialog::getExistingDirectory(parent, title, selected.isEmpty() ? source : selected);
+		useMigrationTarget = false;
 		if(selected.isEmpty())
 			return EChangeResult::DONE;
+
+		if(!migrationTarget.isEmpty() && !QDir().mkpath(selected))
+		{
+			if(reportPermissionError(tr("The launcher could not create the data directory:\n%1\n\nSelect another location or adjust the directory permissions.").arg(QDir::toNativeSeparators(selected))))
+				return EChangeResult::SELECT_ANOTHER;
+			return EChangeResult::DONE;
+		}
 
 		logGlobal->info("Changing user directory from '%s' to '%s'", source.toStdString(), selected.toStdString());
 
@@ -651,7 +677,7 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 	};
 
 	QDir sourceDir(source);
-	if(sourceDir.exists() && !sourceDir.entryList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty())
+	if(sourceDir.exists() && !sourceDir.entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System).isEmpty())
 	{
 		const qint64 sourceSize = directorySize(source);
 		const QStorageInfo targetStorage(selected);
@@ -660,7 +686,10 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 		const QString availableSpaceText = storageSpaceKnown ? formattedDataSize(availableSpace) : tr("Unknown");
 		const QString spaceDetails = tr("Space required: %1\nSpace available: %2").arg(formattedDataSize(sourceSize), availableSpaceText);
 
-		QMessageBox copyDialog(QMessageBox::Question, tr("Copy existing data?"), tr("Do you want to copy the existing files?\n\nFrom:\n%1\n\nTo:\n%2\n\n%3\n").arg(QDir::toNativeSeparators(source), QDir::toNativeSeparators(selected), spaceDetails), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, parent);
+		const auto copyButtons = migrationTarget.isEmpty()
+			? QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel
+			: QMessageBox::Yes | QMessageBox::Cancel;
+		QMessageBox copyDialog(QMessageBox::Question, tr("Copy existing data?"), tr("Do you want to copy the existing files?\n\nFrom:\n%1\n\nTo:\n%2\n\n%3\n").arg(QDir::toNativeSeparators(source), QDir::toNativeSeparators(selected), spaceDetails), copyButtons, parent);
 		copyDialog.setDefaultButton(QMessageBox::Yes);
 
 		if(storageSpaceKnown && availableSpace < sourceSize)
@@ -672,7 +701,8 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 
 		QCheckBox moveCheckBox(tr("Move existing data (remove the original files after a successful reload)"));
 		moveCheckBox.setChecked(true);
-		copyDialog.setCheckBox(&moveCheckBox);
+		if(migrationTarget.isEmpty())
+			copyDialog.setCheckBox(&moveCheckBox);
 
 		const auto answer = static_cast<QMessageBox::StandardButton>(copyDialog.exec());
 
@@ -684,9 +714,9 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			const QString targetParent = QFileInfo(selected).dir().absolutePath();
 			const bool sameDirectoryTree = pathsOverlap(source, selected);
 
-			moveExistingData = moveCheckBox.isChecked();
+			moveExistingData = migrationTarget.isEmpty() && moveCheckBox.isChecked();
 			EExistingTargetAction targetAction = sameDirectoryTree ? EExistingTargetAction::MERGE : EExistingTargetAction::REPLACE;
-			const bool targetIsEmpty = QDir(selected).entryList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
+			const bool targetIsEmpty = QDir(selected).entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System).isEmpty();
 
 			if(!targetIsEmpty)
 			{
@@ -843,13 +873,6 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 		if(!settingRestored)
 			logGlobal->error("Failed to restore user directory setting '%s'", source.toStdString());
 
-		const bool targetRestored = restoreDisplacedDirectory(selected, displacedTargetPath);
-		if(!targetRestored)
-		{
-			logGlobal->error("Failed to restore target directory '%s' after reload error", selected.toStdString());
-			keepCustomBackup = customBackupCreated;
-		}
-
 		bool oldDirectoryReloaded = false;
 		if(settingRestored)
 		{
@@ -858,6 +881,14 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			oldDirectoryReloaded = mainWindow && mainWindow->reloadDirectories();
 			if(!oldDirectoryReloaded)
 				logGlobal->error("Failed to reload restored user directory '%s'", source.toStdString());
+		}
+
+		// Release the target's logs and archives before renaming it on Windows.
+		const bool targetRestored = restoreDisplacedDirectory(selected, displacedTargetPath);
+		if(!targetRestored)
+		{
+			logGlobal->error("Failed to restore target directory '%s' after reload error", selected.toStdString());
+			keepCustomBackup = customBackupCreated;
 		}
 
 		cancelPausedDownloadsOnExit = !settingRestored || !targetRestored || !oldDirectoryReloaded;
@@ -883,7 +914,7 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			bool removalFailed = false;
 			bool activeDirectoryKept = false;
 
-			for(const auto & entry : sourceDirectory.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries))
+			for(const auto & entry : sourceDirectory.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System))
 			{
 				const QString entryPath = entry.absoluteFilePath();
 				if(isSameOrChildPath(selected, entryPath) || (!displacedTargetPath.isEmpty() && isSameOrChildPath(displacedTargetPath, entryPath)))
@@ -921,7 +952,7 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			const bool isMyGames = parentInfo.fileName().compare(QStringLiteral("My Games"), Qt::CaseInsensitive) == 0;
 			const bool isNamedOneDrive = parentInfo.fileName().compare(QStringLiteral("OneDrive"), Qt::CaseInsensitive) == 0;
 			const std::wstring nativeParent = QDir::toNativeSeparators(parentInfo.absoluteFilePath()).toStdWString();
-			const bool isActualCloudDirectory = VCMI::Windows::isCloudStoragePath(nativeParent.c_str());
+			const bool isActualCloudDirectory = WindowsCloud::isCloudStoragePath(nativeParent.c_str());
 			if(isMyGames || (isNamedOneDrive && !isActualCloudDirectory))
 				parentInfo.dir().rmdir(parentInfo.fileName());
 		}
@@ -950,6 +981,45 @@ void datamanager::changeDirectory(EUserDirectory directory, const QString & titl
 	while(true)
 	{
 		if(changeDirectoryOnce(directory, title) == EChangeResult::DONE)
+			return;
+	}
+}
+
+void datamanager::migrateUserData() const
+{
+	auto & dirs = VCMIDirs::get();
+	QString target = pathToQString(dirs.userDataMigrationPath());
+	if(target.isEmpty())
+		return;
+
+	const QString source = pathToQString(dirs.userDataPath());
+	QMessageBox dialog(QMessageBox::Question, tr("Existing VCMI data found"),
+		tr("VCMI is using your existing data in a cloud-synchronized Documents directory:\n%1\n\n"
+			"Copy it to a local directory to avoid synchronization conflicts:\n%2\n\n"
+			"Your game data, mods, settings, and saved games will be copied. The original files will be kept. "
+			"Directories you configured separately will keep their current locations.")
+			.arg(QDir::toNativeSeparators(source), QDir::toNativeSeparators(target)),
+		QMessageBox::NoButton, parent);
+	auto * copyButton = dialog.addButton(tr("Copy to local directory"), QMessageBox::AcceptRole);
+	auto * keepButton = dialog.addButton(tr("Keep current directory"), QMessageBox::ActionRole);
+	dialog.addButton(QMessageBox::Cancel);
+	dialog.setDefaultButton(copyButton);
+	dialog.exec();
+
+	if(dialog.clickedButton() == keepButton)
+	{
+		if(!dirs.setUserPath(EUserDirectory::DATA, qstringToPath(source)))
+			QMessageBox::critical(parent, tr("Error"), tr("Failed to save the directory setting."));
+		return;
+	}
+	if(dialog.clickedButton() != copyButton)
+		return;
+
+	const QString title = tr("Select user data directory");
+	while(changeDirectoryOnce(EUserDirectory::DATA, title, target) == EChangeResult::SELECT_ANOTHER)
+	{
+		target = QFileDialog::getExistingDirectory(parent, title, target);
+		if(target.isEmpty())
 			return;
 	}
 }

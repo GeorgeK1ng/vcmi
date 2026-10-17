@@ -150,6 +150,10 @@ MainWindow::MainWindow(QWidget * parent)
 
 	if(settings["launcher"]["updateOnStartup"].Bool())
 		UpdateDialog::showUpdateDialog(false);
+
+#ifdef VCMI_WINDOWS
+	QTimer::singleShot(0, ui->aboutView, &AboutProjectView::migrateUserData);
+#endif
 }
 
 void MainWindow::reconfigureLogDirectory(const QString & path)

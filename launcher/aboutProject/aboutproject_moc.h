@@ -24,6 +24,7 @@ class AboutProjectView : public QWidget
 public:
 	explicit AboutProjectView(QWidget * parent = nullptr);
 	~AboutProjectView() override;
+	void migrateUserData();
 
 signals:
 	void logDirectoryChanged(const QString & path);

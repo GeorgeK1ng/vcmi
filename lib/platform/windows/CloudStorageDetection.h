@@ -5,8 +5,9 @@
  */
 #pragma once
 
-class WindowsCloud
+class DLL_LINKAGE WindowsCloud
 {
 public:
+	static bool isOneDrivePath(const wchar_t * path);
 	static bool isCloudStoragePath(const wchar_t * path);
 };

@@ -33,7 +33,7 @@ static bool isEnvironmentPathPrefix(const wchar_t * path, const wchar_t * variab
 	return _wcsnicmp(path, expanded.c_str(), environmentPathLength) == 0 && (path[environmentPathLength] == L'\0' || path[environmentPathLength] == L'\\' || path[environmentPathLength] == L'/');
 }
 
-static bool isOneDrivePath(const wchar_t * path)
+bool WindowsCloud::isOneDrivePath(const wchar_t * path)
 {
 	if(!path || !*path)
 		return false;

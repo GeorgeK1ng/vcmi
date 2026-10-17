@@ -68,6 +68,8 @@ public:
 	virtual bool setUserPath(EUserDirectory directory, const boost::filesystem::path & path);
 	/// Whether the launcher can expose controls backed by setUserPath().
 	virtual bool supportsUserPathChange() const;
+	/// Suggested destination for migrating an existing default user-data directory, or an empty path.
+	virtual boost::filesystem::path userDataMigrationPath() const;
 
 	/// Returns true when the path name is reserved for a directory inside the VCMI user-data root.
 	bool isReservedUserDataSubdirectory(const boost::filesystem::path & path) const;

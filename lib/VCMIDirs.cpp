@@ -30,6 +30,8 @@ bfs::path IVCMIDirs::userExtractedPath() const { return userCachePath() / "extra
 
 bfs::path IVCMIDirs::portableUserDataPath() const { return {}; }
 
+bfs::path IVCMIDirs::userDataMigrationPath() const { return {}; }
+
 std::string IVCMIDirs::genHelpString() const
 {
 	std::vector<std::string> tempVec;
@@ -140,6 +142,7 @@ class VCMIDirsWIN32 final : public IVCMIDirs
 		bfs::path portableUserDataPath() const override;
 		bool setUserPath(EUserDirectory directory, const bfs::path & path) override;
 		bool supportsUserPathChange() const override;
+		bfs::path userDataMigrationPath() const override;
 	private:
 		static constexpr auto userDataParentDirectoryName = L"My Games";
 
@@ -334,7 +337,31 @@ bfs::path VCMIDirsWIN32::portableUserDataPath() const
 
 bfs::path VCMIDirsWIN32::userDataPath() const
 {
-	return getPathFromConfigOrDefault("userDataPath", [this] { return getDefaultUserDataPath(); });
+	return getPathFromConfigOrDefault("userDataPath", [this]
+	{
+		wchar_t profileDir[MAX_PATH];
+		if(SHGetSpecialFolderPathW(nullptr, profileDir, CSIDL_MYDOCUMENTS, FALSE) != FALSE)
+		{
+			const bfs::path legacyPath = bfs::path(profileDir) / userDataParentDirectoryName / "vcmi";
+			// Keep existing installations usable until the launcher completes migration.
+			if(bfs::exists(legacyPath))
+				return legacyPath;
+		}
+		return getDefaultUserDataPath();
+	});
+}
+
+bfs::path VCMIDirsWIN32::userDataMigrationPath() const
+{
+	const auto configuredPath = getPathFromConfigOrDefault("userDataPath", [] { return bfs::path(); });
+	if(!configuredPath.empty())
+		return {};
+
+	const auto target = getDefaultUserDataPath();
+	if(!target.is_absolute() || _wcsicmp(userDataPath().c_str(), target.c_str()) == 0)
+		return {};
+
+	return target;
 }
 
 bfs::path VCMIDirsWIN32::userCachePath() const

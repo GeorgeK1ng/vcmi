@@ -66,6 +66,15 @@ AboutProjectView::AboutProjectView(QWidget * parent)
 
 AboutProjectView::~AboutProjectView() = default;
 
+void AboutProjectView::migrateUserData()
+{
+	datamanager manager(this, [this](const QString & changedLogPath)
+	{
+		directoriesChanged(changedLogPath);
+	});
+	manager.migrateUserData();
+}
+
 void AboutProjectView::refreshDirectoryPaths()
 {
 	const auto & dirs = VCMIDirs::get();
