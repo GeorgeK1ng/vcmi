@@ -309,7 +309,7 @@ var
   CommandLinePortable: Boolean;
   FirewallTaskPreviouslySelected: Boolean;
   Heroes3CopyWasAvailable: Boolean;
-  HoverPreviewTimerID: Integer;
+  HoverPreviewTimerID: NativeUInt;
   InstallModePreviewPanel, TasksPreviewPanel: TPanel;
   InstallModePreviewLabel, TasksPreviewLabel: TNewStaticText;
   CustomTaskChecks: array[0..10] of TNewCheckBox;
@@ -349,9 +349,10 @@ function GetCursorPos(var Point: TPoint): Boolean;
   external 'GetCursorPos@user32.dll stdcall';
 function ScreenToClient(Window: HWND; var Point: TPoint): Boolean;
   external 'ScreenToClient@user32.dll stdcall';
-function SetTimer(Window, EventID, Interval, TimerCallback: LongWord): LongWord;
+function SetTimer(Window: HWND; EventID: NativeUInt; Interval: Cardinal;
+  TimerCallback: NativeUInt): NativeUInt;
   external 'SetTimer@user32.dll stdcall';
-function KillTimer(Window, EventID: LongWord): Boolean;
+function KillTimer(Window: HWND; EventID: NativeUInt): BOOL;
   external 'KillTimer@user32.dll stdcall';
 
 function EnsureNonEmptyDir(const CaptionText, DirText: String): Boolean;
@@ -986,7 +987,8 @@ begin
     Result := -1;
 end;
 
-procedure HoverPreviewTimerTick(Arg1, Arg2, Arg3, Arg4: LongWord);
+procedure HoverPreviewTimerTick(Window: HWND; Message: Cardinal;
+  EventID: NativeUInt; Time: DWORD);
 var
   Index: Integer;
   PreviewText: String;
@@ -1117,11 +1119,77 @@ begin
   SetLength(Result, ExpandedSize - 1);
 end;
 
+function DecodeJsonString(const Encoded: String; var Value: String): Boolean;
+var
+  Position, Index, CodeUnit, Digit: Integer;
+  Character: Char;
+  PendingHighSurrogate: Boolean;
+begin
+  Result := False;
+  Value := '';
+  PendingHighSurrogate := False;
+  Position := 1;
+  while Position <= Length(Encoded) do
+  begin
+    Character := Encoded[Position];
+    Position := Position + 1;
+    if Character = '\' then
+    begin
+      if Position > Length(Encoded) then
+        Exit;
+      Character := Encoded[Position];
+      Position := Position + 1;
+      case Character of
+        '"', '\', '/': ;
+        'b': Character := #8;
+        'f': Character := #12;
+        'n': Character := #10;
+        'r': Character := #13;
+        't': Character := #9;
+        'u':
+          begin
+            if Position + 3 > Length(Encoded) then
+              Exit;
+            CodeUnit := 0;
+            for Index := 0 to 3 do
+            begin
+              Digit := Pos(Uppercase(Copy(Encoded, Position + Index, 1)),
+                '0123456789ABCDEF') - 1;
+              if Digit < 0 then
+                Exit;
+              CodeUnit := CodeUnit * 16 + Digit;
+            end;
+            Character := Chr(CodeUnit);
+            Position := Position + 4;
+          end;
+      else
+        Exit;
+      end;
+    end
+    else if (Ord(Character) < 32) or (Character = '"') then
+      Exit;
+
+    // Preserve valid UTF-16 pairs, including escaped non-BMP characters.
+    CodeUnit := Ord(Character);
+    if PendingHighSurrogate then
+    begin
+      if (CodeUnit < $DC00) or (CodeUnit > $DFFF) then
+        Exit;
+      PendingHighSurrogate := False;
+    end
+    else if (CodeUnit >= $D800) and (CodeUnit <= $DBFF) then
+      PendingHighSurrogate := True
+    else if (CodeUnit >= $DC00) and (CodeUnit <= $DFFF) then
+      Exit;
+    Value := Value + Character;
+  end;
+  Result := not PendingHighSurrogate;
+end;
+
 function ReadPathFromConfig(const InstallDir, Key, Fallback: String): String;
 var
   Content, ConfigFile, Value: String;
   Position, ValueStart, ValueEnd: Integer;
-  Escaped: Boolean;
 begin
   Result := Fallback;
   ConfigFile := AddBackslash(InstallDir) + 'config\dirs.json';
@@ -1130,22 +1198,15 @@ begin
 
   if not FindTopLevelJsonStringValue(Content, Key, ValueStart, ValueEnd) then
     Exit;
-
-  Position := ValueStart;
-  Escaped := False;
-  while Position < ValueEnd do
+  if not DecodeJsonString(Copy(Content, ValueStart, ValueEnd - ValueStart), Value) then
   begin
-    if Escaped then
-    begin
-      Value := Value + Content[Position];
-      Escaped := False;
-    end
-    else if Content[Position] = '\' then
-      Escaped := True
-    else
-      Value := Value + Content[Position];
-    Position := Position + 1;
+    Log('Invalid JSON string for path: ' + Key);
+    Exit;
   end;
+  // Control characters (especially NUL) cannot occur in Windows file paths.
+  for Position := 1 to Length(Value) do
+    if Ord(Value[Position]) < 32 then
+      Exit;
   Result := ExpandEnvironmentPath(Value);
 end;
 
@@ -1335,13 +1396,37 @@ begin
     or IsCloudStorageRoot(NormalizedPath);
 end;
 
+function HasUninstallReparseParent(const Path: String): Boolean;
+var
+  Directory, Parent: String;
+  Attributes: Cardinal;
+begin
+  // ExpandFileName alone cannot detect junctions in ancestor directories.
+  // Fail closed when an existing directory or any ancestor cannot be checked.
+  Result := True;
+  Directory := RemoveBackslashUnlessRoot(ExpandFileName(Path));
+  while Directory <> '' do
+  begin
+    Attributes := GetFileAttributes(Directory);
+    if (Attributes = INVALID_FILE_ATTRIBUTES)
+      or ((Attributes and FILE_ATTRIBUTE_REPARSE_POINT_VALUE) <> 0) then
+      Exit;
+    Parent := RemoveBackslashUnlessRoot(ExtractFileDir(Directory));
+    if CompareText(Parent, Directory) = 0 then
+      Break;
+    Directory := Parent;
+  end;
+  Result := False;
+end;
+
 function IsSafeUninstallRoot(const Path: String): Boolean;
 var
   NormalizedPath, UserProfile: String;
 begin
   NormalizedPath := RemoveBackslashUnlessRoot(ExpandFileName(Path));
   Result := (NormalizedPath <> '')
-    and (CompareText(NormalizedPath, AddBackslash(ExtractFileDrive(NormalizedPath))) <> 0);
+    and (CompareText(NormalizedPath, AddBackslash(ExtractFileDrive(NormalizedPath))) <> 0)
+    and not HasUninstallReparseParent(NormalizedPath);
   if not Result then
     Exit;
 
@@ -1794,7 +1879,7 @@ begin
   // Cloud sync clients can temporarily lock files while VCMI is writing them.
   // Prefer Local AppData whenever Documents belongs to OneDrive or another registered provider.
   if IsCloudStoragePath(GlobalUserDocsFolder) then
-    DefaultDataDir := GlobalUserAppdataFolder + '\VCMI'
+    DefaultDataDir := GlobalUserLocalAppdataFolder + '\VCMI'
   else
     DefaultDataDir := GlobalUserDocsFolder + '\' + '{#VCMIFilesFolder}';
   if CommandLineUserDataDir <> '' then
@@ -3786,6 +3871,8 @@ var
   SubPath: String;
 begin
   Result := 0;
+  if HasUninstallReparseParent(FolderPath) then
+    Exit;
   if FindFirst(FolderPath + '\*', FindResult) then
   begin
     try
@@ -3824,6 +3911,12 @@ var
   FindResult: TFindRec;
   SubPath, CanonicalSubPath: String;
 begin
+  Result := False;
+  if HasUninstallReparseParent(FolderPath) then
+  begin
+    Log('Refusing user-data deletion through an unchecked directory or reparse point: ' + FolderPath);
+    Exit;
+  end;
   Result := True;
 
   if FindFirst(FolderPath + '\*', FindResult) then
@@ -3903,7 +3996,8 @@ begin
     CustomProgressTotal := 0;
     for Index := 0 to UninstallPathCount - 1 do
       if (DeleteAllUserData or (Assigned(DeletePathsList) and DeletePathsList.Checked[Index]))
-        and not UninstallPathProtected[Index] and DirExists(UninstallPaths[Index]) then
+        and not UninstallPathProtected[Index] and DirExists(UninstallPaths[Index])
+        and IsSafeUninstallRoot(UninstallPaths[Index]) then
       begin
         CustomProgressTotal := CustomProgressTotal + 1;
         if not IsReparsePoint(UninstallPaths[Index]) then
@@ -3931,6 +4025,12 @@ begin
         and not UninstallPathProtected[Index] then
       begin
         FolderPath := UninstallPaths[Index];
+        if not IsSafeUninstallRoot(FolderPath)
+          or IsPathUsedByOtherInstallation(FolderPath) then
+        begin
+          Log('Refusing unsafe or shared user-data deletion root: ' + FolderPath);
+          Continue;
+        end;
         CanonicalRoot := RemoveBackslashUnlessRoot(ExpandFileName(FolderPath));
         if DirExists(FolderPath) and IsReparsePoint(FolderPath) then
         begin
