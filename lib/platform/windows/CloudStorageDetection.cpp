@@ -11,9 +11,7 @@
 
 #include <cwchar>
 
-namespace
-{
-bool isEnvironmentPathPrefix(const wchar_t * path, const wchar_t * variableName)
+static bool isEnvironmentPathPrefix(const wchar_t * path, const wchar_t * variableName)
 {
 	const DWORD requiredSize = GetEnvironmentVariableW(variableName, nullptr, 0);
 	if(requiredSize == 0)
@@ -35,14 +33,13 @@ bool isEnvironmentPathPrefix(const wchar_t * path, const wchar_t * variableName)
 	return _wcsnicmp(path, expanded.c_str(), environmentPathLength) == 0 && (path[environmentPathLength] == L'\0' || path[environmentPathLength] == L'\\' || path[environmentPathLength] == L'/');
 }
 
-bool isOneDrivePath(const wchar_t * path)
+static bool isOneDrivePath(const wchar_t * path)
 {
 	if(!path || !*path)
 		return false;
 
 	// OneDrive exposes different variables for personal and organization accounts.
 	return isEnvironmentPathPrefix(path, L"OneDrive") || isEnvironmentPathPrefix(path, L"OneDriveConsumer") || isEnvironmentPathPrefix(path, L"OneDriveCommercial");
-}
 }
 
 bool WindowsCloud::isCloudStoragePath(const wchar_t * path)
