@@ -724,7 +724,7 @@ datamanager::EChangeResult datamanager::changeDirectoryOnce(EUserDirectory direc
 			const QString targetParent = QFileInfo(selected).dir().absolutePath();
 			const bool sameDirectoryTree = pathsOverlap(source, selected);
 
-			moveExistingData = migrationTarget.isEmpty() && moveCheckBox.isChecked();
+			moveExistingData = !migrationTarget.isEmpty() || moveCheckBox.isChecked();
 			EExistingTargetAction targetAction = sameDirectoryTree ? EExistingTargetAction::MERGE : EExistingTargetAction::REPLACE;
 			const bool targetIsEmpty = QDir(selected).entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System).isEmpty();
 
@@ -1041,7 +1041,7 @@ void datamanager::migrateUserData(bool automatic) const
 	{
 		QMessageBox dialog(QMessageBox::Information, tr("VCMI data in cloud storage"),
 			tr("Your VCMI data is stored in a cloud-synchronized directory:\n%1\n\n"
-				"Synchronization can lock files or cause conflicts. The migration wizard can copy your data to a local directory while keeping the originals.")
+				"Synchronization can lock files or cause conflicts. The migration wizard can move your data to a local directory. Original files are removed only after a successful reload.")
 				.arg(QDir::toNativeSeparators(pathToQString(dirs.userDataPath()))),
 			QMessageBox::NoButton, parent);
 		auto * openWizard = dialog.addButton(tr("Open migration wizard"), QMessageBox::AcceptRole);
@@ -1061,24 +1061,24 @@ void datamanager::migrateUserData(bool automatic) const
 	wizard.setWindowTitle(tr("VCMI data migration"));
 	wizard.setWizardStyle(QWizard::ModernStyle);
 	wizard.setOption(QWizard::NoBackButtonOnStartPage);
-	wizard.setButtonText(QWizard::FinishButton, tr("Copy data"));
+	wizard.setButtonText(QWizard::FinishButton, tr("Move data"));
 
 	auto * introduction = new QWizardPage(&wizard);
 	introduction->setTitle(tr("Keep your VCMI data available"));
 	introduction->setSubTitle(tr("Your current data directory is synchronized with cloud storage."));
 	auto * introductionLayout = new QVBoxLayout(introduction);
 	auto * explanation = new QLabel(tr("Cloud synchronization can lock files or create conflicts while you install mods, play, or save a game. "
-		"This wizard can copy your existing VCMI data to a local directory.\n\n"
-		"Your current files remain in use until copying finishes, and the originals will not be deleted. "
-		"Directories you configured separately keep their current locations.\n\n"
+		"This wizard can move your existing VCMI data to a local directory.\n\n"
+		"The files are copied first. After the new directory is saved and the launcher successfully reloads the data, the original files are removed. "
+		"Directories you configured separately keep their current locations and are not deleted. Deletions in cloud storage are synchronized to your other devices.\n\n"
 		"You can cancel without changing your current directory. You can always reopen this wizard under About → Data Directories."), introduction);
 	explanation->setWordWrap(true);
 	introductionLayout->addWidget(explanation);
 	wizard.addPage(introduction);
 
 	auto * review = new QWizardPage(&wizard);
-	review->setTitle(tr("Review the copy destination"));
-	review->setSubTitle(tr("Game data, mods, settings, and saved games in the current directory will be copied."));
+	review->setTitle(tr("Review the move destination"));
+	review->setSubTitle(tr("Game data, mods, settings, and saved games in the current directory will be moved."));
 	auto * reviewLayout = new QFormLayout(review);
 	auto * source = new QLineEdit(QDir::toNativeSeparators(pathToQString(dirs.userDataPath())), review);
 	source->setReadOnly(true);
@@ -1101,7 +1101,7 @@ void datamanager::migrateUserData(bool automatic) const
 	});
 	auto * details = new QLabel(tr("Free space and directory permissions will be checked before copying. "
 		"If the destination already contains files, you will choose how to handle them. "
-		"The launcher will reload the copied data before using the new location."), review);
+		"The original files will be removed only after the new location is saved and the copied data is successfully reloaded."), review);
 	details->setWordWrap(true);
 	reviewLayout->addRow(details);
 	wizard.addPage(review);
