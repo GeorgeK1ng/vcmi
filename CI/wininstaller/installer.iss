@@ -2897,6 +2897,61 @@ begin
   Result.Anchors := [akLeft, akTop, akRight, akBottom];
 end;
 
+// Reflow only the plain prose paragraphs in our GPL text. A paragraph may
+// start flush left or with two spaces; continuation lines must be flush left.
+// Preserve all other indentation and tabbed blocks (titles, address, subclauses).
+// This changes presentation only; the distributed license.txt stays untouched.
+procedure FixLicenseWordWrap();
+var
+  Lines: TStringList;
+  Index, Indent: Integer;
+  Line, Original, Wrapped, DisplayText: String;
+  Reflow: Boolean;
+begin
+  Lines := TStringList.Create;
+  try
+    Lines.Text := WizardForm.LicenseMemo.Text;
+    Index := 0;
+    DisplayText := '';
+    while Index < Lines.Count do
+    begin
+      Line := Lines[Index];
+      if Trim(Line) = '' then
+      begin
+        DisplayText := DisplayText + Line + #13#10;
+        Index := Index + 1;
+      end
+      else
+      begin
+        Indent := Length(Line) - Length(TrimLeft(Line));
+        Reflow := ((Indent = 0) or (Indent = 2)) and (Pos(#9, Line) = 0);
+        Original := Line;
+        Wrapped := TrimRight(Line);
+        Index := Index + 1;
+        while Index < Lines.Count do
+        begin
+          Line := Lines[Index];
+          if Trim(Line) = '' then
+            Break;
+          if (Line <> TrimLeft(Line)) or (Pos(#9, Line) > 0) then
+            Reflow := False;
+          Original := Original + #13#10 + Line;
+          Wrapped := Wrapped + ' ' + Trim(Line);
+          Index := Index + 1;
+        end;
+        if Reflow then
+          DisplayText := DisplayText + Wrapped + #13#10
+        else
+          DisplayText := DisplayText + Original + #13#10;
+      end;
+    end;
+    WizardForm.LicenseMemo.WordWrap := True;
+    WizardForm.LicenseMemo.Text := DisplayText;
+  finally
+    Lines.Free;
+  end;
+end;
+
 procedure InitializeWizard();
 var
   InfoText, DataPath, WelcomeText, WelcomeSeparator: String;
@@ -3240,6 +3295,7 @@ begin
   FooterLabel.Width := WizardForm.ClientWidth - 20;
   FooterLabel.Height := 40;
 
+  FixLicenseWordWrap();
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
