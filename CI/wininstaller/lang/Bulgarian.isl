@@ -9,7 +9,6 @@
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
 ; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
-; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]
 HelpTextNote=Специфични за VCMI параметри за настройка: %n /USERDATADIR=<път> Задайте потребителската VCMI директория data. Префикс на пътя с expand: за разширяване на Inno Setup константи.%n /ALLOWCLOUDTARGET=1 Разрешаване на синхронизирана с облак инсталация или потребителска data директория по време на тиха настройка.%n /PORTABLE=1 Инсталиране на приложение и потребител data заедно без програма за деинсталиране, промени в регистъра, преки пътища, асоциации или правила на защитната стена.%n /LAUNCH Стартирайте VCMI след настройка, включително безшумна настройка.%n /COPYH3DATA=0|1 Разрешете или забранете автоматичното копиране на открити Heroes III data.%n%nVCMI параметър на програмата за деинсталиране:%n /DELETEUSERDATA=1 Изтриване на всички конфигурирани VCMI потребителски директории. Почита се само заедно с /SILENT или /VERYSILENT. Това не може да бъде отменено.%n%nСтандартни параметри като /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART и /LOG са описани по-горе.

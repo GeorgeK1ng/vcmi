@@ -9,7 +9,6 @@
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
 ; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
-; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]
 HelpTextNote=VCMI- 特定設定パラメータ:%n  /USERDATADIR=<path>  設定する VCMI 経路を拡張: Inno Setup 常数を拡張する%n  /ALLOWCLOUDTARGET=1  静かな設定中にクラウド同期インストールまたはユーザーデータディレクトリを許可する.%n  /PORTABLE=1  アプリケーションとユーザーデータをアンインストール,レジストリ変更,ショートカット,関連,ファイアウォールルールなしで一緒にインストールします.%n  /LAUNCH  打ち上げ VCMI 静かな設定を含む設定後.%n  /COPYH3DATA=0|1  検出された自動複製を有効または無効にする Heroes III データ%n%nVCMI 解除装置パラメータ:%n  /DELETEUSERDATA=1  すべての設定を削除する VCMI ユーザーディレクトリ. /SILENT または /VERYSILENTこれは取り消すことはできません.%n%n標準パラメータは /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART そして /LOG 上記に記載されている.

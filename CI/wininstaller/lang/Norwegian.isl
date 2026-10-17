@@ -9,7 +9,6 @@
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
 ; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
-; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]
 HelpTextNote=VCMI-specifikke installasjonsparametre:%n  /USERDATADIR=<path>  Sett den VCMI Brukerdata katalog. Prefix banen med utvid: for å utvider Inno Setup- konstanter.%n  /ALLOWCLOUDTARGET=1  Tillat en synkronisert installasjon i skyen eller brukerdata katalog under stille konfigurering.%n  /PORTABLE=1  Installer applikasjon og brukerdata sammen uten en uninstaller, registerendringer, snarveier, foreninger eller brannmurregler.%n  /LAUNCH  Lancering VCMI etter innstilling, inkludert stille innstilling.%n  /COPYH3DATA=0|1  Å aktivere eller deaktivere automatisk kopiering av oppdaget data Heroes III data.%n%nVCMI Uninstallerparametre:%n  /DELETEUSERDATA=1  Slett alle konfigurerte VCMI Brukerdirektorier. Kun æret sammen med /SILENT eller /VERYSILENTDette kan ikke gjøres tilbake.%n%nStandardparametre som /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART og /LOG er beskrevet ovenfor.

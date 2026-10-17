@@ -9,7 +9,6 @@
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
 ; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
-; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]
 HelpTextNote=VCMI-specifieke installatieparameters:%n  /USERDATADIR=<path>  Stel de VCMI Voorafgaan het pad met uitbreiden: om Inno Setup constanten uit te breiden.%n  /ALLOWCLOUDTARGET=1  Een cloud-synchroniseerde installatie of gebruikersgegevens directory tijdens de stille installatie toestaan.%n  /PORTABLE=1  Installeer applicatie- en gebruikersgegevens samen zonder een uninstaller, registerwijzigingen, snelkoppelingen, associaties of firewallregels.%n  /LAUNCH  Start . VCMI na installatie, met inbegrip van stille installatie.%n  /COPYH3DATA=0|1  Automatische kopieëring van gedetecteerde gegevens in staat stellen of uitschakelen Heroes III gegevens.%n%nVCMI de installeerparameter:%n  /DELETEUSERDATA=1  Verwijder alle geconfigureerde VCMI Gebruikerslijsten. Alleen geëerd samen met /SILENT of /VERYSILENTDit kan niet ongedaan worden gemaakt.%n%nstandaardparameters zoals /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART en /LOG worden hierboven beschreven.

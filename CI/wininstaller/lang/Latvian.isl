@@ -9,7 +9,6 @@
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
 ; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
-; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]
 HelpTextNote=VCMI-specifiski uzstādīšanas parametri:%n  /USERDATADIR=<path>  Pievienojiet VCMI lietotāja datu adresārs. Prefiks ceļu ar paplašināt: lai paplašinātu Inno Setup konstantes.%n  /ALLOWCLOUDTARGET=1  Pieļauj debesīs sinhronizētu uzstādīšanu vai lietotāja datu adresaru klusā uzstādīšanas laikā.%n  /PORTABLE=1  Instālējiet aplikāciju un lietotāju datus kopā bez atīstašanas, reģistra pārmaiņām, īstiem maršrutu, asociācijām vai ugunsdzēsības sienas noteikumiem.%n  /LAUNCH  Izlaišana VCMI pēc uzstādīšanas, tostarp klusā uzstādīšanas.%n  /COPYH3DATA=0|1  Atgādina vai izslēdz automātisko kopēšanu no atklātajiem Heroes III dati.%n%nVCMI izkārnījumu atcelšanas parametrs:%n  /DELETEUSERDATA=1  Izdzēst visus konfigurētos VCMI lietotāju direktorijas. /SILENT vai /VERYSILENTTas nevar tikt atcelts.%n%nStandarta parametri, piemēram, /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART un /LOG ir aprakstīti iepriekš.
