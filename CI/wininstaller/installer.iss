@@ -960,25 +960,6 @@ begin
     end;
 end;
 
-function HoveredCheckListItem(CheckList: TNewCheckListBox): Integer;
-var
-  Cursor: TPoint;
-  HitResult: Integer;
-begin
-  Result := -1;
-  if not GetCursorPos(Cursor) or not ScreenToClient(CheckList.Handle, Cursor) then
-    Exit;
-  if (Cursor.X < 0) or (Cursor.Y < 0) or
-    (Cursor.X >= CheckList.ClientWidth) or (Cursor.Y >= CheckList.ClientHeight) then
-    Exit;
-  HitResult := SendMessage(CheckList.Handle, $01A9, 0,
-    (Cursor.Y shl 16) or (Cursor.X and $FFFF));
-  if ((HitResult shr 16) and $FFFF) = 0 then
-    Result := HitResult and $FFFF;
-  if Result >= CheckList.Items.Count then
-    Result := -1;
-end;
-
 procedure HoverPreviewTimerTick(Window: HWND; Message: Cardinal;
   EventID: NativeUInt; Time: DWORD);
 var
@@ -1596,11 +1577,7 @@ end;
 
 function IsHeroes3Installed(): Boolean;
 begin
-  Result := False;
-
-  if (Heroes3Path <> '') then
-    Result := True;
-
+  Result := Heroes3Path <> '';
 end;
 
 function IsCopyFilesNeeded(): Boolean;
@@ -2061,23 +2038,32 @@ begin
   UpdateDiskSpaceLabel();
 end;
 
-procedure ResetDirsClick(Sender: TObject);
+function DefaultInstallDirectory(Portable, CurrentUser: Boolean): String;
 begin
-  if IsPortableInstall then
-  begin
-    if not HasCommandLineInstallDir then
-      InstallDirEdit.Text := ExpandConstant('{src}\VCMI');
-  end
-  else if Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1) then
-    InstallDirEdit.Text := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}'
+  if Portable then
+    Result := ExpandConstant('{src}\VCMI')
+  else if CurrentUser then
+    Result := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}'
   else
-    InstallDirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
+    Result := GetCommonProgramFilesDir + '\{#VCMIFolder}';
+end;
+
+procedure ResetDataDirectory();
+begin
   if CommandLineUserDataDir <> '' then
     DataDirEdit.Text := CommandLineUserDataDir
   else if IsPortableInstall then
     DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data'
   else
     DataDirEdit.Text := DefaultDataDir;
+end;
+
+procedure ResetDirsClick(Sender: TObject);
+begin
+  if not IsPortableInstall or not HasCommandLineInstallDir then
+    InstallDirEdit.Text := DefaultInstallDirectory(IsPortableInstall,
+      Assigned(InstallModePage) and (InstallModePage.SelectedValueIndex = 1));
+  ResetDataDirectory();
 end;
 
 function GetDetectedWindowsVersion(Default: String): String;
@@ -2168,21 +2154,13 @@ begin
   RequirementsDetailsLabels[RequirementsRowCount].Caption := '  ' + DetectedValue;
   RequirementsStatusLabels[RequirementsRowCount].Caption := '';
   if CompareText(Status, ExpandConstant('{cm:RequirementFailed}')) = 0 then
-  begin
     StatusBitmap := 'requirement-status-fail'
-  end
   else if CompareText(Status, ExpandConstant('{cm:RequirementWarning}')) = 0 then
-  begin
     StatusBitmap := 'requirement-status-warn'
-  end
   else if CompareText(Status, ExpandConstant('{cm:RequirementPassed}')) = 0 then
-  begin
     StatusBitmap := 'requirement-status-ok'
-  end
   else
-  begin
     StatusBitmap := 'requirement-status-info';
-  end;
   if (RequirementsRowCount mod 2) <> 0 then
     StatusBitmap := StatusBitmap + '-alternate';
   StatusBitmap := StatusBitmap + '.bmp';
@@ -2198,33 +2176,33 @@ begin
   RequirementsRowCount := RequirementsRowCount + 1;
 end;
 
+procedure AddRecommendedRequirement(Passed: Boolean;
+  const Name, RequiredValue, PassedDetails, WarningDetails: String);
+begin
+  if Passed then
+    AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+      Name, RequiredValue, PassedDetails)
+  else
+    AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+      Name, RequiredValue, WarningDetails);
+end;
+
 procedure AddDirectoryRequirement(const Path, CaptionText: String);
 begin
   if IsDirectoryWritable(Path) then
-  begin
-    if IsCloudStoragePath(Path) then
-      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-        CaptionText,
-        ExpandConstant('{cm:RequirementWritableValue}'),
-        ExpandConstant('{cm:RequirementWritableAndSynced}'))
-    else
-      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-        CaptionText,
-        ExpandConstant('{cm:RequirementWritableValue}'),
-        ExpandConstant('{cm:RequirementWritableValue}'));
-  end
+    AddRecommendedRequirement(not IsCloudStoragePath(Path), CaptionText,
+      ExpandConstant('{cm:RequirementWritableValue}'),
+      ExpandConstant('{cm:RequirementWritableValue}'),
+      ExpandConstant('{cm:RequirementWritableAndSynced}'))
   else
-  begin
-    AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
-      CaptionText,
+    AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'), CaptionText,
       ExpandConstant('{cm:RequirementWritableValue}'),
       ExpandConstant('{cm:RequirementNotWritable}'));
-  end;
 end;
 
 procedure UpdateRequirementsCheck();
 var
-  SystemArchitecture, ProbeDirectory, ProcessorName: String;
+  SystemArchitecture, ProbeDirectory, ProcessorName, DetectedValue: String;
   Row: Integer;
   InternetFlags: DWord;
   FreeSpace, TotalSpace, HeroesDataSize, MemoryMB: Int64;
@@ -2262,16 +2240,9 @@ begin
 
     if GetProcessorInfo(ProcessorName, ProcessorMHz) then
     begin
-      if ProcessorMHz >= 1000 then
-      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-          ExpandConstant('{cm:RequirementProcessor}'), '1 GHz',
-          Format('%s (%d MHz)', [ProcessorName, ProcessorMHz]))
-      else
-      begin
-        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-          ExpandConstant('{cm:RequirementProcessor}'), '1 GHz',
-          Format('%s (%d MHz)', [ProcessorName, ProcessorMHz]));
-      end;
+      DetectedValue := Format('%s (%d MHz)', [ProcessorName, ProcessorMHz]);
+      AddRecommendedRequirement(ProcessorMHz >= 1000,
+        ExpandConstant('{cm:RequirementProcessor}'), '1 GHz', DetectedValue, DetectedValue);
     end
     else
       AddRequirementLine(ExpandConstant('{cm:RequirementInfo}'),
@@ -2280,36 +2251,20 @@ begin
 
     if GetPhysicalMemoryMB(MemoryMB) then
     begin
-      if MemoryMB >= 1024 then
-        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-          ExpandConstant('{cm:RequirementMemory}'), '1 GB',
-          FormatLocalizedByteMessage(
-            ExpandConstant('{cm:RequirementMemoryDetected}'),
-            MemoryMB * 1024 * 1024))
-      else
-      begin
-        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-          ExpandConstant('{cm:RequirementMemory}'), '1 GB',
-          FormatLocalizedByteMessage(
-            ExpandConstant('{cm:RequirementMemoryDetected}'),
-            MemoryMB * 1024 * 1024));
-      end;
+      DetectedValue := FormatLocalizedByteMessage(
+        ExpandConstant('{cm:RequirementMemoryDetected}'), MemoryMB * 1024 * 1024);
+      AddRecommendedRequirement(MemoryMB >= 1024,
+        ExpandConstant('{cm:RequirementMemory}'), '1 GB', DetectedValue, DetectedValue);
     end
     else
       AddRequirementLine(ExpandConstant('{cm:RequirementInfo}'),
         ExpandConstant('{cm:RequirementMemory}'), '1 GB',
         ExpandConstant('{cm:RequirementDetectionUnavailable}'));
 
-    if FileExists(ExpandConstant('{sys}\d3d11.dll')) then
-      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-        ExpandConstant('{cm:RequirementDirectX}'), '11',
-        ExpandConstant('{cm:RequirementDirectXDetected}'))
-    else
-    begin
-      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-        ExpandConstant('{cm:RequirementDirectX}'), '11',
-        ExpandConstant('{cm:RequirementDirectXMissing}'));
-    end;
+    AddRecommendedRequirement(FileExists(ExpandConstant('{sys}\d3d11.dll')),
+      ExpandConstant('{cm:RequirementDirectX}'), '11',
+      ExpandConstant('{cm:RequirementDirectXDetected}'),
+      ExpandConstant('{cm:RequirementDirectXMissing}'));
 
     { Show the combined installation/import disk requirement with the other
       hardware requirements, before network-related checks. }
@@ -2347,30 +2302,18 @@ begin
     end;
 
     InternetFlags := 0;
-    if InternetGetConnectedState(InternetFlags, 0) then
-      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-        ExpandConstant('{cm:RequirementInternet}'),
-        ExpandConstant('{cm:RequirementRecommended}'),
-        ExpandConstant('{cm:RequirementInternetAvailable}'))
-    else
-      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-        ExpandConstant('{cm:RequirementInternet}'),
-        ExpandConstant('{cm:RequirementRecommended}'),
-        ExpandConstant('{cm:RequirementInternetUnavailable}'));
+    AddRecommendedRequirement(InternetGetConnectedState(InternetFlags, 0),
+      ExpandConstant('{cm:RequirementInternet}'),
+      ExpandConstant('{cm:RequirementRecommended}'),
+      ExpandConstant('{cm:RequirementInternetAvailable}'),
+      ExpandConstant('{cm:RequirementInternetUnavailable}'));
 
     if not IsPRInstaller and IsAdminInstallMode and not IsPortableInstall then
-    begin
-      if WizardIsTaskSelected('firewallrules') then
-        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-          ExpandConstant('{cm:RequirementFirewall}'),
-          ExpandConstant('{cm:RequirementMultiplayerGames}'),
-          ExpandConstant('{cm:RequirementSelected}'))
-      else
-        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-          ExpandConstant('{cm:RequirementFirewall}'),
-          ExpandConstant('{cm:RequirementMultiplayerGames}'),
-          ExpandConstant('{cm:RequirementNotSelected}'));
-    end;
+      AddRecommendedRequirement(WizardIsTaskSelected('firewallrules'),
+        ExpandConstant('{cm:RequirementFirewall}'),
+        ExpandConstant('{cm:RequirementMultiplayerGames}'),
+        ExpandConstant('{cm:RequirementSelected}'),
+        ExpandConstant('{cm:RequirementNotSelected}'));
 
     if not IsCopyFilesNeeded then
       AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
@@ -3251,39 +3194,13 @@ begin
       Exit;
     end;
 
-    if InstallModePage.SelectedValueIndex = 2 then
-    begin
-      if not HasCommandLineInstallDir then
-      begin
-        WizardForm.DirEdit.Text := ExpandConstant('{src}\VCMI');
-        InstallDirEdit.Text := WizardForm.DirEdit.Text;
-      end;
-    end
-    else if HasCommandLineInstallDir then
-    begin
-      // /DIR is already expanded and validated by Inno Setup in DirEdit.
+    // Preserve /DIR; portable mode also keeps the current edit unchanged.
+    if not HasCommandLineInstallDir then
+      WizardForm.DirEdit.Text := DefaultInstallDirectory(
+        InstallModePage.SelectedValueIndex = 2, InstallModePage.SelectedValueIndex <> 0);
+    if (InstallModePage.SelectedValueIndex <> 2) or not HasCommandLineInstallDir then
       InstallDirEdit.Text := WizardForm.DirEdit.Text;
-    end
-    else if InstallModePage.SelectedValueIndex = 0 then
-    begin
-      WizardForm.DirEdit.Text := GetCommonProgramFilesDir + '\{#VCMIFolder}';
-      InstallDirEdit.Text := WizardForm.DirEdit.Text;
-    end
-    else
-    begin
-      WizardForm.DirEdit.Text := GlobalUserLocalAppdataFolder + '\Programs\{#VCMIFolder}';
-      InstallDirEdit.Text := WizardForm.DirEdit.Text;
-    end;
-
-    // Recalculate both fields when the installation mode changes. Previously
-    // only the portable mode updated user data, leaving the prior mode's path
-    // in place until Reset to default was clicked.
-    if CommandLineUserDataDir <> '' then
-      DataDirEdit.Text := CommandLineUserDataDir
-    else if IsPortableInstall then
-      DataDirEdit.Text := InstallDirEdit.Text + '\VCMI-data'
-    else
-      DataDirEdit.Text := DefaultDataDir;
+    ResetDataDirectory();
   end;
 
   if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
