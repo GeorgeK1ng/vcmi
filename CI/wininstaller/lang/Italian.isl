@@ -1,5 +1,14 @@
+;
+; Italian.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=Parametri specifici dell'installazione VCMI:%n  /USERDATADIR=<percorso>  Imposta la cartella dei dati utente VCMI. Il prefisso expand: espande le costanti di Inno Setup.%n  /ALLOWCLOUDTARGET=1  Permettere un'installazione o un utente sincronizzati nel cloud data la directory durante l'installazione silenziosa.%n  /PORTABLE=1  Installa applicazione e dati insieme senza disinstallatore, modifiche al registro, collegamenti, associazioni o regole firewall.%n  /LAUNCH  Avvia VCMI dopo l'installazione, anche in modalità silenziosa.%n%nParametro del disinstallatore VCMI:%n  /DELETEUSERDATA=1  Elimina tutte le cartelle utente VCMI configurate. Viene accettato solo con /SILENT o /VERYSILENT. L'operazione è irreversibile.%n%nI parametri standard come /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART e /LOG sono descritti sopra.%n  /COPYH3DATA=0|1  Abilitare o disattivare la copia automatica delle informazioni rilevate Heroes III data.

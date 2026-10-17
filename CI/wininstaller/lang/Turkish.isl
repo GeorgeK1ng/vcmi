@@ -1,5 +1,14 @@
+;
+; Turkish.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI'ye özel kurulum parametreleri:%n  /USERDATADIR=<yol>  VCMI kullanıcı verileri klasörünü ayarlar. expand: öneki Inno Setup sabitlerini genişletir.%n  /ALLOWCLOUDTARGET=1  Bulutla senkronize edilmiş bir kurulum veya kullanıcının etkinleştirilmesine izin verin data Sessiz ayarlama sırasında dizin.%n  /PORTABLE=1  Uygulamayı ve verileri kaldırıcı, kayıt defteri değişikliği, kısayol, ilişkilendirme veya güvenlik duvarı kuralı olmadan birlikte kurar.%n  /LAUNCH  Sessiz kurulum dahil, kurulumdan sonra VCMI'yi başlatır.%n  /COPYH3DATA=0|1  Detekte edilen otomatik kopyalamayı etkinleştir veya devre dışı bırak Heroes III data.%n%nVCMI kaldırıcısı parametresi:%n  /DELETEUSERDATA=1  Yapılandırılmış tüm VCMI kullanıcı klasörlerini siler. Yalnızca /SILENT veya /VERYSILENT ile birlikte kabul edilir. Bu işlem geri alınamaz.%n%n/DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART ve /LOG gibi standart parametreler yukarıda açıklanmıştır.

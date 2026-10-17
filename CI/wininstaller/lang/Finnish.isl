@@ -1,5 +1,14 @@
+;
+; Finnish.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI-asennuksen omat parametrit:%n  /USERDATADIR=<polku>  Määrittää VCMI-käyttäjätietojen kansion. Etuliite expand: laajentaa Inno Setup -vakiot.%n  /ALLOWCLOUDTARGET=1  Salli pilvi-synkronoitu asennus tai käyttäjä data Ohjelma äänettömän asennuksen aikana.%n  /PORTABLE=1  Asentaa sovelluksen ja tiedot samaan kansioon ilman poistajaa, rekisterimuutoksia, pikakuvakkeita, tiedostokytkentöjä tai palomuurisääntöjä.%n  /LAUNCH  Käynnistää VCMI:n asennuksen jälkeen myös hiljaisessa asennuksessa.%n%nVCMI-poistajan parametri:%n  /DELETEUSERDATA=1  Poistaa kaikki määritetyt VCMI-käyttäjäkansiot. Toimii vain /SILENT- tai /VERYSILENT-parametrin kanssa. Toimintoa ei voi kumota.%n%nVakioparametrit, kuten /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART ja /LOG, kuvataan yllä.%n  /COPYH3DATA=0|1  Valmistettujen tietojen automaattinen kopiointi voidaan mahdollistaa tai estää Heroes III data.

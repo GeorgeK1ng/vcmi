@@ -1,5 +1,14 @@
+;
+; Norwegian.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 ; TODO: English fallback values below are ready for translation in Weblate.
 
 [Messages]

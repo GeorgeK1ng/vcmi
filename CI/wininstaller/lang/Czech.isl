@@ -1,5 +1,14 @@
+;
+; Czech.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=Vlastní parametry instalátoru VCMI:%n  /USERDATADIR=<cesta>  Nastaví složku uživatelských dat VCMI. Předpona expand: rozbalí konstanty Inno Setup.%n  /ALLOWCLOUDTARGET=1  Povolí při tiché instalaci instalační složku nebo složku uživatelských dat synchronizovanou s cloudem.%n  /PORTABLE=1  Nainstaluje aplikaci a data společně bez odinstalátoru, změn registru, zástupců, asociací souborů a pravidel brány firewall.%n  /LAUNCH  Spustí VCMI po instalaci, včetně tiché instalace.%n  /COPYH3DATA=0|1  Zapne nebo vypne automatické kopírování nalezených dat Heroes III.%n%nNázvy úloh pro /TASKS a /MERGETASKS:%n  startmenu_launcher, startmenu_mapeditor, startmenu_website, startmenu_discord%n  desktop_launcher, desktop_mapeditor%n  fileassociation_vmap, fileassociation_vcmp, fileassociation_h3m, fileassociation_h3c%n  firewallrules (pouze instalace pro všechny uživatele s oprávněním správce)%n%nParametr odinstalátoru VCMI:%n  /DELETEUSERDATA=1  Odstraní všechny nastavené složky uživatelských dat VCMI. Funguje pouze společně s /SILENT nebo /VERYSILENT. Tuto operaci nelze vrátit zpět.%n%nStandardní parametry jako /DIR, /LANG, /TASKS, /MERGETASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART a /LOG jsou popsány výše.

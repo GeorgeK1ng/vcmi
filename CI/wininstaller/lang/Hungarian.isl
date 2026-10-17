@@ -1,5 +1,14 @@
+;
+; Hungarian.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI-specifikus telepítési paraméterek:%n  /USERDATADIR=<elérési út>  Beállítja a VCMI felhasználói adatmappáját. Az expand: előtag feloldja az Inno Setup állandóit.%n  /ALLOWCLOUDTARGET=1  Megengedett felhő-szinkronizált telepítés vagy felhasználó data A csendes beállítás során a könyvtár.%n  /PORTABLE=1  Az alkalmazást és az adatokat együtt telepíti eltávolító, rendszerleíróadatbázis-módosítás, parancsikonok, társítások és tűzfalszabályok nélkül.%n  /LAUNCH  A telepítés után elindítja a VCMI-t, csendes telepítés esetén is.%n%nVCMI-eltávolító paramétere:%n  /DELETEUSERDATA=1  Törli az összes beállított VCMI felhasználói mappát. Csak /SILENT vagy /VERYSILENT mellett használható. A művelet nem vonható vissza.%n%nA szabványos paraméterek, például /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART és /LOG fent találhatók.%n  /COPYH3DATA=0|1  Az észlelt adatok automatikus másolatának engedélyezése vagy kikapcsolása Heroes III data.

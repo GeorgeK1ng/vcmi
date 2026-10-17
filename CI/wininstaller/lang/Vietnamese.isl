@@ -1,5 +1,14 @@
+;
+; Vietnamese.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=Tham số cài đặt riêng của VCMI:%n  /USERDATADIR=<đường dẫn>  Đặt thư mục dữ liệu người dùng VCMI. Tiền tố expand: mở rộng hằng số Inno Setup.%n  /ALLOWCLOUDTARGET=1  Cho phép cài đặt hoặc người dùng đồng bộ hóa đám mây data thư mục trong quá trình cài đặt im lặng.%n  /PORTABLE=1  Cài ứng dụng và dữ liệu cùng nhau mà không tạo trình gỡ cài đặt, thay đổi registry, lối tắt, liên kết tệp hoặc quy tắc tường lửa.%n  /LAUNCH  Chạy VCMI sau khi cài đặt, kể cả cài đặt im lặng.%n%nTham số trình gỡ cài đặt VCMI:%n  /DELETEUSERDATA=1  Xóa mọi thư mục người dùng VCMI đã cấu hình. Chỉ được chấp nhận cùng /SILENT hoặc /VERYSILENT. Không thể hoàn tác.%n%nCác tham số chuẩn như /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART và /LOG được mô tả ở trên.%n  /COPYH3DATA=0|1  Khả năng hoặc vô hiệu hóa bản sao tự động của các phát hiện Heroes III data.

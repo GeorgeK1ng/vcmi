@@ -1,5 +1,14 @@
+;
+; ChineseSimplified.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI 专用安装参数：%n  /USERDATADIR=<路径>  设置 VCMI 用户数据目录。使用 expand: 前缀可展开 Inno Setup 常量。%n  /ALLOWCLOUDTARGET=1  允许云同步安装或用户 data 在安装无声时的目录.%n  /PORTABLE=1  将应用和数据安装在一起，不创建卸载程序，也不修改注册表、快捷方式、文件关联或防火墙规则。%n  /LAUNCH  安装后启动 VCMI，包括静默安装。%n  /COPYH3DATA=0|1  启用或禁用检测到的自动复制 Heroes III data.%n%nVCMI 卸载程序参数：%n  /DELETEUSERDATA=1  删除所有已配置的 VCMI 用户目录。仅与 /SILENT 或 /VERYSILENT 一起使用时生效。此操作无法撤销。%n%n/DIR、/LANG、/TASKS、/CURRENTUSER、/ALLUSERS、/SILENT、/VERYSILENT、/SUPPRESSMSGBOXES、/NORESTART 和 /LOG 等标准参数已在上方说明。

@@ -1,3 +1,12 @@
+;
+; installer.iss, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
+
 ; ============================================================================
 ; Building and maintenance
 ; ============================================================================
@@ -26,8 +35,8 @@
 ; #define UnofficialLangPath "C:\Temp\vcmi-inno-languages-7.1.0"
 ; #define LicenseFile "C:\_VCMI_Source\license.txt"
 ; #define IconFile "C:\_VCMI_Source\clientapp\icons\vcmi.ico"
-; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\vcmismalllogo.bmp"
-; #define WizardLogo "C:\_VCMI_Source\CI\wininstaller\vcmilogo.bmp"
+; #define SmallLogo "C:\_VCMI_Source\CI\wininstaller\images\vcmismalllogo.bmp"
+; #define WizardLogo "C:\_VCMI_Source\CI\wininstaller\images\vcmilogo.bmp"
 
 #define VCMIFilesFolder "My Games\VCMI"
 
@@ -125,19 +134,19 @@ Name: "vietnamese"; MessagesFile: "{#UnofficialLangPath}\Vietnamese.isl,{#LangPa
 
 [Files]
 Source: "{#InstallerPluginPath}\installerPlugin.dll"; Flags: dontcopy noencryption
-Source: "install-mode-all-users.bmp"; Flags: dontcopy noencryption
-Source: "install-mode-current-user.bmp"; Flags: dontcopy noencryption
-Source: "install-mode-portable.bmp"; Flags: dontcopy noencryption
-Source: "folder-vcmi.bmp"; Flags: dontcopy noencryption
-Source: "folder-user.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-ok.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-ok-alternate.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-info.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-info-alternate.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-fail.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-fail-alternate.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-warn.bmp"; Flags: dontcopy noencryption
-Source: "requirement-status-warn-alternate.bmp"; Flags: dontcopy noencryption
+Source: "images\install-mode-all-users.bmp"; Flags: dontcopy noencryption
+Source: "images\install-mode-current-user.bmp"; Flags: dontcopy noencryption
+Source: "images\install-mode-portable.bmp"; Flags: dontcopy noencryption
+Source: "images\folder-vcmi.bmp"; Flags: dontcopy noencryption
+Source: "images\folder-user.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-ok.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-ok-alternate.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-info.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-info-alternate.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-fail.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-fail-alternate.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-warn.bmp"; Flags: dontcopy noencryption
+Source: "images\requirements\requirement-status-warn-alternate.bmp"; Flags: dontcopy noencryption
 Source: "{#InstallerPluginPath}\installerPlugin.dll"; DestDir: "{app}"; DestName: "VCMI_installerPlugin.dll"; Flags: ignoreversion; Check: not IsPortableInstall
 Source: "{#SourceFilesPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.obj,*.tlog,*.log,*.pch,*.idb,*.res,*.tmp,*.bak,*.sdf,*.ipch,*.vc.db,*.iobj,*.ipdb,config\dirs.json"
 Source: "{#UCRTFilesPath}\{#InstallerArch}\*"; DestDir: "{app}"; Flags: ignoreversion; Check: IsUCRTNeeded

@@ -1,5 +1,14 @@
+;
+; English.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI-specific setup parameters:%n  /USERDATADIR=<path>  Set the VCMI user data directory. Prefix the path with expand: to expand Inno Setup constants.%n  /ALLOWCLOUDTARGET=1  Allow a cloud-synchronized installation or user data directory during silent setup.%n  /PORTABLE=1  Install application and user data together without an uninstaller, registry changes, shortcuts, associations, or firewall rules.%n  /LAUNCH  Launch VCMI after setup, including silent setup.%n  /COPYH3DATA=0|1  Enable or disable automatic copying of detected Heroes III data.%n%nTask names for /TASKS and /MERGETASKS:%n  startmenu_launcher, startmenu_mapeditor, startmenu_website, startmenu_discord%n  desktop_launcher, desktop_mapeditor%n  fileassociation_vmap, fileassociation_vcmp, fileassociation_h3m, fileassociation_h3c%n  firewallrules (all-users installation with administrator privileges only)%n%nVCMI uninstaller parameter:%n  /DELETEUSERDATA=1  Delete all configured VCMI user directories. Only honored together with /SILENT or /VERYSILENT. This cannot be undone.%n%nStandard parameters such as /DIR, /LANG, /TASKS, /MERGETASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART and /LOG are described above.

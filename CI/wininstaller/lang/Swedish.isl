@@ -1,5 +1,14 @@
+;
+; Swedish.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI-specifika installationsparametrar:%n  /USERDATADIR=<sökväg>  Anger mappen för VCMI-användardata. Prefixet expand: expanderar Inno Setup-konstanter.%n  /ALLOWCLOUDTARGET=1  Tillåt en molnsynkroniserad installation eller användare data Förteckning under stilla inställningar.%n  /PORTABLE=1  Installerar program och data tillsammans utan avinstallerare, registerändringar, genvägar, filassociationer eller brandväggsregler.%n  /LAUNCH  Startar VCMI efter installationen, även vid tyst installation.%n%nParameter för VCMI-avinstalleraren:%n  /DELETEUSERDATA=1  Tar bort alla konfigurerade VCMI-användarmappar. Godtas endast med /SILENT eller /VERYSILENT. Åtgärden kan inte ångras.%n%nStandardparametrar som /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART och /LOG beskrivs ovan.%n  /COPYH3DATA=0|1  Aktivera eller inaktivera automatisk kopiering av upptäckta data Heroes III data.

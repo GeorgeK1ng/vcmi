@@ -1,5 +1,14 @@
+;
+; Ukrainian.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=Параметри встановлення VCMI:%n  /USERDATADIR=<шлях>  Задає папку даних користувача VCMI. Префікс expand: розгортає константи Inno Setup.%n  /ALLOWCLOUDTARGET=1  Дозвольте синхронізовану хмарою установку або користувача data каталог під час тихої налаштування.%n  /PORTABLE=1  Встановлює програму й дані разом без деінсталятора, змін реєстру, ярликів, асоціацій і правил брандмауера.%n  /LAUNCH  Запускає VCMI після встановлення, включно з тихим режимом.%n%nПараметр деінсталятора VCMI:%n  /DELETEUSERDATA=1  Видаляє всі налаштовані папки користувача VCMI. Працює лише разом із /SILENT або /VERYSILENT. Дію неможливо скасувати.%n%nСтандартні параметри, зокрема /DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART і /LOG, описані вище.%n  /COPYH3DATA=0|1  Отримати або відключити автоматичне копіювання виявленої інформації Heroes III data.

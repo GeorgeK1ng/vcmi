@@ -1,5 +1,14 @@
+;
+; Korean.isl, part of VCMI engine
+;
+; Authors: listed in file AUTHORS in main folder
+;
+; License: GNU General Public License v2.0 or later
+; Full text of license available in license.txt file, in main folder
+;
 ; VCMI-specific Inno Setup message overrides.
 ; Standard messages are loaded from the matching Inno Setup language file.
+; Translation maintenance: docs/translators/Maintenance.md#translating-the-installer
 
 [Messages]
 HelpTextNote=VCMI 전용 설치 매개 변수:%n  /USERDATADIR=<경로>  VCMI 사용자 데이터 폴더를 지정합니다. expand: 접두사는 Inno Setup 상수를 확장합니다.%n  /ALLOWCLOUDTARGET=1  클라우드 동기화 설치 또는 사용자 허용 data 조용한 설정 중에 디렉토리%n  /PORTABLE=1  제거 프로그램, 레지스트리 변경, 바로 가기, 파일 연결 또는 방화벽 규칙 없이 응용 프로그램과 데이터를 함께 설치합니다.%n  /LAUNCH  자동 설치를 포함하여 설치 후 VCMI를 실행합니다.%n  /COPYH3DATA=0|1  탐지된 자동 복제 기능을 활성화 또는 비활성화 Heroes III data.%n%nVCMI 제거 프로그램 매개 변수:%n  /DELETEUSERDATA=1  구성된 모든 VCMI 사용자 폴더를 삭제합니다. /SILENT 또는 /VERYSILENT와 함께만 적용됩니다. 실행 취소할 수 없습니다.%n%n/DIR, /LANG, /TASKS, /CURRENTUSER, /ALLUSERS, /SILENT, /VERYSILENT, /SUPPRESSMSGBOXES, /NORESTART 및 /LOG 같은 표준 매개 변수는 위에 설명되어 있습니다.
