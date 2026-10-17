@@ -342,7 +342,10 @@ if (NOT ENABLE_MINIMAL_LIB)
 endif()
 
 if(WIN32)
-	list(APPEND lib_SRCS platform/windows/Registry.cpp)
+	list(APPEND lib_SRCS
+		platform/windows/CloudStorageDetection.cpp
+		platform/windows/Registry.cpp
+	)
 endif()
 
 # Version.cpp is a generated file
@@ -848,6 +851,13 @@ set(lib_MAIN_HEADERS
 
 if (NOT ENABLE_MINIMAL_LIB)
 	list(APPEND lib_HEADERS ${lib_MAIN_HEADERS})
+endif()
+
+if(WIN32)
+	list(APPEND lib_HEADERS
+		platform/windows/CloudStorageDetection.h
+		platform/windows/Registry.h
+	)
 endif()
 
 assign_source_group(${lib_SRCS} ${lib_HEADERS})

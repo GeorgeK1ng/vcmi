@@ -18,22 +18,26 @@ std::optional<std::wstring> readString(const std::wstring & subKey, const std::w
 	HKEY registryKey = nullptr;
 	if(RegOpenKeyExW(HKEY_CURRENT_USER, subKey.c_str(), 0, KEY_QUERY_VALUE | registryView, &registryKey) != ERROR_SUCCESS)
 		return std::nullopt;
+
 	auto closeRegistryKey = vstd::makeScopeGuard([registryKey]() { RegCloseKey(registryKey); });
 
 	DWORD type = 0;
 	DWORD size = 0;
 	constexpr DWORD acceptedTypes = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND;
 	const LSTATUS sizeResult = RegGetValueW(registryKey, nullptr, valueName.c_str(), acceptedTypes, &type, nullptr, &size);
+
 	if(sizeResult != ERROR_SUCCESS || (type != REG_SZ && type != REG_EXPAND_SZ) || size < sizeof(wchar_t))
 		return std::nullopt;
 
 	std::wstring value(size / sizeof(wchar_t), L'\0');
 	const LSTATUS valueResult = RegGetValueW(registryKey, nullptr, valueName.c_str(), acceptedTypes, &type, value.data(), &size);
+
 	if(valueResult != ERROR_SUCCESS || (type != REG_SZ && type != REG_EXPAND_SZ) || size % sizeof(wchar_t) != 0)
 		return std::nullopt;
 
 	while(!value.empty() && value.back() == L'\0')
 		value.pop_back();
+
 	if(value.empty())
 		return std::nullopt;
 
@@ -55,26 +59,28 @@ std::optional<std::wstring> readString(const std::wstring & subKey, const std::w
 }
 }
 
-std::optional<std::wstring> readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName)
+std::optional<std::wstring> WindowsRegistry::readCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName)
 {
 	if(const auto value = readString(subKey, valueName, KEY_WOW64_64KEY))
 		return value;
+
 	return readString(subKey, valueName, KEY_WOW64_32KEY);
 }
 
-bool writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value)
+bool WindowsRegistry::writeCurrentUserRegistryString(const std::wstring & subKey, const std::wstring & valueName, const std::wstring & value)
 {
 	HKEY registryKey = nullptr;
 	if(RegCreateKeyExW(HKEY_CURRENT_USER, subKey.c_str(), 0, nullptr, 0, KEY_SET_VALUE | KEY_WOW64_64KEY, nullptr, &registryKey, nullptr) != ERROR_SUCCESS
 		&& RegCreateKeyExW(HKEY_CURRENT_USER, subKey.c_str(), 0, nullptr, 0, KEY_SET_VALUE | KEY_WOW64_32KEY, nullptr, &registryKey, nullptr) != ERROR_SUCCESS)
 		return false;
+
 	auto closeRegistryKey = vstd::makeScopeGuard([registryKey]() { RegCloseKey(registryKey); });
 
 	const auto valueSize = static_cast<DWORD>((value.size() + 1) * sizeof(wchar_t));
 	return RegSetKeyValueW(registryKey, nullptr, valueName.c_str(), REG_SZ, value.c_str(), valueSize) == ERROR_SUCCESS;
 }
 
-void removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName)
+void WindowsRegistry::removeCurrentUserRegistryValue(const std::wstring & subKey, const std::wstring & valueName)
 {
 	for(const REGSAM registryView : { KEY_WOW64_64KEY, KEY_WOW64_32KEY })
 	{
