@@ -271,17 +271,10 @@ var
 
   DirSelectPage: TWizardPage;
 
-  InstallDirBitmap: TBitmapImage;
-  DataDirBitmap: TBitmapImage;
-
-  LabelInstallInfo1: TNewStaticText;
-  LabelInstall: TNewStaticText;
   CloudInstallNotice: TNewStaticText;
   InstallDirEdit: TEdit;
   InstallDirBrowseBtn: TButton;
 
-  LabelData: TNewStaticText;
-  LabelDataInfo: TNewStaticText;
   CloudDataNotice: TNewStaticText;
   DataDirEdit: TEdit;
   DataDirBrowseBtn: TButton;
@@ -310,7 +303,6 @@ var
   FirewallTaskPreviouslySelected: Boolean;
   Heroes3CopyWasAvailable: Boolean;
   HoverPreviewTimerID: NativeUInt;
-  InstallModePreviewPanel, TasksPreviewPanel: TPanel;
   InstallModePreviewLabel, TasksPreviewLabel: TNewStaticText;
   CustomTaskChecks: array[0..10] of TNewCheckBox;
   CustomTaskNativeIndexes: array[0..10] of Integer;
@@ -2206,6 +2198,30 @@ begin
   RequirementsRowCount := RequirementsRowCount + 1;
 end;
 
+procedure AddDirectoryRequirement(const Path, CaptionText: String);
+begin
+  if IsDirectoryWritable(Path) then
+  begin
+    if IsCloudStoragePath(Path) then
+      AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
+        CaptionText,
+        ExpandConstant('{cm:RequirementWritableValue}'),
+        ExpandConstant('{cm:RequirementWritableAndSynced}'))
+    else
+      AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
+        CaptionText,
+        ExpandConstant('{cm:RequirementWritableValue}'),
+        ExpandConstant('{cm:RequirementWritableValue}'));
+  end
+  else
+  begin
+    AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
+      CaptionText,
+      ExpandConstant('{cm:RequirementWritableValue}'),
+      ExpandConstant('{cm:RequirementNotWritable}'));
+  end;
+end;
+
 procedure UpdateRequirementsCheck();
 var
   SystemArchitecture, ProbeDirectory, ProcessorName: String;
@@ -2213,7 +2229,7 @@ var
   InternetFlags: DWord;
   FreeSpace, TotalSpace, HeroesDataSize, MemoryMB: Int64;
   ProcessorMHz: Cardinal;
-  InstallWritable, DataWritable, LayoutSafe: Boolean;
+  LayoutSafe: Boolean;
 begin
   if not Assigned(RequirementsComponentLabels[0]) then
     Exit;
@@ -2371,49 +2387,10 @@ begin
         ExpandConstant('{cm:RequirementRequiredToPlay}'),
         ExpandConstant('{cm:RequirementHeroesDataMissing}'));
 
-    InstallWritable := IsDirectoryWritable(InstallDirEdit.Text);
-    if InstallWritable then
-    begin
-      if IsCloudStoragePath(InstallDirEdit.Text) then
-        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-          ExpandConstant('{cm:RequirementInstallFolder}'),
-          ExpandConstant('{cm:RequirementWritableValue}'),
-          ExpandConstant('{cm:RequirementWritableAndSynced}'))
-      else
-        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-          ExpandConstant('{cm:RequirementInstallFolder}'),
-          ExpandConstant('{cm:RequirementWritableValue}'),
-          ExpandConstant('{cm:RequirementWritableValue}'));
-    end
-    else
-    begin
-      AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
-        ExpandConstant('{cm:RequirementInstallFolder}'),
-        ExpandConstant('{cm:RequirementWritableValue}'),
-        ExpandConstant('{cm:RequirementNotWritable}'));
-    end;
-
-    DataWritable := IsDirectoryWritable(DataDirEdit.Text);
-    if DataWritable then
-    begin
-      if IsCloudStoragePath(DataDirEdit.Text) then
-        AddRequirementLine(ExpandConstant('{cm:RequirementWarning}'),
-          ExpandConstant('{cm:RequirementUserDataFolder}'),
-          ExpandConstant('{cm:RequirementWritableValue}'),
-          ExpandConstant('{cm:RequirementWritableAndSynced}'))
-      else
-        AddRequirementLine(ExpandConstant('{cm:RequirementPassed}'),
-          ExpandConstant('{cm:RequirementUserDataFolder}'),
-          ExpandConstant('{cm:RequirementWritableValue}'),
-          ExpandConstant('{cm:RequirementWritableValue}'));
-    end
-    else
-    begin
-      AddRequirementLine(ExpandConstant('{cm:RequirementFailed}'),
-        ExpandConstant('{cm:RequirementUserDataFolder}'),
-        ExpandConstant('{cm:RequirementWritableValue}'),
-        ExpandConstant('{cm:RequirementNotWritable}'));
-    end;
+    AddDirectoryRequirement(InstallDirEdit.Text,
+      ExpandConstant('{cm:RequirementInstallFolder}'));
+    AddDirectoryRequirement(DataDirEdit.Text,
+      ExpandConstant('{cm:RequirementUserDataFolder}'));
 
     LayoutSafe := DirectoryPairIsSafe(InstallDirEdit.Text, DataDirEdit.Text);
     if not LayoutSafe then
@@ -2778,10 +2755,108 @@ begin
   ReadyTasksCard.Visible := Tasks <> '';
 end;
 
+procedure CreateDirectoryControls(const FileName, CaptionText, Description,
+  InitialPath, NoticeText: String; var TopY: Integer; var PathEdit: TEdit;
+  var BrowseButton: TButton; var CloudNotice: TNewStaticText);
+var
+  Icon: TBitmapImage;
+  TitleLabel, DescriptionLabel: TNewStaticText;
+begin
+  // Keep each icon visually aligned with the title and the full three-line description.
+  Icon := TBitmapImage.Create(DirSelectPage);
+  Icon.Parent := DirSelectPage.Surface;
+  Icon.Left := ScaleX(0);
+  Icon.Top := TopY;
+  Icon.Width := ScaleX(40);
+  Icon.Height := ScaleY(40);
+  Icon.Stretch := True;
+  ExtractTemporaryFile(FileName);
+  Icon.Bitmap.LoadFromFile(ExpandConstant('{tmp}\') + FileName);
+
+  TitleLabel := TNewStaticText.Create(DirSelectPage);
+  TitleLabel.Parent := DirSelectPage.Surface;
+  TitleLabel.Left := ScaleX(50);
+  TitleLabel.Top  := TopY;
+  TitleLabel.Caption := CaptionText;
+  TitleLabel.AutoSize := True;
+  TitleLabel.Font.Style := [fsBold];
+
+  DescriptionLabel := TNewStaticText.Create(DirSelectPage);
+  DescriptionLabel.Parent := DirSelectPage.Surface;
+  DescriptionLabel.Left := ScaleX(50);
+  DescriptionLabel.Top := TitleLabel.Top + TitleLabel.Height + ScaleY(2);
+  DescriptionLabel.Width := DirSelectPage.SurfaceWidth - ScaleX(50) - ScaleX(4);
+  DescriptionLabel.Height := ScaleY(30);
+  DescriptionLabel.AutoSize := False;
+  DescriptionLabel.WordWrap := True;
+  DescriptionLabel.Anchors := [akLeft, akTop, akRight];
+  DescriptionLabel.Caption := Description;
+
+  TopY := DescriptionLabel.Top + DescriptionLabel.Height + ScaleY(4);
+
+  PathEdit := TEdit.Create(DirSelectPage);
+  PathEdit.Parent := DirSelectPage.Surface;
+  PathEdit.Left := ScaleX(0);
+  PathEdit.Top  := TopY;
+  PathEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
+  PathEdit.Anchors := [akLeft, akTop, akRight];
+  PathEdit.Text := InitialPath;
+
+  BrowseButton := TButton.Create(DirSelectPage);
+  BrowseButton.Parent := DirSelectPage.Surface;
+  BrowseButton.Left := PathEdit.Left + PathEdit.Width + ScaleX(6);
+  BrowseButton.Top  := PathEdit.Top - ScaleY(1);
+  BrowseButton.Width := ScaleX(85);
+  BrowseButton.Height := ScaleY(23);
+  BrowseButton.Anchors := [akTop, akRight];
+  BrowseButton.Caption := SetupMessage(msgButtonBrowse);
+  BrowseButton.OnClick := @BrowseDirClick;
+
+  CloudNotice := TNewStaticText.Create(DirSelectPage);
+  CloudNotice.Parent := DirSelectPage.Surface;
+  CloudNotice.Left := PathEdit.Left;
+  CloudNotice.Top := PathEdit.Top + PathEdit.Height + ScaleY(4);
+  CloudNotice.Width := PathEdit.Width + ScaleX(91);
+  CloudNotice.Height := ScaleY(24);
+  CloudNotice.AutoSize := False;
+  CloudNotice.WordWrap := True;
+  CloudNotice.Anchors := [akLeft, akTop, akRight];
+  CloudNotice.Font.Color := clMaroon;
+  CloudNotice.Caption := NoticeText;
+  TopY := CloudNotice.Top + CloudNotice.Height + ScaleY(8);
+end;
+
+function CreatePreviewLabel(Owner: TComponent; Parent: TWinControl;
+  LeftPos, TopPos, PanelWidth: Integer): TNewStaticText;
+var
+  Panel: TPanel;
+begin
+  Panel := TPanel.Create(Owner);
+  Panel.Parent := Parent;
+  Panel.Left := LeftPos;
+  Panel.Top := TopPos;
+  Panel.Width := PanelWidth;
+  Panel.Height := ScaleY(58);
+  Panel.BevelOuter := bvNone;
+  Panel.Color := $00F3F3F3;
+  Panel.Anchors := [akLeft, akRight, akBottom];
+
+  Result := TNewStaticText.Create(Panel);
+  Result.Parent := Panel;
+  Result.Left := ScaleX(12);
+  Result.Top := ScaleY(9);
+  Result.Width := Panel.ClientWidth - ScaleX(24);
+  Result.Height := Panel.ClientHeight - ScaleY(16);
+  Result.AutoSize := False;
+  Result.WordWrap := True;
+  Result.Caption := '';
+  Result.Anchors := [akLeft, akTop, akRight, akBottom];
+end;
+
 procedure InitializeWizard();
 var
-  TitleText, SubTitleText, InfoText, WelcomeText, WelcomeSeparator: String;
-  LeftCol, TopY, ButtonWidth, RowGap, Row, WelcomeSeparatorPos,
+  InfoText, DataPath, WelcomeText, WelcomeSeparator: String;
+  LeftCol, TopY, ButtonWidth, Row, WelcomeSeparatorPos,
     ContentWidth, DetailsWidth, RequiredWidth, StatusWidth: Integer;
   HeaderComponent, HeaderRequired, HeaderDetails, HeaderStatus: TPanel;
   RequirementMeasureLabel: TNewStaticText;
@@ -2873,175 +2948,36 @@ begin
       InstallModeLabels[0].Enabled := False;
     end;
 
-    InstallModePreviewPanel := TPanel.Create(InstallModePage);
-    InstallModePreviewPanel.Parent := InstallModePage.Surface;
-    InstallModePreviewPanel.Left := 0;
-    InstallModePreviewPanel.Top := InstallModePage.SurfaceHeight - ScaleY(62);
-    InstallModePreviewPanel.Width := InstallModePage.SurfaceWidth;
-    InstallModePreviewPanel.Height := ScaleY(58);
-    InstallModePreviewPanel.BevelOuter := bvNone;
-    InstallModePreviewPanel.Color := $00F3F3F3;
-    InstallModePreviewPanel.Anchors := [akLeft, akRight, akBottom];
-
-    InstallModePreviewLabel := TNewStaticText.Create(InstallModePreviewPanel);
-    InstallModePreviewLabel.Parent := InstallModePreviewPanel;
-    InstallModePreviewLabel.Left := ScaleX(12);
-    InstallModePreviewLabel.Top := ScaleY(9);
-    InstallModePreviewLabel.Width := InstallModePreviewPanel.ClientWidth - ScaleX(24);
-    InstallModePreviewLabel.Height := InstallModePreviewPanel.ClientHeight - ScaleY(16);
-    InstallModePreviewLabel.AutoSize := False;
-    InstallModePreviewLabel.WordWrap := True;
+    InstallModePreviewLabel := CreatePreviewLabel(InstallModePage,
+      InstallModePage.Surface, 0, InstallModePage.SurfaceHeight - ScaleY(62),
+      InstallModePage.SurfaceWidth);
     InstallModePreviewLabel.Caption :=
       InstallModePreview(InstallModePage.SelectedValueIndex);
-    InstallModePreviewLabel.Anchors := [akLeft, akTop, akRight, akBottom];
     SelectInstallMode(InstallModePage.SelectedValueIndex);
   end;
 
-  TitleText := SetupMessage(msgWizardSelectDir);
-  SubTitleText := SetupMessage(msgSelectDirDesc);
+  DirSelectPage := CreateCustomPage(wpLicense,
+    SetupMessage(msgWizardSelectDir), SetupMessage(msgSelectDirDesc));
 
-  DirSelectPage := CreateCustomPage(
-    wpLicense, // show right after License
-    TitleText,
-    SubTitleText
-  );
-
-  LeftCol     := ScaleX(50);
-  TopY        := ScaleY(6);
-  ButtonWidth := ScaleX(85);
-  RowGap      := ScaleY(8);
-
-  // Keep each icon visually aligned with the title and the full three-line description.
-  InstallDirBitmap := TBitmapImage.Create(DirSelectPage);
-  InstallDirBitmap.Parent := DirSelectPage.Surface;
-  InstallDirBitmap.Left := ScaleX(0);
-  InstallDirBitmap.Top := TopY;
-  InstallDirBitmap.Width := ScaleX(40);
-  InstallDirBitmap.Height := ScaleY(40);
-  InstallDirBitmap.Stretch := True;
-  ExtractTemporaryFile('folder-vcmi.bmp');
-  InstallDirBitmap.Bitmap.LoadFromFile(ExpandConstant('{tmp}\folder-vcmi.bmp'));
-
-  LabelInstall := TNewStaticText.Create(DirSelectPage);
-  LabelInstall.Parent := DirSelectPage.Surface;
-  LabelInstall.Left := LeftCol;
-  LabelInstall.Top  := TopY;
-  LabelInstall.Caption := ExpandConstant('{cm:InstallFolderTitle}');
-  LabelInstall.AutoSize := True;
-  LabelInstall.Font.Style := [fsBold];
-
-  LabelInstallInfo1 := TNewStaticText.Create(DirSelectPage);
-  LabelInstallInfo1.Parent := DirSelectPage.Surface;
-  LabelInstallInfo1.Left := LeftCol;
-  LabelInstallInfo1.Top := LabelInstall.Top + LabelInstall.Height + ScaleY(2);
-  LabelInstallInfo1.Width := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(4);
-  LabelInstallInfo1.Height := ScaleY(30);
-  LabelInstallInfo1.AutoSize := False;
-  LabelInstallInfo1.WordWrap := True;
-  LabelInstallInfo1.Anchors := [akLeft, akTop, akRight];
+  TopY := ScaleY(6);
   InfoText := SetupMessage(msgSelectDirLabel3);
   StringChangeEx(InfoText, '[name]', '{#VCMIDisplayName}', True);
-  LabelInstallInfo1.Caption := InfoText;
-
-  TopY := LabelInstallInfo1.Top + LabelInstallInfo1.Height + ScaleY(4);
-
-  InstallDirEdit := TEdit.Create(DirSelectPage);
-  InstallDirEdit.Parent := DirSelectPage.Surface;
-  InstallDirEdit.Left := ScaleX(0);
-  InstallDirEdit.Top  := TopY;
-  InstallDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
-  InstallDirEdit.Anchors := [akLeft, akTop, akRight];
-  InstallDirEdit.Text := WizardForm.DirEdit.Text;
-
-  InstallDirBrowseBtn := TButton.Create(DirSelectPage);
-  InstallDirBrowseBtn.Parent := DirSelectPage.Surface;
-  InstallDirBrowseBtn.Left := InstallDirEdit.Left + InstallDirEdit.Width + ScaleX(6);
-  InstallDirBrowseBtn.Top  := InstallDirEdit.Top - ScaleY(1);
-  InstallDirBrowseBtn.Width := ButtonWidth;
-  InstallDirBrowseBtn.Height := ScaleY(23);
-  InstallDirBrowseBtn.Anchors := [akTop, akRight];
-  InstallDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
-  InstallDirBrowseBtn.OnClick := @BrowseDirClick;
-
-  CloudInstallNotice := TNewStaticText.Create(DirSelectPage);
-  CloudInstallNotice.Parent := DirSelectPage.Surface;
-  CloudInstallNotice.Left := InstallDirEdit.Left;
-  CloudInstallNotice.Top := InstallDirEdit.Top + InstallDirEdit.Height + ScaleY(4);
-  CloudInstallNotice.Width := InstallDirEdit.Width + ScaleX(91);
-  CloudInstallNotice.Height := ScaleY(24);
-  CloudInstallNotice.AutoSize := False;
-  CloudInstallNotice.WordWrap := True;
-  CloudInstallNotice.Anchors := [akLeft, akTop, akRight];
-  CloudInstallNotice.Font.Color := clMaroon;
-  CloudInstallNotice.Caption := ExpandConstant('{cm:CloudInstallNotice}');
+  CreateDirectoryControls('folder-vcmi.bmp',
+    ExpandConstant('{cm:InstallFolderTitle}'), InfoText, WizardForm.DirEdit.Text,
+    ExpandConstant('{cm:CloudInstallNotice}'), TopY,
+    InstallDirEdit, InstallDirBrowseBtn, CloudInstallNotice);
   InstallDirEdit.OnChange := @InstallDirEditChange;
   UpdateCloudInstallNotice();
 
-  TopY := CloudInstallNotice.Top + CloudInstallNotice.Height + RowGap;
-
-  DataDirBitmap := TBitmapImage.Create(DirSelectPage);
-  DataDirBitmap.Parent := DirSelectPage.Surface;
-  DataDirBitmap.Left := ScaleX(0);
-  DataDirBitmap.Top := TopY;
-  DataDirBitmap.Width := ScaleX(40);
-  DataDirBitmap.Height := ScaleY(40);
-  DataDirBitmap.Stretch := True;
-  ExtractTemporaryFile('folder-user.bmp');
-  DataDirBitmap.Bitmap.LoadFromFile(ExpandConstant('{tmp}\folder-user.bmp'));
-
-  LabelData := TNewStaticText.Create(DirSelectPage);
-  LabelData.Parent := DirSelectPage.Surface;
-  LabelData.Left := LeftCol;
-  LabelData.Top  := TopY;
-  LabelData.Caption := ExpandConstant('{cm:DataFolderTitle}');
-  LabelData.AutoSize := True;
-  LabelData.Font.Style := [fsBold];
-
-  LabelDataInfo := TNewStaticText.Create(DirSelectPage);
-  LabelDataInfo.Parent := DirSelectPage.Surface;
-  LabelDataInfo.Left := LeftCol;
-  LabelDataInfo.Top := LabelData.Top + LabelData.Height + ScaleY(2);
-  LabelDataInfo.Width := DirSelectPage.SurfaceWidth - LeftCol - ScaleX(4);
-  LabelDataInfo.Height := ScaleY(30);
-  LabelDataInfo.AutoSize := False;
-  LabelDataInfo.WordWrap := True;
-  LabelDataInfo.Anchors := [akLeft, akTop, akRight];
-  LabelDataInfo.Caption := ExpandConstant('{cm:DataFolderDescription}');
-
-  TopY := LabelDataInfo.Top + LabelDataInfo.Height + ScaleY(4);
-
-  DataDirEdit := TEdit.Create(DirSelectPage);
-  DataDirEdit.Parent := DirSelectPage.Surface;
-  DataDirEdit.Left := ScaleX(0);
-  DataDirEdit.Top  := TopY;
-  DataDirEdit.Width := DirSelectPage.SurfaceWidth - ScaleX(91);
-  DataDirEdit.Anchors := [akLeft, akTop, akRight];
   if CommandLineUserDataDir <> '' then
-    DataDirEdit.Text := CommandLineUserDataDir
+    DataPath := CommandLineUserDataDir
   else
-    DataDirEdit.Text := ReadUserDataPath(InstallDirEdit.Text, DefaultDataDir);
-
-  DataDirBrowseBtn := TButton.Create(DirSelectPage);
-  DataDirBrowseBtn.Parent := DirSelectPage.Surface;
-  DataDirBrowseBtn.Left := DataDirEdit.Left + DataDirEdit.Width + ScaleX(6);
-  DataDirBrowseBtn.Top  := DataDirEdit.Top - ScaleY(1);
-  DataDirBrowseBtn.Width := ButtonWidth;
-  DataDirBrowseBtn.Height := ScaleY(23);
-  DataDirBrowseBtn.Anchors := [akTop, akRight];
-  DataDirBrowseBtn.Caption := SetupMessage(msgButtonBrowse);
-  DataDirBrowseBtn.OnClick := @BrowseDirClick;
-
-  CloudDataNotice := TNewStaticText.Create(DirSelectPage);
-  CloudDataNotice.Parent := DirSelectPage.Surface;
-  CloudDataNotice.Left := DataDirEdit.Left;
-  CloudDataNotice.Top := DataDirEdit.Top + DataDirEdit.Height + ScaleY(4);
-  CloudDataNotice.Width := DataDirEdit.Width + ScaleX(91);
-  CloudDataNotice.Height := ScaleY(24);
-  CloudDataNotice.AutoSize := False;
-  CloudDataNotice.WordWrap := True;
-  CloudDataNotice.Anchors := [akLeft, akTop, akRight];
-  CloudDataNotice.Font.Color := clMaroon;
-  CloudDataNotice.Caption := ExpandConstant('{cm:CloudDataNotice}');
+    DataPath := ReadUserDataPath(InstallDirEdit.Text, DefaultDataDir);
+  CreateDirectoryControls('folder-user.bmp',
+    ExpandConstant('{cm:DataFolderTitle}'),
+    ExpandConstant('{cm:DataFolderDescription}'), DataPath,
+    ExpandConstant('{cm:CloudDataNotice}'), TopY,
+    DataDirEdit, DataDirBrowseBtn, CloudDataNotice);
   DataDirEdit.OnChange := @DataDirEditChange;
   UpdateCloudDataNotice();
 
@@ -3210,26 +3146,9 @@ begin
   CreateCustomTaskOption(10, ExpandConstant('{cm:AddFirewallRules}'),
     CustomTaskGroupLabels[1].Left, TopY + ScaleY(124), ButtonWidth);
 
-  TasksPreviewPanel := TPanel.Create(WizardForm.SelectTasksPage);
-  TasksPreviewPanel.Parent := WizardForm.TasksList.Parent;
-  TasksPreviewPanel.Left := LeftCol;
-  TasksPreviewPanel.Top := WizardForm.TasksList.Parent.ClientHeight - ScaleY(62);
-  TasksPreviewPanel.Width := ContentWidth;
-  TasksPreviewPanel.Height := ScaleY(58);
-  TasksPreviewPanel.BevelOuter := bvNone;
-  TasksPreviewPanel.Color := $00F3F3F3;
-  TasksPreviewPanel.Anchors := [akLeft, akRight, akBottom];
-
-  TasksPreviewLabel := TNewStaticText.Create(TasksPreviewPanel);
-  TasksPreviewLabel.Parent := TasksPreviewPanel;
-  TasksPreviewLabel.Left := ScaleX(12);
-  TasksPreviewLabel.Top := ScaleY(9);
-  TasksPreviewLabel.Width := TasksPreviewPanel.ClientWidth - ScaleX(24);
-  TasksPreviewLabel.Height := TasksPreviewPanel.ClientHeight - ScaleY(16);
-  TasksPreviewLabel.AutoSize := False;
-  TasksPreviewLabel.WordWrap := True;
-  TasksPreviewLabel.Caption := '';
-  TasksPreviewLabel.Anchors := [akLeft, akTop, akRight, akBottom];
+  TasksPreviewLabel := CreatePreviewLabel(WizardForm.SelectTasksPage,
+    WizardForm.TasksList.Parent, LeftCol,
+    WizardForm.TasksList.Parent.ClientHeight - ScaleY(62), ContentWidth);
   FirewallTaskPreviouslySelected := WizardIsTaskSelected('firewallrules');
 
   LastInstallModeHover := -1;
