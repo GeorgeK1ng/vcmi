@@ -36,7 +36,7 @@ VCMI uses an Inno Setup installer that supports multiple languages. To add a new
      `Unofficial` directory of [Inno Setup Languages](https://github.com/jrsoftware/issrc/tree/main/Files/Languages).
    - Do not copy the complete upstream file into VCMI. Official translations
      are loaded from the installed compiler and required community translations
-     are downloaded by `CI/wininstaller/download_inno_languages.ps1`.
+     are downloaded with `curl.exe` by `CI/wininstaller/build_installer.cmd`.
 
 2. **Add custom VCMI messages:**
    - Copy `CI/wininstaller/lang/English.isl` to a new overlay file and translate
@@ -75,7 +75,8 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl,{#LangPath}\Dutch.isl
 ```
 
 If the base translation is in Inno Setup's `Unofficial` directory, add it to
-`download_inno_languages.ps1` and use `{#UnofficialLangPath}` instead.
+the download list in `CI/wininstaller/build_installer.cmd` and use
+`{#UnofficialLangPath}` instead.
 
 Keep the message keys and formatting parameters consistent with `English.isl`.
 Do not translate command-line switches, task names, or literal folder names.

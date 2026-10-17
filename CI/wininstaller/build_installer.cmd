@@ -119,10 +119,24 @@ if not exist "%InstallerPluginPath%\installerPlugin.dll" (
     exit /b 1
 )
 
-REM Fetch the pinned Inno Setup community translations which are not installed
-REM with the compiler.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ScriptDir%download_inno_languages.ps1" -OutputDirectory "%UnofficialLangPath%"
-if errorlevel 1 exit /b %errorlevel%
+REM Fetch the pinned Inno Setup community translations not bundled with ISCC.
+where curl.exe >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: curl.exe is required to download Inno Setup translations.
+    exit /b 1
+)
+if not exist "%UnofficialLangPath%\" (
+    mkdir "%UnofficialLangPath%"
+    if errorlevel 1 exit /b 1
+)
+set "InnoLanguageTag=is-7_1_0"
+for %%L in (Belarusian.isl Greek.isl Latvian.isl Romanian.isl SerbianCyrillic.isl Vietnamese.isl) do (
+    echo Downloading Inno Setup language: %%L
+    curl.exe --fail --location --retry 2 --silent --show-error --output "!UnofficialLangPath!\%%L.download" "https://raw.githubusercontent.com/jrsoftware/issrc/!InnoLanguageTag!/Files/Languages/Unofficial/%%L"
+    if errorlevel 1 exit /b 1
+    move /y "!UnofficialLangPath!\%%L.download" "!UnofficialLangPath!\%%L" >nul
+    if errorlevel 1 exit /b 1
+)
 
 
 REM Print out installer settings
