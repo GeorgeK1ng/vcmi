@@ -90,17 +90,15 @@ void AboutProjectView::refreshDirectoryPaths()
 	ui->lineEditConfigDir->setText(pathToQString(dirs.userConfigPath()));
 	ui->lineEditLogsDir->setText(pathToQString(dirs.userLogsPath()));
 	ui->lineEditSaveDir->setText(pathToQString(dirs.userSavePath()));
-	const bool migrationAvailable = !dirs.userDataMigrationPath().empty();
 	ui->migrationStatus->setVisible(dirs.supportsUserPathChange());
 	ui->migrationWizard->setVisible(dirs.supportsUserPathChange());
 	ui->migrationStartupPrompt->setVisible(dirs.supportsUserPathChange());
-	ui->migrationWizard->setEnabled(migrationAvailable);
-	ui->migrationStartupPrompt->setEnabled(migrationAvailable);
 	const QSignalBlocker blocker(ui->migrationStartupPrompt);
-	ui->migrationStartupPrompt->setChecked(dataManager->migrationPromptEnabled());
-	ui->migrationStatus->setText(migrationAvailable
-		? tr("Your data is in cloud storage. The migration wizard can copy it to a local directory without deleting the originals.")
-		: tr("You can change the current data location at any time using the Change buttons."));
+	const bool promptEnabled = dataManager->migrationPromptEnabled();
+	ui->migrationStartupPrompt->setChecked(promptEnabled);
+	ui->migrationStatus->setText(promptEnabled
+		? tr("The launcher will check whether your data needs migration at startup.")
+		: tr("Migration checks at startup are disabled for this directory. You can open the wizard manually at any time."));
 }
 
 void AboutProjectView::changeEvent(QEvent * event)

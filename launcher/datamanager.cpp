@@ -1019,32 +1019,49 @@ bool datamanager::setMigrationPromptEnabled(bool enabled) const
 	if(preferences.status() == QSettings::NoError)
 		return true;
 
-	QMessageBox::warning(parent, tr("Preferences not saved"), tr("The launcher could not save your migration preference. The wizard may appear again at the next startup."));
+	QMessageBox::warning(parent, tr("Preferences not saved"), tr("The launcher could not save your migration preference. The migration prompt may appear again at the next startup."));
 	return false;
 }
 
 void datamanager::migrateUserData(bool automatic) const
 {
+	if(automatic && !migrationPromptEnabled())
+		return;
+
 	const auto & dirs = VCMIDirs::get();
 	QString target = pathToQString(dirs.userDataMigrationPath());
-	if(target.isEmpty() || (automatic && !migrationPromptEnabled()))
+	if(target.isEmpty())
+	{
+		if(!automatic)
+			QMessageBox::information(parent, tr("Data migration"), tr("No migration to a local directory is needed or available. You can still change directories using the Change buttons."));
 		return;
+	}
+
+	if(automatic)
+	{
+		QMessageBox dialog(QMessageBox::Information, tr("VCMI data in cloud storage"),
+			tr("Your VCMI data is stored in a cloud-synchronized directory:\n%1\n\n"
+				"Synchronization can lock files or cause conflicts. The migration wizard can copy your data to a local directory while keeping the originals.")
+				.arg(QDir::toNativeSeparators(pathToQString(dirs.userDataPath()))),
+			QMessageBox::NoButton, parent);
+		auto * openWizard = dialog.addButton(tr("Open migration wizard"), QMessageBox::AcceptRole);
+		auto * later = dialog.addButton(tr("Not now"), QMessageBox::RejectRole);
+		dialog.setDefaultButton(openWizard);
+		dialog.setEscapeButton(later);
+		QCheckBox suppress(tr("Don't show at startup for this directory"));
+		dialog.setCheckBox(&suppress);
+		dialog.exec();
+		if(suppress.isChecked())
+			setMigrationPromptEnabled(false);
+		if(dialog.clickedButton() != openWizard)
+			return;
+	}
 
 	QWizard wizard(parent);
 	wizard.setWindowTitle(tr("VCMI data migration"));
 	wizard.setWizardStyle(QWizard::ModernStyle);
 	wizard.setOption(QWizard::NoBackButtonOnStartPage);
-	wizard.setOption(QWizard::HaveCustomButton1);
-	wizard.setButtonText(QWizard::CancelButton, tr("Remind me next time"));
-	wizard.setButtonText(QWizard::CustomButton1, tr("Don't ask again"));
 	wizard.setButtonText(QWizard::FinishButton, tr("Copy data"));
-	wizard.setButtonLayout({QWizard::BackButton, QWizard::Stretch, QWizard::CustomButton1,
-		QWizard::CancelButton, QWizard::NextButton, QWizard::FinishButton});
-	connect(&wizard, &QWizard::customButtonClicked, &wizard, [this, &wizard](int button)
-	{
-		if(button == QWizard::CustomButton1 && setMigrationPromptEnabled(false))
-			wizard.reject();
-	});
 
 	auto * introduction = new QWizardPage(&wizard);
 	introduction->setTitle(tr("Keep your VCMI data available"));
@@ -1054,7 +1071,7 @@ void datamanager::migrateUserData(bool automatic) const
 		"This wizard can copy your existing VCMI data to a local directory.\n\n"
 		"Your current files remain in use until copying finishes, and the originals will not be deleted. "
 		"Directories you configured separately keep their current locations.\n\n"
-		"You can postpone migration or stop automatic reminders. You can always reopen this wizard under About → Data Directories."), introduction);
+		"You can cancel without changing your current directory. You can always reopen this wizard under About → Data Directories."), introduction);
 	explanation->setWordWrap(true);
 	introductionLayout->addWidget(explanation);
 	wizard.addPage(introduction);
