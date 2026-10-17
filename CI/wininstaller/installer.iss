@@ -258,6 +258,7 @@ var
   DeletePathsList: TNewCheckListBox;
   DeleteAllUserData: Boolean;
   Heroes3Path: String;
+  Heroes3DetectionPending, Heroes3DetectionStarted: Boolean;
   Heroes3MapsSize, Heroes3DataSize, Heroes3Mp3Size: Int64;
   Heroes3MapsFiles, Heroes3DataFiles, Heroes3Mp3Files: Integer;
   GlobalUserName: String;
@@ -315,6 +316,14 @@ var
 
 // Keep all imported APIs before the first routine implementation. Pascal Script
 // does not allow new external declarations after routine bodies have started.
+function StartHeroes3Detection(): BOOL;
+  external 'StartHeroes3Detection@files:installerPlugin.dll stdcall setuponly delayload';
+function GetHeroes3DetectionResult(Path: String; Capacity: Cardinal;
+  var MapsSize, DataSize, Mp3Size: Int64;
+  var MapsCount, DataCount, Mp3Count: Integer): Integer;
+  external 'GetHeroes3DetectionResult@files:installerPlugin.dll stdcall setuponly delayload';
+procedure CancelHeroes3Detection();
+  external 'CancelHeroes3Detection@files:installerPlugin.dll stdcall setuponly delayload';
 function WTSQuerySessionInformation(hServer: THandle; SessionId: Cardinal; WTSInfoClass: Integer; var pBuffer: NativeUInt; var BytesReturned: DWord): Boolean;
   external 'WTSQuerySessionInformationW@wtsapi32.dll stdcall';
 procedure WTSFreeMemory(pMemory: NativeUInt);
@@ -358,14 +367,6 @@ begin
   end;
 end;
 
-function RegistryQueryPath(Key, ValueName: String): String;
-begin
-  Result := '';
-  if IsWin64 and RegQueryStringValue(HKLM64, Key, ValueName, Result) then
-    Exit;
-  RegQueryStringValue(HKLM32, Key, ValueName, Result);
-end;
-
 function HasCommandLineSwitch(const Name: String): Boolean;
 var
   Index: Integer;
@@ -385,6 +386,8 @@ begin
   end;
 end;
 
+procedure PollHeroes3Detection(); forward;
+procedure UpdateRequirementsCheck(); forward;
 procedure UpdateDiskSpaceLabel(); forward;
 function IsCloudStoragePath(const Path: String): Boolean; forward;
 function IsCloudStorageRoot(const Path: String): Boolean; forward;
@@ -396,108 +399,6 @@ function FindTopLevelJsonStringValue(const Content, Key: String;
 function ShouldRunLauncher(): Boolean;
 begin
   Result := not WizardSilent or HasCommandLineSwitch('LAUNCH');
-end;
-
-function VdfValueAfter(const Content, Key: String; StartPosition: Integer;
-  var Value, NextContent: String): Boolean;
-var
-  KeyPosition, Position, ValueEnd: Integer;
-  SearchContent, SearchKey: String;
-begin
-  Result := False;
-  Value := '';
-  NextContent := '';
-  SearchContent := Copy(Content, StartPosition, Length(Content));
-  SearchKey := '"' + Key + '"';
-  KeyPosition := Pos(UpperCase(SearchKey), UpperCase(SearchContent));
-  if KeyPosition = 0 then
-    Exit;
-
-  Position := KeyPosition + Length(SearchKey);
-  while (Position <= Length(SearchContent)) and (SearchContent[Position] <> '"') do
-    Position := Position + 1;
-  if Position > Length(SearchContent) then
-    Exit;
-
-  ValueEnd := Position + 1;
-  while (ValueEnd <= Length(SearchContent)) and (SearchContent[ValueEnd] <> '"') do
-    ValueEnd := ValueEnd + 1;
-  if ValueEnd > Length(SearchContent) then
-    Exit;
-
-  Value := Copy(SearchContent, Position + 1, ValueEnd - Position - 1);
-  StringChangeEx(Value, '\\', '\', True);
-  NextContent := Copy(SearchContent, ValueEnd + 1, Length(SearchContent));
-  Result := Value <> '';
-end;
-
-function LoadTextLines(const FileName: String; var Content: String): Boolean;
-var
-  Lines: TArrayOfString;
-  Index: Integer;
-begin
-  Content := '';
-  Result := LoadStringsFromFile(FileName, Lines);
-  if not Result then
-    Exit;
-
-  for Index := 0 to GetArrayLength(Lines) - 1 do
-    Content := Content + Lines[Index] + #10;
-end;
-
-function FindSteamGameInLibrary(const LibraryPath, AppId,
-  FallbackInstallDir: String): String;
-var
-  Manifest, InstallDir, Remaining: String;
-begin
-  Result := '';
-  if not LoadTextLines(AddBackslash(LibraryPath) +
-    'steamapps\appmanifest_' + AppId + '.acf', Manifest) then
-    Exit;
-
-  InstallDir := FallbackInstallDir;
-  if VdfValueAfter(Manifest, 'installdir', 1, Result, Remaining) then
-    InstallDir := Result;
-
-  Result := AddBackslash(LibraryPath) + 'steamapps\common\' + InstallDir;
-  if not DirExists(Result) then
-    Result := '';
-end;
-
-function FindSteamGameInstallDir(const AppId, FallbackInstallDir: String): String;
-var
-  SteamPath, LibraryFolders, LibraryPath, Remaining, Candidate: String;
-begin
-  Result := '';
-  if IsWin64 then
-    RegQueryStringValue(HKCU64, 'Software\Valve\Steam', 'SteamPath', SteamPath);
-  if SteamPath = '' then
-    RegQueryStringValue(HKCU32, 'Software\Valve\Steam', 'SteamPath', SteamPath);
-  if (SteamPath = '') and IsWin64 then
-    RegQueryStringValue(HKLM64, 'SOFTWARE\Valve\Steam', 'InstallPath', SteamPath);
-  if SteamPath = '' then
-    RegQueryStringValue(HKLM32, 'SOFTWARE\Valve\Steam', 'InstallPath', SteamPath);
-  if SteamPath = '' then
-    Exit;
-
-  Result := FindSteamGameInLibrary(SteamPath, AppId, FallbackInstallDir);
-  if Result <> '' then
-    Exit;
-
-  if not LoadTextLines(AddBackslash(SteamPath) +
-    'steamapps\libraryfolders.vdf', LibraryFolders) then
-    Exit;
-
-  Remaining := LibraryFolders;
-  while VdfValueAfter(Remaining, 'path', 1, LibraryPath, Remaining) do
-  begin
-    Candidate := FindSteamGameInLibrary(LibraryPath, AppId, FallbackInstallDir);
-    if Candidate <> '' then
-    begin
-      Result := Candidate;
-      Exit;
-    end;
-  end;
 end;
 
 function IsCloudTargetAllowed(): Boolean;
@@ -529,33 +430,6 @@ begin
   ConfirmedPath := Path;
 end;
 
-procedure AddFolderStats(const FolderPath: String; var TotalSize: Int64;
-  var FileCount: Integer);
-var
-  FindRec: TFindRec;
-  FileSizeValue: Int64;
-begin
-  if FindFirst(FolderPath + '\*', FindRec) then
-  begin
-    try
-      repeat
-        if (FindRec.Attributes and $400) <> 0 then
-          Continue
-        else if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
-        begin
-          if FileSize64(FolderPath + '\' + FindRec.Name, FileSizeValue) then
-            TotalSize := TotalSize + FileSizeValue;
-          FileCount := FileCount + 1;
-        end
-        else if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
-          AddFolderStats(FolderPath + '\' + FindRec.Name, TotalSize, FileCount);
-      until not FindNext(FindRec);
-    finally
-      FindClose(FindRec);
-    end;
-  end;
-end;
-
 function FolderContains(const FolderPath, Pattern: String): Boolean;
 var
   FindRecord: TFindRec;
@@ -563,14 +437,6 @@ begin
   Result := FindFirst(AddBackslash(FolderPath) + Pattern, FindRecord);
   if Result then
     FindClose(FindRecord);
-end;
-
-procedure GetFolderStats(const FolderPath: String; var TotalSize: Int64;
-  var FileCount: Integer);
-begin
-  TotalSize := 0;
-  FileCount := 0;
-  AddFolderStats(FolderPath, TotalSize, FileCount);
 end;
 
 function IsMapsFolderValid(const FolderPath: String): Boolean;
@@ -588,18 +454,6 @@ end;
 function IsMp3FolderValid(const FolderPath: String): Boolean;
 begin
   Result := DirExists(FolderPath) and FolderContains(FolderPath, '*.mp3');
-end;
-
-function IsHeroes3PathValid(const Path: String): Boolean;
-begin
-  Result := IsDataFolderValid(AddBackslash(Path) + 'Data')
-    and IsMapsFolderValid(AddBackslash(Path) + 'Maps');
-end;
-
-procedure SetHeroes3PathIfValid(const Candidate: String);
-begin
-  if (Heroes3Path = '') and IsHeroes3PathValid(Candidate) then
-    Heroes3Path := RemoveBackslashUnlessRoot(Candidate);
 end;
 
 function Heroes3CopySize(): Int64;
@@ -973,6 +827,7 @@ var
   PreviewText: String;
   Cursor: TPoint;
 begin
+  PollHeroes3Detection();
   if Assigned(InstallModePage) and (WizardForm.CurPageID = InstallModePage.ID) then
   begin
     Index := -1;
@@ -1873,31 +1728,16 @@ begin
     SelectedDataDir := DefaultDataDir;
   UpdateDataFolders(SelectedDataDir);
 
-  // Validate every candidate before accepting it. Stale registry entries must
-  // not prevent detection from continuing with Ubisoft Connect or Steam.
-  Heroes3Path := '';
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\GOG.com\Games\1207658787', 'path'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\New World Computing\Heroes of Might and Magic® III\1.0', 'AppPath'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\New World Computing\Heroes of Might and Magic III\1.0', 'AppPath'));
-  SetHeroes3PathIfValid(RegistryQueryPath(
-    'SOFTWARE\Ubisoft\Launcher\Installs\353', 'InstallDir'));
-  SetHeroes3PathIfValid(FindSteamGameInstallDir(
-    '4921760', 'Heroes of Might and Magic III'));
-
-  if (Heroes3Path <> '') then
-  begin
-    Heroes3MapsFolder := Heroes3Path + '\Maps';
-    Heroes3DataFolder := Heroes3Path + '\Data';
-    Heroes3Mp3Folder := Heroes3Path + '\Mp3';
-    GetFolderStats(Heroes3MapsFolder, Heroes3MapsSize, Heroes3MapsFiles);
-    GetFolderStats(Heroes3DataFolder, Heroes3DataSize, Heroes3DataFiles);
-    GetFolderStats(Heroes3Mp3Folder, Heroes3Mp3Size, Heroes3Mp3Files);
+  // The native worker owns discovery and source statistics. Do not enumerate
+  // Heroes III files here: InitializeSetup runs before the first wizard window.
+  try
+    Heroes3DetectionStarted := StartHeroes3Detection();
+  except
+    Log('Heroes III background detection plugin is unavailable.');
   end;
-  CopyHeroes3DataSelected := (Heroes3Path <> '')
-    and (CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0);
+  Heroes3DetectionPending := Heroes3DetectionStarted;
+  if not Heroes3DetectionStarted then
+    Log('Heroes III detection could not start; automatic asset import is unavailable.');
 
   Result := True;
 end;
@@ -2030,15 +1870,100 @@ var
 begin
   if not Assigned(CopyHeroes3DataCheck) then
     Exit;
+  CopyHeroes3DataCheck.Enabled := not Heroes3DetectionPending;
+  if Heroes3DetectionPending then
+  begin
+    CopyHeroes3DataCheck.Visible := True;
+    CopyHeroes3DataCheck.Checked := False;
+    CopyHeroes3DataCheck.Caption := ExpandConstant('{cm:ScanningFiles}');
+    Exit;
+  end;
+  CopyHeroes3DataCheck.Caption := ExpandConstant('{cm:CopyH3Files}');
   Available := IsHeroes3Installed and IsCopyFilesNeeded;
   if Available and not Heroes3CopyWasAvailable then
-    CopyHeroes3DataSelected := True;
+    CopyHeroes3DataSelected := CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0;
   CopyHeroes3DataCheck.Visible := Available;
   if Available then
     CopyHeroes3DataCheck.Checked := CopyHeroes3DataSelected
   else
     CopyHeroes3DataCheck.Checked := False;
   Heroes3CopyWasAvailable := Available;
+end;
+
+procedure PollHeroes3Detection();
+var
+  Buffer: String;
+  Status, Terminator: Integer;
+begin
+  if not Heroes3DetectionPending then
+    Exit;
+  SetLength(Buffer, 32768);
+  try
+    Status := GetHeroes3DetectionResult(Buffer, Length(Buffer),
+      Heroes3MapsSize, Heroes3DataSize, Heroes3Mp3Size,
+      Heroes3MapsFiles, Heroes3DataFiles, Heroes3Mp3Files);
+  except
+    Status := -1;
+  end;
+  if Status = 0 then
+    Exit;
+  Heroes3DetectionPending := False;
+  if Status = 1 then
+  begin
+    Terminator := Pos(#0, Buffer);
+    if Terminator > 0 then
+      SetLength(Buffer, Terminator - 1);
+    Heroes3Path := Buffer;
+    if Heroes3Path <> '' then
+    begin
+      Heroes3MapsFolder := Heroes3Path + '\Maps';
+      Heroes3DataFolder := Heroes3Path + '\Data';
+      Heroes3Mp3Folder := Heroes3Path + '\Mp3';
+    end;
+    CopyHeroes3DataSelected := (Heroes3Path <> '')
+      and (CompareText(ExpandConstant('{param:COPYH3DATA|1}'), '0') <> 0);
+    Log('Heroes III background detection complete: ' + Heroes3Path);
+  end
+  else
+    Log('Heroes III background detection failed; automatic asset import is unavailable.');
+  UpdateHeroes3CopyCheckbox();
+  UpdateDiskSpaceLabel();
+  if Assigned(RequirementsPage) and (WizardForm.CurPageID = RequirementsPage.ID) then
+    UpdateRequirementsCheck();
+end;
+
+procedure WaitForHeroes3Detection();
+var
+  Progress: TOutputMarqueeProgressWizardPage;
+begin
+  PollHeroes3Detection();
+  if not Heroes3DetectionPending then
+    Exit;
+  Progress := nil;
+  if not WizardSilent then
+  begin
+    Progress := CreateOutputMarqueeProgressPage(
+      ExpandConstant('{cm:ScanningFiles}'), '');
+    Progress.SetText(ExpandConstant('{cm:ScanningFiles}'), '');
+    Progress.Show;
+  end;
+  try
+    while Heroes3DetectionPending do
+    begin
+      // Animate pumps wizard messages; all filesystem work remains on the worker.
+      if Assigned(Progress) then
+        Progress.Animate;
+      PollHeroes3Detection();
+      if Heroes3DetectionPending then
+        Sleep(50);
+    end;
+  finally
+    if Assigned(Progress) then
+    begin
+      Progress.Hide;
+      Progress.Free;
+    end;
+  end;
 end;
 
 procedure DataDirEditChange(Sender: TObject);
@@ -3171,6 +3096,14 @@ procedure DeinitializeSetup();
 begin
   if HoverPreviewTimerID <> 0 then
     KillTimer(0, HoverPreviewTimerID);
+  if Heroes3DetectionStarted then
+  begin
+    try
+      CancelHeroes3Detection();
+    except
+      Log('Could not release Heroes III background detection.');
+    end;
+  end;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
@@ -3218,6 +3151,7 @@ begin
 
   if Assigned(DirSelectPage) and (CurPageID = DirSelectPage.ID) then
   begin
+    WaitForHeroes3Detection();
     // Validate install dir
     if not EnsureNonEmptyDir(SetupMessage(msgSelectDirLabel3), InstallDirEdit.Text) then
     begin
@@ -3684,6 +3618,9 @@ end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
+  // Upgrade and silent flows skip the directory/requirements pages. They still
+  // need a completed import decision before payload installation starts.
+  WaitForHeroes3Detection();
   Result := '';
   { PrepareToInstall runs before Inno starts copying the new payload. Running a
     legacy uninstaller from a [Files] callback is too late: it may delete files

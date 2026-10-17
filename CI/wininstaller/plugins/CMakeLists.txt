@@ -5,20 +5,21 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_library(installerPlugin SHARED
     installerPlugin.cpp
+    Heroes3Detection.cpp
     ../../../lib/platform/windows/CloudStorageDetection.cpp
     ../../../lib/platform/windows/CloudStorageDetection.h
 )
 
 target_compile_definitions(installerPlugin PRIVATE
-    UNICODE _UNICODE
+    UNICODE _UNICODE NOMINMAX
     VCMI_WINDOWS_CLOUD_STANDALONE "DLL_LINKAGE="
     _WIN32_WINNT=0x0601 WINVER=0x0601
 )
 
 target_include_directories(installerPlugin PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib")
-target_compile_features(installerPlugin PRIVATE cxx_std_17)
+target_compile_features(installerPlugin PRIVATE cxx_std_20)
 target_compile_options(installerPlugin PRIVATE /W4 /EHsc)
-target_link_libraries(installerPlugin PRIVATE ole32 shell32)
+target_link_libraries(installerPlugin PRIVATE ole32 shell32 advapi32)
 
 set_target_properties(installerPlugin PROPERTIES
   OUTPUT_NAME installerPlugin

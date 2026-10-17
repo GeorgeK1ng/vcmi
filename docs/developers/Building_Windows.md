@@ -306,7 +306,7 @@ cmake --build CI\wininstaller\plugins\build --config Release --target installerP
 Use `-A Win32` for an x86 installer. The ARM64 package also uses a Win32 Setup
 executable and therefore a Win32 plugin; only its VCMI payload is ARM64. The
 plugin is statically linked to the MSVC runtime and implements the modern folder
-picker and cloud-storage detection used by Setup.
+picker, cloud-storage detection, and background Heroes III discovery used by Setup.
 
 Run the wrapper from a regular Command Prompt:
 
@@ -512,6 +512,16 @@ Setup performs state-changing operations in this order:
 Heroes III discovery checks known GOG and original CD registry entries, Ubisoft
 Connect, and Steam. Every candidate is validated before it is accepted, so a
 stale registry entry does not prevent later candidates from being considered.
+Discovery and source file statistics run on a native Windows thread-pool worker
+started in `InitializeSetup`, rather than blocking the first wizard window.
+Setup polls the completed result on its UI thread; the worker never calls Pascal
+Script or accesses controls. If discovery is still pending when advancing past
+the directory page, Setup shows a scanning progress page. Upgrade and silent
+flows also await the result in `PrepareToInstall` before making the import
+choice. Cancellation requests cooperative termination; the worker retains its
+own DLL reference until its callback returns, so closing Setup does not have to
+join a worker blocked on filesystem I/O. A detection failure is logged and leaves
+automatic asset import unavailable without preventing the application install.
 Import merges regular directories and files without following junctions or
 symbolic links. Invalid destination trees are repaired by copying with overwrite
 enabled; already valid Heroes III trees are left untouched. The source
