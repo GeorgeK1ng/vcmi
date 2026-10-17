@@ -549,15 +549,9 @@ installed cloud helper is unloaded before Inno removes the application files.
 
 ### Maintenance checks
 
-Before committing installer changes, run:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File CI\wininstaller\validate_installer_languages.ps1
-```
-
-Then build all applicable x86, x64, and ARM64 packages with
-`build_installer.cmd`. Language validation requires every VCMI custom message to
-exist in all installer overlays. A local design-only package may use a minimal
+Before committing installer changes, check the language overlays against
+`English.isl`, then build the applicable x86, x64, and ARM64 packages with
+`build_installer.cmd`. A local design-only package may use a minimal
 payload, but release validation must use the real packaged VCMI binaries, the
 matching architecture plugin, UCRT inputs, and Inno Setup 7.
 

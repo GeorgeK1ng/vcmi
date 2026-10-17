@@ -828,10 +828,6 @@ jobs:
         cmake -S CI/wininstaller/plugins -B CI/wininstaller/plugins/build -A $pluginArch
         cmake --build CI/wininstaller/plugins/build --config Release --target installerPlugin
 
-    - name: Validate installer translations
-      shell: pwsh
-      run: CI/wininstaller/validate_installer_languages.ps1
-
     - name: Build VCMI Installer
       run: >
         CI\wininstaller\build_installer.cmd

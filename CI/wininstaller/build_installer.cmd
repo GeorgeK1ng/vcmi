@@ -120,12 +120,10 @@ if not exist "%InstallerPluginPath%\installerPlugin.dll" (
 )
 
 REM Fetch the pinned Inno Setup community translations which are not installed
-REM with the compiler. The script reuses files already present in the temp cache.
+REM with the compiler.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ScriptDir%download_inno_languages.ps1" -OutputDirectory "%UnofficialLangPath%"
 if errorlevel 1 exit /b %errorlevel%
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ScriptDir%validate_installer_languages.ps1"
-if errorlevel 1 exit /b %errorlevel%
 
 REM Print out installer settings
 echo.

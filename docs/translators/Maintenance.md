@@ -77,10 +77,8 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl,{#LangPath}\Dutch.isl
 If the base translation is in Inno Setup's `Unofficial` directory, add it to
 `download_inno_languages.ps1` and use `{#UnofficialLangPath}` instead.
 
-Run `CI\wininstaller\validate_installer_languages.ps1` after changing languages.
-It verifies parity with the launcher translations (except Filipino, for which
-Inno Setup has no base translation) and checks that every overlay has the same
-message keys as English.
+Keep the message keys and formatting parameters consistent with `English.isl`.
+Do not translate command-line switches, task names, or literal folder names.
 
 ### Addition of new mods to Weblate
 
