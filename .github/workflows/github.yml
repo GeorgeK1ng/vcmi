@@ -813,8 +813,8 @@ jobs:
     - name: Install Inno Setup 7
       shell: pwsh
       run: |
-        gh release download is-7_1_0 --repo jrsoftware/issrc --pattern 'innosetup-7.1.0-x64.exe' --dir $env:RUNNER_TEMP
-        $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.0-x64.exe'
+        gh release download is-7_1_1 --repo jrsoftware/issrc --pattern 'innosetup-7.1.1-x64.exe' --dir $env:RUNNER_TEMP
+        $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.1-x64.exe'
         gh release verify-asset $installer --repo jrsoftware/issrc
         & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
