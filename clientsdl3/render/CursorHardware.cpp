@@ -10,6 +10,7 @@
 
 #include "StdInc.h"
 #include "CursorHardware.h"
+#include "GpuResources.h"
 
 #include "SDL_Extensions.h"
 #include "SDLImageScaler.h"
@@ -25,7 +26,8 @@
 #include <SDL3/SDL_events.h>
 
 CursorHardware::CursorHardware():
-	cursor(nullptr)
+	cursor(nullptr),
+	pos(0, 0)
 {
 	SDL_HideCursor();
 }
@@ -85,12 +87,20 @@ void CursorHardware::setImage(std::shared_ptr<IImage> image, const Point & pivot
 
 void CursorHardware::setCursorPosition( const Point & newPos )
 {
-	//no-op
+	pos = newPos;
 }
 
 void CursorHardware::render()
 {
-	//no-op
+	SDL_Renderer * renderer = GpuResources::get().renderer();
+	const int scale = ENGINE->screenHandler().getScalingFactor();
+	const float arm = 8 * scale;
+	const float thickness = 2 * scale;
+	SDL_FRect horizontal{static_cast<float>(pos.x) - arm, static_cast<float>(pos.y) - thickness / 2, arm * 2, thickness};
+	SDL_FRect vertical{static_cast<float>(pos.x) - thickness / 2, static_cast<float>(pos.y) - arm, thickness, arm * 2};
+	SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+	SDL_RenderFillRect(renderer, &horizontal);
+	SDL_RenderFillRect(renderer, &vertical);
 }
 
 void CursorHardware::update()

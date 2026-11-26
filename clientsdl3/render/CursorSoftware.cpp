@@ -40,6 +40,16 @@ void CursorSoftware::render()
 	destRect.h = cursorSurface->h;
 
 	SDL_RenderTexture(GpuResources::get().renderer(), cursorTexture, nullptr, &destRect);
+
+	SDL_Renderer * renderer = GpuResources::get().renderer();
+	const int scale = ENGINE->screenHandler().getScalingFactor();
+	const float arm = 8 * scale;
+	const float thickness = 2 * scale;
+	SDL_FRect horizontal{static_cast<float>(pos.x) - arm, static_cast<float>(pos.y) - thickness / 2, arm * 2, thickness};
+	SDL_FRect vertical{static_cast<float>(pos.x) - thickness / 2, static_cast<float>(pos.y) - arm, thickness, arm * 2};
+	SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+	SDL_RenderFillRect(renderer, &horizontal);
+	SDL_RenderFillRect(renderer, &vertical);
 }
 
 void CursorSoftware::createTexture(const Point & dimensions)
