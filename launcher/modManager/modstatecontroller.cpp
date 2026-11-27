@@ -202,8 +202,24 @@ bool ModStateController::enableMods(QStringList modlist)
 		if (!canEnableMod(modname))
 			return false;
 
-	modList->doEnableMods(modlist);
-	return true;
+	try
+	{
+		modList->doEnableMods(modlist);
+	}
+	catch(const std::exception & e)
+	{
+		return addError(modlist.join(", "), QString::fromUtf8(e.what()));
+	}
+
+	bool success = true;
+	for(const auto & modname : modlist)
+		if(!modList->isModEnabled(modname))
+		{
+			addError(modname, tr("Mod could not be enabled because its dependencies or conflicts could not be resolved"));
+			success = false;
+		}
+
+	return success;
 }
 
 bool ModStateController::disableMod(QString modname)

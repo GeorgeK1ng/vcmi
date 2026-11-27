@@ -40,6 +40,7 @@ class CModListView : public QWidget
 	QString activatingPreset;
 
 	QStringList enqueuedModDownloads;
+	QStringList pendingModsToEnable;
 	QStringList enqueuedDownloadFiles;
 	QHash<QString, QString> enqueuedDownloadDescriptions;
 	QString activeDownloadFile;
@@ -48,6 +49,10 @@ class CModListView : public QWidget
 	void setupModsView();
 
 	void checkManagerErrors();
+	QStringList getEnabledRootMods() const;
+	void showDisabledMods(const QStringList & previouslyEnabledMods);
+	void enableMods(QStringList mods);
+	void requestEnableMods(QStringList mods, bool allowDependencyDownload = true);
 
 	/// replace mod ID's with proper human-readable mod names
 	QStringList getModNames(QString queryingMod, QStringList input);

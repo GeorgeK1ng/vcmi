@@ -518,7 +518,7 @@ auto CModListView::buttonEnabledState(QString modName, ModState & mod)
 
 	// Block buttons if action is not allowed at this time
 	res.disableEnabled = true;
-	res.enableEnabled = notInstalledDependencies.empty() && !translationMismatch;
+	res.enableEnabled = unavailableDependencies.empty() && !translationMismatch;
 	res.installEnabled = unavailableDependencies.empty() && !modIsBeingDownloaded;
 	res.uninstallEnabled = manager->isModManageable(mod.getID());
 	res.updateEnabled = unavailableDependencies.empty() && !modIsBeingDownloaded && manager->isModManageable(mod.getID());
@@ -705,8 +705,7 @@ void CModListView::on_enableButton_clicked()
 
 void CModListView::enableModByName(QString modName)
 {
-	manager->enableMods({modName});
-	modModel->modChanged(modName);
+	requestEnableMods({modName});
 }
 
 void CModListView::on_disableButton_clicked()
@@ -719,7 +718,108 @@ void CModListView::on_disableButton_clicked()
 void CModListView::disableModByName(QString modName)
 {
 	manager->disableMod(modName);
-	modModel->modChanged(modName);
+	reload(modName);
+}
+
+QStringList CModListView::getEnabledRootMods() const
+{
+	QStringList result;
+	for(const auto & mod : modStateModel->getAllMods())
+		if(!modStateModel->isSubmod(mod) && modStateModel->isModEnabled(mod))
+			result.push_back(mod);
+	return result;
+}
+
+void CModListView::showDisabledMods(const QStringList & previouslyEnabledMods)
+{
+	static constexpr int MAX_INLINE_MODS = 8;
+	static constexpr int MAX_INLINE_TEXT_LENGTH = 800;
+
+	QStringList disabledMods;
+	for(const auto & mod : previouslyEnabledMods)
+	{
+		if(!modStateModel->isModExists(mod) || !modStateModel->isModEnabled(mod))
+			disabledMods.push_back(modStateModel->isModExists(mod) ? modStateModel->getMod(mod).getName() : mod);
+	}
+
+	if(disabledMods.empty())
+		return;
+
+	const QString modList = disabledMods.join("\n");
+	const QString explanation = tr("The following mods were disabled because they conflict with the enabled mods or their requirements are no longer satisfied:");
+
+	QMessageBox messageBox(QMessageBox::Information, tr("Mods disabled"), {}, QMessageBox::Ok, this);
+	if(disabledMods.size() <= MAX_INLINE_MODS && modList.size() <= MAX_INLINE_TEXT_LENGTH)
+		messageBox.setText(explanation + "\n\n" + modList);
+	else
+	{
+		messageBox.setText(explanation + "\n\n" + tr("%n mod(s) were disabled. Expand the details to see the full list.", "", disabledMods.size()));
+		messageBox.setDetailedText(modList);
+	}
+	messageBox.exec();
+}
+
+void CModListView::enableMods(QStringList mods)
+{
+	mods.removeDuplicates();
+	if(mods.empty())
+		return;
+
+	const auto previouslyEnabledMods = getEnabledRootMods();
+	manager->enableMods(mods);
+	reload(mods.front());
+	showDisabledMods(previouslyEnabledMods);
+	checkManagerErrors();
+}
+
+void CModListView::requestEnableMods(QStringList mods, bool allowDependencyDownload)
+{
+	mods.removeDuplicates();
+	vstd::erase_if(mods, [this](const QString & mod){ return !modStateModel->isModExists(mod) || modStateModel->isModEnabled(mod); });
+	if(mods.empty())
+		return;
+
+	QStringList missingDependencies;
+	for(const auto & mod : mods)
+		for(const auto & dependency : getModsToInstall(mod))
+			if(dependency != mod && !missingDependencies.contains(dependency))
+				missingDependencies.push_back(dependency);
+
+	const QStringList unavailableDependencies = findUnavailableMods(missingDependencies);
+	if(!unavailableDependencies.empty())
+	{
+		QMessageBox::warning(this, tr("Required mods are unavailable"),
+			tr("The selected mods were installed but cannot be enabled because the following required mods are unavailable:\n\n%1")
+				.arg(unavailableDependencies.join("\n")));
+		return;
+	}
+
+	if(!missingDependencies.empty())
+	{
+		if(!allowDependencyDownload)
+		{
+			QMessageBox::warning(this, tr("Required mods are missing"),
+				tr("The selected mods were installed but cannot be enabled because the following required mods could not be downloaded:\n\n%1")
+					.arg(getModNames(mods.front(), missingDependencies).join("\n")));
+			return;
+		}
+
+		const auto answer = QMessageBox::question(this, tr("Download required mods"),
+			tr("The selected mods require the following additional mods:\n\n%1\n\nDownload them and enable the selected mods?")
+				.arg(getModNames(mods.front(), missingDependencies).join("\n")),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		if(answer != QMessageBox::Yes)
+			return;
+
+		for(const auto & mod : mods)
+			if(!pendingModsToEnable.contains(mod))
+				pendingModsToEnable.push_back(mod);
+		for(const auto & dependency : missingDependencies)
+			downloadMod(modStateModel->getMod(dependency));
+		return;
+	}
+
+	enableMods(mods);
 }
 
 QStringList CModListView::getModsToInstall(QString mod)
@@ -958,7 +1058,10 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	else if(!failedFiles.empty())
 	{
 		// some mods were not downloaded
-		int result = QMessageBox::warning (this, title, firstLine + errors.join("\n") + lastLine,
+		QString partialDownloadWarning = firstLine + errors.join("\n");
+		if(!pendingModsToEnable.empty())
+			partialDownloadWarning += tr("\n\nSuccessfully downloaded files can still be installed, but the requested mods will remain disabled if any required mod is missing.");
+		int result = QMessageBox::warning (this, title, partialDownloadWarning + lastLine,
 							QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
 
 		if(result == QMessageBox::Yes)
@@ -980,6 +1083,9 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 	ui->progressBar->setMaximum(0);
 	ui->progressBar->setValue(0);
 
+	const QStringList modsToEnableAfterDownload = pendingModsToEnable;
+	pendingModsToEnable.clear();
+
 	if(doInstallFiles)
 	{
 		installFiles(savedFiles);
@@ -992,6 +1098,13 @@ void CModListView::downloadFinished(QStringList savedFiles, QStringList failedFi
 			}
 		}
 	}
+
+	if(!modsToEnableAfterDownload.empty())
+		requestEnableMods(modsToEnableAfterDownload, false);
+
+	// Do not apply an unfinished imported preset during an unrelated later installation.
+	if(!activatingPreset.isEmpty())
+		activatingPreset.clear();
 
 	Helper::keepScreenOn(false);
 	hideProgressBar();
@@ -1506,10 +1619,7 @@ void CModListView::installMods(QStringList archives, bool removeGithubSuffix)
 		if(!modStateModel->isModInstalled(mod))
 			modsToEnable.push_back(mod);
 
-	QStringList enabledRootModsBefore;
-	for(const auto & mod : modStateModel->getAllMods())
-		if(!modStateModel->isSubmod(mod) && modStateModel->isModEnabled(mod))
-			enabledRootModsBefore.push_back(mod);
+	const QStringList enabledRootModsBefore = getEnabledRootMods();
 
 	for(int i = 0; i < modNames.size(); i++)
 	{
@@ -1524,51 +1634,11 @@ void CModListView::installMods(QStringList archives, bool removeGithubSuffix)
 	}
 
 	reload(modNames.back(), modsToEnable);
+	showDisabledMods(enabledRootModsBefore);
 
 	// mods that were not activated on reload, e.g. due to dependencies that are installed but disabled
 	vstd::erase_if(modsToEnable, [this](const QString & mod){ return !modStateModel->isModExists(mod) || modStateModel->isModEnabled(mod); });
-
-	if(!modsToEnable.empty())
-	{
-		try
-		{
-			manager->enableMods(modsToEnable);
-		}
-		catch (const std::exception & e)
-		{
-			// Mods are installed but the dep tree can't be satisfied (a required
-			// dependency wasn't included in the install set). Mod files stay on
-			// disk and disabled; canEnableMod blocks further enable attempts.
-			// Surface still-missing deps via getModsToInstall — works even if the
-			// dep isn't in the repository cache (it just doesn't recurse further).
-			QStringList lines;
-			for(const auto & modID : modsToEnable)
-			{
-				QStringList missing;
-				for(const auto & dep : getModsToInstall(modID))
-					if(dep != modID)
-						missing.push_back(dep);
-				if(!missing.isEmpty())
-					lines.push_back(tr("%1 requires: %2").arg(modID, missing.join(", ")));
-			}
-			QString details = lines.isEmpty() ? QString::fromUtf8(e.what()) : lines.join("\n");
-			QMessageBox::warning(this, tr("Failed to enable mod"),
-				tr("One or more installed mods could not be enabled:\n\n%1").arg(details));
-		}
-	}
-
-	QStringList disabledRootMods;
-	for(const auto & mod : enabledRootModsBefore)
-	{
-		if(!modStateModel->isModExists(mod))
-			disabledRootMods.push_back(mod);
-		else if(!modStateModel->isModEnabled(mod))
-			disabledRootMods.push_back(modStateModel->getMod(mod).getName());
-	}
-
-	if(!disabledRootMods.isEmpty())
-		QMessageBox::warning(this, tr("Mods disabled"),
-			tr("Following mods were disabled due to changes in installed mods:\n\n%1").arg(disabledRootMods.join("\n")));
+	requestEnableMods(modsToEnable);
 
 	checkManagerErrors();
 }
@@ -1695,6 +1765,8 @@ void CModListView::on_abortButton_clicked()
 	enqueuedDownloadFiles.clear();
 	enqueuedDownloadDescriptions.clear();
 	activeDownloadFile.clear();
+	pendingModsToEnable.clear();
+	activatingPreset.clear();
 	Helper::keepScreenOn(false);
 	hideProgressBar();
 }
@@ -1797,6 +1869,9 @@ void CModListView::doInstallMod(const QString & modName)
 {
 	for(const auto & name : getModsToInstall(modName))
 	{
+		if(!modStateModel->isModExists(name))
+			continue;
+
 		auto mod = modStateModel->getMod(name);
 		if(mod.isAvailable())
 			downloadMod(mod);
@@ -2007,10 +2082,33 @@ void CModListView::importPreset(const JsonNode & data)
 	else
 	{
 		activatingPreset = presetName;
+		QStringList unavailableMods;
+		bool needsDownload = false;
 		for (const auto & modID : modList)
 		{
 			if (modStateModel->isModExists(modID))
+			{
+				const QStringList modsToInstall = getModsToInstall(modID);
+				const QStringList unavailable = findUnavailableMods(modsToInstall);
+				unavailableMods.append(unavailable);
+				needsDownload |= modsToInstall.size() != unavailable.size();
 				doInstallMod(modID);
+			}
+			else
+				unavailableMods.push_back(modID);
 		}
+		unavailableMods.removeDuplicates();
+
+		if(!needsDownload)
+		{
+			modStateModel->activatePreset(presetName);
+			activatingPreset.clear();
+			reload();
+		}
+
+		if(!unavailableMods.empty())
+			QMessageBox::warning(this, tr("Preset is incomplete"),
+				tr("The preset references mods that are not installed and are unavailable from the configured repositories:\n\n%1")
+					.arg(unavailableMods.join("\n")));
 	}
 }
